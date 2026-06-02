@@ -37,12 +37,10 @@ Attendance must reference `DailyAgenda`, never `Schedule` directly. This keeps s
 
 ## Internal Events
 
-Initial event names live in `apps/backend/src/common/events/domain-events.ts`.
+Initial event names live beside their owning domains:
 
-- `attendance.created`
-- `teacher.reminder`
-- `class.empty`
-- `teacher.absent`
+- `apps/backend/src/modules/attendance/events/attendance.events.ts`
+- `apps/backend/src/modules/academic/events/teacher.events.ts`
 
 Large workflows should publish events rather than call notification providers directly.
 
@@ -50,10 +48,12 @@ Large workflows should publish events rather than call notification providers di
 
 Reusable code should be promoted only when it serves multiple call sites:
 
-- Backend cross-module decorators, guards, events, logging, and helpers belong in `apps/backend/src/common`.
+- Backend cross-module decorators, guards, logging, and truly shared helpers belong in `apps/backend/src/common`.
+- Domain events stay beside their owning modules to prevent global event chaos.
 - Frontend UI primitives belong in `apps/frontend/components/ui`.
 - Frontend framework-agnostic helpers belong in `apps/frontend/lib`.
 - Global Tailwind theme tokens and base styles belong in `apps/frontend/app/globals.css`.
+- Cross-application types, constants, and utilities belong in `packages`.
 
 Domain-specific logic stays inside the owning module to avoid an unstructured shared folder.
 

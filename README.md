@@ -6,6 +6,7 @@ School academic monitoring system built as a modular monolith.
 
 - `apps/backend`: NestJS API, domain modules, Prisma schema, BullMQ-ready infrastructure.
 - `apps/frontend`: Next.js App Router frontend.
+- `packages`: Cross-application shared constants, types, and utilities.
 - `docker-compose.yml`: Local PostgreSQL and Redis services.
 
 ## Getting Started
@@ -30,6 +31,10 @@ Notifications and asynchronous workflows should be triggered through internal ev
 ## Shared Conventions
 
 - Place backend cross-module helpers in `apps/backend/src/common`.
+- Place domain events beside their owning backend modules.
+- Register queues centrally in `apps/backend/src/queue`.
+- Keep schedulers job-only and processors in `apps/backend/src/workers`.
+- Place third-party adapters in `apps/backend/src/infrastructure`.
 - Keep domain-specific logic inside its owning backend module.
 - Place reusable frontend components in `apps/frontend/components/ui`.
 - Place reusable frontend helpers in `apps/frontend/lib`.

@@ -12,12 +12,15 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { ReportingModule } from './modules/reporting/reporting.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { QueueModule } from './queue/queue.module';
+import { WorkersModule } from './workers/workers.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     EventEmitterModule.forRoot(),
     PrismaModule,
+    QueueModule,
     AuthModule,
     AcademicModule,
     AttendanceModule,
@@ -25,6 +28,7 @@ import { PrismaModule } from './prisma/prisma.module';
     ReportingModule,
     SchedulerModule,
     AuditModule,
+    WorkersModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

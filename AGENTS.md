@@ -1,31 +1,31 @@
 # AGENTS.md
 
-# School Academic Monitoring System
+# EduFlow
 
-## Project Vision
+## Overview
 
-Membangun sistem monitoring kegiatan belajar mengajar (KBM) sekolah berbasis jadwal, presensi, notifikasi, dan reporting yang scalable, modular, serta siap dikembangkan menjadi sistem akademik sekolah yang lebih besar di masa depan.
+EduFlow adalah sistem monitoring kegiatan belajar mengajar (KBM) sekolah berbasis:
 
-Project ini fokus pada:
-
-* monitoring aktivitas belajar mengajar,
-* reminder guru,
+* jadwal akademik,
 * presensi siswa,
+* monitoring guru,
+* reminder otomatis,
 * notifikasi wali murid,
-* monitoring kelas kosong,
-* reporting sekolah.
+* reporting sekolah,
+* serta automation workflow akademik.
 
 Project dirancang agar:
 
-* maintainable,
 * scalable,
+* maintainable,
 * modular,
+* event-driven,
 * future-proof,
-  tanpa memerlukan refactor besar ketika fitur berkembang.
+  tanpa memerlukan refactor besar ketika sistem berkembang.
 
 ---
 
-# Main Technology Stack
+# Main Stack
 
 ## Frontend
 
@@ -46,10 +46,33 @@ Project dirancang agar:
 
 * Prisma
 
-## Cache / Queue
+## Queue & Cache
 
 * Redis
 * BullMQ
+
+---
+
+# Monorepo Structure
+
+Project menggunakan monorepo architecture.
+
+## Main Structure
+
+```txt
+apps/
+  backend/
+  frontend/
+
+packages/
+  shared/
+  types/
+  constants/
+  utils/
+
+docs/
+infra/
+```
 
 ---
 
@@ -57,40 +80,45 @@ Project dirancang agar:
 
 ## Modular Monolith
 
-Project menggunakan modular monolith architecture.
+Backend menggunakan modular monolith architecture.
 
-Setiap domain dipisahkan dalam module terpisah tetapi tetap berada dalam satu backend service.
+Semua domain dipisahkan dalam module independen tetapi tetap berada dalam satu backend service.
 
 Tujuan:
 
 * maintainability,
 * scalability,
-* easier testing,
-* future microservice migration.
+* consistency,
+* easier future migration.
 
 ---
 
-# Domain-Driven Structure
+# Domain-Based Architecture
 
-Project harus menggunakan pendekatan domain-based, bukan feature-page based.
+Gunakan pendekatan domain-based.
 
-## Correct Example
-
-* academic
-* attendance
-* notification
-* finance
-* reporting
-
-## Wrong Example
-
-* dashboardController
-* adminController
-* pageController
+Jangan menggunakan page-based atau controller-based architecture.
 
 ---
 
-# Core Modules
+# Backend Structure
+
+## Recommended Structure
+
+```txt
+src/
+  common/
+  config/
+  infrastructure/
+  prisma/
+  queue/
+  workers/
+  modules/
+```
+
+---
+
+# Modules
 
 ## Auth Module
 
@@ -101,6 +129,7 @@ Berisi:
 * JWT
 * refresh token
 * RBAC
+* permissions
 
 ---
 
@@ -108,13 +137,15 @@ Berisi:
 
 Berisi:
 
-* siswa
-* guru
-* kelas
-* mapel
-* tahun ajaran
-* semester
-* jadwal
+* students
+* teachers
+* classes
+* subjects
+* schedules
+* semesters
+* school years
+
+Academic module harus dipecah menjadi subdomain kecil ketika berkembang.
 
 ---
 
@@ -122,10 +153,11 @@ Berisi:
 
 Berisi:
 
-* agenda harian
-* presensi siswa
-* aktivitas mengajar
-* status kelas
+* daily agendas
+* student attendance
+* teacher activity
+* class status
+* attendance summaries
 
 ---
 
@@ -136,10 +168,47 @@ Berisi:
 * WhatsApp
 * Telegram
 * email
-* reminder
-* summary
+* templates
+* notification processors
 
-Semua notifikasi harus dipusatkan di module ini.
+Semua pengiriman notifikasi wajib dipusatkan di module ini.
+
+---
+
+## Scheduler Module
+
+Berisi:
+
+* cron scheduling
+* reminder scheduling
+* recurring academic jobs
+
+Scheduler hanya bertugas membuat job.
+
+Scheduler bukan worker processor.
+
+---
+
+## Queue Module
+
+Berisi:
+
+* BullMQ queue
+* queue registration
+* queue orchestration
+
+---
+
+## Workers
+
+Berisi:
+
+* notification workers
+* summary workers
+* reminder workers
+* reporting workers
+
+Worker bertugas memproses background jobs.
 
 ---
 
@@ -148,82 +217,148 @@ Semua notifikasi harus dipusatkan di module ini.
 Berisi:
 
 * dashboard
-* statistik
-* rekap
-* laporan kepala sekolah
+* reports
+* statistics
+* school monitoring
 
 ---
 
-## Finance Module (Future)
+## Audit Module
 
 Berisi:
 
-* SPP
-* tagihan
-* pembayaran
-* invoice
+* activity logs
+* audit trails
+* change history
+
+Audit wajib untuk semua perubahan data penting.
 
 ---
 
-# Core Concepts
+# Infrastructure Layer
 
-## Schedule vs Daily Agenda
+Semua third-party integration harus berada di infrastructure layer.
+
+## Example
+
+* Redis
+* WhatsApp provider
+* Telegram provider
+* email provider
+* storage provider
+
+Jangan campurkan integration logic dengan business logic domain.
+
+---
+
+# Shared & Common
+
+## common/
+
+Hanya untuk:
+
+* shared decorators
+* shared guards
+* global exceptions
+* truly shared utilities
+
+Jangan menjadikan common sebagai tempat dumping utility.
+
+---
+
+## packages/
+
+Digunakan untuk:
+
+* shared types
+* shared constants
+* shared validation
+* reusable utilities
+
+Frontend dan backend dapat berbagi package.
+
+---
+
+# Event-Driven Principles
+
+Gunakan event-driven mindset.
+
+Jangan membuat domain saling bergantung langsung jika berkaitan dengan workflow besar.
+
+---
+
+## Example Events
+
+```txt
+attendance.created
+attendance.absent
+teacher.reminder
+teacher.absent
+class.empty
+payment.paid
+```
+
+---
+
+## Event Rules
+
+* Event harus spesifik.
+* Event sebaiknya berada di masing-masing domain.
+* Hindari global event chaos.
+
+---
+
+# Schedule vs Daily Agenda
 
 Jadwal adalah template tetap.
 
 Agenda harian adalah realisasi jadwal pada tanggal tertentu.
 
-Jangan melakukan presensi langsung terhadap jadwal.
+Flow wajib:
 
-Flow:
-Schedule -> Generate Daily Agenda -> Attendance
+```txt
+Schedule
+  ↓
+Generate Daily Agenda
+  ↓
+Attendance & Activity
+```
 
-Ini penting untuk:
-
-* guru pengganti,
-* kelas libur,
-* ujian,
-* perubahan jadwal,
-* kegiatan khusus.
-
----
-
-# Event-Driven Mindset
-
-Gunakan event-driven architecture secara internal.
-
-Jangan membuat module saling memanggil secara langsung jika berkaitan dengan workflow besar.
-
-## Example Events
-
-* attendance.created
-* teacher.reminder
-* payment.paid
-* class.empty
-* teacher.absent
-
-Module lain dapat merespons event tersebut.
+Jangan melakukan presensi langsung terhadap jadwal tetap.
 
 ---
 
-# Queue & Background Jobs
+# Database Principles
 
-Semua proses berat dan asynchronous wajib menggunakan BullMQ.
+## PostgreSQL Is Source of Truth
 
-## Use Queue For
+Semua permanent data wajib berada di PostgreSQL.
 
-* WhatsApp notification
-* Telegram notification
-* reminder
-* daily summary
-* reporting
-* scheduled jobs
+Redis bukan database utama.
 
-## Do Not Use Queue For
+---
 
-* login
-* CRUD sederhana
-* realtime form response
+## UUID
+
+Gunakan UUID untuk primary identifier utama.
+
+---
+
+## Soft Delete
+
+Gunakan soft delete untuk entity penting.
+
+---
+
+## Audit Trail
+
+Minimal audit menyimpan:
+
+* user
+* action
+* timestamp
+* before
+* after
 
 ---
 
@@ -237,87 +372,26 @@ Redis digunakan untuk:
 * scheduler support
 * rate limiting
 
-Redis bukan source of truth.
+---
 
-Semua permanent data tetap berada di PostgreSQL.
+# Queue Principles
+
+Gunakan BullMQ untuk:
+
+* WhatsApp notification
+* Telegram notification
+* email sending
+* reminder
+* daily summary
+* reporting jobs
 
 ---
 
-# Database Principles
+## Do Not Queue
 
-## PostgreSQL Is Source of Truth
-
-Semua data utama wajib disimpan di PostgreSQL.
-
----
-
-## Use UUID
-
-Gunakan UUID sebagai primary identifier.
-
-Hindari integer auto increment untuk entity utama.
-
----
-
-## Soft Delete
-
-Gunakan soft delete untuk entity penting.
-
-Jangan hard delete kecuali benar-benar diperlukan.
-
----
-
-## Audit Trail
-
-Semua perubahan penting wajib memiliki audit log.
-
-Minimal:
-
-* user
-* action
-* timestamp
-* before
-* after
-
-Audit wajib untuk:
-
-* presensi
-* pembayaran
-* jadwal
-* perubahan data penting
-
----
-
-# Multi Academic Year Support
-
-Semua data akademik harus mempertimbangkan:
-
-* tahun ajaran
-* semester
-
-Jangan mencampur data lintas tahun ajaran tanpa konteks akademik.
-
----
-
-# Role & Permission
-
-Gunakan permission-based RBAC.
-
-Jangan hardcode:
-if role === "admin"
-
-Role sekolah dapat berkembang:
-
-* admin
-* guru
-* wali kelas
-* kepala sekolah
-* TU
-* BK
-* operator
-* orang tua
-
-Permission harus fleksibel.
+* login
+* simple CRUD
+* realtime form response
 
 ---
 
@@ -327,29 +401,48 @@ Jangan kirim notifikasi langsung dari business logic.
 
 ## Wrong
 
+```txt
 attendanceService -> sendWhatsapp()
-
-## Correct
-
-attendanceService -> publish event
-notification module -> process event
+```
 
 ---
 
-# Scheduler Principles
+## Correct
 
-Scheduler adalah core system.
+```txt
+attendanceService
+  ↓
+publish event
+  ↓
+notification worker
+```
 
-Semua automation:
+---
 
-* reminder guru
-* summary harian
-* deteksi kelas kosong
-* reminder pembayaran
+# Role & Permission
 
-harus terpusat dan terstruktur.
+Gunakan permission-based RBAC.
 
-Jangan membuat cron tersebar di project.
+Jangan hardcode role checking.
+
+## Example
+
+Wrong:
+
+```txt
+if role === "admin"
+```
+
+Gunakan permission system yang fleksibel.
+
+---
+
+# Multi Academic Year Support
+
+Semua data akademik wajib mempertimbangkan:
+
+* school year
+* semester
 
 ---
 
@@ -363,7 +456,7 @@ Minimal:
 * warning
 * error
 
-Jangan mengandalkan console.log untuk production.
+Hindari console.log untuk production.
 
 ---
 
@@ -371,20 +464,18 @@ Jangan mengandalkan console.log untuk production.
 
 Frontend harus:
 
-* mobile friendly,
-* responsive,
-* lightweight,
-* mudah digunakan guru.
+* mobile friendly
+* responsive
+* lightweight
+* usable oleh guru sekolah
 
-Prioritaskan usability dibanding visual berlebihan.
+Prioritaskan usability dibanding visual kompleks.
 
 ---
 
 # Initial MVP Scope
 
-Fokus tahap awal:
-
-## Mandatory Features
+Tahap awal hanya fokus pada:
 
 * authentication
 * jadwal
@@ -399,31 +490,32 @@ Fokus tahap awal:
 
 # Avoid Premature Complexity
 
-Jangan implement:
+Jangan implement terlalu awal:
 
-* AI
-* face recognition
-* realtime websocket kompleks
 * microservice
+* websocket realtime kompleks
+* AI analytics
+* face recognition
 * GPS tracking
-* advanced analytics
+* advanced automation
 
-hingga core workflow benar-benar stabil.
+Fokus utama adalah core workflow stability.
 
 ---
 
-# Scalability Goal
+# Scalability Goals
 
 System harus siap berkembang untuk:
 
-* pembayaran sekolah,
-* multi sekolah,
-* mobile apps,
-* analytics,
-* advanced reporting,
-* AI integration.
+* pembayaran sekolah
+* SPP
+* mobile app
+* analytics
+* multi sekolah
+* AI integration
+* advanced reporting
 
-Namun implementasi dilakukan bertahap tanpa overengineering.
+Tanpa refactor besar.
 
 ---
 
@@ -431,16 +523,43 @@ Namun implementasi dilakukan bertahap tanpa overengineering.
 
 Prioritaskan:
 
-* maintainability,
-* readability,
-* modularity,
-* consistency,
-* long-term scalability.
+* maintainability
+* modularity
+* readability
+* consistency
+* scalability
+* simplicity
 
-Bukan:
+Hindari:
 
-* over optimization,
-* hype technology,
-* unnecessary complexity.
+* overengineering
+* premature optimization
+* hype-driven architecture
 
-Project harus mudah dipahami dan mudah dikembangkan dalam jangka panjang.
+---
+
+# Git Rules
+
+* Jangan commit dist/
+* Jangan commit .env
+* Gunakan environment variables
+* Gunakan migration untuk perubahan schema database
+
+---
+
+# Documentation
+
+Semua architecture decision penting wajib didokumentasikan di:
+
+```txt
+docs/
+```
+
+Minimal:
+
+* architecture
+* database
+* workflow
+* event flow
+* queue flow
+* deployment
