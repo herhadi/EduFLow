@@ -1,21 +1,25 @@
-# Event Flow
+# Konvensi Event
 
-Events belong to the domain that publishes them. Avoid a global bucket of unrelated events.
+Event wajib berada di domain pemiliknya dan menggunakan format:
 
-## Attendance Events
+```text
+domain.entity.action
+```
 
-- `attendance.created`
-- `attendance.absent`
-- `class.empty`
+## Event Attendance
 
-Defined in `apps/backend/src/modules/attendance/events/attendance.events.ts`.
+- `attendance.student.created`
+- `attendance.student.absent`
+- `attendance.class.empty`
 
-## Teacher Events
+Definisi berada di `apps/backend/src/modules/attendance/events/attendance.events.ts`.
 
-- `teacher.reminder`
-- `teacher.absent`
+## Event Teacher
 
-Defined in `apps/backend/src/modules/academic/events/teacher.events.ts`.
+- `teacher.class.reminder`
+- `teacher.class.absent`
 
-Event listeners may enqueue jobs, but domain services must not call notification providers directly.
+Definisi berada di `apps/backend/src/modules/academic/events/teacher.events.ts`.
+
+Domain service tidak boleh memanggil provider notifikasi secara langsung. Listener event dapat membuat queue job.
 

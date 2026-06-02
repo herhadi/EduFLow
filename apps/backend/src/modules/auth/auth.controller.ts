@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Req } from '@nestjs/common';
-import { Public } from '../../common/auth/public.decorator';
-import { RequestWithUser } from '../../common/auth/request-with-user';
+import { Public } from '../../common/decorators/public.decorator';
+import { RequestWithUser } from '../../core/http/request-with-user';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -38,4 +38,3 @@ export class AuthController {
     return request.user;
   }
 }
-

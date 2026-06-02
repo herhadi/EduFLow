@@ -1,6 +1,6 @@
 # Deployment
 
-## Local Development
+## Pengembangan Lokal
 
 ```bash
 cp .env.example .env
@@ -11,12 +11,12 @@ npm run dev:backend
 npm run dev:frontend
 ```
 
-## Services
+## Service
 
-- Frontend: Next.js application.
-- Backend: NestJS API and worker host.
-- PostgreSQL: permanent data store.
-- Redis: BullMQ, cache, and temporary state.
+- Frontend: aplikasi Next.js.
+- Backend: API NestJS dan host worker.
+- PostgreSQL: penyimpanan data permanen.
+- Redis: BullMQ, cache, dan state sementara.
 
-Production deployment should provide environment variables securely and run Prisma migrations before starting the backend.
+Deployment production wajib menyediakan environment variable secara aman dan menjalankan migration Prisma sebelum backend dimulai.
 

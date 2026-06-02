@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { QUEUES } from '@eduflow/constants';
+import { QUEUES } from '@eduflow/shared';
 import { createRedisConnection } from '../config/redis.config';
 
 const queueRegistrations = Object.values(QUEUES).map((name) => ({ name }));
@@ -21,4 +21,3 @@ const queueRegistrations = Object.values(QUEUES).map((name) => ({ name }));
   exports: [BullModule],
 })
 export class QueueModule {}
-

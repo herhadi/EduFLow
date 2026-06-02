@@ -1,8 +1,6 @@
 # Infrastructure
 
-Third-party adapters belong here, grouped by provider type.
-
-Examples:
+Simpan adapter pihak ketiga di sini dan kelompokkan berdasarkan provider:
 
 - `redis`
 - `whatsapp`
@@ -10,5 +8,5 @@ Examples:
 - `email`
 - `storage`
 
-Domain modules should depend on adapter contracts rather than provider-specific logic.
+Domain module bergantung pada kontrak adapter, bukan implementasi provider secara langsung.
 

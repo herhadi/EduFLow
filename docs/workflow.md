@@ -1,16 +1,16 @@
-# Workflow
+# Alur Kerja
 
-## Daily Academic Flow
+## Alur Akademik Harian
 
 ```text
 Schedule
-  -> Scheduler creates agenda-generation job
-  -> Worker generates DailyAgenda
-  -> Teacher records activity and student attendance
-  -> Domain publishes specific event
-  -> Queue orchestration creates notification or summary job
-  -> Worker processes delivery or report
+  -> Scheduler membuat job generate agenda
+  -> Worker membuat DailyAgenda
+  -> Guru mengisi aktivitas dan presensi siswa
+  -> Domain menerbitkan event spesifik
+  -> Orkestrasi queue membuat job notifikasi atau summary
+  -> Worker memproses pengiriman atau laporan
 ```
 
-The scheduler creates jobs only. Workers perform asynchronous processing.
+Scheduler hanya membuat job. Worker menangani proses asynchronous.
 

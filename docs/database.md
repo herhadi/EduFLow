@@ -1,20 +1,20 @@
 # Database
 
-PostgreSQL is EduFlow's source of truth. Redis stores only queue, cache, rate-limit, scheduler, and temporary state.
+PostgreSQL adalah source of truth EduFlow. Redis bukan database utama.
 
-## Core Rules
+## Aturan Utama
 
-- Use UUID identifiers for primary entities.
-- Use soft deletes for important entities.
-- Keep academic records scoped by school year and semester.
-- Store important mutations in `AuditLog`.
-- Apply schema changes through Prisma migrations.
+- Gunakan UUID untuk primary identifier entity utama.
+- Gunakan soft delete untuk entity penting.
+- Simpan konteks tahun ajaran dan semester pada data akademik.
+- Catat perubahan penting ke `AuditLog`.
+- Terapkan perubahan schema melalui migration Prisma.
 
-## Academic Relationship
+## Relasi Akademik
 
-`Schedule` is a reusable template. `DailyAgenda` is its dated realization. `StudentAttendance` references `DailyAgenda`, never `Schedule`.
+`Schedule` adalah template tetap. `DailyAgenda` adalah realisasi jadwal pada tanggal tertentu. `StudentAttendance` wajib mengacu pada `DailyAgenda`.
 
-## Authentication
+## Autentikasi
 
-Passwords are bcrypt hashes. Refresh tokens are opaque values; only SHA-256 token hashes are stored in PostgreSQL.
+Password disimpan sebagai bcrypt hash. Refresh token bersifat opaque dan hanya hash SHA-256-nya yang disimpan di PostgreSQL.
 

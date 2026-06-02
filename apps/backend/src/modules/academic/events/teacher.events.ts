@@ -1,5 +1,4 @@
 export const TEACHER_EVENTS = {
-  REMINDER: 'teacher.reminder',
-  ABSENT: 'teacher.absent',
+  CLASS_REMINDER: 'teacher.class.reminder',
+  CLASS_ABSENT: 'teacher.class.absent',
 } as const;
-

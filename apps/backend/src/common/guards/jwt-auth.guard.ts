@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { IS_PUBLIC_KEY } from './public.decorator';
-import { RequestWithUser } from './request-with-user';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { RequestWithUser } from '../../core/http/request-with-user';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -42,4 +42,3 @@ export class JwtAuthGuard implements CanActivate {
     return true;
   }
 }
-

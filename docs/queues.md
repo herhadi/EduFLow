@@ -1,19 +1,25 @@
-# Queue Flow
+# Konvensi Queue
 
-BullMQ queues are registered centrally in `apps/backend/src/queue/queue.module.ts`. Queue names live in `packages/constants`.
+Queue BullMQ didaftarkan terpusat di `apps/backend/src/queue/queue.module.ts`. Nama queue disimpan di `packages/shared`.
 
-## Queues
+Gunakan format:
 
-- `notification`: WhatsApp, Telegram, and email delivery.
-- `reminder`: teacher and academic reminders.
-- `summary`: parent and daily summaries.
-- `reporting`: asynchronous report generation.
+```text
+domain:action
+```
 
-## Boundaries
+## Queue Awal
 
-- Scheduler modules create recurring or delayed jobs.
-- Queue modules register and orchestrate queues.
-- Workers process background jobs.
-- Infrastructure adapters communicate with third-party providers.
-- Domain modules publish events rather than send notifications directly.
+- `notification:send`
+- `attendance:summary`
+- `teacher:reminder`
+- `report:daily`
+
+## Batas Tanggung Jawab
+
+- Scheduler membuat recurring atau delayed job.
+- Queue module mendaftarkan dan mengorkestrasi queue.
+- Worker memproses background job.
+- Infrastructure adapter berkomunikasi dengan provider pihak ketiga.
+- Domain module menerbitkan event, bukan mengirim notifikasi secara langsung.
 

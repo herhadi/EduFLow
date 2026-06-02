@@ -1,6 +1,5 @@
 export const ATTENDANCE_EVENTS = {
-  CREATED: 'attendance.created',
-  ABSENT: 'attendance.absent',
-  CLASS_EMPTY: 'class.empty',
+  STUDENT_CREATED: 'attendance.student.created',
+  STUDENT_ABSENT: 'attendance.student.absent',
+  CLASS_EMPTY: 'attendance.class.empty',
 } as const;
-

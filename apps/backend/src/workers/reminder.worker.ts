@@ -1,11 +1,10 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { QUEUES } from '@eduflow/constants';
+import { QUEUES } from '@eduflow/shared';
 import { Job } from 'bullmq';
 
-@Processor(QUEUES.REMINDER)
+@Processor(QUEUES.TEACHER_REMINDER)
 export class ReminderWorker extends WorkerHost {
   async process(_job: Job) {
     return undefined;
   }
 }
-

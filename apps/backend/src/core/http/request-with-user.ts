@@ -1,7 +1,6 @@
 import { Request } from 'express';
-import { AuthUser } from './auth-user';
+import { AuthUser } from '@eduflow/shared';
 
 export interface RequestWithUser extends Request {
   user: AuthUser;
 }
-
