@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SemesterType {
+  ODD
+  EVEN
+}
+
+enum AgendaStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  EMPTY
+}
+
+enum AttendanceStatus {
+  PRESENT
+  SICK
+  EXCUSED
+  ABSENT
+}
+
+model User {
+  id            String         @id @default(uuid()) @db.Uuid
+  email         String         @unique
+  password      String
+  name          String
+  roles         UserRole[]
+  refreshTokens RefreshToken[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+
+  @@index([userId, expiresAt])
+}
+
+model Role {
+  id          String           @id @default(uuid()) @db.Uuid
+  name        String           @unique
+  users       UserRole[]
+  permissions RolePermission[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Permission {
+  id    String           @id @default(uuid()) @db.Uuid
+  key   String           @unique
+  roles RolePermission[]
+}
+
+model UserRole {
+  userId String @db.Uuid
+  roleId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id])
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId])
+}
+
+model RolePermission {
+  roleId       String     @db.Uuid
+  permissionId String     @db.Uuid
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+}
+
+model AcademicYear {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String     @unique
+  startsAt  DateTime
+  endsAt    DateTime
+  semesters Semester[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Semester {
+  id             String        @id @default(uuid()) @db.Uuid
+  academicYearId String        @db.Uuid
+  type           SemesterType
+  startsAt       DateTime
+  endsAt         DateTime
+  academicYear   AcademicYear  @relation(fields: [academicYearId], references: [id])
+  schedules      Schedule[]
+  agendas        DailyAgenda[]
+
+  @@unique([academicYearId, type])
+}
+
+model Teacher {
+  id        String        @id @default(uuid()) @db.Uuid
+  name      String
+  schedules Schedule[]
+  agendas   DailyAgenda[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+}
+
+model Student {
+  id          String              @id @default(uuid()) @db.Uuid
+  name        String
+  classId     String?             @db.Uuid
+  class       SchoolClass?        @relation(fields: [classId], references: [id])
+  attendances StudentAttendance[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  deletedAt   DateTime?
+}
+
+model SchoolClass {
+  id        String        @id @default(uuid()) @db.Uuid
+  name      String
+  students  Student[]
+  schedules Schedule[]
+  agendas   DailyAgenda[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+}
+
+model Subject {
+  id        String        @id @default(uuid()) @db.Uuid
+  name      String
+  schedules Schedule[]
+  agendas   DailyAgenda[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+}
+
+model Schedule {
+  id         String        @id @default(uuid()) @db.Uuid
+  semesterId String        @db.Uuid
+  classId    String        @db.Uuid
+  subjectId  String        @db.Uuid
+  teacherId  String        @db.Uuid
+  dayOfWeek  Int
+  startsAt   String
+  endsAt     String
+  semester   Semester      @relation(fields: [semesterId], references: [id])
+  class      SchoolClass   @relation(fields: [classId], references: [id])
+  subject    Subject       @relation(fields: [subjectId], references: [id])
+  teacher    Teacher       @relation(fields: [teacherId], references: [id])
+  agendas    DailyAgenda[]
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  deletedAt  DateTime?
+}
+
+model DailyAgenda {
+  id          String              @id @default(uuid()) @db.Uuid
+  scheduleId  String?             @db.Uuid
+  semesterId  String              @db.Uuid
+  classId     String              @db.Uuid
+  subjectId   String              @db.Uuid
+  teacherId   String              @db.Uuid
+  date        DateTime            @db.Date
+  status      AgendaStatus        @default(SCHEDULED)
+  schedule    Schedule?           @relation(fields: [scheduleId], references: [id])
+  semester    Semester            @relation(fields: [semesterId], references: [id])
+  class       SchoolClass         @relation(fields: [classId], references: [id])
+  subject     Subject             @relation(fields: [subjectId], references: [id])
+  teacher     Teacher             @relation(fields: [teacherId], references: [id])
+  attendances StudentAttendance[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@unique([scheduleId, date])
+  @@index([date, status])
+}
+
+model StudentAttendance {
+  id        String           @id @default(uuid()) @db.Uuid
+  agendaId  String           @db.Uuid
+  studentId String           @db.Uuid
+  status    AttendanceStatus
+  notes     String?
+  agenda    DailyAgenda      @relation(fields: [agendaId], references: [id])
+  student   Student          @relation(fields: [studentId], references: [id])
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([agendaId, studentId])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @db.Uuid
+  action     String
+  entityType String
+  entityId   String
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}

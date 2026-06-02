@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #eefaf6;
+  --color-brand-600: #24715b;
+  --color-brand-700: #1b5948;
+  --color-ink: #172033;
+  --color-muted: #687386;
+}
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  body {
+    @apply m-0 bg-slate-50 text-ink antialiased;
+  }
+}
+
