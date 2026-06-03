@@ -1,6 +1,6 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
-import { QUEUES } from '@eduflow/shared';
+import { QUEUE_JOBS, QUEUES } from '@eduflow/shared';
 import { Queue } from 'bullmq';
 
 @Injectable()
@@ -13,10 +13,14 @@ export class SchedulerService {
   ) {}
 
   scheduleTeacherReminder(data: Record<string, unknown>, delay: number) {
-    return this.reminderQueue.add('teacher:reminder', data, { delay });
+    return this.reminderQueue.add(QUEUE_JOBS.TEACHER_REMINDER_BEFORE_CLASS, data, {
+      delay,
+    });
   }
 
   scheduleDailySummary(data: Record<string, unknown>, delay: number) {
-    return this.summaryQueue.add('attendance:summary', data, { delay });
+    return this.summaryQueue.add(QUEUE_JOBS.ATTENDANCE_SUMMARY_DAILY, data, {
+      delay,
+    });
   }
 }

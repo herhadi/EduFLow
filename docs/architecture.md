@@ -47,3 +47,11 @@ Presensi wajib mengacu pada `DailyAgenda`, bukan langsung pada `Schedule`.
 ## Otorisasi
 
 API menerapkan authentication guard dan permission guard secara global. Endpoint publik harus menggunakan `@Public()`. Endpoint khusus menggunakan `@RequirePermissions(...)`, bukan pengecekan role yang di-hardcode.
+
+## Dokumen Operasional
+
+- `docs/database.md`: desain relasi akademik.
+- `docs/events.md`: event flow sistem nyata.
+- `docs/attendance-workflow.md`: alur guru, siswa, dan kelas kosong.
+- `docs/queues.md`: strategi queue, job naming, retry, dan idempotency.
+- `docs/permission-matrix.md`: role, capability, dan scope data.

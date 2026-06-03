@@ -17,3 +17,10 @@ Struktur pengujian backend berada di `apps/backend/test`.
 5. Worker memproses queue yang sesuai.
 6. Event memicu queue tanpa memanggil provider langsung.
 
+## Area Yang Wajib Ditest Saat Implementasi
+
+- Permission guard memakai matrix di `docs/permission-matrix.md`.
+- Generate agenda tidak membuat duplikasi untuk `scheduleId + date`.
+- Queue retry tidak menggandakan notifikasi karena idempotency key.
+- Event attendance menghasilkan job notification atau summary yang tepat.
+- Guru tidak bisa mengelola agenda milik guru lain tanpa permission administratif.

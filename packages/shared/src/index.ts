@@ -5,14 +5,56 @@ export const QUEUES = {
   REPORT_DAILY: 'report:daily',
 } as const;
 
+export const QUEUE_JOBS = {
+  NOTIFICATION_SEND_WHATSAPP: 'notification:send:whatsapp',
+  NOTIFICATION_SEND_TELEGRAM: 'notification:send:telegram',
+  NOTIFICATION_SEND_EMAIL: 'notification:send:email',
+  ATTENDANCE_GENERATE_AGENDA: 'attendance:generate-agenda',
+  ATTENDANCE_SUMMARY_DAILY: 'attendance:summary:daily',
+  TEACHER_REMINDER_BEFORE_CLASS: 'teacher:reminder:before-class',
+  TEACHER_DETECT_ABSENT: 'teacher:detect:absent',
+  REPORT_DAILY_PRINCIPAL: 'report:daily:principal',
+} as const;
+
+export const DOMAIN_EVENTS = {
+  ATTENDANCE_STUDENT_RECORDED: 'attendance.student.recorded',
+  ATTENDANCE_STUDENT_ABSENT: 'attendance.student.absent',
+  ATTENDANCE_CLASS_EMPTY: 'attendance.class.empty',
+  TEACHER_CLASS_REMINDER: 'teacher.class.reminder',
+  TEACHER_CLASS_ABSENT: 'teacher.class.absent',
+  NOTIFICATION_MESSAGE_SENT: 'notification.message.sent',
+  NOTIFICATION_MESSAGE_FAILED: 'notification.message.failed',
+} as const;
+
 export const PERMISSIONS = {
+  AUTH_SESSION_MANAGE: 'auth.session.manage',
   ACADEMIC_READ: 'academic.read',
   ACADEMIC_MANAGE: 'academic.manage',
+  SCHEDULE_READ: 'schedule.read',
+  SCHEDULE_MANAGE: 'schedule.manage',
+  AGENDA_READ: 'agenda.read',
+  AGENDA_GENERATE: 'agenda.generate',
   ATTENDANCE_READ: 'attendance.read',
   ATTENDANCE_MANAGE: 'attendance.manage',
+  CLASS_STATUS_READ: 'class-status.read',
+  CLASS_STATUS_MANAGE: 'class-status.manage',
+  NOTIFICATION_READ: 'notification.read',
   NOTIFICATION_MANAGE: 'notification.manage',
   REPORTING_READ: 'reporting.read',
+  REPORTING_MANAGE: 'reporting.manage',
+  AUDIT_READ: 'audit.read',
   USER_MANAGE: 'user.manage',
+} as const;
+
+export const ROLES = {
+  ADMIN: 'admin',
+  TEACHER: 'guru',
+  HOMEROOM_TEACHER: 'wali-kelas',
+  PRINCIPAL: 'kepala-sekolah',
+  STAFF: 'tu',
+  COUNSELOR: 'bk',
+  OPERATOR: 'operator',
+  PARENT: 'orang-tua',
 } as const;
 
 export interface ApiResponse<T> {

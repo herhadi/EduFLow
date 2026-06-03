@@ -84,27 +84,65 @@ model RolePermission {
   @@id([roleId, permissionId])
 }
 
-model AcademicYear {
-  id        String     @id @default(uuid()) @db.Uuid
-  name      String     @unique
-  startsAt  DateTime
-  endsAt    DateTime
-  semesters Semester[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+model SchoolYear {
+  id          String              @id @default(uuid()) @db.Uuid
+  name        String              @unique
+  startsAt    DateTime
+  endsAt      DateTime
+  semesters   Semester[]
+  classes     Class[]
+  enrollments StudentEnrollment[]
+  schedules   Schedule[]
+  agendas     DailyAgenda[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  deletedAt   DateTime?
 }
 
 model Semester {
-  id             String        @id @default(uuid()) @db.Uuid
-  academicYearId String        @db.Uuid
-  type           SemesterType
-  startsAt       DateTime
-  endsAt         DateTime
-  academicYear   AcademicYear  @relation(fields: [academicYearId], references: [id])
-  schedules      Schedule[]
-  agendas        DailyAgenda[]
+  id           String        @id @default(uuid()) @db.Uuid
+  schoolYearId String        @db.Uuid
+  type         SemesterType
+  startsAt     DateTime
+  endsAt       DateTime
+  schoolYear   SchoolYear    @relation(fields: [schoolYearId], references: [id])
+  schedules    Schedule[]
+  agendas      DailyAgenda[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
 
-  @@unique([academicYearId, type])
+  @@unique([schoolYearId, type])
+  @@index([schoolYearId])
+}
+
+model Class {
+  id           String              @id @default(uuid()) @db.Uuid
+  schoolYearId String              @db.Uuid
+  name         String
+  grade        String?
+  schoolYear   SchoolYear          @relation(fields: [schoolYearId], references: [id])
+  enrollments  StudentEnrollment[]
+  schedules    Schedule[]
+  agendas      DailyAgenda[]
+  attendances  Attendance[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  deletedAt    DateTime?
+
+  @@unique([schoolYearId, name])
+  @@index([schoolYearId])
+}
+
+model Subject {
+  id        String        @id @default(uuid()) @db.Uuid
+  name      String
+  code      String?       @unique
+  schedules Schedule[]
+  agendas   DailyAgenda[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
 }
 
 model Teacher {
@@ -118,90 +156,114 @@ model Teacher {
 }
 
 model Student {
-  id          String              @id @default(uuid()) @db.Uuid
-  name        String
-  classId     String?             @db.Uuid
-  class       SchoolClass?        @relation(fields: [classId], references: [id])
-  attendances StudentAttendance[]
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  deletedAt   DateTime?
+  id              String              @id @default(uuid()) @db.Uuid
+  name            String
+  enrollments     StudentEnrollment[]
+  attendanceItems AttendanceItem[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  deletedAt       DateTime?
 }
 
-model SchoolClass {
-  id        String        @id @default(uuid()) @db.Uuid
-  name      String
-  students  Student[]
-  schedules Schedule[]
-  agendas   DailyAgenda[]
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  deletedAt DateTime?
-}
+model StudentEnrollment {
+  id           String     @id @default(uuid()) @db.Uuid
+  studentId    String     @db.Uuid
+  classId      String     @db.Uuid
+  schoolYearId String     @db.Uuid
+  isActive     Boolean    @default(true)
+  student      Student    @relation(fields: [studentId], references: [id])
+  class        Class      @relation(fields: [classId], references: [id])
+  schoolYear   SchoolYear @relation(fields: [schoolYearId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?
 
-model Subject {
-  id        String        @id @default(uuid()) @db.Uuid
-  name      String
-  schedules Schedule[]
-  agendas   DailyAgenda[]
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  deletedAt DateTime?
+  @@unique([studentId, schoolYearId])
+  @@index([classId, isActive])
+  @@index([schoolYearId, isActive])
 }
 
 model Schedule {
-  id         String        @id @default(uuid()) @db.Uuid
-  semesterId String        @db.Uuid
-  classId    String        @db.Uuid
-  subjectId  String        @db.Uuid
-  teacherId  String        @db.Uuid
-  dayOfWeek  Int
-  startsAt   String
-  endsAt     String
-  semester   Semester      @relation(fields: [semesterId], references: [id])
-  class      SchoolClass   @relation(fields: [classId], references: [id])
-  subject    Subject       @relation(fields: [subjectId], references: [id])
-  teacher    Teacher       @relation(fields: [teacherId], references: [id])
-  agendas    DailyAgenda[]
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  deletedAt  DateTime?
+  id           String        @id @default(uuid()) @db.Uuid
+  schoolYearId String        @db.Uuid
+  semesterId   String        @db.Uuid
+  classId      String        @db.Uuid
+  subjectId    String        @db.Uuid
+  teacherId    String        @db.Uuid
+  dayOfWeek    Int
+  startsAt     String
+  endsAt       String
+  schoolYear   SchoolYear    @relation(fields: [schoolYearId], references: [id])
+  semester     Semester      @relation(fields: [semesterId], references: [id])
+  class        Class         @relation(fields: [classId], references: [id])
+  subject      Subject       @relation(fields: [subjectId], references: [id])
+  teacher      Teacher       @relation(fields: [teacherId], references: [id])
+  agendas      DailyAgenda[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+
+  @@index([schoolYearId, semesterId])
+  @@index([classId, dayOfWeek])
+  @@index([teacherId, dayOfWeek])
 }
 
 model DailyAgenda {
-  id          String              @id @default(uuid()) @db.Uuid
-  scheduleId  String?             @db.Uuid
-  semesterId  String              @db.Uuid
-  classId     String              @db.Uuid
-  subjectId   String              @db.Uuid
-  teacherId   String              @db.Uuid
-  date        DateTime            @db.Date
-  status      AgendaStatus        @default(SCHEDULED)
-  schedule    Schedule?           @relation(fields: [scheduleId], references: [id])
-  semester    Semester            @relation(fields: [semesterId], references: [id])
-  class       SchoolClass         @relation(fields: [classId], references: [id])
-  subject     Subject             @relation(fields: [subjectId], references: [id])
-  teacher     Teacher             @relation(fields: [teacherId], references: [id])
-  attendances StudentAttendance[]
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  id           String       @id @default(uuid()) @db.Uuid
+  scheduleId   String?      @db.Uuid
+  schoolYearId String       @db.Uuid
+  semesterId   String       @db.Uuid
+  classId      String       @db.Uuid
+  subjectId    String       @db.Uuid
+  teacherId    String       @db.Uuid
+  date         DateTime     @db.Date
+  status       AgendaStatus @default(SCHEDULED)
+  schedule     Schedule?    @relation(fields: [scheduleId], references: [id])
+  schoolYear   SchoolYear   @relation(fields: [schoolYearId], references: [id])
+  semester     Semester     @relation(fields: [semesterId], references: [id])
+  class        Class        @relation(fields: [classId], references: [id])
+  subject      Subject      @relation(fields: [subjectId], references: [id])
+  teacher      Teacher      @relation(fields: [teacherId], references: [id])
+  attendance   Attendance?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   @@unique([scheduleId, date])
   @@index([date, status])
+  @@index([schoolYearId, semesterId])
+  @@index([classId, date])
+  @@index([teacherId, date])
 }
 
-model StudentAttendance {
+model Attendance {
   id        String           @id @default(uuid()) @db.Uuid
-  agendaId  String           @db.Uuid
-  studentId String           @db.Uuid
-  status    AttendanceStatus
+  agendaId  String           @unique @db.Uuid
+  classId   String           @db.Uuid
+  startedAt DateTime?
+  endedAt   DateTime?
   notes     String?
   agenda    DailyAgenda      @relation(fields: [agendaId], references: [id])
-  student   Student          @relation(fields: [studentId], references: [id])
+  class     Class            @relation(fields: [classId], references: [id])
+  items     AttendanceItem[]
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
-  @@unique([agendaId, studentId])
+  @@index([classId])
+}
+
+model AttendanceItem {
+  id           String           @id @default(uuid()) @db.Uuid
+  attendanceId String           @db.Uuid
+  studentId    String           @db.Uuid
+  status       AttendanceStatus
+  notes        String?
+  attendance   Attendance       @relation(fields: [attendanceId], references: [id])
+  student      Student          @relation(fields: [studentId], references: [id])
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([attendanceId, studentId])
+  @@index([studentId])
 }
 
 model AuditLog {
