@@ -17,7 +17,10 @@ import { WorkersModule } from './workers/workers.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      envFilePath: ['apps/backend/.env', '.env'],
+      isGlobal: true,
+    }),
     EventEmitterModule.forRoot(),
     PrismaModule,
     QueueModule,

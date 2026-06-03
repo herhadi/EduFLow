@@ -13,7 +13,8 @@ Sistem monitoring kegiatan belajar mengajar sekolah berbasis modular monolith.
 ## Menjalankan Project
 
 ```bash
-cp .env.example .env
+cp apps/backend/.env.example apps/backend/.env
+cp apps/frontend/.env.example apps/frontend/.env.local
 docker compose up -d
 npm install
 XDG_CACHE_HOME=/tmp/eduflow-cache npm run prisma:generate --workspace backend
@@ -50,4 +51,3 @@ Presensi wajib mengacu pada agenda harian, bukan langsung pada jadwal tetap.
 - `GET /api/auth/me`
 
 Semua endpoint backend terlindungi secara global kecuali ditandai dengan decorator `@Public()`.
-

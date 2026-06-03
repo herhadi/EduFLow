@@ -149,6 +149,8 @@ Summary harian berjalan
 - Satu `DailyAgenda` hanya boleh memiliki satu `Attendance`.
 - Presensi siswa harus unik per `attendanceId` dan `studentId`.
 - Siswa yang muncul dalam presensi berasal dari `StudentEnrollment.isActive = true`.
+- `AttendanceItem` wajib menyimpan `enrollmentId` agar histori kelas saat presensi tidak hilang.
+- Submit, approval, koreksi, dan lock wajib menyimpan actor user pada `Attendance`.
 - Attendance `APPROVED` masih bisa dikoreksi melalui state `CORRECTION_REQUESTED`.
 - Attendance `LOCKED` tidak bisa dikoreksi tanpa proses pembukaan khusus.
 - Semua koreksi presensi wajib masuk audit.

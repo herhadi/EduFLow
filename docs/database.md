@@ -129,13 +129,14 @@ Schedule
 - waktu selesai,
 - catatan umum guru.
 
-`AttendanceItem` menyimpan informasi level siswa:
+`AttendanceItem` menyimpan informasi level siswa dan enrollment:
 
 - siswa,
+- enrollment siswa pada kelas dan tahun ajaran saat presensi,
 - status hadir,
 - catatan per siswa.
 
-Pemisahan ini membuat rekap, audit, koreksi, dan reporting lebih bersih.
+Pemisahan ini membuat rekap, audit, koreksi, pindah kelas, dan reporting lebih bersih.
 
 ## Constraint Dan Index Penting
 
@@ -143,11 +144,13 @@ Pemisahan ini membuat rekap, audit, koreksi, dan reporting lebih bersih.
 - `Semester` unik berdasarkan `schoolYearId` dan `type`.
 - `Class` unik berdasarkan `schoolYearId` dan `name`.
 - `StudentGuardian` unik berdasarkan `studentId` dan `guardianId`.
-- `StudentEnrollment` unik berdasarkan `studentId` dan `schoolYearId`.
+- `StudentEnrollment` unik berdasarkan `studentId`, `classId`, dan `schoolYearId`.
+- `StudentEnrollment` memiliki `startedAt` dan `endedAt` untuk histori pindah kelas.
 - `DailyAgenda` unik berdasarkan `scheduleId` dan `date`.
 - `Attendance.agendaId` unik agar satu agenda hanya punya satu sesi presensi.
 - `Attendance.state` di-index untuk approval, summary, dan koreksi.
 - `AttendanceItem` unik berdasarkan `attendanceId` dan `studentId`.
+- `AttendanceItem` juga unik berdasarkan `attendanceId` dan `enrollmentId`.
 - `DailyAgenda` di-index berdasarkan tanggal, status, kelas, guru, tahun ajaran, dan semester.
 - `Schedule` di-index berdasarkan kelas dan guru per hari.
 
@@ -155,6 +158,7 @@ Pemisahan ini membuat rekap, audit, koreksi, dan reporting lebih bersih.
 
 - `Student` tidak menyimpan `classId` agar aman untuk naik kelas, pindah kelas, dan histori akademik.
 - Riwayat kelas siswa disimpan di `StudentEnrollment`.
+- Presensi siswa mengacu ke `StudentEnrollment`, bukan hanya `Student`.
 - Guru pengganti belum dibuat sebagai tabel terpisah.
 - Multi sekolah belum dibuat.
 

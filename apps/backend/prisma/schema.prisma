@@ -45,15 +45,19 @@ enum GuardianRelation {
 }
 
 model User {
-  id            String         @id @default(uuid()) @db.Uuid
-  email         String         @unique
-  password      String
-  name          String
-  roles         UserRole[]
-  refreshTokens RefreshToken[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  deletedAt     DateTime?
+  id                   String         @id @default(uuid()) @db.Uuid
+  email                String         @unique
+  password             String
+  name                 String
+  roles                UserRole[]
+  refreshTokens        RefreshToken[]
+  submittedAttendances Attendance[]   @relation("AttendanceSubmittedBy")
+  approvedAttendances  Attendance[]   @relation("AttendanceApprovedBy")
+  correctedAttendances Attendance[]   @relation("AttendanceCorrectedBy")
+  lockedAttendances    Attendance[]   @relation("AttendanceLockedBy")
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  deletedAt            DateTime?
 }
 
 model RefreshToken {
@@ -215,19 +219,23 @@ model StudentGuardian {
 }
 
 model StudentEnrollment {
-  id           String     @id @default(uuid()) @db.Uuid
-  studentId    String     @db.Uuid
-  classId      String     @db.Uuid
-  schoolYearId String     @db.Uuid
-  isActive     Boolean    @default(true)
-  student      Student    @relation(fields: [studentId], references: [id])
-  class        Class      @relation(fields: [classId], references: [id])
-  schoolYear   SchoolYear @relation(fields: [schoolYearId], references: [id])
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  deletedAt    DateTime?
+  id              String           @id @default(uuid()) @db.Uuid
+  studentId       String           @db.Uuid
+  classId         String           @db.Uuid
+  schoolYearId    String           @db.Uuid
+  isActive        Boolean          @default(true)
+  startedAt       DateTime         @default(now())
+  endedAt         DateTime?
+  student         Student          @relation(fields: [studentId], references: [id])
+  class           Class            @relation(fields: [classId], references: [id])
+  schoolYear      SchoolYear       @relation(fields: [schoolYearId], references: [id])
+  attendanceItems AttendanceItem[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
 
-  @@unique([studentId, schoolYearId])
+  @@unique([studentId, classId, schoolYearId])
+  @@index([studentId, schoolYearId])
   @@index([classId, isActive])
   @@index([schoolYearId, isActive])
 }
@@ -291,14 +299,22 @@ model Attendance {
   state          AttendanceState  @default(DRAFT)
   startedAt      DateTime?
   submittedAt    DateTime?
+  submittedById  String?          @db.Uuid
   approvedAt     DateTime?
+  approvedById   String?          @db.Uuid
   correctionAt   DateTime?
+  correctedById  String?          @db.Uuid
   lockedAt       DateTime?
+  lockedById     String?          @db.Uuid
   endedAt        DateTime?
   notes          String?
   correctionNote String?
   agenda         DailyAgenda      @relation(fields: [agendaId], references: [id])
   class          Class            @relation(fields: [classId], references: [id])
+  submittedBy    User?            @relation("AttendanceSubmittedBy", fields: [submittedById], references: [id])
+  approvedBy     User?            @relation("AttendanceApprovedBy", fields: [approvedById], references: [id])
+  correctedBy    User?            @relation("AttendanceCorrectedBy", fields: [correctedById], references: [id])
+  lockedBy       User?            @relation("AttendanceLockedBy", fields: [lockedById], references: [id])
   items          AttendanceItem[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
@@ -306,21 +322,29 @@ model Attendance {
   @@index([classId])
   @@index([state])
   @@index([classId, state])
+  @@index([submittedById])
+  @@index([approvedById])
+  @@index([correctedById])
+  @@index([lockedById])
 }
 
 model AttendanceItem {
-  id           String           @id @default(uuid()) @db.Uuid
-  attendanceId String           @db.Uuid
-  studentId    String           @db.Uuid
+  id           String            @id @default(uuid()) @db.Uuid
+  attendanceId String            @db.Uuid
+  studentId    String            @db.Uuid
+  enrollmentId String            @db.Uuid
   status       AttendanceStatus
   notes        String?
-  attendance   Attendance       @relation(fields: [attendanceId], references: [id])
-  student      Student          @relation(fields: [studentId], references: [id])
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  attendance   Attendance        @relation(fields: [attendanceId], references: [id])
+  student      Student           @relation(fields: [studentId], references: [id])
+  enrollment   StudentEnrollment @relation(fields: [enrollmentId], references: [id])
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
   @@unique([attendanceId, studentId])
+  @@unique([attendanceId, enrollmentId])
   @@index([studentId])
+  @@index([enrollmentId])
 }
 
 model AuditLog {

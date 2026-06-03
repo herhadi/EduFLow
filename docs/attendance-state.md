@@ -21,6 +21,7 @@ Attendance state menentukan apakah presensi masih draft, perlu approval, bisa di
 - Summary resmi hanya membaca `APPROVED`.
 - Kelas kosong divalidasi dari `DailyAgenda.status = EMPTY` dan tidak memiliki attendance yang valid.
 - Audit wajib dibuat pada perubahan state dan perubahan item presensi.
+- Perubahan state wajib menyimpan actor: submitter, approver, corrector, atau locker.
 
 ## Transisi Valid
 
@@ -36,4 +37,3 @@ SUBMITTED -> VOID
 ```
 
 Transisi lain harus dianggap invalid kecuali ada proses administratif khusus.
-
