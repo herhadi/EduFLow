@@ -27,6 +27,23 @@ enum AttendanceStatus {
   ABSENT
 }
 
+enum AttendanceState {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  CORRECTION_REQUESTED
+  CORRECTED
+  LOCKED
+  VOID
+}
+
+enum GuardianRelation {
+  FATHER
+  MOTHER
+  GUARDIAN
+  OTHER
+}
+
 model User {
   id            String         @id @default(uuid()) @db.Uuid
   email         String         @unique
@@ -159,10 +176,42 @@ model Student {
   id              String              @id @default(uuid()) @db.Uuid
   name            String
   enrollments     StudentEnrollment[]
+  guardians       StudentGuardian[]
   attendanceItems AttendanceItem[]
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   deletedAt       DateTime?
+}
+
+model Guardian {
+  id        String            @id @default(uuid()) @db.Uuid
+  name      String
+  phone     String?
+  email     String?
+  students  StudentGuardian[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  deletedAt DateTime?
+
+  @@index([phone])
+  @@index([email])
+}
+
+model StudentGuardian {
+  id         String           @id @default(uuid()) @db.Uuid
+  studentId  String           @db.Uuid
+  guardianId String           @db.Uuid
+  relation   GuardianRelation
+  isPrimary  Boolean          @default(false)
+  student    Student          @relation(fields: [studentId], references: [id])
+  guardian   Guardian         @relation(fields: [guardianId], references: [id])
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  deletedAt  DateTime?
+
+  @@unique([studentId, guardianId])
+  @@index([studentId, isPrimary])
+  @@index([guardianId])
 }
 
 model StudentEnrollment {
@@ -236,19 +285,27 @@ model DailyAgenda {
 }
 
 model Attendance {
-  id        String           @id @default(uuid()) @db.Uuid
-  agendaId  String           @unique @db.Uuid
-  classId   String           @db.Uuid
-  startedAt DateTime?
-  endedAt   DateTime?
-  notes     String?
-  agenda    DailyAgenda      @relation(fields: [agendaId], references: [id])
-  class     Class            @relation(fields: [classId], references: [id])
-  items     AttendanceItem[]
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id             String           @id @default(uuid()) @db.Uuid
+  agendaId       String           @unique @db.Uuid
+  classId        String           @db.Uuid
+  state          AttendanceState  @default(DRAFT)
+  startedAt      DateTime?
+  submittedAt    DateTime?
+  approvedAt     DateTime?
+  correctionAt   DateTime?
+  lockedAt       DateTime?
+  endedAt        DateTime?
+  notes          String?
+  correctionNote String?
+  agenda         DailyAgenda      @relation(fields: [agendaId], references: [id])
+  class          Class            @relation(fields: [classId], references: [id])
+  items          AttendanceItem[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   @@index([classId])
+  @@index([state])
+  @@index([classId, state])
 }
 
 model AttendanceItem {

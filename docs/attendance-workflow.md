@@ -9,7 +9,7 @@ Attendance workflow berpusat pada `DailyAgenda`. Guru tidak melakukan presensi t
 - Operator: memantau agenda tertunda, kelas kosong, dan koreksi administratif.
 - Wali kelas: melihat rekap kelas dan menindaklanjuti siswa bermasalah.
 - Kepala sekolah: melihat monitoring dan laporan harian.
-- Wali murid: menerima summary atau notifikasi penting.
+- Wali murid: menerima summary atau notifikasi penting melalui relasi `StudentGuardian`.
 
 ## Status Agenda
 
@@ -20,6 +20,47 @@ Attendance workflow berpusat pada `DailyAgenda`. Guru tidak melakukan presensi t
 | `COMPLETED` | KBM selesai dan presensi tersimpan |
 | `CANCELLED` | Agenda dibatalkan karena alasan valid |
 | `EMPTY` | Kelas kosong atau guru tidak hadir |
+
+## State Attendance
+
+`DailyAgenda.status` menggambarkan kondisi agenda KBM. `Attendance.state` menggambarkan workflow presensi.
+
+| State | Makna | Dampak |
+| --- | --- | --- |
+| `DRAFT` | Presensi sedang diisi guru | Belum masuk summary final |
+| `SUBMITTED` | Guru sudah mengirim presensi | Siap dicek atau disetujui |
+| `APPROVED` | Presensi disetujui operator atau wali kelas | Masuk summary dan laporan resmi |
+| `CORRECTION_REQUESTED` | Ada permintaan koreksi | Guru atau operator harus memperbaiki |
+| `CORRECTED` | Presensi sudah dikoreksi | Perlu approval ulang |
+| `LOCKED` | Presensi dikunci setelah periode validasi | Tidak bisa diubah tanpa proses khusus |
+| `VOID` | Presensi dibatalkan | Tidak masuk summary final |
+
+## Transisi State Attendance
+
+```text
+DRAFT
+  -> SUBMITTED
+  -> APPROVED
+  -> LOCKED
+
+SUBMITTED
+  -> CORRECTION_REQUESTED
+  -> CORRECTED
+  -> APPROVED
+
+DRAFT atau SUBMITTED
+  -> VOID
+```
+
+Aturan:
+
+- `DRAFT` dibuat saat guru mulai presensi atau sistem membuat sesi presensi.
+- `SUBMITTED` dibuat saat guru selesai mengisi dan mengirim presensi.
+- `APPROVED` dipakai sebagai dasar summary resmi.
+- `CORRECTION_REQUESTED` wajib menyimpan `correctionNote`.
+- `CORRECTED` wajib menghasilkan audit `before` dan `after`.
+- `LOCKED` menutup perubahan normal setelah summary atau batas waktu.
+- `VOID` dipakai untuk pembatalan presensi yang valid, bukan penghapusan data.
 
 ## Flow Sebelum KBM
 
@@ -41,6 +82,7 @@ Guru login
   -> DailyAgenda status IN_PROGRESS
   -> mengisi materi atau catatan aktivitas
   -> mengisi presensi siswa
+  -> Attendance state SUBMITTED
   -> menyelesaikan KBM
   -> DailyAgenda status COMPLETED
 ```
@@ -74,9 +116,30 @@ Agenda melewati batas toleransi mulai KBM
 ```text
 Guru atau operator mengubah presensi
   -> sistem validasi permission attendance.manage
+  -> Attendance state CORRECTION_REQUESTED jika koreksi diminta reviewer
   -> sistem menyimpan perubahan
+  -> Attendance state CORRECTED
   -> sistem membuat AuditLog before dan after
   -> jika perubahan penting, publish attendance.student.recorded
+```
+
+## Flow Approval
+
+```text
+Operator atau wali kelas membuka presensi SUBMITTED/CORRECTED
+  -> validasi kelengkapan AttendanceItem
+  -> jika valid, Attendance state APPROVED
+  -> jika belum valid, Attendance state CORRECTION_REQUESTED
+  -> sistem membuat AuditLog
+```
+
+## Flow Lock Summary
+
+```text
+Summary harian berjalan
+  -> mengambil Attendance state APPROVED
+  -> membuat rekap resmi
+  -> Attendance state LOCKED setelah periode koreksi selesai
 ```
 
 ## Aturan Validasi
@@ -86,9 +149,10 @@ Guru atau operator mengubah presensi
 - Satu `DailyAgenda` hanya boleh memiliki satu `Attendance`.
 - Presensi siswa harus unik per `attendanceId` dan `studentId`.
 - Siswa yang muncul dalam presensi berasal dari `StudentEnrollment.isActive = true`.
-- Agenda `COMPLETED` masih bisa dikoreksi jika user memiliki permission yang sesuai.
+- Attendance `APPROVED` masih bisa dikoreksi melalui state `CORRECTION_REQUESTED`.
+- Attendance `LOCKED` tidak bisa dikoreksi tanpa proses pembukaan khusus.
 - Semua koreksi presensi wajib masuk audit.
-- Notifikasi wali murid tidak dikirim langsung dari service presensi.
+- Notifikasi wali murid memakai `StudentGuardian` dan tidak dikirim langsung dari service presensi.
 
 ## Output Workflow
 

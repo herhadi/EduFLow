@@ -5,6 +5,7 @@
 - Database akademik: `docs/database.md`
 - Event flow: `docs/events.md`
 - Attendance workflow: `docs/attendance-workflow.md`
+- Attendance state: `docs/attendance-state.md`
 - Queue strategy: `docs/queues.md`
 - Permission matrix: `docs/permission-matrix.md`
 

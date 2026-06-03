@@ -74,6 +74,7 @@ Guru menyimpan presensi
   -> AttendanceService menyimpan Attendance dan AttendanceItem
   -> publish attendance.student.recorded
   -> Jika status ABSENT, publish attendance.student.absent
+  -> Notification processor mencari Guardian melalui StudentGuardian
   -> Notification processor enqueue notification:send untuk wali murid
   -> Summary processor enqueue attendance:summary jika diperlukan
 ```
