@@ -1,8 +1,8 @@
 export const QUEUES = {
-  NOTIFICATION_SEND: 'notification:send',
-  ATTENDANCE_SUMMARY: 'attendance:summary',
-  TEACHER_REMINDER: 'teacher:reminder',
-  REPORT_DAILY: 'report:daily',
+  NOTIFICATION_SEND: 'notification-send',
+  ATTENDANCE_SUMMARY: 'attendance-summary',
+  TEACHER_REMINDER: 'teacher-reminder',
+  REPORT_DAILY: 'report-daily',
 } as const;
 
 export const QUEUE_JOBS = {

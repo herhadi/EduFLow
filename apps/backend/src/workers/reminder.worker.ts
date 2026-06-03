@@ -4,7 +4,11 @@ import { Job } from 'bullmq';
 
 @Processor(QUEUES.TEACHER_REMINDER)
 export class ReminderWorker extends WorkerHost {
-  async process(_job: Job) {
-    return undefined;
+  async process(job: Job) {
+    return {
+      processed: true,
+      jobName: job.name,
+      message: 'Reminder guru diproses.',
+    };
   }
 }

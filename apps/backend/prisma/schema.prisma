@@ -188,16 +188,18 @@ model Student {
 }
 
 model Guardian {
-  id        String            @id @default(uuid()) @db.Uuid
-  name      String
-  phone     String?
-  email     String?
-  students  StudentGuardian[]
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  deletedAt DateTime?
+  id         String            @id @default(uuid()) @db.Uuid
+  name       String
+  phone      String?
+  telegramId String?
+  email      String?
+  students   StudentGuardian[]
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  deletedAt  DateTime?
 
   @@index([phone])
+  @@index([telegramId])
   @@index([email])
 }
 

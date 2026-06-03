@@ -24,3 +24,4 @@ Struktur pengujian backend berada di `apps/backend/test`.
 - Queue retry tidak menggandakan notifikasi karena idempotency key.
 - Event attendance menghasilkan job notification atau summary yang tepat.
 - Guru tidak bisa mengelola agenda milik guru lain tanpa permission administratif.
+- Skenario operasional, failure, correction, retry, dan guru pengganti mengikuti `docs/scenarios.md`.

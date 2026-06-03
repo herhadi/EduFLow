@@ -8,6 +8,8 @@
 - Attendance state: `docs/attendance-state.md`
 - Queue strategy: `docs/queues.md`
 - Permission matrix: `docs/permission-matrix.md`
+- Demo flow: `docs/demo-flow.md`
+- Scenarios: `docs/scenarios.md`
 
 ## Alur Akademik Harian
 

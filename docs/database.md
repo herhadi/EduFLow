@@ -95,7 +95,7 @@ Attendance
 | `Subject` | Mata pelajaran | Dipakai jadwal dan agenda |
 | `Teacher` | Guru pengajar | Dipakai jadwal dan agenda |
 | `Student` | Data identitas siswa | Tidak menyimpan `classId` langsung |
-| `Guardian` | Data wali murid atau orang tua | Bisa terkait ke banyak siswa |
+| `Guardian` | Data wali murid atau orang tua | Menyimpan kontak HP, Telegram, dan email |
 | `StudentGuardian` | Relasi siswa dan wali murid | Menyimpan hubungan dan kontak utama |
 | `StudentEnrollment` | Riwayat siswa dalam kelas pada tahun ajaran | Terikat ke `Student`, `Class`, dan `SchoolYear` |
 | `Schedule` | Template jadwal tetap | Sumber generate agenda harian |

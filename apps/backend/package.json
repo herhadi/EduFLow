@@ -6,7 +6,8 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/bullmq": "^11.0.2",
@@ -32,6 +33,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.2",
     "prisma": "^6.8.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.8.3"
   }
 }

@@ -10,14 +10,20 @@ Gunakan format:
 domain:action
 ```
 
+BullMQ tidak mengizinkan karakter `:` pada nama queue. Karena itu nama queue memakai format:
+
+```text
+domain-action
+```
+
 Queue awal:
 
 | Queue | Fungsi |
 | --- | --- |
-| `notification:send` | Pengiriman WhatsApp, Telegram, dan email |
-| `attendance:summary` | Summary presensi dan agenda |
-| `teacher:reminder` | Reminder guru dan deteksi guru terlambat |
-| `report:daily` | Laporan harian kepala sekolah |
+| `notification-send` | Pengiriman WhatsApp, Telegram, dan email |
+| `attendance-summary` | Summary presensi dan agenda |
+| `teacher-reminder` | Reminder guru dan deteksi guru terlambat |
+| `report-daily` | Laporan harian kepala sekolah |
 
 ## Konvensi Nama Job
 
@@ -31,14 +37,14 @@ Job awal:
 
 | Job | Queue | Fungsi |
 | --- | --- | --- |
-| `notification:send:whatsapp` | `notification:send` | Mengirim pesan WhatsApp |
-| `notification:send:telegram` | `notification:send` | Mengirim pesan Telegram |
-| `notification:send:email` | `notification:send` | Mengirim email |
-| `attendance:generate-agenda` | `attendance:summary` | Generate agenda harian dari jadwal |
-| `attendance:summary:daily` | `attendance:summary` | Membuat summary harian |
-| `teacher:reminder:before-class` | `teacher:reminder` | Reminder guru sebelum jam mengajar |
-| `teacher:detect:absent` | `teacher:reminder` | Deteksi guru tidak hadir |
-| `report:daily:principal` | `report:daily` | Laporan harian kepala sekolah |
+| `notification:send:whatsapp` | `notification-send` | Mengirim pesan WhatsApp |
+| `notification:send:telegram` | `notification-send` | Mengirim pesan Telegram |
+| `notification:send:email` | `notification-send` | Mengirim email |
+| `attendance:generate-agenda` | `attendance-summary` | Generate agenda harian dari jadwal |
+| `attendance:summary:daily` | `attendance-summary` | Membuat summary harian |
+| `teacher:reminder:before-class` | `teacher-reminder` | Reminder guru sebelum jam mengajar |
+| `teacher:detect:absent` | `teacher-reminder` | Deteksi guru tidak hadir |
+| `report:daily:principal` | `report-daily` | Laporan harian kepala sekolah |
 
 ## Default Retry Policy
 
