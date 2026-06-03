@@ -3,6 +3,7 @@
 Simpan adapter pihak ketiga di sini dan kelompokkan berdasarkan provider:
 
 - `redis`
+- `queue`
 - `whatsapp`
 - `telegram`
 - `email`
@@ -10,3 +11,22 @@ Simpan adapter pihak ketiga di sini dan kelompokkan berdasarkan provider:
 
 Domain module bergantung pada kontrak adapter, bukan implementasi provider secara langsung.
 
+## Boundary
+
+- Konfigurasi koneksi Redis berada di `redis/`.
+- Default option BullMQ berada di `queue/`.
+- Domain module tidak membuat koneksi Redis langsung.
+- Domain module memakai `QueueProducerService` untuk enqueue job.
+- Detail BullMQ tetap berada di `queue/` dan `workers/`.
+
+## Tidak Masuk Infrastructure
+
+Hal berikut adalah domain logic dan tidak boleh ditempatkan di `infrastructure/`:
+
+- attendance logic,
+- auth logic,
+- approval flow,
+- reporting rule,
+- schedule generation.
+
+Jika logic tersebut membutuhkan provider eksternal, domain tetap menyimpan aturan bisnisnya, sedangkan `infrastructure/` hanya menyediakan adapter teknis.

@@ -2,7 +2,9 @@ import { Global, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { QUEUES } from '@eduflow/shared';
-import { createRedisConnection } from '../config/redis.config';
+import { defaultQueueJobOptions } from '../infrastructure/queue/queue-options';
+import { createRedisConnection } from '../infrastructure/redis/redis.config';
+import { QueueProducerService } from './queue-producer.service';
 
 const queueRegistrations = Object.values(QUEUES).map((name) => ({ name }));
 
@@ -14,10 +16,12 @@ const queueRegistrations = Object.values(QUEUES).map((name) => ({ name }));
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         connection: createRedisConnection(configService),
+        defaultJobOptions: defaultQueueJobOptions,
       }),
     }),
     BullModule.registerQueue(...queueRegistrations),
   ],
-  exports: [BullModule],
+  providers: [QueueProducerService],
+  exports: [BullModule, QueueProducerService],
 })
 export class QueueModule {}

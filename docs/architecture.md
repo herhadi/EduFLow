@@ -17,7 +17,7 @@ PostgreSQL adalah sumber data utama. Redis hanya digunakan untuk queue, cache, r
 - `config`: konfigurasi aplikasi.
 - `infrastructure`: adapter pihak ketiga seperti Redis, WhatsApp, Telegram, email, dan storage.
 - `prisma`: akses database.
-- `queue`: registrasi dan orkestrasi BullMQ.
+- `queue`: gateway enqueue job dan registrasi BullMQ.
 - `workers`: pemroses background job.
 - `modules`: domain bisnis.
 
@@ -56,3 +56,9 @@ API menerapkan authentication guard dan permission guard secara global. Endpoint
 - `docs/attendance-state.md`: workflow state presensi untuk koreksi, approval, audit, dan summary.
 - `docs/queues.md`: strategi queue, job naming, retry, dan idempotency.
 - `docs/permission-matrix.md`: role, capability, dan scope data.
+
+## Batas Infra
+
+Domain module tidak boleh membuat koneksi Redis atau memanggil BullMQ langsung. Domain module memakai gateway queue, sedangkan konfigurasi provider berada di `apps/backend/src/infrastructure`.
+
+Tidak masuk infra: attendance logic, auth logic, approval flow, reporting rule, dan schedule generation. Semua itu tetap domain logic.

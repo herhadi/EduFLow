@@ -10,6 +10,7 @@
 - Permission matrix: `docs/permission-matrix.md`
 - Demo flow: `docs/demo-flow.md`
 - Scenarios: `docs/scenarios.md`
+- API MVP: `docs/api-mvp.md`
 
 ## Alur Akademik Harian
 

@@ -28,6 +28,8 @@ teacher-reminder
 - `Attendance.submittedById` terisi.
 - Summary job terkirim ke queue `attendance-summary`.
 
+**Endpoint MVP:** `POST /api/attendance/open-class` lalu `POST /api/attendance/submit`.
+
 ### 2. Operator Approve Presensi
 
 **Trigger:** Operator atau wali kelas membuka attendance `SUBMITTED`.

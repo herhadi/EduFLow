@@ -1,32 +1,24 @@
-import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { AgendaStatus, AttendanceState, AttendanceStatus } from '@prisma/client';
-import { QUEUE_JOBS, QUEUES } from '@eduflow/shared';
-import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
+import { QueueProducerService } from '../../queue/queue-producer.service';
 
 @Injectable()
 export class AttendanceDemoService {
   constructor(
     private readonly prisma: PrismaService,
-    @InjectQueue(QUEUES.TEACHER_REMINDER)
-    private readonly reminderQueue: Queue,
-    @InjectQueue(QUEUES.ATTENDANCE_SUMMARY)
-    private readonly summaryQueue: Queue,
+    private readonly queueProducer: QueueProducerService,
   ) {}
 
   async runTeacherFlow() {
     const demo = await this.ensureDemoData();
     const steps: string[] = [];
 
-    const reminderJob = await this.reminderQueue.add(
-      QUEUE_JOBS.TEACHER_REMINDER_BEFORE_CLASS,
-      {
-        agendaId: demo.agenda.id,
-        teacherId: demo.teacher.id,
-        classId: demo.class.id,
-      },
-    );
+    const reminderJob = await this.queueProducer.addTeacherReminderBeforeClass({
+      agendaId: demo.agenda.id,
+      teacherId: demo.teacher.id,
+      classId: demo.class.id,
+    });
     steps.push('Guru mendapat reminder');
 
     const attendance = await this.prisma.attendance.upsert({
@@ -74,15 +66,12 @@ export class AttendanceDemoService {
     });
     steps.push('Guru submit');
 
-    const summaryJob = await this.summaryQueue.add(
-      QUEUE_JOBS.ATTENDANCE_SUMMARY_DAILY,
-      {
-        agendaId: demo.agenda.id,
-        attendanceId: submittedAttendance.id,
-        classId: demo.class.id,
-        schoolYearId: demo.schoolYear.id,
-      },
-    );
+    const summaryJob = await this.queueProducer.addAttendanceSummaryDaily({
+      agendaId: demo.agenda.id,
+      attendanceId: submittedAttendance.id,
+      classId: demo.class.id,
+      schoolYearId: demo.schoolYear.id,
+    });
     steps.push('Summary terkirim');
     steps.push('SELESAI');
 
@@ -92,7 +81,7 @@ export class AttendanceDemoService {
         reminderJob: {
           id: reminderJob.id,
           name: reminderJob.name,
-          queue: QUEUES.TEACHER_REMINDER,
+          queue: reminderJob.queueName,
         },
         attendance: {
           id: submittedAttendance.id,
@@ -102,7 +91,7 @@ export class AttendanceDemoService {
         summaryJob: {
           id: summaryJob.id,
           name: summaryJob.name,
-          queue: QUEUES.ATTENDANCE_SUMMARY,
+          queue: summaryJob.queueName,
         },
       },
       message: 'Demo alur guru sampai summary selesai.',
@@ -217,4 +206,3 @@ export class AttendanceDemoService {
     };
   }
 }
-

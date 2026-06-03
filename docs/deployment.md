@@ -19,6 +19,8 @@ npm run dev:frontend
 - PostgreSQL: penyimpanan data permanen.
 - Redis: BullMQ, cache, dan state sementara.
 
+Konfigurasi service lokal berada di `infra/`.
+
 Deployment production wajib menyediakan environment variable secara aman dan menjalankan migration Prisma sebelum backend dimulai.
 
 ## Environment Variable
