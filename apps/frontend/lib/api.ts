@@ -236,6 +236,13 @@ export interface ImportSummary {
   errors: Array<{ row: number; message: string }>;
 }
 
+export type ReportType =
+  | 'attendance-summary'
+  | 'teacher-teaching'
+  | 'empty-classes'
+  | 'student-attendance';
+export type ReportFormat = 'excel' | 'pdf';
+
 export interface SchedulePayload {
   schoolYearId: string;
   semesterId: string;
@@ -371,6 +378,8 @@ export const api = {
     ),
   importAcademicData: (type: ImportType, file: File) =>
     upload<ApiResponse<ImportSummary>>(`/academic/import/${type}`, file),
+  getReportExportUrl: (type: ReportType, format: ReportFormat, date: string) =>
+    `${API_URL}/reporting/exports/${type}?format=${format}&date=${date}`,
   runTeacherFlowDemo: () =>
     request<ApiResponse<AttendanceDemoResult>>('/attendance/demo/teacher-flow', {
       method: 'POST',

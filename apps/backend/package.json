@@ -23,6 +23,7 @@
     "bullmq": "^5.53.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "pdfkit": "^0.18.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "xlsx": "^0.18.5"
@@ -33,6 +34,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.2",
     "@types/node": "^22.15.21",
+    "@types/pdfkit": "^0.17.6",
     "prisma": "^6.8.2",
     "tsx": "^4.20.6",
     "typescript": "^5.8.3"

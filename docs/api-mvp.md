@@ -160,6 +160,30 @@ Mengembalikan ringkasan hari ini untuk operator dan kepala sekolah:
 - siswa hadir, sakit, izin, dan alpha,
 - reminder terkirim, summary terkirim, dan notifikasi gagal.
 
+## Export & Reporting API
+
+```http
+GET /api/reporting/exports/attendance-summary?format=excel&date=2026-06-04
+GET /api/reporting/exports/attendance-summary?format=pdf&date=2026-06-04
+GET /api/reporting/exports/teacher-teaching?format=excel&date=2026-06-04
+GET /api/reporting/exports/empty-classes?format=pdf&date=2026-06-04
+GET /api/reporting/exports/student-attendance?format=excel&date=2026-06-04
+```
+
+Tipe laporan:
+
+| Report Type | Nama |
+| --- | --- |
+| `attendance-summary` | Rekap Kehadiran |
+| `teacher-teaching` | Rekap Guru Mengajar |
+| `empty-classes` | Kelas Kosong |
+| `student-attendance` | Presensi Siswa |
+
+Format:
+
+- `excel` menghasilkan file `.xlsx`.
+- `pdf` menghasilkan file `.pdf`.
+
 ## Audit & Activity Center API
 
 ```http
