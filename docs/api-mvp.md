@@ -126,6 +126,88 @@ GET /api/attendance/:id
 
 Mengembalikan attendance, agenda, kelas, mapel, guru, siswa, dan enrollment.
 
+## Security & Access Control API
+
+```http
+POST /api/auth/login
+POST /api/auth/password-reset/request
+POST /api/auth/password-reset/confirm
+GET /api/auth/sessions
+POST /api/auth/sessions/revoke
+GET /api/auth/login-audit
+```
+
+Target MVP:
+
+- login audit,
+- failed login tracking,
+- account lockout,
+- password reset flow,
+- session revocation.
+
+### Login Audit Dan Failed Login
+
+Setiap login membuat `LoginAudit`:
+
+- `SUCCESS` jika login berhasil,
+- `FAILED` jika password/email salah,
+- `LOCKED` jika akun sedang terkunci.
+
+Account lockout:
+
+- gagal login 5 kali mengunci akun selama 15 menit,
+- login sukses mereset `failedLoginCount`,
+- reset password juga membuka lock akun.
+
+### Password Reset
+
+```http
+POST /api/auth/password-reset/request
+Content-Type: application/json
+
+{
+  "email": "operator@eduflow.test"
+}
+```
+
+MVP response mengembalikan `resetToken` agar mudah dites lokal. Saat production,
+token ini harus dikirim via Notification Module dan tidak dikembalikan ke client.
+
+```http
+POST /api/auth/password-reset/confirm
+Content-Type: application/json
+
+{
+  "token": "reset-token",
+  "newPassword": "password-baru"
+}
+```
+
+Efek:
+
+- update password,
+- menandai reset token sudah dipakai,
+- revoke semua refresh token aktif,
+- reset failed login count dan lockout.
+
+### Session Management
+
+```http
+GET /api/auth/sessions
+POST /api/auth/sessions/revoke
+Content-Type: application/json
+
+{
+  "refreshToken": "optional-refresh-token"
+}
+```
+
+Catatan:
+
+- Jika `refreshToken` dikirim, hanya sesi tersebut yang dicabut.
+- Jika body kosong, semua sesi aktif user dicabut.
+- `RefreshToken.revokedReason` menyimpan alasan revoke seperti `logout`, `rotated`, `password_reset`, atau `manual_revoke`.
+
 ## Notification Center API
 
 ```http
