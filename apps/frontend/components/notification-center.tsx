@@ -4,17 +4,21 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   api,
   type NotificationLog,
-  type NotificationTemplate,
 } from '../lib/api';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
-type NotificationTab = 'sent' | 'failed' | 'retry' | 'templates';
+type NotificationTab = 'sent' | 'pending' | 'failed' | 'retry';
 
 const tabs: Array<{ id: NotificationTab; label: string; description: string }> = [
   {
     id: 'sent',
     label: 'Terkirim',
     description: 'Riwayat notifikasi yang berhasil dikirim.',
+  },
+  {
+    id: 'pending',
+    label: 'Pending',
+    description: 'Notifikasi yang sedang menunggu diproses worker.',
   },
   {
     id: 'failed',
@@ -24,12 +28,7 @@ const tabs: Array<{ id: NotificationTab; label: string; description: string }> =
   {
     id: 'retry',
     label: 'Retry',
-    description: 'Notifikasi pending atau sedang menunggu proses queue.',
-  },
-  {
-    id: 'templates',
-    label: 'Template',
-    description: 'Template pesan untuk kanal WhatsApp, Telegram, dan email.',
+    description: 'Kirim ulang notifikasi gagal ke queue.',
   },
 ];
 
@@ -39,26 +38,26 @@ export function NotificationCenter() {
   const [actionState, setActionState] = useState<LoadState>('idle');
   const [message, setMessage] = useState<string | null>(null);
   const [sent, setSent] = useState<NotificationLog[]>([]);
+  const [pending, setPending] = useState<NotificationLog[]>([]);
   const [failed, setFailed] = useState<NotificationLog[]>([]);
   const [retry, setRetry] = useState<NotificationLog[]>([]);
-  const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
 
   async function loadNotifications() {
     setLoadState('loading');
 
     try {
-      const [sentResponse, failedResponse, retryResponse, templateResponse] =
+      const [sentResponse, pendingResponse, failedResponse, retryResponse] =
         await Promise.all([
           api.getSentNotifications(),
+          api.getPendingNotifications(),
           api.getFailedNotifications(),
           api.getRetryNotifications(),
-          api.getNotificationTemplates(),
         ]);
 
       setSent(sentResponse.data);
+      setPending(pendingResponse.data);
       setFailed(failedResponse.data);
       setRetry(retryResponse.data);
-      setTemplates(templateResponse.data);
       setLoadState('success');
     } catch {
       setLoadState('error');
@@ -82,7 +81,7 @@ export function NotificationCenter() {
       const response = await api.retryNotification(notification.id);
       setMessage(response.message ?? 'Retry berhasil dikirim ke queue.');
       await loadNotifications();
-      setActiveTab('retry');
+      setActiveTab('pending');
       setActionState('success');
     } catch {
       setMessage('Retry gagal. Pastikan backend dan Redis berjalan.');
@@ -147,15 +146,17 @@ export function NotificationCenter() {
 
         <div className="mt-6">
           {activeTab === 'sent' ? <NotificationTable items={sent} /> : null}
+          {activeTab === 'pending' ? <NotificationTable items={pending} /> : null}
           {activeTab === 'failed' ? (
+            <NotificationTable items={failed} />
+          ) : null}
+          {activeTab === 'retry' ? (
             <NotificationTable
               actionState={actionState}
-              items={failed}
+              items={retry}
               onRetry={handleRetry}
             />
           ) : null}
-          {activeTab === 'retry' ? <NotificationTable items={retry} /> : null}
-          {activeTab === 'templates' ? <TemplateTable templates={templates} /> : null}
         </div>
       </div>
     </section>
@@ -166,15 +167,15 @@ export function NotificationCenter() {
       return sent.length;
     }
 
+    if (tab === 'pending') {
+      return pending.length;
+    }
+
     if (tab === 'failed') {
       return failed.length;
     }
 
-    if (tab === 'retry') {
-      return retry.length;
-    }
-
-    return templates.length;
+    return retry.length;
   }
 }
 
@@ -246,40 +247,6 @@ function NotificationTable({
           </tbody>
         </table>
       </div>
-    </div>
-  );
-}
-
-function TemplateTable({ templates }: { templates: NotificationTemplate[] }) {
-  if (templates.length === 0) {
-    return (
-      <p className="rounded-xl bg-slate-50 p-4 text-sm text-muted">
-        Belum ada template notifikasi.
-      </p>
-    );
-  }
-
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {templates.map((template) => (
-        <article
-          className="rounded-2xl border border-slate-200 p-5"
-          key={template.id}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="font-bold">{template.name}</h3>
-            <StatusPill
-              label={template.channel}
-              status={template.isActive ? 'SENT' : 'FAILED'}
-            />
-          </div>
-          <p className="mt-1 text-xs text-muted">{template.key}</p>
-          {template.subject ? (
-            <p className="mt-4 text-sm font-semibold">{template.subject}</p>
-          ) : null}
-          <p className="mt-3 text-sm leading-6 text-slate-700">{template.body}</p>
-        </article>
-      ))}
     </div>
   );
 }

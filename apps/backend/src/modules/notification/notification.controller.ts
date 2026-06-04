@@ -17,6 +17,11 @@ export class NotificationController {
     return this.notificationService.getFailed();
   }
 
+  @Get('pending')
+  getPending() {
+    return this.notificationService.getPending();
+  }
+
   @Get('retry')
   getRetryQueue() {
     return this.notificationService.getPending();

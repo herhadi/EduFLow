@@ -254,8 +254,10 @@ export const api = {
     request<ApiResponse<NotificationLog[]>>('/notifications/sent'),
   getFailedNotifications: () =>
     request<ApiResponse<NotificationLog[]>>('/notifications/failed'),
+  getPendingNotifications: () =>
+    request<ApiResponse<NotificationLog[]>>('/notifications/pending'),
   getRetryNotifications: () =>
-    request<ApiResponse<NotificationLog[]>>('/notifications/retry'),
+    request<ApiResponse<NotificationLog[]>>('/notifications/failed'),
   retryNotification: (id: string) =>
     request<ApiResponse<NotificationRetryResult>>(`/notifications/retry/${id}`, {
       method: 'POST',

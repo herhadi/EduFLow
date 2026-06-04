@@ -130,6 +130,7 @@ Mengembalikan attendance, agenda, kelas, mapel, guru, siswa, dan enrollment.
 
 ```http
 GET /api/notifications/sent
+GET /api/notifications/pending
 GET /api/notifications/failed
 GET /api/notifications/retry
 GET /api/notifications/templates
@@ -139,11 +140,12 @@ POST /api/notifications/retry/:id
 Catatan:
 
 - `sent` membaca `NotificationLog.status = SENT`.
+- `pending` membaca `NotificationLog.status = PENDING`.
 - `failed` membaca `NotificationLog.status = FAILED`.
-- `retry` membaca `NotificationLog.status = PENDING`.
+- `retry` membaca notifikasi gagal yang bisa dikirim ulang.
 - `POST /retry/:id` hanya menerima notifikasi gagal.
 - Retry mengubah status menjadi `PENDING` dan enqueue job ke `notification-send`.
-- Template masih read-only pada MVP awal.
+- Template masih tersedia via API untuk tahap berikutnya, tetapi tidak ditampilkan di UI utama.
 
 ## Monitoring & Operational Dashboard API
 
