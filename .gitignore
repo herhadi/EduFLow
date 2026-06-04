@@ -7,4 +7,5 @@ coverage
 .env.*.local
 .DS_Store
 *.log
+backups/
 AGENTS.md

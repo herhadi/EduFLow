@@ -468,6 +468,24 @@ Catatan:
 - Integrasi Sentry/OpenTelemetry/Datadog belum dipasang agar MVP tetap ringan.
 - Jika job dibuat dari request, payload job sebaiknya membawa `correlationId`.
 
+## Backup & Recovery
+
+Script operasional:
+
+```bash
+./infra/backup/backup-postgres.sh
+CONFIRM_RESTORE=eduflow ./infra/backup/restore-postgres.sh backups/postgres/eduflow-YYYYMMDD-HHMMSS.dump
+
+./infra/backup/backup-redis.sh
+CONFIRM_RESTORE=eduflow ./infra/backup/restore-redis.sh backups/redis/redis-YYYYMMDD-HHMMSS.rdb
+```
+
+Dokumentasi lengkap:
+
+```txt
+docs/backup-recovery.md
+```
+
 ## Import Data API
 
 ```http
