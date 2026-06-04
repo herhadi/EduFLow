@@ -131,6 +131,33 @@ export interface NotificationRetryResult {
   };
 }
 
+export interface OperationalDashboardSummary {
+  date: string;
+  classes: {
+    totalToday: number;
+    inProgress: number;
+    completed: number;
+    empty: number;
+    notSubmitted: number;
+  };
+  teachers: {
+    totalTeaching: number;
+    submitted: number;
+    notSubmitted: number;
+  };
+  students: {
+    present: number;
+    sick: number;
+    excused: number;
+    absent: number;
+  };
+  notifications: {
+    reminderSent: number;
+    summarySent: number;
+    failed: number;
+  };
+}
+
 export interface SchedulePayload {
   schoolYearId: string;
   semesterId: string;
@@ -223,6 +250,10 @@ export const api = {
     }),
   getNotificationTemplates: () =>
     request<ApiResponse<NotificationTemplate[]>>('/notifications/templates'),
+  getOperationalDashboard: () =>
+    request<ApiResponse<OperationalDashboardSummary>>(
+      '/reporting/operational/today',
+    ),
   runTeacherFlowDemo: () =>
     request<ApiResponse<AttendanceDemoResult>>('/attendance/demo/teacher-flow', {
       method: 'POST',

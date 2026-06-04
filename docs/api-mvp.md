@@ -145,6 +145,19 @@ Catatan:
 - Retry mengubah status menjadi `PENDING` dan enqueue job ke `notification-send`.
 - Template masih read-only pada MVP awal.
 
+## Monitoring & Operational Dashboard API
+
+```http
+GET /api/reporting/operational/today
+```
+
+Mengembalikan ringkasan hari ini untuk operator dan kepala sekolah:
+
+- kelas hari ini, sedang berlangsung, selesai, kelas kosong, dan belum submit,
+- total guru mengajar, sudah submit, dan belum submit,
+- siswa hadir, sakit, izin, dan alpha,
+- reminder terkirim, summary terkirim, dan notifikasi gagal.
+
 ## Demo Flow
 
 ```http
