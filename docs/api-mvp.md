@@ -180,6 +180,31 @@ Contoh aktivitas:
 09:00 Jadwal diubah
 ```
 
+## Health & Operations Center API
+
+```http
+GET /api/operations/dashboard
+POST /api/operations/jobs/retry
+POST /api/operations/jobs/discard
+```
+
+Dashboard operasi menampilkan:
+
+- health Redis, queue, worker, database, dan notification,
+- queue monitoring untuk reminder, summary, notification, dan report,
+- failed jobs lintas queue,
+- payload job untuk debugging,
+- aksi retry dan discard untuk failed job.
+
+Payload retry/discard:
+
+```json
+{
+  "queueName": "attendance-summary",
+  "jobId": "1"
+}
+```
+
 ## Demo Flow
 
 ```http

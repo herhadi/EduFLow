@@ -160,6 +160,7 @@ export function OperationalDashboard() {
         <QuickLink href="/notifications" label="Pusat Notifikasi" />
         <QuickLink href="/master-data" label="Master Data" />
         <QuickLink href="/audit" label="Audit Trail" />
+        <QuickLink href="/operations" label="Health Ops" />
       </div>
     </section>
   );

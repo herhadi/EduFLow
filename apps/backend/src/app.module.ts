@@ -9,6 +9,7 @@ import { AttendanceModule } from './modules/attendance/attendance.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { OperationsModule } from './modules/operations/operations.module';
 import { ReportingModule } from './modules/reporting/reporting.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -28,6 +29,7 @@ import { WorkersModule } from './workers/workers.module';
     AcademicModule,
     AttendanceModule,
     NotificationModule,
+    OperationsModule,
     ReportingModule,
     SchedulerModule,
     AuditModule,

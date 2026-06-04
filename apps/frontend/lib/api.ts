@@ -170,6 +170,44 @@ export interface ActivityTrailItem {
   metadata?: unknown;
 }
 
+export type HealthStatus = 'Healthy' | 'Unhealthy';
+
+export interface QueueSummary {
+  name: string;
+  label: string;
+  status: HealthStatus;
+  waiting: number;
+  active: number;
+  failed: number;
+  delayed: number;
+  completed: number;
+}
+
+export interface FailedJob {
+  id: string;
+  queueName: string;
+  queueLabel: string;
+  name: string;
+  attemptsMade: number;
+  failedReason?: string;
+  timestamp: string;
+  processedOn?: string | null;
+  finishedOn?: string | null;
+  payload: unknown;
+}
+
+export interface OperationsDashboard {
+  health: {
+    redis: HealthStatus;
+    queue: HealthStatus;
+    worker: HealthStatus;
+    database: HealthStatus;
+    notification: HealthStatus;
+  };
+  queues: QueueSummary[];
+  failedJobs: FailedJob[];
+}
+
 export interface SchedulePayload {
   schoolYearId: string;
   semesterId: string;
@@ -269,6 +307,24 @@ export const api = {
       '/reporting/operational/today',
     ),
   getActivityTrail: () => request<ApiResponse<ActivityTrailItem[]>>('/audit/activity'),
+  getOperationsDashboard: () =>
+    request<ApiResponse<OperationsDashboard>>('/operations/dashboard'),
+  retryJob: (queueName: string, jobId: string) =>
+    request<ApiResponse<{ queueName: string; jobId: string }>>(
+      '/operations/jobs/retry',
+      {
+        method: 'POST',
+        body: JSON.stringify({ queueName, jobId }),
+      },
+    ),
+  discardJob: (queueName: string, jobId: string) =>
+    request<ApiResponse<{ queueName: string; jobId: string }>>(
+      '/operations/jobs/discard',
+      {
+        method: 'POST',
+        body: JSON.stringify({ queueName, jobId }),
+      },
+    ),
   runTeacherFlowDemo: () =>
     request<ApiResponse<AttendanceDemoResult>>('/attendance/demo/teacher-flow', {
       method: 'POST',
