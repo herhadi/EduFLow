@@ -28,6 +28,12 @@ export default function Home() {
           >
             Kelola Jadwal
           </Link>
+          <Link
+            className="mt-3 ml-3 inline-flex rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            href="/notifications"
+          >
+            Pusat Notifikasi
+          </Link>
         </header>
 
         <AcademicDashboard />

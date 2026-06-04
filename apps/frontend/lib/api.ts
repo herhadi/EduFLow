@@ -93,6 +93,44 @@ export interface DailyAgenda {
   teacher: Teacher;
 }
 
+export type NotificationChannel = 'WHATSAPP' | 'TELEGRAM' | 'EMAIL';
+export type NotificationStatus = 'PENDING' | 'SENT' | 'FAILED';
+
+export interface NotificationLog {
+  id: string;
+  channel: NotificationChannel;
+  status: NotificationStatus;
+  recipient: string;
+  recipientName?: string | null;
+  subject?: string | null;
+  message: string;
+  templateKey?: string | null;
+  attempts: number;
+  lastError?: string | null;
+  sentAt?: string | null;
+  failedAt?: string | null;
+  createdAt: string;
+}
+
+export interface NotificationTemplate {
+  id: string;
+  key: string;
+  name: string;
+  channel: NotificationChannel;
+  subject?: string | null;
+  body: string;
+  isActive: boolean;
+}
+
+export interface NotificationRetryResult {
+  notification: NotificationLog;
+  job: {
+    id?: string;
+    name: string;
+    queue: string;
+  };
+}
+
 export interface SchedulePayload {
   schoolYearId: string;
   semesterId: string;
@@ -173,6 +211,18 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ date }),
     }),
+  getSentNotifications: () =>
+    request<ApiResponse<NotificationLog[]>>('/notifications/sent'),
+  getFailedNotifications: () =>
+    request<ApiResponse<NotificationLog[]>>('/notifications/failed'),
+  getRetryNotifications: () =>
+    request<ApiResponse<NotificationLog[]>>('/notifications/retry'),
+  retryNotification: (id: string) =>
+    request<ApiResponse<NotificationRetryResult>>(`/notifications/retry/${id}`, {
+      method: 'POST',
+    }),
+  getNotificationTemplates: () =>
+    request<ApiResponse<NotificationTemplate[]>>('/notifications/templates'),
   runTeacherFlowDemo: () =>
     request<ApiResponse<AttendanceDemoResult>>('/attendance/demo/teacher-flow', {
       method: 'POST',

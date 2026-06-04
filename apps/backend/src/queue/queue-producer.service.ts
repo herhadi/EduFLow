@@ -10,6 +10,8 @@ export class QueueProducerService {
     private readonly teacherReminderQueue: Queue,
     @InjectQueue(QUEUES.ATTENDANCE_SUMMARY)
     private readonly attendanceSummaryQueue: Queue,
+    @InjectQueue(QUEUES.NOTIFICATION_SEND)
+    private readonly notificationSendQueue: Queue,
   ) {}
 
   addTeacherReminderBeforeClass(data: Record<string, unknown>, delay?: number) {
@@ -27,5 +29,20 @@ export class QueueProducerService {
       { delay },
     );
   }
-}
 
+  addNotificationSend(
+    channel: 'WHATSAPP' | 'TELEGRAM' | 'EMAIL',
+    data: Record<string, unknown>,
+    delay?: number,
+  ) {
+    const jobNameByChannel = {
+      WHATSAPP: QUEUE_JOBS.NOTIFICATION_SEND_WHATSAPP,
+      TELEGRAM: QUEUE_JOBS.NOTIFICATION_SEND_TELEGRAM,
+      EMAIL: QUEUE_JOBS.NOTIFICATION_SEND_EMAIL,
+    } as const;
+
+    return this.notificationSendQueue.add(jobNameByChannel[channel], data, {
+      delay,
+    });
+  }
+}

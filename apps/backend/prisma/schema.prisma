@@ -44,6 +44,18 @@ enum GuardianRelation {
   OTHER
 }
 
+enum NotificationChannel {
+  WHATSAPP
+  TELEGRAM
+  EMAIL
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
 model User {
   id                   String         @id @default(uuid()) @db.Uuid
   email                String         @unique
@@ -360,4 +372,43 @@ model AuditLog {
   createdAt  DateTime @default(now())
 
   @@index([entityType, entityId])
+}
+
+model NotificationLog {
+  id            String              @id @default(uuid()) @db.Uuid
+  channel       NotificationChannel
+  status        NotificationStatus  @default(PENDING)
+  recipient     String
+  recipientName String?
+  subject       String?
+  message       String
+  templateKey   String?
+  dedupeKey     String?             @unique
+  entityType    String?
+  entityId      String?
+  attempts      Int                 @default(0)
+  lastError     String?
+  sentAt        DateTime?
+  failedAt      DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([status, createdAt])
+  @@index([channel, status])
+  @@index([entityType, entityId])
+}
+
+model NotificationTemplate {
+  id        String              @id @default(uuid()) @db.Uuid
+  key       String              @unique
+  name      String
+  channel   NotificationChannel
+  subject   String?
+  body      String
+  isActive  Boolean             @default(true)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  deletedAt DateTime?
+
+  @@index([channel, isActive])
 }

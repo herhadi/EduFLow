@@ -126,6 +126,25 @@ GET /api/attendance/:id
 
 Mengembalikan attendance, agenda, kelas, mapel, guru, siswa, dan enrollment.
 
+## Notification Center API
+
+```http
+GET /api/notifications/sent
+GET /api/notifications/failed
+GET /api/notifications/retry
+GET /api/notifications/templates
+POST /api/notifications/retry/:id
+```
+
+Catatan:
+
+- `sent` membaca `NotificationLog.status = SENT`.
+- `failed` membaca `NotificationLog.status = FAILED`.
+- `retry` membaca `NotificationLog.status = PENDING`.
+- `POST /retry/:id` hanya menerima notifikasi gagal.
+- Retry mengubah status menjadi `PENDING` dan enqueue job ke `notification-send`.
+- Template masih read-only pada MVP awal.
+
 ## Demo Flow
 
 ```http
