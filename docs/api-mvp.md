@@ -405,10 +405,17 @@ Contoh aktivitas:
 ## Health & Operations Center API
 
 ```http
+GET /health
+GET /health/database
+GET /health/redis
+GET /health/queue
 GET /api/operations/dashboard
 POST /api/operations/jobs/retry
 POST /api/operations/jobs/discard
 ```
+
+Health endpoint publik tanpa prefix `/api` digunakan untuk uptime check, container
+health check, dan monitoring eksternal.
 
 Dashboard operasi menampilkan:
 
@@ -426,6 +433,40 @@ Payload retry/discard:
   "jobId": "1"
 }
 ```
+
+## Monitoring & Observability
+
+Fitur observability awal:
+
+- correlation ID lewat header `x-correlation-id`,
+- jika request tidak membawa correlation ID, backend membuat UUID baru,
+- response selalu mengembalikan header `x-correlation-id`,
+- request logging mencatat method, path, durasi, status, dan correlation ID,
+- error tracking global mencatat exception dengan correlation ID,
+- queue logging mencatat enqueue, started, completed, dan failed job.
+
+Contoh request:
+
+```http
+GET /health
+x-correlation-id: demo-correlation-id
+```
+
+Contoh response error:
+
+```json
+{
+  "statusCode": 500,
+  "message": "Internal server error",
+  "correlationId": "demo-correlation-id"
+}
+```
+
+Catatan:
+
+- Logging saat ini memakai Nest Logger.
+- Integrasi Sentry/OpenTelemetry/Datadog belum dipasang agar MVP tetap ringan.
+- Jika job dibuat dari request, payload job sebaiknya membawa `correlationId`.
 
 ## Import Data API
 

@@ -1,14 +1,23 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
+import { CorrelationIdMiddleware } from './infrastructure/observability/correlation-id.middleware';
+import { ErrorTrackingFilter } from './infrastructure/observability/error-tracking.filter';
+import { RequestLoggingInterceptor } from './infrastructure/observability/request-logging.interceptor';
 import { AcademicModule } from './modules/academic/academic.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { FinanceModule } from './modules/finance/finance.module';
+import { HealthModule } from './modules/health/health.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { OperationsModule } from './modules/operations/operations.module';
 import { ParentPortalModule } from './modules/parent-portal/parent-portal.module';
@@ -31,6 +40,7 @@ import { WorkersModule } from './workers/workers.module';
     AcademicModule,
     AttendanceModule,
     FinanceModule,
+    HealthModule,
     NotificationModule,
     OperationsModule,
     ParentPortalModule,
@@ -42,6 +52,14 @@ import { WorkersModule } from './workers/workers.module';
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
+    { provide: APP_INTERCEPTOR, useClass: RequestLoggingInterceptor },
+    { provide: APP_FILTER, useClass: ErrorTrackingFilter },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(CorrelationIdMiddleware)
+      .forRoutes({ path: '*path', method: RequestMethod.ALL });
+  }
+}
