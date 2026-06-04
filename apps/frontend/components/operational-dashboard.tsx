@@ -163,6 +163,7 @@ export function OperationalDashboard() {
         <QuickLink href="/operations" label="Health Ops" />
         <QuickLink href="/import-data" label="Import Data" />
         <QuickLink href="/reports" label="Export Report" />
+        <QuickLink href="/parent-portal" label="Parent Portal" />
       </div>
     </section>
   );

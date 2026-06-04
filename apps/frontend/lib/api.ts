@@ -243,6 +243,57 @@ export type ReportType =
   | 'student-attendance';
 export type ReportFormat = 'excel' | 'pdf';
 
+export interface ParentAttendanceSummary {
+  present: number;
+  sick: number;
+  excused: number;
+  absent: number;
+  total: number;
+}
+
+export interface ParentAttendanceRecord {
+  id: string;
+  date: string;
+  className: string;
+  subjectName: string;
+  teacherName: string;
+  agendaStatus: string;
+  attendanceState: string;
+  status: 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT';
+  notes?: string | null;
+}
+
+export interface ParentPortalStudent {
+  id: string;
+  name: string;
+  nis?: string | null;
+  nisn?: string | null;
+  relation: string;
+  isPrimary: boolean;
+  activeClass?: {
+    id: string;
+    name: string;
+    grade?: string | null;
+    schoolYear: string;
+  } | null;
+  todaySummary: ParentAttendanceSummary;
+  dailySummary: ParentAttendanceRecord[];
+  history: ParentAttendanceRecord[];
+}
+
+export interface ParentPortalSummary {
+  guardian: {
+    id: string;
+    name: string;
+    phone?: string | null;
+    telegramId?: string | null;
+    email?: string | null;
+  };
+  date: string;
+  summary: ParentAttendanceSummary;
+  students: ParentPortalStudent[];
+}
+
 export interface SchedulePayload {
   schoolYearId: string;
   semesterId: string;
@@ -380,6 +431,10 @@ export const api = {
     upload<ApiResponse<ImportSummary>>(`/academic/import/${type}`, file),
   getReportExportUrl: (type: ReportType, format: ReportFormat, date: string) =>
     `${API_URL}/reporting/exports/${type}?format=${format}&date=${date}`,
+  getParentPortalSummary: (contact: string) =>
+    request<ApiResponse<ParentPortalSummary>>(
+      `/parent-portal/summary?contact=${encodeURIComponent(contact)}`,
+    ),
   runTeacherFlowDemo: () =>
     request<ApiResponse<AttendanceDemoResult>>('/attendance/demo/teacher-flow', {
       method: 'POST',

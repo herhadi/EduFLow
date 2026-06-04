@@ -61,6 +61,39 @@ enum NotificationStatus {
   FAILED
 }
 
+enum FeeFrequency {
+  ONCE
+  MONTHLY
+  SEMESTER
+  YEARLY
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIAL
+  PAID
+  OVERDUE
+  VOID
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethodType {
+  CASH
+  BANK_TRANSFER
+  VIRTUAL_ACCOUNT
+  EWALLET
+  QRIS
+  OTHER
+}
+
 model User {
   id                   String         @id @default(uuid()) @db.Uuid
   email                String         @unique
@@ -72,6 +105,7 @@ model User {
   approvedAttendances  Attendance[]   @relation("AttendanceApprovedBy")
   correctedAttendances Attendance[]   @relation("AttendanceCorrectedBy")
   lockedAttendances    Attendance[]   @relation("AttendanceLockedBy")
+  receivedPayments     Payment[]      @relation("PaymentReceivedBy")
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
   deletedAt            DateTime?
@@ -132,6 +166,8 @@ model SchoolYear {
   enrollments StudentEnrollment[]
   schedules   Schedule[]
   agendas     DailyAgenda[]
+  feeTypes    FeeType[]
+  invoices    Invoice[]
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
   deletedAt   DateTime?
@@ -222,6 +258,8 @@ model Student {
   enrollments     StudentEnrollment[]
   guardians       StudentGuardian[]
   attendanceItems AttendanceItem[]
+  invoices        Invoice[]
+  payments        Payment[]
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   deletedAt       DateTime?
@@ -239,6 +277,8 @@ model Guardian {
   address    String?
   isActive   Boolean           @default(true)
   students   StudentGuardian[]
+  invoices   Invoice[]
+  payments   Payment[]
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
   deletedAt  DateTime?
@@ -448,4 +488,102 @@ model NotificationTemplate {
   deletedAt DateTime?
 
   @@index([channel, isActive])
+}
+
+model FeeType {
+  id           String       @id @default(uuid()) @db.Uuid
+  schoolYearId String?      @db.Uuid
+  name         String
+  code         String       @unique
+  description  String?
+  amount       Decimal      @db.Decimal(14, 2)
+  frequency    FeeFrequency @default(ONCE)
+  isActive     Boolean      @default(true)
+  schoolYear   SchoolYear?  @relation(fields: [schoolYearId], references: [id])
+  invoices     Invoice[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deletedAt    DateTime?
+
+  @@index([schoolYearId, isActive])
+  @@index([frequency])
+}
+
+model PaymentMethod {
+  id          String            @id @default(uuid()) @db.Uuid
+  name        String
+  code        String            @unique
+  type        PaymentMethodType
+  provider    String?
+  accountName String?
+  accountNo   String?
+  isActive    Boolean           @default(true)
+  payments    Payment[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  deletedAt   DateTime?
+
+  @@index([type, isActive])
+}
+
+model Invoice {
+  id            String        @id @default(uuid()) @db.Uuid
+  invoiceNumber String        @unique
+  feeTypeId     String        @db.Uuid
+  studentId     String        @db.Uuid
+  guardianId    String?       @db.Uuid
+  schoolYearId  String?       @db.Uuid
+  period        String?
+  amount        Decimal       @db.Decimal(14, 2)
+  paidAmount    Decimal       @default(0) @db.Decimal(14, 2)
+  status        InvoiceStatus @default(DRAFT)
+  issuedAt      DateTime?
+  dueAt         DateTime?
+  paidAt        DateTime?
+  voidedAt      DateTime?
+  notes         String?
+  feeType       FeeType       @relation(fields: [feeTypeId], references: [id])
+  student       Student       @relation(fields: [studentId], references: [id])
+  guardian      Guardian?     @relation(fields: [guardianId], references: [id])
+  schoolYear    SchoolYear?   @relation(fields: [schoolYearId], references: [id])
+  payments      Payment[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
+
+  @@index([studentId, status])
+  @@index([guardianId, status])
+  @@index([schoolYearId, status])
+  @@index([feeTypeId])
+  @@index([dueAt, status])
+}
+
+model Payment {
+  id              String        @id @default(uuid()) @db.Uuid
+  invoiceId       String        @db.Uuid
+  studentId       String        @db.Uuid
+  guardianId      String?       @db.Uuid
+  paymentMethodId String        @db.Uuid
+  receivedById    String?       @db.Uuid
+  amount          Decimal       @db.Decimal(14, 2)
+  status          PaymentStatus @default(PENDING)
+  paidAt          DateTime?
+  confirmedAt     DateTime?
+  referenceNo     String?
+  notes           String?
+  invoice         Invoice       @relation(fields: [invoiceId], references: [id])
+  student         Student       @relation(fields: [studentId], references: [id])
+  guardian        Guardian?     @relation(fields: [guardianId], references: [id])
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  receivedBy      User?         @relation("PaymentReceivedBy", fields: [receivedById], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  @@index([invoiceId, status])
+  @@index([studentId, status])
+  @@index([guardianId, status])
+  @@index([paymentMethodId])
+  @@index([receivedById])
+  @@index([referenceNo])
 }

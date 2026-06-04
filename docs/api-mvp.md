@@ -184,6 +184,63 @@ Format:
 - `excel` menghasilkan file `.xlsx`.
 - `pdf` menghasilkan file `.pdf`.
 
+## Parent Portal API
+
+```http
+GET /api/parent-portal/summary?contact=09561186917
+GET /api/parent-portal/summary?contact=648351920
+```
+
+Fungsi:
+
+- mencari wali murid berdasarkan `Guardian.phone`, `Guardian.telegramId`, atau `Guardian.email`,
+- menampilkan anak yang terhubung melalui `StudentGuardian`,
+- menampilkan kelas aktif dari `StudentEnrollment`,
+- menampilkan ringkasan presensi hari ini,
+- menampilkan riwayat presensi 30 hari terakhir.
+
+Response utama:
+
+```json
+{
+  "data": {
+    "guardian": {
+      "id": "uuid-wali",
+      "name": "Nama Wali",
+      "phone": "09561186917",
+      "telegramId": "648351920"
+    },
+    "date": "2026-06-04",
+    "summary": {
+      "present": 1,
+      "sick": 0,
+      "excused": 0,
+      "absent": 0,
+      "total": 1
+    },
+    "students": [
+      {
+        "id": "uuid-siswa",
+        "name": "Nama Siswa",
+        "activeClass": {
+          "name": "VII A",
+          "schoolYear": "2026/2027"
+        },
+        "todaySummary": {},
+        "dailySummary": [],
+        "history": []
+      }
+    ]
+  }
+}
+```
+
+Catatan:
+
+- Endpoint ini masih public untuk MVP/demo.
+- Saat authentication parent sudah dibuat, lookup sebaiknya memakai user session, bukan query `contact`.
+- Data yang ditampilkan hanya anak yang terhubung dengan wali tersebut.
+
 ## Audit & Activity Center API
 
 ```http
