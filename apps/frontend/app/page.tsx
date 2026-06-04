@@ -1,8 +1,5 @@
-const highlights = [
-  ['Agenda hari ini', '0', 'Jadwal yang perlu dipantau'],
-  ['Kelas aktif', '0', 'KBM sedang berlangsung'],
-  ['Perlu tindakan', '0', 'Kelas kosong atau presensi tertunda'],
-];
+import { AcademicDashboard } from '../components/academic-dashboard';
+import { Container } from '../components/ui/container';
 
 export default function Home() {
   return (
@@ -20,24 +17,9 @@ export default function Home() {
           </p>
         </header>
 
-        <section
-          className="mt-12 grid gap-4 sm:grid-cols-3"
-          aria-label="Ringkasan monitoring"
-        >
-          {highlights.map(([title, value, description]) => (
-            <article
-              className="grid gap-2.5 rounded-2xl border border-slate-200 bg-white p-6"
-              key={title}
-            >
-              <p>{title}</p>
-              <strong className="text-4xl text-brand-600">{value}</strong>
-              <span className="text-sm leading-5 text-muted">{description}</span>
-            </article>
-          ))}
-        </section>
+        <AcademicDashboard />
       </Container>
     </main>
   );
 }
-import { Container } from '../components/ui/container';
 
