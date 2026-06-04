@@ -155,17 +155,21 @@ export function OperationalDashboard() {
         />
       </MetricSection>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <QuickLink href="/schedules" label="Kelola Jadwal" />
-        <QuickLink href="/notifications" label="Pusat Notifikasi" />
+      <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+        <div className="mb-4">
+          <h3 className="text-xl font-bold">Akses Cepat</h3>
+          <p className="mt-1 text-sm text-muted">
+            Menu tambahan untuk operator dan kepala sekolah.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <QuickLink href="/master-data" label="Master Data" />
         <QuickLink href="/audit" label="Audit Trail" />
-        <QuickLink href="/operations" label="Health Ops" />
         <QuickLink href="/import-data" label="Import Data" />
-        <QuickLink href="/reports" label="Export Report" />
         <QuickLink href="/parent-portal" label="Parent Portal" />
         <QuickLink href="/teacher-performance" label="Performa Guru" />
-      </div>
+        </div>
+      </section>
     </section>
   );
 }
@@ -195,7 +199,7 @@ function MetricSection({
 function QuickLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
-      className="rounded-2xl border border-blue-100 bg-white px-4 py-4 text-center text-sm font-bold text-brand-700 shadow-sm shadow-blue-100 transition hover:bg-brand-50"
+      className="rounded-2xl border border-blue-100 bg-brand-50 px-4 py-4 text-center text-sm font-bold text-brand-700 shadow-sm shadow-blue-100 transition hover:bg-blue-100"
       href={href}
     >
       {label}

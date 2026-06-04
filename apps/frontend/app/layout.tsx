@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { MobileAppShell } from '../components/mobile-app-shell';
 import { PwaRegister } from '../components/pwa-register';
 import './globals.css';
 
@@ -15,10 +16,17 @@ export const metadata: Metadata = {
     telephone: false,
   },
   manifest: '/manifest.webmanifest',
+  icons: {
+    icon: '/icon.svg',
+    apple: '/icon.svg',
+  },
 };
 
 export const viewport: Viewport = {
   themeColor: '#2563eb',
+  viewportFit: 'cover',
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -29,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body>
-        {children}
+        <MobileAppShell>{children}</MobileAppShell>
         <PwaRegister />
       </body>
     </html>

@@ -90,19 +90,19 @@ export function NotificationCenter() {
   }
 
   return (
-    <section className="mt-10 grid gap-6 lg:grid-cols-[260px_1fr]">
-      <aside className="rounded-2xl border border-slate-200 bg-white p-4">
+    <section className="mt-6 grid min-w-0 gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
+      <aside className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60">
         <p className="px-3 text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
           Notifikasi
         </p>
-        <nav className="mt-4 space-y-2">
+        <nav className="no-scrollbar mt-4 flex gap-2 overflow-x-auto lg:block lg:space-y-2 lg:overflow-visible">
           {tabs.map((tab) => (
             <button
               className={[
-                'flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm font-semibold transition',
+                'flex shrink-0 items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left text-sm font-semibold transition lg:w-full',
                 activeTab === tab.id
                   ? 'bg-brand-600 text-white'
-                  : 'text-slate-700 hover:bg-slate-100',
+                  : 'bg-brand-50 text-brand-700 hover:bg-blue-100 lg:bg-transparent lg:text-slate-700 lg:hover:bg-slate-100',
               ].join(' ')}
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -115,7 +115,7 @@ export function NotificationCenter() {
         </nav>
       </aside>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
+      <div className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">
@@ -144,7 +144,7 @@ export function NotificationCenter() {
           </p>
         ) : null}
 
-        <div className="mt-6">
+        <div className="mt-6 min-w-0">
           {activeTab === 'sent' ? <NotificationTable items={sent} /> : null}
           {activeTab === 'pending' ? <NotificationTable items={pending} /> : null}
           {activeTab === 'failed' ? (
@@ -197,7 +197,54 @@ function NotificationTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200">
+    <>
+      <div className="space-y-3 md:hidden">
+        {items.map((item) => (
+          <article
+            className="rounded-2xl border border-blue-100 bg-slate-50 p-4"
+            key={item.id}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <StatusPill label={item.channel} status={item.status} />
+                <h3 className="mt-3 truncate text-sm font-bold text-slate-800">
+                  {item.recipientName ?? item.recipient}
+                </h3>
+                <p className="mt-1 text-xs text-muted">{item.recipient}</p>
+              </div>
+              <span className="rounded-full bg-white px-2 py-1 text-xs font-bold text-muted">
+                {item.attempts}x
+              </span>
+            </div>
+
+            <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-700">
+              {item.message}
+            </p>
+            {item.lastError ? (
+              <p className="mt-2 text-xs leading-5 text-red-600">
+                {item.lastError}
+              </p>
+            ) : null}
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <p className="text-xs text-muted">
+                {formatDateTime(item.sentAt ?? item.failedAt ?? item.createdAt)}
+              </p>
+              {onRetry ? (
+                <button
+                  className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={actionState === 'loading'}
+                  onClick={() => void onRetry(item)}
+                  type="button"
+                >
+                  Retry
+                </button>
+              ) : null}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-2xl border border-slate-200 md:block">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] border-collapse text-left text-sm">
           <thead className="bg-slate-50 text-xs font-bold tracking-[0.08em] text-slate-500 uppercase">
@@ -248,6 +295,7 @@ function NotificationTable({
         </table>
       </div>
     </div>
+    </>
   );
 }
 

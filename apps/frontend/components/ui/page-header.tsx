@@ -18,21 +18,23 @@ export function PageHeader({
     <header className="max-w-3xl">
       {showBackLink ? (
         <Link
-          className="text-sm font-semibold text-brand-700 hover:text-brand-600"
+          className="inline-flex rounded-full bg-white px-3 py-2 text-xs font-bold text-brand-700 shadow-sm shadow-blue-100 hover:text-brand-600"
           href="/"
         >
           ← Kembali ke dashboard
         </Link>
       ) : null}
 
-      <div className={showBackLink ? 'mt-8' : undefined}>
+      <div className={showBackLink ? 'mt-5' : undefined}>
         <p className="text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
           {eyebrow}
         </p>
-        <h1 className="my-2 text-4xl font-bold tracking-tight sm:text-6xl">
+        <h1 className="my-2 text-3xl font-black tracking-tight sm:text-5xl">
           {title}
         </h1>
-        <p className="text-base leading-7 text-slate-600 sm:text-lg">{description}</p>
+        <p className="text-sm leading-6 text-slate-600 sm:text-base">
+          {description}
+        </p>
         {action ? <div className="mt-6 flex flex-wrap gap-3">{action}</div> : null}
       </div>
     </header>

@@ -14,7 +14,34 @@
     @apply box-border;
   }
 
+  html {
+    @apply bg-slate-100;
+  }
+
   body {
-    @apply m-0 bg-blue-50/40 text-ink antialiased;
+    @apply m-0 min-h-dvh bg-slate-100 text-ink antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    @apply touch-manipulation;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-app-content main {
+    @apply py-6 sm:py-8;
   }
 }
