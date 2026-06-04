@@ -294,6 +294,40 @@ export interface ParentPortalSummary {
   students: ParentPortalStudent[];
 }
 
+export interface TeacherPerformanceSession {
+  agendaId: string;
+  date: string;
+  className: string;
+  subjectName: string;
+  agendaStatus: string;
+  attendanceState?: string | null;
+  submittedAt?: string | null;
+  isLate: boolean;
+}
+
+export interface TeacherPerformanceItem {
+  teacherId: string;
+  teacherName: string;
+  totalSessions: number;
+  submittedSessions: number;
+  lateSubmissions: number;
+  emptyClasses: number;
+  notSubmitted: number;
+  onTimeSubmissions: number;
+  submitRate: number;
+  latestSessions: TeacherPerformanceSession[];
+}
+
+export interface TeacherPerformanceDashboard {
+  from: string;
+  to: string;
+  totalTeachers: number;
+  totalSessions: number;
+  totalLateSubmissions: number;
+  totalEmptyClasses: number;
+  teachers: TeacherPerformanceItem[];
+}
+
 export interface SchedulePayload {
   schoolYearId: string;
   semesterId: string;
@@ -408,6 +442,21 @@ export const api = {
     request<ApiResponse<OperationalDashboardSummary>>(
       '/reporting/operational/today',
     ),
+  getTeacherPerformance: (from?: string, to?: string) => {
+    const params = new URLSearchParams();
+
+    if (from) {
+      params.set('from', from);
+    }
+
+    if (to) {
+      params.set('to', to);
+    }
+
+    return request<ApiResponse<TeacherPerformanceDashboard>>(
+      `/reporting/teacher-performance${params.size ? `?${params}` : ''}`,
+    );
+  },
   getActivityTrail: () => request<ApiResponse<ActivityTrailItem[]>>('/audit/activity'),
   getOperationsDashboard: () =>
     request<ApiResponse<OperationsDashboard>>('/operations/dashboard'),

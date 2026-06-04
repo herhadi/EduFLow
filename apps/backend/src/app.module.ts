@@ -8,6 +8,7 @@ import { AcademicModule } from './modules/academic/academic.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { FinanceModule } from './modules/finance/finance.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { OperationsModule } from './modules/operations/operations.module';
 import { ParentPortalModule } from './modules/parent-portal/parent-portal.module';
@@ -29,6 +30,7 @@ import { WorkersModule } from './workers/workers.module';
     AuthModule,
     AcademicModule,
     AttendanceModule,
+    FinanceModule,
     NotificationModule,
     OperationsModule,
     ParentPortalModule,

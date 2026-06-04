@@ -94,6 +94,12 @@ enum PaymentMethodType {
   OTHER
 }
 
+enum LoginAuditStatus {
+  SUCCESS
+  FAILED
+  LOCKED
+}
+
 model User {
   id                   String         @id @default(uuid()) @db.Uuid
   email                String         @unique
@@ -101,26 +107,64 @@ model User {
   name                 String
   roles                UserRole[]
   refreshTokens        RefreshToken[]
+  passwordResetTokens  PasswordResetToken[]
+  loginAudits          LoginAudit[]
   submittedAttendances Attendance[]   @relation("AttendanceSubmittedBy")
   approvedAttendances  Attendance[]   @relation("AttendanceApprovedBy")
   correctedAttendances Attendance[]   @relation("AttendanceCorrectedBy")
   lockedAttendances    Attendance[]   @relation("AttendanceLockedBy")
   receivedPayments     Payment[]      @relation("PaymentReceivedBy")
+  failedLoginCount     Int            @default(0)
+  lockedUntil          DateTime?
+  lastLoginAt          DateTime?
+  passwordChangedAt    DateTime?
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
   deletedAt            DateTime?
+
+  @@index([lockedUntil])
 }
 
 model RefreshToken {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @db.Uuid
+  tokenHash     String    @unique
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  revokedReason String?
+  user          User      @relation(fields: [userId], references: [id])
+  createdAt     DateTime  @default(now())
+
+  @@index([userId, expiresAt])
+  @@index([userId, revokedAt])
+}
+
+model PasswordResetToken {
   id        String    @id @default(uuid()) @db.Uuid
   userId    String    @db.Uuid
   tokenHash String    @unique
   expiresAt DateTime
-  revokedAt DateTime?
+  usedAt    DateTime?
   user      User      @relation(fields: [userId], references: [id])
   createdAt DateTime  @default(now())
 
   @@index([userId, expiresAt])
+}
+
+model LoginAudit {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String?          @db.Uuid
+  email     String
+  status    LoginAuditStatus
+  ipAddress String?
+  userAgent String?
+  reason    String?
+  user      User?            @relation(fields: [userId], references: [id])
+  createdAt DateTime         @default(now())
+
+  @@index([email, createdAt])
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
 }
 
 model Role {

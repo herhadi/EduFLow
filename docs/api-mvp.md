@@ -160,6 +160,30 @@ Mengembalikan ringkasan hari ini untuk operator dan kepala sekolah:
 - siswa hadir, sakit, izin, dan alpha,
 - reminder terkirim, summary terkirim, dan notifikasi gagal.
 
+## Teacher Performance Dashboard API
+
+```http
+GET /api/reporting/teacher-performance
+GET /api/reporting/teacher-performance?from=2026-06-01&to=2026-06-30
+```
+
+Mengembalikan performa guru untuk kepala sekolah:
+
+- total sesi mengajar dari `DailyAgenda`,
+- jumlah sesi yang sudah submit,
+- jumlah presensi terlambat submit,
+- jumlah kelas kosong,
+- jumlah belum submit,
+- submit rate,
+- aktivitas mengajar terbaru per guru.
+
+Definisi MVP:
+
+- `Mengajar` dihitung dari `DailyAgenda` selain status `CANCELLED`.
+- `Terlambat Submit` dihitung jika `Attendance.submittedAt` lebih lambat dari `Schedule.endsAt` pada tanggal agenda.
+- `Kelas Kosong` dihitung dari `DailyAgenda.status = EMPTY`.
+- Jika query tanggal tidak dikirim, periode default adalah 30 hari terakhir.
+
 ## Export & Reporting API
 
 ```http
@@ -240,6 +264,41 @@ Catatan:
 - Endpoint ini masih public untuk MVP/demo.
 - Saat authentication parent sudah dibuat, lookup sebaiknya memakai user session, bukan query `contact`.
 - Data yang ditampilkan hanya anak yang terhubung dengan wali tersebut.
+
+## Finance Foundation API
+
+```http
+GET /api/finance/fee-types
+GET /api/finance/payment-methods
+GET /api/finance/invoices
+GET /api/finance/invoices?studentId=:studentId
+GET /api/finance/invoices?guardianId=:guardianId
+GET /api/finance/payments
+GET /api/finance/payments?invoiceId=:invoiceId
+GET /api/finance/payments?studentId=:studentId
+```
+
+Domain awal:
+
+| Entity | Fungsi |
+| --- | --- |
+| `FeeType` | Master jenis biaya seperti SPP, daftar ulang, seragam, dan kegiatan. |
+| `Invoice` | Tagihan siswa per jenis biaya, periode, tahun ajaran, dan wali terkait. |
+| `Payment` | Catatan pembayaran terhadap invoice. |
+| `PaymentMethod` | Master metode pembayaran seperti tunai, transfer bank, VA, e-wallet, dan QRIS. |
+
+Status awal:
+
+- `InvoiceStatus`: `DRAFT`, `ISSUED`, `PARTIAL`, `PAID`, `OVERDUE`, `VOID`.
+- `PaymentStatus`: `PENDING`, `CONFIRMED`, `FAILED`, `CANCELLED`, `REFUNDED`.
+- `PaymentMethodType`: `CASH`, `BANK_TRANSFER`, `VIRTUAL_ACCOUNT`, `EWALLET`, `QRIS`, `OTHER`.
+
+Catatan:
+
+- Tahap ini baru foundation, belum payment gateway.
+- Pembayaran tidak boleh mengubah invoice tanpa transaction ketika workflow pembayaran dibuat.
+- Notifikasi tagihan/pembayaran nanti tetap lewat Notification Module.
+- Audit wajib ditambahkan saat create/update invoice dan konfirmasi payment mulai dibuat.
 
 ## Audit & Activity Center API
 

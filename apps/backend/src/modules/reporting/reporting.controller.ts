@@ -13,6 +13,14 @@ export class ReportingController {
     return this.reportingService.getOperationalToday();
   }
 
+  @Get('teacher-performance')
+  getTeacherPerformance(
+    @Query('from') from: string | undefined,
+    @Query('to') to: string | undefined,
+  ) {
+    return this.reportingService.getTeacherPerformance({ from, to });
+  }
+
   @Get('exports/:reportType')
   async exportReport(
     @Param('reportType') reportType: string,

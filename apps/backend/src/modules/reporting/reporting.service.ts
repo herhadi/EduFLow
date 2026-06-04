@@ -187,6 +187,140 @@ export class ReportingService {
     };
   }
 
+  async getTeacherPerformance({
+    from,
+    to,
+  }: {
+    from?: string;
+    to?: string;
+  }) {
+    const { startOfDay, endOfDay } = this.getReportRange(from, to, 30);
+    const agendas = await this.prisma.dailyAgenda.findMany({
+      where: {
+        date: { gte: startOfDay, lt: endOfDay },
+        status: { not: AgendaStatus.CANCELLED },
+      },
+      include: {
+        teacher: true,
+        class: true,
+        subject: true,
+        schedule: true,
+        attendance: true,
+      },
+      orderBy: [{ teacher: { name: 'asc' } }, { date: 'desc' }],
+    });
+
+    const teacherMap = new Map<
+      string,
+      {
+        teacherId: string;
+        teacherName: string;
+        totalSessions: number;
+        submittedSessions: number;
+        lateSubmissions: number;
+        emptyClasses: number;
+        notSubmitted: number;
+        latestSessions: Array<{
+          agendaId: string;
+          date: string;
+          className: string;
+          subjectName: string;
+          agendaStatus: string;
+          attendanceState: string | null;
+          submittedAt: string | null;
+          isLate: boolean;
+        }>;
+      }
+    >();
+
+    for (const agenda of agendas) {
+      const performance = teacherMap.get(agenda.teacherId) ?? {
+        teacherId: agenda.teacherId,
+        teacherName: agenda.teacher.name,
+        totalSessions: 0,
+        submittedSessions: 0,
+        lateSubmissions: 0,
+        emptyClasses: 0,
+        notSubmitted: 0,
+        latestSessions: [],
+      };
+      const isSubmitted = Boolean(agenda.attendance?.submittedAt);
+      const isLate = this.isLateSubmit(
+        agenda.date,
+        agenda.schedule?.endsAt,
+        agenda.attendance?.submittedAt ?? null,
+      );
+
+      performance.totalSessions += 1;
+      performance.submittedSessions += isSubmitted ? 1 : 0;
+      performance.lateSubmissions += isLate ? 1 : 0;
+      performance.emptyClasses += agenda.status === AgendaStatus.EMPTY ? 1 : 0;
+      performance.notSubmitted += isSubmitted ? 0 : 1;
+
+      if (performance.latestSessions.length < 5) {
+        performance.latestSessions.push({
+          agendaId: agenda.id,
+          date: this.formatDateOnly(agenda.date),
+          className: agenda.class.name,
+          subjectName: agenda.subject.name,
+          agendaStatus: agenda.status,
+          attendanceState: agenda.attendance?.state ?? null,
+          submittedAt: agenda.attendance?.submittedAt?.toISOString() ?? null,
+          isLate,
+        });
+      }
+
+      teacherMap.set(agenda.teacherId, performance);
+    }
+
+    const teachers = Array.from(teacherMap.values())
+      .map((performance) => ({
+        ...performance,
+        onTimeSubmissions: Math.max(
+          performance.submittedSessions - performance.lateSubmissions,
+          0,
+        ),
+        submitRate:
+          performance.totalSessions > 0
+            ? Math.round(
+                (performance.submittedSessions / performance.totalSessions) * 100,
+              )
+            : 0,
+      }))
+      .sort((left, right) => {
+        if (right.lateSubmissions !== left.lateSubmissions) {
+          return right.lateSubmissions - left.lateSubmissions;
+        }
+
+        if (right.emptyClasses !== left.emptyClasses) {
+          return right.emptyClasses - left.emptyClasses;
+        }
+
+        return right.totalSessions - left.totalSessions;
+      });
+
+    return {
+      data: {
+        from: this.formatDateOnly(startOfDay),
+        to: this.formatDateOnly(new Date(endOfDay.getTime() - 1)),
+        totalTeachers: teachers.length,
+        totalSessions: teachers.reduce(
+          (total, teacher) => total + teacher.totalSessions,
+          0,
+        ),
+        totalLateSubmissions: teachers.reduce(
+          (total, teacher) => total + teacher.lateSubmissions,
+          0,
+        ),
+        totalEmptyClasses: teachers.reduce(
+          (total, teacher) => total + teacher.emptyClasses,
+          0,
+        ),
+        teachers,
+      },
+    };
+  }
+
   private async getReportRows(reportType: ReportType, date: Date) {
     if (reportType === 'attendance-summary') {
       return this.getAttendanceSummaryRows(date);
@@ -375,6 +509,66 @@ export class ReportingService {
 
     date.setHours(0, 0, 0, 0);
     return date;
+  }
+
+  private getReportRange(from: string | undefined, to: string | undefined, days: number) {
+    const endDate = to ? this.toDateOnly(to) : new Date();
+    endDate.setHours(0, 0, 0, 0);
+
+    const startDate = from ? this.toDateOnly(from) : new Date(endDate);
+
+    if (!from) {
+      startDate.setDate(startDate.getDate() - days + 1);
+    }
+
+    startDate.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(endDate);
+    endOfDay.setDate(endOfDay.getDate() + 1);
+
+    if (startDate > endOfDay) {
+      throw new BadRequestException('Rentang tanggal tidak valid');
+    }
+
+    return { startOfDay: startDate, endOfDay };
+  }
+
+  private isLateSubmit(
+    agendaDate: Date,
+    scheduleEndsAt: string | null | undefined,
+    submittedAt: Date | null,
+  ) {
+    if (!scheduleEndsAt || !submittedAt) {
+      return false;
+    }
+
+    const dueAt = this.combineDateAndTime(agendaDate, scheduleEndsAt);
+
+    if (!dueAt) {
+      return false;
+    }
+
+    return submittedAt > dueAt;
+  }
+
+  private combineDateAndTime(date: Date, time: string) {
+    const [hour, minute] = time.split(':').map((part) => Number(part));
+
+    if (
+      Number.isNaN(hour) ||
+      Number.isNaN(minute) ||
+      hour < 0 ||
+      hour > 23 ||
+      minute < 0 ||
+      minute > 59
+    ) {
+      return null;
+    }
+
+    const combinedDate = new Date(date);
+    combinedDate.setHours(hour, minute, 0, 0);
+
+    return combinedDate;
   }
 
   private normalizeReportType(reportType: string): ReportType {

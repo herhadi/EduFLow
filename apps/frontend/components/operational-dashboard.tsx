@@ -164,6 +164,7 @@ export function OperationalDashboard() {
         <QuickLink href="/import-data" label="Import Data" />
         <QuickLink href="/reports" label="Export Report" />
         <QuickLink href="/parent-portal" label="Parent Portal" />
+        <QuickLink href="/teacher-performance" label="Performa Guru" />
       </div>
     </section>
   );
