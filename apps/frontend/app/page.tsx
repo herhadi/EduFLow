@@ -1,5 +1,6 @@
 import { AcademicDashboard } from '../components/academic-dashboard';
 import { Container } from '../components/ui/container';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -15,6 +16,18 @@ export default function Home() {
           <p className="text-lg leading-7 text-slate-600">
             Pantau kegiatan belajar mengajar dengan alur yang rapi dan sederhana.
           </p>
+          <Link
+            className="mt-6 inline-flex rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700"
+            href="/master-data"
+          >
+            Buka Master Data
+          </Link>
+          <Link
+            className="mt-3 ml-3 inline-flex rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            href="/schedules"
+          >
+            Kelola Jadwal
+          </Link>
         </header>
 
         <AcademicDashboard />
@@ -22,4 +35,3 @@ export default function Home() {
     </main>
   );
 }
-

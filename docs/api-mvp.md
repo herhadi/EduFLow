@@ -6,6 +6,8 @@ Endpoint berikut bersifat dasar untuk memvalidasi flow backend sebelum frontend 
 
 ```http
 GET /api/academic/school-years
+GET /api/academic/semesters
+GET /api/academic/semesters?schoolYearId=:schoolYearId
 GET /api/academic/classes
 GET /api/academic/classes?schoolYearId=:schoolYearId
 GET /api/academic/subjects
@@ -17,6 +19,60 @@ GET /api/academic/schedules?classId=:classId
 GET /api/academic/agendas
 GET /api/academic/agendas?date=2026-06-03
 ```
+
+## Schedule Management API
+
+### Buat Jadwal
+
+```http
+POST /api/academic/schedules
+Content-Type: application/json
+
+{
+  "schoolYearId": "uuid-tahun-ajaran",
+  "semesterId": "uuid-semester",
+  "classId": "uuid-kelas",
+  "subjectId": "uuid-mapel",
+  "teacherId": "uuid-guru",
+  "dayOfWeek": 1,
+  "startsAt": "07:00",
+  "endsAt": "08:30"
+}
+```
+
+### Edit Jadwal
+
+```http
+PATCH /api/academic/schedules/:id
+```
+
+Payload sama seperti buat jadwal dan boleh parsial.
+
+### Nonaktifkan Jadwal
+
+```http
+DELETE /api/academic/schedules/:id
+```
+
+Jadwal dinonaktifkan dengan soft delete.
+
+### Generate Agenda
+
+```http
+POST /api/academic/schedules/:id/generate-agenda
+Content-Type: application/json
+
+{
+  "date": "2026-06-04"
+}
+```
+
+Efek:
+
+- membuat `DailyAgenda` dari template `Schedule`,
+- memakai `Schedule` sebagai template tetap,
+- idempotent terhadap kombinasi `scheduleId + date`,
+- jika agenda sudah ada, generate dilewati.
 
 ## Attendance Workflow API
 
@@ -88,4 +144,3 @@ Guru mendapat reminder
 ```
 
 Endpoint ini sementara dan boleh dihapus setelah flow production stabil.
-

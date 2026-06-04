@@ -7,8 +7,10 @@ export interface ApiResponse<T> {
 
 export interface SchoolClass {
   id: string;
+  schoolYearId: string;
   name: string;
   grade?: string | null;
+  schoolYear?: SchoolYear;
 }
 
 export interface Subject {
@@ -22,14 +24,84 @@ export interface Teacher {
   name: string;
 }
 
+export interface SchoolYear {
+  id: string;
+  name: string;
+  startsAt: string;
+  endsAt: string;
+}
+
+export interface Semester {
+  id: string;
+  schoolYearId: string;
+  type: 'ODD' | 'EVEN';
+  startsAt: string;
+  endsAt: string;
+  schoolYear?: SchoolYear;
+}
+
+export interface StudentEnrollment {
+  id: string;
+  isActive: boolean;
+  class: SchoolClass;
+  schoolYear: SchoolYear;
+}
+
+export interface StudentGuardian {
+  id: string;
+  relation: string;
+  isPrimary: boolean;
+  guardian: {
+    id: string;
+    name: string;
+    phone?: string | null;
+    email?: string | null;
+    telegramId?: string | null;
+  };
+}
+
+export interface Student {
+  id: string;
+  name: string;
+  enrollments: StudentEnrollment[];
+  guardians: StudentGuardian[];
+}
+
 export interface Schedule {
   id: string;
+  schoolYearId: string;
+  semesterId: string;
+  classId: string;
+  subjectId: string;
+  teacherId: string;
   dayOfWeek: number;
   startsAt: string;
   endsAt: string;
+  schoolYear: SchoolYear;
+  semester: Semester;
   class: SchoolClass;
   subject: Subject;
   teacher: Teacher;
+}
+
+export interface DailyAgenda {
+  id: string;
+  date: string;
+  status: string;
+  class: SchoolClass;
+  subject: Subject;
+  teacher: Teacher;
+}
+
+export interface SchedulePayload {
+  schoolYearId: string;
+  semesterId: string;
+  classId: string;
+  subjectId: string;
+  teacherId: string;
+  dayOfWeek: number;
+  startsAt: string;
+  endsAt: string;
 }
 
 export interface AttendanceDemoResult {
@@ -68,11 +140,41 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  getClasses: () => request<ApiResponse<SchoolClass[]>>('/academic/classes'),
+  getSchoolYears: () =>
+    request<ApiResponse<SchoolYear[]>>('/academic/school-years'),
+  getSemesters: (schoolYearId?: string) =>
+    request<ApiResponse<Semester[]>>(
+      `/academic/semesters${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,
+    ),
+  getClasses: (schoolYearId?: string) =>
+    request<ApiResponse<SchoolClass[]>>(
+      `/academic/classes${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,
+    ),
+  getSubjects: () => request<ApiResponse<Subject[]>>('/academic/subjects'),
+  getTeachers: () => request<ApiResponse<Teacher[]>>('/academic/teachers'),
+  getStudents: () => request<ApiResponse<Student[]>>('/academic/students'),
   getSchedules: () => request<ApiResponse<Schedule[]>>('/academic/schedules'),
+  createSchedule: (payload: SchedulePayload) =>
+    request<ApiResponse<Schedule>>('/academic/schedules', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  updateSchedule: (id: string, payload: SchedulePayload) =>
+    request<ApiResponse<Schedule>>(`/academic/schedules/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  deleteSchedule: (id: string) =>
+    request<ApiResponse<Schedule>>(`/academic/schedules/${id}`, {
+      method: 'DELETE',
+    }),
+  generateAgenda: (id: string, date: string) =>
+    request<ApiResponse<DailyAgenda>>(`/academic/schedules/${id}/generate-agenda`, {
+      method: 'POST',
+      body: JSON.stringify({ date }),
+    }),
   runTeacherFlowDemo: () =>
     request<ApiResponse<AttendanceDemoResult>>('/attendance/demo/teacher-flow', {
       method: 'POST',
     }),
 };
-
