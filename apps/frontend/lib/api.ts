@@ -158,6 +158,18 @@ export interface OperationalDashboardSummary {
   };
 }
 
+export interface ActivityTrailItem {
+  id: string;
+  time: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  description: string;
+  source: 'audit' | 'notification';
+  actor?: string | null;
+  metadata?: unknown;
+}
+
 export interface SchedulePayload {
   schoolYearId: string;
   semesterId: string;
@@ -254,6 +266,7 @@ export const api = {
     request<ApiResponse<OperationalDashboardSummary>>(
       '/reporting/operational/today',
     ),
+  getActivityTrail: () => request<ApiResponse<ActivityTrailItem[]>>('/audit/activity'),
   runTeacherFlowDemo: () =>
     request<ApiResponse<AttendanceDemoResult>>('/attendance/demo/teacher-flow', {
       method: 'POST',

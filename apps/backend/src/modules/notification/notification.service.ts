@@ -7,12 +7,14 @@ import {
 import { NotificationStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueueProducerService } from '../../queue/queue-producer.service';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class NotificationService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly queueProducer: QueueProducerService,
+    private readonly auditService: AuditService,
   ) {}
 
   async onModuleInit() {
@@ -70,6 +72,18 @@ export class NotificationService implements OnModuleInit {
       recipient: notification.recipient,
       templateKey: notification.templateKey,
       dedupeKey: notification.dedupeKey,
+    });
+
+    await this.auditService.record({
+      action: 'notification.retry',
+      entityType: 'NotificationLog',
+      entityId: notification.id,
+      before: notification,
+      after: {
+        status: updatedNotification.status,
+        attempts: updatedNotification.attempts,
+        jobId: job.id,
+      },
     });
 
     return {

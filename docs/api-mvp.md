@@ -158,6 +158,26 @@ Mengembalikan ringkasan hari ini untuk operator dan kepala sekolah:
 - siswa hadir, sakit, izin, dan alpha,
 - reminder terkirim, summary terkirim, dan notifikasi gagal.
 
+## Audit & Activity Center API
+
+```http
+GET /api/audit/activity
+```
+
+Mengembalikan timeline aktivitas operasional dari:
+
+- `AuditLog` untuk perubahan domain penting,
+- `NotificationLog` untuk status pengiriman notifikasi.
+
+Contoh aktivitas:
+
+```text
+08:01 Guru A submit presensi
+08:15 Operator approve presensi
+08:20 Summary dikirim
+09:00 Jadwal diubah
+```
+
 ## Demo Flow
 
 ```http

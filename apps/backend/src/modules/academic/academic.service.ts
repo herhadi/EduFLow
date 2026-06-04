@@ -1,13 +1,17 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { AgendaStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AuditService } from '../audit/audit.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { GenerateAgendaDto } from './dto/generate-agenda.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
 @Injectable()
 export class AcademicService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+  ) {}
 
   async getSchoolYears() {
     return {
@@ -130,6 +134,13 @@ export class AcademicService {
       },
     });
 
+    await this.auditService.record({
+      action: 'schedule.created',
+      entityType: 'Schedule',
+      entityId: schedule.id,
+      after: schedule,
+    });
+
     return { data: schedule, message: 'Jadwal berhasil dibuat.' };
   }
 
@@ -158,15 +169,31 @@ export class AcademicService {
       },
     });
 
+    await this.auditService.record({
+      action: 'schedule.updated',
+      entityType: 'Schedule',
+      entityId: schedule.id,
+      before: existingSchedule,
+      after: schedule,
+    });
+
     return { data: schedule, message: 'Jadwal berhasil diperbarui.' };
   }
 
   async deleteSchedule(id: string) {
-    await this.getSchedule(id);
+    const existingSchedule = await this.getSchedule(id);
 
     const schedule = await this.prisma.schedule.update({
       where: { id },
       data: { deletedAt: new Date() },
+    });
+
+    await this.auditService.record({
+      action: 'schedule.deleted',
+      entityType: 'Schedule',
+      entityId: schedule.id,
+      before: existingSchedule.data,
+      after: schedule,
     });
 
     return { data: schedule, message: 'Jadwal berhasil dinonaktifkan.' };
@@ -218,6 +245,20 @@ export class AcademicService {
         subject: true,
         teacher: true,
         attendance: true,
+      },
+    });
+
+    await this.auditService.record({
+      action: 'agenda.generated',
+      entityType: 'DailyAgenda',
+      entityId: agenda.id,
+      after: {
+        agendaId: agenda.id,
+        scheduleId: schedule.id,
+        date: agenda.date,
+        classId: agenda.classId,
+        subjectId: agenda.subjectId,
+        teacherId: agenda.teacherId,
       },
     });
 

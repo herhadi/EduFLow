@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AcademicController } from './academic.controller';
 import { AcademicService } from './academic.service';
+import { AuditModule } from '../audit/audit.module';
 import { ClassesModule } from './classes/classes.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { SchoolYearsModule } from './school-years/school-years.module';
@@ -11,6 +12,7 @@ import { TeachersModule } from './teachers/teachers.module';
 
 @Module({
   imports: [
+    AuditModule,
     StudentsModule,
     TeachersModule,
     ClassesModule,

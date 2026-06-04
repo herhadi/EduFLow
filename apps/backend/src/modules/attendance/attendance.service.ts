@@ -6,6 +6,7 @@ import {
 import { AgendaStatus, AttendanceState, AttendanceStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueueProducerService } from '../../queue/queue-producer.service';
+import { AuditService } from '../audit/audit.service';
 import { OpenClassDto } from './dto/open-class.dto';
 import { SubmitAttendanceDto } from './dto/submit-attendance.dto';
 
@@ -14,6 +15,7 @@ export class AttendanceService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly queueProducer: QueueProducerService,
+    private readonly auditService: AuditService,
   ) {}
 
   async getAttendance(id: string) {
@@ -96,6 +98,18 @@ export class AttendanceService {
       return openedAttendance;
     });
 
+    await this.auditService.record({
+      action: 'attendance.opened',
+      entityType: 'Attendance',
+      entityId: attendance.id,
+      after: {
+        attendanceId: attendance.id,
+        agendaId: agenda.id,
+        classId: agenda.classId,
+        itemCount: attendance.items.length,
+      },
+    });
+
     return {
       data: attendance,
       message: 'Kelas dibuka dan attendance siap diisi.',
@@ -151,6 +165,20 @@ export class AttendanceService {
       attendanceId: attendance.id,
       classId: attendance.classId,
       schoolYearId: attendance.agenda.schoolYearId,
+    });
+
+    await this.auditService.record({
+      action: 'attendance.submitted',
+      entityType: 'Attendance',
+      entityId: submittedAttendance.id,
+      before: {
+        state: attendance.state,
+      },
+      after: {
+        state: submittedAttendance.state,
+        itemCount: submittedAttendance.items.length,
+        summaryJobId: summaryJob.id,
+      },
     });
 
     return {
