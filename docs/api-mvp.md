@@ -145,6 +145,13 @@ Target MVP:
 - password reset flow,
 - session revocation.
 
+Session login:
+
+- access token berlaku 24 jam,
+- refresh token berlaku 24 jam,
+- setelah 24 jam user harus login ulang,
+- refresh token lama dicabut ketika refresh token baru dibuat.
+
 ### Login Audit Dan Failed Login
 
 Setiap login membuat `LoginAudit`:

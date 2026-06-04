@@ -11,7 +11,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
-const REFRESH_TOKEN_LIFETIME_DAYS = 30;
+const LOGIN_SESSION_LIFETIME_HOURS = 24;
 const PASSWORD_RESET_LIFETIME_MINUTES = 30;
 const MAX_FAILED_LOGIN_ATTEMPTS = 5;
 const ACCOUNT_LOCK_MINUTES = 15;
@@ -19,6 +19,22 @@ const ACCOUNT_LOCK_MINUTES = 15;
 type AuthRequestMeta = {
   ipAddress?: string;
   userAgent?: string;
+};
+
+type RequestPasswordResetInput = {
+  email: string;
+};
+
+type ResetPasswordInput = {
+  token: string;
+  newPassword: string;
+};
+
+type LoginAuditInput = AuthRequestMeta & {
+  email: string;
+  reason?: string;
+  status: LoginAuditStatus;
+  userId?: string;
 };
 
 @Injectable()
@@ -138,7 +154,7 @@ export class AuthService {
     return { success: true };
   }
 
-  async requestPasswordReset(dto: { email: string }) {
+  async requestPasswordReset(dto: RequestPasswordResetInput) {
     const email = dto.email.toLowerCase();
     const user = await this.prisma.user.findUnique({ where: { email } });
 
@@ -151,7 +167,9 @@ export class AuthService {
 
     const resetToken = randomBytes(48).toString('base64url');
     const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + PASSWORD_RESET_LIFETIME_MINUTES);
+    expiresAt.setMinutes(
+      expiresAt.getMinutes() + PASSWORD_RESET_LIFETIME_MINUTES,
+    );
 
     await this.prisma.passwordResetToken.create({
       data: {
@@ -168,7 +186,7 @@ export class AuthService {
     };
   }
 
-  async resetPassword(dto: { token: string; newPassword: string }) {
+  async resetPassword(dto: ResetPasswordInput) {
     const tokenHash = this.hashToken(dto.token);
     const resetToken = await this.prisma.passwordResetToken.findUnique({
       where: { tokenHash },
@@ -182,23 +200,26 @@ export class AuthService {
       throw new UnauthorizedException('Invalid password reset token');
     }
 
+    const hashedPassword = await hash(dto.newPassword, 12);
+    const now = new Date();
+
     await this.prisma.$transaction([
       this.prisma.user.update({
         where: { id: resetToken.userId },
         data: {
-          password: await hash(dto.newPassword, 12),
+          password: hashedPassword,
           failedLoginCount: 0,
           lockedUntil: null,
-          passwordChangedAt: new Date(),
+          passwordChangedAt: now,
         },
       }),
       this.prisma.passwordResetToken.update({
         where: { id: resetToken.id },
-        data: { usedAt: new Date() },
+        data: { usedAt: now },
       }),
       this.prisma.refreshToken.updateMany({
         where: { userId: resetToken.userId, revokedAt: null },
-        data: { revokedAt: new Date(), revokedReason: 'password_reset' },
+        data: { revokedAt: now, revokedReason: 'password_reset' },
       }),
     ]);
 
@@ -277,7 +298,7 @@ export class AuthService {
     ];
     const refreshToken = randomBytes(48).toString('base64url');
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_LIFETIME_DAYS);
+    expiresAt.setHours(expiresAt.getHours() + LOGIN_SESSION_LIFETIME_HOURS);
 
     await this.prisma.refreshToken.create({
       data: {
@@ -286,14 +307,19 @@ export class AuthService {
         expiresAt,
       },
     });
-
-    return {
-      accessToken: await this.jwtService.signAsync({
+    const accessToken = await this.jwtService.signAsync(
+      {
         id: user.id,
         email: user.email,
         permissions,
-      }),
+      },
+      { expiresIn: `${LOGIN_SESSION_LIFETIME_HOURS}h` },
+    );
+
+    return {
+      accessToken,
       refreshToken,
+      expiresAt,
     };
   }
 
@@ -302,7 +328,9 @@ export class AuthService {
   }
 
   private async trackFailedLogin(userId: string) {
-    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+    });
     const failedLoginCount = user.failedLoginCount + 1;
     const lockedUntil = new Date();
     lockedUntil.setMinutes(lockedUntil.getMinutes() + ACCOUNT_LOCK_MINUTES);
@@ -317,27 +345,15 @@ export class AuthService {
     });
   }
 
-  private async recordLoginAudit({
-    email,
-    ipAddress,
-    reason,
-    status,
-    userAgent,
-    userId,
-  }: AuthRequestMeta & {
-    email: string;
-    reason?: string;
-    status: LoginAuditStatus;
-    userId?: string;
-  }) {
+  private async recordLoginAudit(input: LoginAuditInput) {
     await this.prisma.loginAudit.create({
       data: {
-        email,
-        ipAddress,
-        reason,
-        status,
-        userAgent,
-        userId,
+        email: input.email,
+        ipAddress: input.ipAddress ?? null,
+        reason: input.reason ?? null,
+        status: input.status,
+        userAgent: input.userAgent ?? null,
+        userId: input.userId ?? null,
       },
     });
   }
