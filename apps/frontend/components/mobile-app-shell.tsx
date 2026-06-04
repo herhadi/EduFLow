@@ -6,7 +6,7 @@ import { type ReactNode } from 'react';
 import { cn } from '../lib/cn';
 
 const primaryNavItems = [
-  { href: '/', label: 'Home', icon: '⌂' },
+  { href: '/dashboard', label: 'Home', icon: '⌂' },
   { href: '/schedules', label: 'Jadwal', icon: '◷' },
   { href: '/notifications', label: 'Notif', icon: '✦' },
   { href: '/operations', label: 'Ops', icon: '●' },
@@ -23,6 +23,11 @@ const quickMenuItems = [
 
 export function MobileAppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const isPublicPage = pathname === '/' || pathname === '/login';
+
+  if (isPublicPage) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="min-h-dvh overflow-x-hidden bg-[radial-gradient(circle_at_top,_#dbeafe_0,_#eff6ff_28%,_#f8fafc_70%)]">
@@ -101,8 +106,7 @@ function BottomNavigation({ pathname }: { pathname: string }) {
     >
       <div className="mx-auto grid grid-cols-5 gap-1 rounded-[1.75rem] border border-blue-100 bg-white/90 p-2 shadow-2xl shadow-blue-950/15 backdrop-blur-xl">
         {primaryNavItems.map((item) => {
-          const active =
-            item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+          const active = pathname.startsWith(item.href);
 
           return (
             <Link

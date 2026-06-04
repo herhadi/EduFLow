@@ -19,7 +19,7 @@ export function PageHeader({
       {showBackLink ? (
         <Link
           className="inline-flex rounded-full bg-white px-3 py-2 text-xs font-bold text-brand-700 shadow-sm shadow-blue-100 hover:text-brand-600"
-          href="/"
+          href="/dashboard"
         >
           ← Kembali ke dashboard
         </Link>
