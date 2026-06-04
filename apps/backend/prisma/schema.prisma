@@ -44,6 +44,11 @@ enum GuardianRelation {
   OTHER
 }
 
+enum Gender {
+  MALE
+  FEMALE
+}
+
 enum NotificationChannel {
   WHATSAPP
   TELEGRAM
@@ -152,9 +157,12 @@ model Semester {
 model Class {
   id           String              @id @default(uuid()) @db.Uuid
   schoolYearId String              @db.Uuid
+  homeroomTeacherId String?         @db.Uuid
   name         String
+  code         String?
   grade        String?
   schoolYear   SchoolYear          @relation(fields: [schoolYearId], references: [id])
+  homeroomTeacher Teacher?          @relation("ClassHomeroomTeacher", fields: [homeroomTeacherId], references: [id])
   enrollments  StudentEnrollment[]
   schedules    Schedule[]
   agendas      DailyAgenda[]
@@ -164,13 +172,16 @@ model Class {
   deletedAt    DateTime?
 
   @@unique([schoolYearId, name])
+  @@unique([schoolYearId, code])
   @@index([schoolYearId])
+  @@index([homeroomTeacherId])
 }
 
 model Subject {
   id        String        @id @default(uuid()) @db.Uuid
   name      String
   code      String?       @unique
+  isActive  Boolean       @default(true)
   schedules Schedule[]
   agendas   DailyAgenda[]
   createdAt DateTime      @default(now())
@@ -179,24 +190,44 @@ model Subject {
 }
 
 model Teacher {
-  id        String        @id @default(uuid()) @db.Uuid
-  name      String
-  schedules Schedule[]
-  agendas   DailyAgenda[]
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  deletedAt DateTime?
+  id              String        @id @default(uuid()) @db.Uuid
+  name            String
+  nip             String?       @unique
+  nuptk           String?       @unique
+  email           String?       @unique
+  phone           String?
+  telegramId      String?
+  isActive        Boolean       @default(true)
+  schedules       Schedule[]
+  agendas         DailyAgenda[]
+  homeroomClasses Class[]       @relation("ClassHomeroomTeacher")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  @@index([phone])
+  @@index([telegramId])
+  @@index([isActive])
 }
 
 model Student {
   id              String              @id @default(uuid()) @db.Uuid
   name            String
+  nis             String?             @unique
+  nisn            String?             @unique
+  gender          Gender?
+  birthDate       DateTime?           @db.Date
+  phone           String?
+  isActive        Boolean             @default(true)
   enrollments     StudentEnrollment[]
   guardians       StudentGuardian[]
   attendanceItems AttendanceItem[]
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   deletedAt       DateTime?
+
+  @@index([phone])
+  @@index([isActive])
 }
 
 model Guardian {
@@ -205,6 +236,8 @@ model Guardian {
   phone      String?
   telegramId String?
   email      String?
+  address    String?
+  isActive   Boolean           @default(true)
   students   StudentGuardian[]
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
@@ -213,6 +246,7 @@ model Guardian {
   @@index([phone])
   @@index([telegramId])
   @@index([email])
+  @@index([isActive])
 }
 
 model StudentGuardian {
@@ -264,6 +298,8 @@ model Schedule {
   dayOfWeek    Int
   startsAt     String
   endsAt       String
+  room         String?
+  isActive     Boolean       @default(true)
   schoolYear   SchoolYear    @relation(fields: [schoolYearId], references: [id])
   semester     Semester      @relation(fields: [semesterId], references: [id])
   class        Class         @relation(fields: [classId], references: [id])
@@ -277,6 +313,7 @@ model Schedule {
   @@index([schoolYearId, semesterId])
   @@index([classId, dayOfWeek])
   @@index([teacherId, dayOfWeek])
+  @@index([isActive])
 }
 
 model DailyAgenda {

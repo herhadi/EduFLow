@@ -10,6 +10,7 @@
     "prisma:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@eduflow/shared": "*",
     "@nestjs/bullmq": "^11.0.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -18,20 +19,20 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/client": "^6.8.2",
-    "@eduflow/shared": "*",
     "bcryptjs": "^3.0.2",
     "bullmq": "^5.53.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.7",
     "@nestjs/schematics": "^11.0.5",
-    "@types/node": "^22.15.21",
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.2",
+    "@types/node": "^22.15.21",
     "prisma": "^6.8.2",
     "tsx": "^4.20.6",
     "typescript": "^5.8.3"

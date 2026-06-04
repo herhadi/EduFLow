@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { AcademicController } from './academic.controller';
 import { AcademicService } from './academic.service';
 import { AuditModule } from '../audit/audit.module';
+import { AcademicImportController } from './imports/academic-import.controller';
+import { AcademicImportService } from './imports/academic-import.service';
+import { ImportExcelService } from './imports/import-excel.service';
 import { ClassesModule } from './classes/classes.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { SchoolYearsModule } from './school-years/school-years.module';
@@ -21,7 +24,7 @@ import { TeachersModule } from './teachers/teachers.module';
     SemestersModule,
     SchoolYearsModule,
   ],
-  controllers: [AcademicController],
-  providers: [AcademicService],
+  controllers: [AcademicController, AcademicImportController],
+  providers: [AcademicService, AcademicImportService, ImportExcelService],
 })
 export class AcademicModule {}

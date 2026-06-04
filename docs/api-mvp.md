@@ -205,6 +205,43 @@ Payload retry/discard:
 }
 ```
 
+## Import Data API
+
+```http
+POST /api/academic/import/teachers
+POST /api/academic/import/students
+POST /api/academic/import/classes
+POST /api/academic/import/subjects
+POST /api/academic/import/schedules
+Content-Type: multipart/form-data
+```
+
+Field upload:
+
+```text
+file: Guru.xlsx | Siswa.xlsx | Kelas.xlsx | Mapel.xlsx | Jadwal.xlsx
+```
+
+Format kolom:
+
+| File | Kolom minimal |
+| --- | --- |
+| `Guru.xlsx` | `nama`, `nip`, `nuptk`, `email`, `no_hp`, `telegram_id`, `status` |
+| `Siswa.xlsx` | `nama`, `nis`, `nisn`, `jenis_kelamin`, `tanggal_lahir`, `kelas`, `tahun_ajaran`, `nama_wali`, `hp_wali`, `telegram_id_wali`, `alamat_wali`, `status` |
+| `Kelas.xlsx` | `nama`, `kode`, `tingkat`, `tahun_ajaran`, `wali_kelas` |
+| `Mapel.xlsx` | `nama`, `kode`, `status` |
+| `Jadwal.xlsx` | `tahun_ajaran`, `semester`, `kelas`, `kode_mapel`, `guru`, `hari`, `mulai`, `selesai`, `ruang`, `status` |
+
+Catatan:
+
+- Import jadwal membutuhkan data tahun ajaran, semester, kelas, mapel, dan guru sudah ada.
+- `semester` menerima `ganjil`, `genap`, `odd`, `even`, `1`, atau `2`.
+- `hari` menerima nama hari Indonesia/Inggris atau angka `1-7`.
+- `status` menerima nilai aktif secara default. Nilai `nonaktif`, `inactive`, `false`, `0`, atau `tidak` dianggap nonaktif.
+- Reminder guru memakai `Teacher.phone` atau `Teacher.telegramId`.
+- Notifikasi wali murid memakai `Guardian.phone` atau `Guardian.telegramId`.
+- Semua import menghasilkan ringkasan `created`, `updated`, `skipped`, dan `errors`.
+
 ## Demo Flow
 
 ```http

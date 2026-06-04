@@ -161,6 +161,7 @@ export function OperationalDashboard() {
         <QuickLink href="/master-data" label="Master Data" />
         <QuickLink href="/audit" label="Audit Trail" />
         <QuickLink href="/operations" label="Health Ops" />
+        <QuickLink href="/import-data" label="Import Data" />
       </div>
     </section>
   );

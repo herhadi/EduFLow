@@ -162,8 +162,14 @@ function TeacherTable({ teachers }: { teachers: Teacher[] }) {
   return (
     <SimpleTable
       emptyLabel="Belum ada guru."
-      headers={['Nama Guru', 'ID']}
-      rows={teachers.map((teacher) => [teacher.name, teacher.id])}
+      headers={['Nama Guru', 'NIP', 'No HP', 'Telegram', 'Status']}
+      rows={teachers.map((teacher) => [
+        teacher.name,
+        teacher.nip ?? '-',
+        teacher.phone ?? '-',
+        teacher.telegramId ?? '-',
+        teacher.isActive === false ? 'Nonaktif' : 'Aktif',
+      ])}
     />
   );
 }
@@ -172,7 +178,7 @@ function StudentTable({ students }: { students: Student[] }) {
   return (
     <SimpleTable
       emptyLabel="Belum ada siswa."
-      headers={['Nama Siswa', 'Kelas Aktif', 'Wali Utama']}
+      headers={['Nama Siswa', 'NIS', 'NISN', 'Kelas Aktif', 'Wali Utama']}
       rows={students.map((student) => {
         const activeEnrollment = student.enrollments[0];
         const primaryGuardian =
@@ -181,6 +187,8 @@ function StudentTable({ students }: { students: Student[] }) {
 
         return [
           student.name,
+          student.nis ?? '-',
+          student.nisn ?? '-',
           activeEnrollment
             ? `${activeEnrollment.class.name} · ${activeEnrollment.schoolYear.name}`
             : '-',
@@ -197,9 +205,10 @@ function ClassTable({ classes }: { classes: SchoolClass[] }) {
   return (
     <SimpleTable
       emptyLabel="Belum ada kelas."
-      headers={['Nama Kelas', 'Tingkat', 'Tahun Ajaran']}
+      headers={['Nama Kelas', 'Kode', 'Tingkat', 'Tahun Ajaran']}
       rows={classes.map((schoolClass) => [
         schoolClass.name,
+        schoolClass.code ?? '-',
         schoolClass.grade ?? '-',
         schoolClass.schoolYear?.name ?? '-',
       ])}
@@ -211,8 +220,12 @@ function SubjectTable({ subjects }: { subjects: Subject[] }) {
   return (
     <SimpleTable
       emptyLabel="Belum ada mata pelajaran."
-      headers={['Mata Pelajaran', 'Kode']}
-      rows={subjects.map((subject) => [subject.name, subject.code ?? '-'])}
+      headers={['Mata Pelajaran', 'Kode', 'Status']}
+      rows={subjects.map((subject) => [
+        subject.name,
+        subject.code ?? '-',
+        subject.isActive === false ? 'Nonaktif' : 'Aktif',
+      ])}
     />
   );
 }

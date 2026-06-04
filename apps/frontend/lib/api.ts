@@ -8,7 +8,9 @@ export interface ApiResponse<T> {
 export interface SchoolClass {
   id: string;
   schoolYearId: string;
+  homeroomTeacherId?: string | null;
   name: string;
+  code?: string | null;
   grade?: string | null;
   schoolYear?: SchoolYear;
 }
@@ -17,11 +19,18 @@ export interface Subject {
   id: string;
   name: string;
   code?: string | null;
+  isActive?: boolean;
 }
 
 export interface Teacher {
   id: string;
   name: string;
+  nip?: string | null;
+  nuptk?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  telegramId?: string | null;
+  isActive?: boolean;
 }
 
 export interface SchoolYear {
@@ -63,6 +72,12 @@ export interface StudentGuardian {
 export interface Student {
   id: string;
   name: string;
+  nis?: string | null;
+  nisn?: string | null;
+  gender?: 'MALE' | 'FEMALE' | null;
+  birthDate?: string | null;
+  phone?: string | null;
+  isActive?: boolean;
   enrollments: StudentEnrollment[];
   guardians: StudentGuardian[];
 }
@@ -77,6 +92,8 @@ export interface Schedule {
   dayOfWeek: number;
   startsAt: string;
   endsAt: string;
+  room?: string | null;
+  isActive?: boolean;
   schoolYear: SchoolYear;
   semester: Semester;
   class: SchoolClass;
@@ -208,6 +225,17 @@ export interface OperationsDashboard {
   failedJobs: FailedJob[];
 }
 
+export type ImportType = 'teachers' | 'students' | 'classes' | 'subjects' | 'schedules';
+
+export interface ImportSummary {
+  type: ImportType;
+  total: number;
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: Array<{ row: number; message: string }>;
+}
+
 export interface SchedulePayload {
   schoolYearId: string;
   semesterId: string;
@@ -249,6 +277,22 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     throw new Error(`API request failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<T>;
+}
+
+async function upload<T>(path: string, file: File): Promise<T> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`API upload failed: ${response.status}`);
   }
 
   return response.json() as Promise<T>;
@@ -325,6 +369,8 @@ export const api = {
         body: JSON.stringify({ queueName, jobId }),
       },
     ),
+  importAcademicData: (type: ImportType, file: File) =>
+    upload<ApiResponse<ImportSummary>>(`/academic/import/${type}`, file),
   runTeacherFlowDemo: () =>
     request<ApiResponse<AttendanceDemoResult>>('/attendance/demo/teacher-flow', {
       method: 'POST',
