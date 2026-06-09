@@ -4,19 +4,28 @@ export default function LoginPage() {
   return (
     <main className="min-h-dvh bg-[radial-gradient(circle_at_top,_#bfdbfe_0,_#eff6ff_34%,_#ffffff_80%)] px-4 py-6">
       <div className="mx-auto flex min-h-[calc(100dvh-3rem)] max-w-md flex-col justify-center">
-        <Link className="mb-8 inline-flex items-center gap-3" href="/">
-          <span className="grid size-11 place-items-center rounded-2xl bg-brand-600 text-xl font-black text-white shadow-lg shadow-blue-200">
-            E
-          </span>
-          <span>
-            <span className="block text-lg font-black leading-none text-ink">
-              EduFlow
+        <div className="mb-8 flex items-center justify-between gap-3">
+          <Link className="flex items-center gap-3" href="/">
+            <span className="grid size-11 place-items-center rounded-2xl bg-brand-600 text-xl font-black text-white shadow-lg shadow-blue-200">
+              E
             </span>
-            <span className="mt-1 block text-xs font-semibold text-muted">
-              Kembali ke landing page
+            <span>
+              <span className="block text-lg font-black leading-none text-ink">
+                EduFlow
+              </span>
+              <span className="mt-1 block text-xs font-semibold text-muted">
+                Login Sistem
+              </span>
             </span>
-          </span>
-        </Link>
+          </Link>
+
+          <Link
+            className="shrink-0 rounded-full border border-blue-100 bg-white px-4 py-2 text-xs font-black text-brand-700 shadow-sm shadow-blue-100 transition hover:bg-brand-50"
+            href="/"
+          >
+            ← Landing
+          </Link>
+        </div>
 
         <section className="rounded-[2rem] border border-blue-100 bg-white/90 p-5 shadow-2xl shadow-blue-100 backdrop-blur">
           <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">

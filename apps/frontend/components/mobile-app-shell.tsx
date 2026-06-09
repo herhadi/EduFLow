@@ -62,8 +62,16 @@ function AppTopBar() {
             </span>
           </span>
         </Link>
-        <div className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-          Online
+        <div className="flex items-center gap-2">
+          <div className="hidden rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 min-[380px]:block">
+            Online
+          </div>
+          <Link
+            className="rounded-full border border-blue-100 bg-white px-3 py-2 text-xs font-black text-brand-700 shadow-sm transition hover:bg-brand-50"
+            href="/login"
+          >
+            Keluar
+          </Link>
         </div>
       </div>
     </header>
