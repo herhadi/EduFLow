@@ -300,7 +300,7 @@ Format:
 ## Parent Portal API
 
 ```http
-GET /api/parent-portal/summary?contact=09561186917
+GET /api/parent-portal/summary?contact=08561186917
 GET /api/parent-portal/summary?contact=648351920
 ```
 
@@ -320,7 +320,7 @@ Response utama:
     "guardian": {
       "id": "uuid-wali",
       "name": "Nama Wali",
-      "phone": "09561186917",
+      "phone": "08561186917",
       "telegramId": "648351920"
     },
     "date": "2026-06-04",

@@ -158,7 +158,7 @@ async function main() {
   const guardian = await prisma.guardian.create({
     data: {
       name: 'Wali Murid Demo',
-      phone: '09561186917',
+      phone: '08561186917',
       telegramId: '648351920',
     },
   });

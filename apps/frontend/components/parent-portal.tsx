@@ -11,7 +11,7 @@ import { MetricCard } from './ui/metric-card';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
-const fallbackContact = '09561186917';
+const fallbackContact = '08561186917';
 
 const statusLabels: Record<ParentAttendanceRecord['status'], string> = {
   PRESENT: 'Hadir',
@@ -61,7 +61,7 @@ export function ParentPortal() {
           <input
             className="rounded-2xl border border-white/20 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-blue-200"
             onChange={(event) => setContact(event.target.value)}
-            placeholder="Contoh: 09561186917"
+            placeholder="Contoh: 08561186917"
             value={contact}
           />
           <button

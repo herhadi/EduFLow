@@ -157,7 +157,7 @@ export class NotificationService implements OnModuleInit {
         {
           channel: 'WHATSAPP',
           status: 'FAILED',
-          recipient: '09561186917',
+          recipient: '08561186917',
           recipientName: 'Wali Murid Demo',
           message: 'Kelas belum dibuka sesuai jadwal.',
           templateKey: 'attendance.class.empty',
