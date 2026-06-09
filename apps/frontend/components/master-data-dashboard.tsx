@@ -101,19 +101,19 @@ export function MasterDataDashboard() {
   );
 
   return (
-    <section className="mt-10 grid gap-6 lg:grid-cols-[260px_1fr]">
-      <aside className="rounded-2xl border border-slate-200 bg-white p-4">
+    <section className="mt-6 grid min-w-0 gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
+      <aside className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60">
         <p className="px-3 text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
           Master Data
         </p>
-        <nav className="mt-4 space-y-2">
+        <nav className="no-scrollbar mt-4 flex gap-2 overflow-x-auto lg:block lg:space-y-2 lg:overflow-visible">
           {tabs.map((tab) => (
             <button
               className={[
-                'w-full rounded-xl px-3 py-3 text-left text-sm font-semibold transition',
+                'shrink-0 rounded-2xl px-4 py-3 text-left text-sm font-semibold transition lg:w-full',
                 activeTab === tab.id
                   ? 'bg-brand-600 text-white'
-                  : 'text-slate-700 hover:bg-slate-100',
+                  : 'bg-brand-50 text-brand-700 hover:bg-blue-100 lg:bg-transparent lg:text-slate-700 lg:hover:bg-slate-100',
               ].join(' ')}
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -125,7 +125,7 @@ export function MasterDataDashboard() {
         </nav>
       </aside>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
+      <div className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">
@@ -144,13 +144,13 @@ export function MasterDataDashboard() {
           </div>
         ) : null}
 
-        <div className="mt-6">
-          {activeTab === 'teachers' ? <TeacherTable teachers={teachers} /> : null}
-          {activeTab === 'students' ? <StudentTable students={students} /> : null}
-          {activeTab === 'classes' ? <ClassTable classes={classes} /> : null}
-          {activeTab === 'subjects' ? <SubjectTable subjects={subjects} /> : null}
+        <div className="mt-6 min-w-0">
+          {activeTab === 'teachers' ? <TeacherList teachers={teachers} /> : null}
+          {activeTab === 'students' ? <StudentList students={students} /> : null}
+          {activeTab === 'classes' ? <ClassList classes={classes} /> : null}
+          {activeTab === 'subjects' ? <SubjectList subjects={subjects} /> : null}
           {activeTab === 'schoolYears' ? (
-            <SchoolYearTable schoolYears={schoolYears} />
+            <SchoolYearList schoolYears={schoolYears} />
           ) : null}
         </div>
       </div>
@@ -158,9 +158,9 @@ export function MasterDataDashboard() {
   );
 }
 
-function TeacherTable({ teachers }: { teachers: Teacher[] }) {
+function TeacherList({ teachers }: { teachers: Teacher[] }) {
   return (
-    <SimpleTable
+    <ResponsiveList
       emptyLabel="Belum ada guru."
       headers={['Nama Guru', 'NIP', 'No HP', 'Telegram', 'Status']}
       rows={teachers.map((teacher) => [
@@ -174,9 +174,9 @@ function TeacherTable({ teachers }: { teachers: Teacher[] }) {
   );
 }
 
-function StudentTable({ students }: { students: Student[] }) {
+function StudentList({ students }: { students: Student[] }) {
   return (
-    <SimpleTable
+    <ResponsiveList
       emptyLabel="Belum ada siswa."
       headers={['Nama Siswa', 'NIS', 'NISN', 'Kelas Aktif', 'Wali Utama']}
       rows={students.map((student) => {
@@ -201,9 +201,9 @@ function StudentTable({ students }: { students: Student[] }) {
   );
 }
 
-function ClassTable({ classes }: { classes: SchoolClass[] }) {
+function ClassList({ classes }: { classes: SchoolClass[] }) {
   return (
-    <SimpleTable
+    <ResponsiveList
       emptyLabel="Belum ada kelas."
       headers={['Nama Kelas', 'Kode', 'Tingkat', 'Tahun Ajaran']}
       rows={classes.map((schoolClass) => [
@@ -216,9 +216,9 @@ function ClassTable({ classes }: { classes: SchoolClass[] }) {
   );
 }
 
-function SubjectTable({ subjects }: { subjects: Subject[] }) {
+function SubjectList({ subjects }: { subjects: Subject[] }) {
   return (
-    <SimpleTable
+    <ResponsiveList
       emptyLabel="Belum ada mata pelajaran."
       headers={['Mata Pelajaran', 'Kode', 'Status']}
       rows={subjects.map((subject) => [
@@ -230,9 +230,9 @@ function SubjectTable({ subjects }: { subjects: Subject[] }) {
   );
 }
 
-function SchoolYearTable({ schoolYears }: { schoolYears: SchoolYear[] }) {
+function SchoolYearList({ schoolYears }: { schoolYears: SchoolYear[] }) {
   return (
-    <SimpleTable
+    <ResponsiveList
       emptyLabel="Belum ada tahun ajaran."
       headers={['Tahun Ajaran', 'Mulai', 'Selesai']}
       rows={schoolYears.map((schoolYear) => [
@@ -244,7 +244,7 @@ function SchoolYearTable({ schoolYears }: { schoolYears: SchoolYear[] }) {
   );
 }
 
-function SimpleTable({
+function ResponsiveList({
   emptyLabel,
   headers,
   rows,
@@ -258,7 +258,51 @@ function SimpleTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200">
+    <>
+      <div className="space-y-3 md:hidden">
+        {rows.map((row, rowIndex) => (
+          <article
+            className="rounded-2xl border border-blue-100 bg-slate-50 p-4"
+            key={`${row.join('-')}-${rowIndex}`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="truncate text-base font-bold text-slate-900">
+                  {row[0]}
+                </h3>
+                {row[1] ? (
+                  <p className="mt-1 text-xs font-semibold text-muted">
+                    {headers[1]}: {row[1]}
+                  </p>
+                ) : null}
+              </div>
+              {row[row.length - 1] ? (
+                <span className="shrink-0 rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">
+                  {row[row.length - 1]}
+                </span>
+              ) : null}
+            </div>
+
+            <dl className="mt-4 grid gap-2">
+              {row.slice(1).map((cell, cellIndex) => (
+                <div
+                  className="flex items-start justify-between gap-3 rounded-xl bg-white px-3 py-2"
+                  key={`${cell}-${cellIndex}`}
+                >
+                  <dt className="text-xs font-bold text-muted">
+                    {headers[cellIndex + 1]}
+                  </dt>
+                  <dd className="max-w-[60%] text-right text-xs font-semibold text-slate-700">
+                    {cell}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </article>
+        ))}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-2xl border border-slate-200 md:block">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
           <thead className="bg-slate-50 text-xs font-bold tracking-[0.08em] text-slate-500 uppercase">
@@ -284,6 +328,7 @@ function SimpleTable({
         </table>
       </div>
     </div>
+    </>
   );
 }
 
