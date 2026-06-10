@@ -25,6 +25,7 @@ PostgreSQL adalah sumber data utama. Redis hanya digunakan untuk queue, cache, r
 
 - `auth`: autentikasi, refresh token, JWT, RBAC, dan permission.
 - `academic`: students, teachers, classes, schedules, subjects, semesters, dan school years.
+- `academic-planning`: kalender pendidikan, program tahunan, program semester, KKTP, perencanaan pembelajaran, buku KBM, dan nilai siswa.
 - `attendance`: agenda harian, presensi siswa, aktivitas guru, status kelas, dan summary.
 - `notification`: channels, templates, processors, dan providers.
 - `scheduler`: membuat recurring atau delayed job saja.
@@ -56,6 +57,7 @@ API menerapkan authentication guard dan permission guard secara global. Endpoint
 - `docs/attendance-state.md`: workflow state presensi untuk koreksi, approval, audit, dan summary.
 - `docs/queues.md`: strategi queue, job naming, retry, dan idempotency.
 - `docs/permission-matrix.md`: role, capability, dan scope data.
+- `docs/academic-planning.md`: pembagian admin dan guru untuk kalender pendidikan, perangkat ajar, dan nilai siswa.
 
 ## Batas Infra
 

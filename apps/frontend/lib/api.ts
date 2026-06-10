@@ -359,10 +359,13 @@ export interface AttendanceDemoResult {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const accessToken =
+    typeof window === 'undefined' ? undefined : localStorage.getItem('accessToken');
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...init?.headers,
     },
   });
@@ -403,6 +406,10 @@ export const api = {
     ),
   getSubjects: () => request<ApiResponse<Subject[]>>('/academic/subjects'),
   getTeachers: () => request<ApiResponse<Teacher[]>>('/academic/teachers'),
+  deleteTeacher: (id: string) =>
+    request<ApiResponse<Teacher>>(`/academic/teachers/${id}`, {
+      method: 'DELETE',
+    }),
   getStudents: () => request<ApiResponse<Student[]>>('/academic/students'),
   getSchedules: () => request<ApiResponse<Schedule[]>>('/academic/schedules'),
   createSchedule: (payload: SchedulePayload) =>

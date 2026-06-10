@@ -60,6 +60,58 @@ export class AcademicService {
     };
   }
 
+  async deleteTeacher(id: string) {
+    const existingTeacher = await this.prisma.teacher.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        schedules: {
+          where: { deletedAt: null },
+          select: { id: true },
+        },
+        homeroomClasses: {
+          where: { deletedAt: null },
+          select: { id: true, name: true },
+        },
+      },
+    });
+
+    if (!existingTeacher) {
+      throw new NotFoundException('Guru tidak ditemukan');
+    }
+
+    const deletedAt = new Date();
+    const result = await this.prisma.$transaction(async (tx) => {
+      await tx.class.updateMany({
+        where: { homeroomTeacherId: id, deletedAt: null },
+        data: { homeroomTeacherId: null },
+      });
+
+      await tx.schedule.updateMany({
+        where: { teacherId: id, deletedAt: null },
+        data: { deletedAt },
+      });
+
+      return tx.teacher.update({
+        where: { id },
+        data: { isActive: false, deletedAt },
+      });
+    });
+
+    await this.auditService.record({
+      action: 'teacher.deleted',
+      entityType: 'Teacher',
+      entityId: result.id,
+      before: existingTeacher,
+      after: result,
+    });
+
+    return {
+      data: result,
+      message:
+        'Guru berhasil dinonaktifkan. Jadwal aktif guru ikut dinonaktifkan, histori agenda tetap tersimpan.',
+    };
+  }
+
   async getStudents(classId?: string) {
     return {
       data: await this.prisma.student.findMany({

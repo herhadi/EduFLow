@@ -14,6 +14,7 @@ const primaryNavItems = [
 ];
 
 const quickMenuItems = [
+  { href: '/admin', label: 'Admin' },
   { href: '/master-data', label: 'Master Data' },
   { href: '/import-data', label: 'Import' },
   { href: '/audit', label: 'Audit' },

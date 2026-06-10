@@ -20,7 +20,30 @@ GET /api/academic/agendas
 GET /api/academic/agendas?date=2026-06-03
 ```
 
+## Teacher Management API
+
+### Nonaktifkan Guru
+
+```http
+DELETE /api/academic/teachers/:id
+Authorization: Bearer <accessToken>
+```
+
+Permission:
+
+- `academic.manage`
+
+Efek:
+
+- `Teacher.deletedAt` terisi,
+- `Teacher.isActive` menjadi `false`,
+- jadwal aktif guru ikut dinonaktifkan,
+- relasi wali kelas pada `Class.homeroomTeacherId` dilepas jika ada,
+- histori `DailyAgenda`, `Attendance`, dan laporan lama tetap aman.
+
 ## Schedule Management API
+
+Jadwal dan kalender pendidikan dikelola oleh `operator_sekolah`. Guru hanya membaca jadwal yang terkait dengan dirinya.
 
 ### Buat Jadwal
 
@@ -73,6 +96,65 @@ Efek:
 - memakai `Schedule` sebagai template tetap,
 - idempotent terhadap kombinasi `scheduleId + date`,
 - jika agenda sudah ada, generate dilewati.
+
+## Academic Planning API
+
+Endpoint berikut disiapkan untuk tahap berikutnya setelah schedule dan attendance stabil.
+
+### Kalender Pendidikan
+
+```http
+GET /api/academic/calendar
+POST /api/academic/calendar/events
+PATCH /api/academic/calendar/events/:id
+DELETE /api/academic/calendar/events/:id
+```
+
+Kalender pendidikan dikelola oleh `operator_sekolah`. Data ini menentukan hari efektif, libur, ujian, kegiatan sekolah, dan pengecualian generate agenda.
+
+### Perangkat Ajar Guru
+
+```http
+GET /api/academic/planning/annual-programs
+POST /api/academic/planning/annual-programs
+GET /api/academic/planning/semester-programs
+POST /api/academic/planning/semester-programs
+GET /api/academic/planning/kktp
+POST /api/academic/planning/kktp
+GET /api/academic/planning/lesson-plans
+POST /api/academic/planning/lesson-plans
+GET /api/academic/planning/teaching-books
+POST /api/academic/planning/teaching-books
+POST /api/academic/planning/:type/:id/submit
+POST /api/academic/planning/:type/:id/approve
+POST /api/academic/planning/:type/:id/request-revision
+```
+
+Guru mengelola data ini untuk kelas dan mapel yang diampu:
+
+- Program Tahunan,
+- Program Semester,
+- KKTP,
+- Perencanaan Pembelajaran,
+- data buku yang digunakan untuk KBM.
+
+Kepala sekolah memakai endpoint approval/revisi untuk memonitor kelengkapan perangkat ajar guru.
+
+### Nilai Siswa
+
+```http
+GET /api/academic/grades
+POST /api/academic/grades
+PATCH /api/academic/grades/:id
+POST /api/academic/grades/semester-submissions
+POST /api/academic/grades/semester-submissions/:id/approve
+POST /api/academic/grades/semester-submissions/:id/request-revision
+POST /api/academic/grades/semester-submissions/:id/lock
+```
+
+Nilai siswa harus mengacu ke `StudentEnrollment`, `Subject`, `Teacher`, `SchoolYear`, dan `Semester` agar histori akademik tetap aman.
+
+Nilai semester harus disubmit guru dan di-approve kepala sekolah sebelum dikunci untuk rapor.
 
 ## Attendance Workflow API
 
