@@ -13,6 +13,7 @@ export interface SchoolClass {
   code?: string | null;
   grade?: string | null;
   schoolYear?: SchoolYear;
+  homeroomTeacher?: Teacher | null;
 }
 
 export interface Subject {
@@ -494,6 +495,11 @@ export const api = {
     request<ApiResponse<Teacher>>(`/academic/teachers/${id}/subjects`, {
       method: 'PATCH',
       body: JSON.stringify({ subjectIds }),
+    }),
+  setClassHomeroomTeacher: (id: string, teacherId?: string | null) =>
+    request<ApiResponse<SchoolClass>>(`/academic/classes/${id}/homeroom-teacher`, {
+      method: 'PATCH',
+      body: JSON.stringify({ teacherId }),
     }),
   deleteTeacher: (id: string) =>
     request<ApiResponse<Teacher>>(`/academic/teachers/${id}`, {

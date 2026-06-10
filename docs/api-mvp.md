@@ -125,6 +125,29 @@ Catatan:
 - “Guru Matematika” bukan role baru.
 - Role user tetap `guru`, sedangkan mapel ampu disimpan di `TeacherSubject`.
 
+### Atur Wali Kelas
+
+```http
+PATCH /api/academic/classes/:id/homeroom-teacher
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "teacherId": "uuid-guru"
+}
+```
+
+Permission:
+
+- `academic.manage`
+
+Catatan:
+
+- Guru mapel belum tentu wali kelas.
+- Wali kelas pasti guru mapel.
+- Karena itu wali kelas disimpan sebagai penugasan kelas pada `Class.homeroomTeacherId`, bukan sebagai pengganti mapel ampu.
+- Jika guru diberi role `wali_kelas`, sistem otomatis memastikan role `guru` juga ikut.
+
 ## Schedule Management API
 
 Jadwal dan kalender pendidikan dikelola oleh `operator_sekolah`. Guru hanya membaca jadwal yang terkait dengan dirinya.

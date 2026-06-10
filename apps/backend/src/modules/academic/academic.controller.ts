@@ -6,6 +6,7 @@ import { AcademicService } from './academic.service';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { GenerateAgendaDto } from './dto/generate-agenda.dto';
+import { SetClassHomeroomTeacherDto } from './dto/set-class-homeroom-teacher.dto';
 import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
@@ -29,6 +30,15 @@ export class AcademicController {
   @Get('classes')
   getClasses(@Query('schoolYearId') schoolYearId?: string) {
     return this.academicService.getClasses(schoolYearId);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Patch('classes/:id/homeroom-teacher')
+  setClassHomeroomTeacher(
+    @Param('id') id: string,
+    @Body() dto: SetClassHomeroomTeacherDto,
+  ) {
+    return this.academicService.setClassHomeroomTeacher(id, dto);
   }
 
   @Public()

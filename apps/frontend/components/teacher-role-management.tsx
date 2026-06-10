@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { api, type Subject, type Teacher } from '../lib/api';
+import { api, type SchoolClass, type Subject, type Teacher } from '../lib/api';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 type SaveState = 'idle' | 'loading' | 'success' | 'error';
@@ -25,12 +25,24 @@ function toUsername(name: string) {
     .slice(0, 32);
 }
 
+function normalizeTeacherRoles(roles: string[]) {
+  const uniqueRoles = [...new Set(roles)];
+
+  if (uniqueRoles.includes('wali_kelas') && !uniqueRoles.includes('guru')) {
+    return [...uniqueRoles, 'guru'];
+  }
+
+  return uniqueRoles;
+}
+
 export function TeacherRoleManagement() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [classes, setClasses] = useState<SchoolClass[]>([]);
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<string[]>(['guru']);
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>([]);
+  const [selectedHomeroomClassIds, setSelectedHomeroomClassIds] = useState<string[]>([]);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,9 +57,10 @@ export function TeacherRoleManagement() {
       setLoadState('loading');
 
       try {
-        const [teacherResponse, subjectResponse] = await Promise.all([
+        const [teacherResponse, subjectResponse, classResponse] = await Promise.all([
           api.getTeachers(),
           api.getSubjects(),
+          api.getClasses(),
         ]);
 
         if (!isMounted) {
@@ -56,6 +69,7 @@ export function TeacherRoleManagement() {
 
         setTeachers(teacherResponse.data);
         setSubjects(subjectResponse.data);
+        setClasses(classResponse.data);
         setSelectedTeacherId(teacherResponse.data[0]?.id ?? '');
         setLoadState('success');
       } catch {
@@ -91,15 +105,22 @@ export function TeacherRoleManagement() {
     setSelectedSubjectIds(
       selectedTeacher.subjects?.map(({ subject }) => subject.id) ?? [],
     );
+    setSelectedHomeroomClassIds(
+      classes
+        .filter((schoolClass) => schoolClass.homeroomTeacherId === selectedTeacher.id)
+        .map((schoolClass) => schoolClass.id),
+    );
     setMessage('');
     setSaveState('idle');
-  }, [selectedTeacher]);
+  }, [classes, selectedTeacher]);
 
   function toggleRole(role: string) {
     setSelectedRoles((currentRoles) =>
-      currentRoles.includes(role)
-        ? currentRoles.filter((currentRole) => currentRole !== role)
-        : [...currentRoles, role],
+      normalizeTeacherRoles(
+        currentRoles.includes(role)
+          ? currentRoles.filter((currentRole) => currentRole !== role)
+          : [...currentRoles, role],
+      ),
     );
   }
 
@@ -109,6 +130,22 @@ export function TeacherRoleManagement() {
         ? currentSubjectIds.filter((currentSubjectId) => currentSubjectId !== subjectId)
         : [...currentSubjectIds, subjectId],
     );
+  }
+
+  function toggleHomeroomClass(classId: string) {
+    setSelectedHomeroomClassIds((currentClassIds) => {
+      const nextClassIds = currentClassIds.includes(classId)
+        ? currentClassIds.filter((currentClassId) => currentClassId !== classId)
+        : [...currentClassIds, classId];
+
+      if (nextClassIds.length) {
+        setSelectedRoles((currentRoles) =>
+          normalizeTeacherRoles([...currentRoles, 'wali_kelas']),
+        );
+      }
+
+      return nextClassIds;
+    });
   }
 
   async function handleSave() {
@@ -124,11 +161,32 @@ export function TeacherRoleManagement() {
         username,
         email: email || undefined,
         password: password || undefined,
-        roles: selectedRoles.length ? selectedRoles : ['guru'],
+        roles: normalizeTeacherRoles(selectedRoles.length ? selectedRoles : ['guru']),
       });
       await api.setTeacherSubjects(selectedTeacher.id, selectedSubjectIds);
-      const teacherResponse = await api.getTeachers();
+      await Promise.all(
+        classes.map((schoolClass) => {
+          const shouldAssign = selectedHomeroomClassIds.includes(schoolClass.id);
+          const currentlyAssigned =
+            schoolClass.homeroomTeacherId === selectedTeacher.id;
+
+          if (shouldAssign && !currentlyAssigned) {
+            return api.setClassHomeroomTeacher(schoolClass.id, selectedTeacher.id);
+          }
+
+          if (!shouldAssign && currentlyAssigned) {
+            return api.setClassHomeroomTeacher(schoolClass.id, null);
+          }
+
+          return Promise.resolve();
+        }),
+      );
+      const [teacherResponse, classResponse] = await Promise.all([
+        api.getTeachers(),
+        api.getClasses(),
+      ]);
       setTeachers(teacherResponse.data);
+      setClasses(classResponse.data);
       setSaveState('success');
       setMessage('Pengaturan guru berhasil disimpan.');
     } catch (error) {
@@ -148,9 +206,9 @@ export function TeacherRoleManagement() {
           <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
             Pengaturan Guru
           </p>
-          <h2 className="mt-1 text-2xl font-black text-ink">Role, Akun, dan Mapel Ampu</h2>
+          <h2 className="mt-1 text-2xl font-black text-ink">Role, Mapel, dan Wali Kelas</h2>
           <p className="mt-1 text-sm leading-6 text-muted">
-            Pilih guru dari tabel `Teacher`, buat akun login, beri role seperti KS/Guru/Wali Kelas, lalu pilih mapel yang diampu.
+            Guru mapel belum tentu wali kelas. Wali kelas adalah tugas tambahan dan wajib tetap guru mapel.
           </p>
         </div>
         <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">
@@ -191,9 +249,15 @@ export function TeacherRoleManagement() {
                   <p className={['mt-1 text-xs font-semibold', active ? 'text-blue-100' : 'text-muted'].join(' ')}>
                     {roles || 'Belum ada akun'}
                   </p>
-                  <p className={['mt-1 line-clamp-2 text-xs', active ? 'text-blue-100' : 'text-muted'].join(' ')}>
-                    {subjectNames || 'Mapel belum diatur'}
-                  </p>
+                <p className={['mt-1 line-clamp-2 text-xs', active ? 'text-blue-100' : 'text-muted'].join(' ')}>
+                  {subjectNames || 'Mapel belum diatur'}
+                </p>
+                <p className={['mt-1 line-clamp-2 text-xs', active ? 'text-blue-100' : 'text-muted'].join(' ')}>
+                  Wali: {classes
+                    .filter((schoolClass) => schoolClass.homeroomTeacherId === teacher.id)
+                    .map((schoolClass) => schoolClass.name)
+                    .join(', ') || '-'}
+                </p>
                 </button>
               );
             })}
@@ -250,6 +314,9 @@ export function TeacherRoleManagement() {
 
               <div>
                 <p className="text-sm font-black text-slate-800">Role Akun</p>
+                <p className="mt-1 text-xs font-semibold text-muted">
+                  Jika memilih Wali Kelas, role Guru otomatis ikut karena wali kelas pasti guru mapel.
+                </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {assignableRoles.map((role) => {
                     const active = selectedRoles.includes(role.value);
@@ -292,6 +359,43 @@ export function TeacherRoleManagement() {
                         type="button"
                       >
                         {subject.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-black text-slate-800">Kelas Binaan Wali Kelas</p>
+                <p className="mt-1 text-xs font-semibold text-muted">
+                  Kosongkan jika guru ini bukan wali kelas.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {classes.map((schoolClass) => {
+                    const active = selectedHomeroomClassIds.includes(schoolClass.id);
+                    const assignedToOtherTeacher =
+                      schoolClass.homeroomTeacherId &&
+                      schoolClass.homeroomTeacherId !== selectedTeacher.id;
+
+                    return (
+                      <button
+                        className={[
+                          'rounded-full border px-3 py-2 text-xs font-black transition',
+                          active
+                            ? 'border-amber-500 bg-amber-500 text-white'
+                            : assignedToOtherTeacher
+                              ? 'border-slate-200 bg-slate-100 text-slate-400'
+                              : 'border-blue-100 bg-white text-slate-700 hover:bg-brand-50',
+                        ].join(' ')}
+                        disabled={Boolean(assignedToOtherTeacher)}
+                        key={schoolClass.id}
+                        onClick={() => toggleHomeroomClass(schoolClass.id)}
+                        type="button"
+                      >
+                        {schoolClass.name}
+                        {assignedToOtherTeacher
+                          ? ` · ${schoolClass.homeroomTeacher?.name ?? 'sudah ada wali'}`
+                          : ''}
                       </button>
                     );
                   })}

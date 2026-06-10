@@ -6,6 +6,7 @@ import { AuditService } from '../audit/audit.service';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { GenerateAgendaDto } from './dto/generate-agenda.dto';
+import { SetClassHomeroomTeacherDto } from './dto/set-class-homeroom-teacher.dto';
 import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
@@ -39,10 +40,69 @@ export class AcademicService {
     return {
       data: await this.prisma.class.findMany({
         where: { deletedAt: null, schoolYearId },
-        include: { schoolYear: true },
+        include: { schoolYear: true, homeroomTeacher: true },
         orderBy: { name: 'asc' },
       }),
     };
+  }
+
+  async setClassHomeroomTeacher(
+    id: string,
+    dto: SetClassHomeroomTeacherDto,
+  ) {
+    const schoolClass = await this.prisma.class.findFirst({
+      where: { id, deletedAt: null },
+      include: { homeroomTeacher: true },
+    });
+
+    if (!schoolClass) {
+      throw new NotFoundException('Kelas tidak ditemukan');
+    }
+
+    if (dto.teacherId) {
+      const teacher = await this.prisma.teacher.findFirst({
+        where: { id: dto.teacherId, deletedAt: null },
+        include: {
+          subjects: true,
+          user: { include: { roles: { include: { role: true } } } },
+        },
+      });
+
+      if (!teacher) {
+        throw new NotFoundException('Guru tidak ditemukan');
+      }
+
+      if (!teacher.subjects.length) {
+        throw new BadRequestException(
+          'Wali kelas harus guru mapel. Atur mapel ampu guru terlebih dahulu.',
+        );
+      }
+
+      const roleNames =
+        teacher.user?.roles.map(({ role }) => role.name) ?? [];
+
+      if (!roleNames.includes('guru')) {
+        throw new BadRequestException(
+          'Wali kelas harus memiliki role guru.',
+        );
+      }
+    }
+
+    const result = await this.prisma.class.update({
+      where: { id },
+      data: { homeroomTeacherId: dto.teacherId ?? null },
+      include: { schoolYear: true, homeroomTeacher: true },
+    });
+
+    await this.auditService.record({
+      action: 'class.homeroom-teacher.updated',
+      entityType: 'Class',
+      entityId: id,
+      before: schoolClass,
+      after: result,
+    });
+
+    return { data: result, message: 'Wali kelas berhasil disimpan.' };
   }
 
   async getSubjects() {
@@ -90,11 +150,14 @@ export class AcademicService {
       dto.email?.trim().toLowerCase() ??
       teacher.email?.trim().toLowerCase() ??
       `${username}@eduflow.local`;
+    const requestedRoles = dto.roles.includes('wali_kelas')
+      ? [...new Set([...dto.roles, 'guru'])]
+      : dto.roles;
     const roles = await this.prisma.role.findMany({
-      where: { name: { in: dto.roles } },
+      where: { name: { in: requestedRoles } },
     });
 
-    if (roles.length !== new Set(dto.roles).size) {
+    if (roles.length !== new Set(requestedRoles).size) {
       throw new BadRequestException('Ada role yang tidak terdaftar');
     }
 
