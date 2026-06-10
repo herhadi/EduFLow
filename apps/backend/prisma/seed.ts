@@ -175,177 +175,40 @@ async function main() {
     );
   }
 
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@eduflow.local' },
-    update: {},
+  const rootUser = await prisma.user.upsert({
+    where: { email: 'herhadi@eduflow.local' },
+    update: {
+      username: 'herhadi',
+      name: 'Herhadi',
+      password: await hash('xSalakRt02', 12),
+      deletedAt: null,
+      failedLoginCount: 0,
+      lockedUntil: null,
+    },
     create: {
-      email: 'admin@eduflow.local',
-      name: 'Admin EduFlow',
-      password: await hash('password123', 12),
+      email: 'herhadi@eduflow.local',
+      username: 'herhadi',
+      name: 'Herhadi',
+      password: await hash('xSalakRt02', 12),
     },
   });
 
   await prisma.userRole.upsert({
     where: {
       userId_roleId: {
-        userId: admin.id,
+        userId: rootUser.id,
         roleId: rolesByName.get('root')!.id,
       },
     },
     update: {},
     create: {
-      userId: admin.id,
+      userId: rootUser.id,
       roleId: rolesByName.get('root')!.id,
     },
   });
 
   await migrateLegacyRole('admin', 'root', rolesByName);
   await migrateLegacyRole('operator', 'operator_sekolah', rolesByName);
-
-  const schoolYear = await prisma.schoolYear.upsert({
-    where: { name: '2026/2027' },
-    update: {},
-    create: {
-      name: '2026/2027',
-      startsAt: new Date('2026-07-01T00:00:00.000Z'),
-      endsAt: new Date('2027-06-30T00:00:00.000Z'),
-    },
-  });
-
-  const semester = await prisma.semester.upsert({
-    where: {
-      schoolYearId_type: {
-        schoolYearId: schoolYear.id,
-        type: 'ODD',
-      },
-    },
-    update: {},
-    create: {
-      schoolYearId: schoolYear.id,
-      type: 'ODD',
-      startsAt: new Date('2026-07-01T00:00:00.000Z'),
-      endsAt: new Date('2026-12-20T00:00:00.000Z'),
-    },
-  });
-
-  const schoolClass = await prisma.class.upsert({
-    where: {
-      schoolYearId_name: {
-        schoolYearId: schoolYear.id,
-        name: 'VII-A',
-      },
-    },
-    update: {},
-    create: {
-      schoolYearId: schoolYear.id,
-      name: 'VII-A',
-      grade: 'VII',
-    },
-  });
-
-  const subject = await prisma.subject.upsert({
-    where: { code: 'MAT' },
-    update: {},
-    create: {
-      code: 'MAT',
-      name: 'Matematika',
-    },
-  });
-
-  const existingActiveTeacher = await prisma.teacher.findFirst({
-    where: { deletedAt: null },
-    orderBy: { createdAt: 'asc' },
-  });
-  const teacher =
-    existingActiveTeacher ??
-    (await prisma.teacher.create({
-      data: { name: 'Guru Demo' },
-    }));
-  const shouldCreateDemoSchedule = teacher.name === 'Guru Demo';
-
-  const student =
-    (await prisma.student.findFirst({
-      where: { name: 'Siswa Demo', deletedAt: null },
-    })) ??
-    (await prisma.student.create({
-      data: { name: 'Siswa Demo' },
-    }));
-
-  await prisma.studentEnrollment.upsert({
-    where: {
-      studentId_classId_schoolYearId: {
-        studentId: student.id,
-        classId: schoolClass.id,
-        schoolYearId: schoolYear.id,
-      },
-    },
-    update: { isActive: true, endedAt: null },
-    create: {
-      studentId: student.id,
-      classId: schoolClass.id,
-      schoolYearId: schoolYear.id,
-      isActive: true,
-    },
-  });
-
-  const guardian =
-    (await prisma.guardian.findFirst({
-      where: { phone: '08561186917', deletedAt: null },
-    })) ??
-    (await prisma.guardian.create({
-      data: {
-        name: 'Wali Murid Demo',
-        phone: '08561186917',
-        telegramId: '648351920',
-      },
-    }));
-
-  await prisma.studentGuardian.upsert({
-    where: {
-      studentId_guardianId: {
-        studentId: student.id,
-        guardianId: guardian.id,
-      },
-    },
-    update: { isPrimary: true },
-    create: {
-      studentId: student.id,
-      guardianId: guardian.id,
-      relation: 'GUARDIAN',
-      isPrimary: true,
-    },
-  });
-
-  if (shouldCreateDemoSchedule) {
-    const existingSchedule = await prisma.schedule.findFirst({
-      where: {
-        schoolYearId: schoolYear.id,
-        semesterId: semester.id,
-        classId: schoolClass.id,
-        subjectId: subject.id,
-        teacherId: teacher.id,
-        dayOfWeek: 1,
-        startsAt: '07:00',
-        endsAt: '08:30',
-        deletedAt: null,
-      },
-    });
-
-    if (!existingSchedule) {
-      await prisma.schedule.create({
-        data: {
-          schoolYearId: schoolYear.id,
-          semesterId: semester.id,
-          classId: schoolClass.id,
-          subjectId: subject.id,
-          teacherId: teacher.id,
-          dayOfWeek: 1,
-          startsAt: '07:00',
-          endsAt: '08:30',
-        },
-      });
-    }
-  }
 }
 
 async function migrateLegacyRole(

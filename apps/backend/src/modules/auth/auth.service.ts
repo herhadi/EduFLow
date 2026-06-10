@@ -8,6 +8,7 @@ import { LoginAuditStatus } from '@prisma/client';
 import { compare, hash } from 'bcryptjs';
 import { createHash, randomBytes } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
@@ -46,6 +47,7 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     const email = dto.email.toLowerCase();
+    const username = dto.username?.trim().toLowerCase();
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -57,6 +59,7 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: {
         email,
+        username,
         name: dto.name,
         password: await hash(dto.password, 12),
       },
@@ -66,14 +69,16 @@ export class AuthService {
   }
 
   async login(dto: LoginDto, meta: AuthRequestMeta = {}) {
-    const email = dto.email.toLowerCase();
-    const user = await this.prisma.user.findUnique({
-      where: { email },
+    const identifier = dto.username.trim().toLowerCase();
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ username: identifier }, { email: identifier }],
+      },
     });
 
     if (!user || user.deletedAt) {
       await this.recordLoginAudit({
-        email,
+        email: identifier,
         status: LoginAuditStatus.FAILED,
         reason: 'invalid_credentials',
         ...meta,
@@ -83,7 +88,7 @@ export class AuthService {
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       await this.recordLoginAudit({
-        email,
+        email: user.email,
         userId: user.id,
         status: LoginAuditStatus.LOCKED,
         reason: 'account_locked',
@@ -97,7 +102,7 @@ export class AuthService {
     if (!passwordMatches) {
       await this.trackFailedLogin(user.id);
       await this.recordLoginAudit({
-        email,
+        email: user.email,
         userId: user.id,
         status: LoginAuditStatus.FAILED,
         reason: 'invalid_credentials',
@@ -115,7 +120,7 @@ export class AuthService {
       },
     });
     await this.recordLoginAudit({
-      email,
+      email: user.email,
       userId: user.id,
       status: LoginAuditStatus.SUCCESS,
       ...meta,
@@ -274,6 +279,101 @@ export class AuthService {
     };
   }
 
+  async getUsers() {
+    const users = await this.prisma.user.findMany({
+      where: { deletedAt: null },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        name: true,
+        lastLoginAt: true,
+        lockedUntil: true,
+        createdAt: true,
+        roles: { include: { role: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      data: users.map((user) => ({
+        ...user,
+        roles: user.roles.map(({ role }) => role.name),
+      })),
+    };
+  }
+
+  async createUser(dto: CreateUserDto) {
+    const email = dto.email.toLowerCase();
+    const username = dto.username.trim().toLowerCase();
+    const existingUser = await this.prisma.user.findFirst({
+      where: { OR: [{ email }, { username }] },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('Username atau email sudah digunakan');
+    }
+
+    const roles = await this.getRolesByNames(dto.roles ?? []);
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        username,
+        name: dto.name,
+        password: await hash(dto.password, 12),
+        roles: {
+          create: roles.map((role) => ({
+            roleId: role.id,
+          })),
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        name: true,
+        roles: { include: { role: true } },
+      },
+    });
+
+    return {
+      data: {
+        ...user,
+        roles: user.roles.map(({ role }) => role.name),
+      },
+      message: 'User berhasil dibuat.',
+    };
+  }
+
+  async updateUserRoles(userId: string, roleNames: string[]) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User tidak ditemukan');
+    }
+
+    const roles = await this.getRolesByNames(roleNames);
+
+    await this.prisma.$transaction([
+      this.prisma.userRole.deleteMany({ where: { userId } }),
+      ...roles.map((role) =>
+        this.prisma.userRole.create({
+          data: {
+            userId,
+            roleId: role.id,
+          },
+        }),
+      ),
+    ]);
+
+    return {
+      data: { userId, roles: roles.map((role) => role.name) },
+      message: 'Role user berhasil diperbarui.',
+    };
+  }
+
   private async createSession(userId: string) {
     const user = await this.prisma.user.findFirstOrThrow({
       where: { id: userId, deletedAt: null },
@@ -311,6 +411,7 @@ export class AuthService {
       {
         id: user.id,
         email: user.email,
+        username: user.username,
         permissions,
       },
       { expiresIn: `${LOGIN_SESSION_LIFETIME_HOURS}h` },
@@ -325,6 +426,25 @@ export class AuthService {
 
   private hashToken(token: string) {
     return createHash('sha256').update(token).digest('hex');
+  }
+
+  private async getRolesByNames(roleNames: string[]) {
+    const normalizedRoleNames = [...new Set(roleNames.map((role) => role.trim()))]
+      .filter(Boolean);
+
+    if (!normalizedRoleNames.length) {
+      return [];
+    }
+
+    const roles = await this.prisma.role.findMany({
+      where: { name: { in: normalizedRoleNames } },
+    });
+
+    if (roles.length !== normalizedRoleNames.length) {
+      throw new ConflictException('Ada role yang tidak terdaftar');
+    }
+
+    return roles;
   }
 
   private async trackFailedLogin(userId: string) {

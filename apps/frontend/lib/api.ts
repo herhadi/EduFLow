@@ -358,6 +358,23 @@ export interface AttendanceDemoResult {
   };
 }
 
+export interface LoginResult {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: string;
+}
+
+export interface AppUser {
+  id: string;
+  email: string;
+  username?: string | null;
+  name: string;
+  roles: string[];
+  lastLoginAt?: string | null;
+  lockedUntil?: string | null;
+  createdAt?: string;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const accessToken =
     typeof window === 'undefined' ? undefined : localStorage.getItem('accessToken');
@@ -394,6 +411,28 @@ async function upload<T>(path: string, file: File): Promise<T> {
 }
 
 export const api = {
+  login: (payload: { username: string; password: string }) =>
+    request<LoginResult>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  logout: (refreshToken: string) =>
+    request<{ success: boolean }>('/auth/logout', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken }),
+    }),
+  getUsers: () => request<ApiResponse<AppUser[]>>('/auth/users'),
+  createUser: (payload: {
+    email: string;
+    username: string;
+    name: string;
+    password: string;
+    roles: string[];
+  }) =>
+    request<ApiResponse<AppUser>>('/auth/users', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   getSchoolYears: () =>
     request<ApiResponse<SchoolYear[]>>('/academic/school-years'),
   getSemesters: (schoolYearId?: string) =>

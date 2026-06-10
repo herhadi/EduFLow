@@ -2,6 +2,36 @@
 
 Endpoint berikut bersifat dasar untuk memvalidasi flow backend sebelum frontend lengkap dibuat.
 
+## Auth API
+
+### Login
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "username": "herhadi",
+  "password": "password"
+}
+```
+
+`username` boleh berisi username atau email. Session aktif 24 jam.
+
+### User Management
+
+```http
+GET /api/auth/users
+POST /api/auth/users
+POST /api/auth/users/:id/roles
+```
+
+Permission:
+
+- `user.manage`
+
+Root memakai endpoint ini untuk menentukan siapa `operator_sekolah`, `kepala_sekolah`, `guru`, `tu`, `bk`, `wali_kelas`, atau `orang_tua`.
+
 ## Academic Read API
 
 ```http

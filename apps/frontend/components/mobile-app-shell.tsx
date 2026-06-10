@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { type ReactNode } from 'react';
 import { cn } from '../lib/cn';
+import { api } from '../lib/api';
 
 const primaryNavItems = [
   { href: '/dashboard', label: 'Home', icon: '⌂' },
@@ -47,6 +48,23 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
 }
 
 function AppTopBar() {
+  async function handleLogout() {
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    if (refreshToken) {
+      try {
+        await api.logout(refreshToken);
+      } catch {
+        // Token tetap dibersihkan di browser agar user keluar dari perangkat ini.
+      }
+    }
+
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('sessionExpiresAt');
+    window.location.href = '/login';
+  }
+
   return (
     <header className="sticky top-0 z-30 border-b border-blue-100/70 bg-white/85 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 shadow-sm shadow-blue-100/60 backdrop-blur-xl sm:px-6">
       <div className="flex items-center justify-between gap-3">
@@ -67,12 +85,13 @@ function AppTopBar() {
           <div className="hidden rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 min-[380px]:block">
             Online
           </div>
-          <Link
+          <button
             className="rounded-full border border-blue-100 bg-white px-3 py-2 text-xs font-black text-brand-700 shadow-sm transition hover:bg-brand-50"
-            href="/login"
+            onClick={() => void handleLogout()}
+            type="button"
           >
             Keluar
-          </Link>
+          </button>
         </div>
       </div>
     </header>

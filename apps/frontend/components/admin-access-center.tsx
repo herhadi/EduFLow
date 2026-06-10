@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { api, type Teacher } from '../lib/api';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { api, type AppUser, type Teacher } from '../lib/api';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 type ActionState = 'idle' | 'loading' | 'success' | 'error';
@@ -74,10 +74,20 @@ const explanationCards = [
 
 export function AdminAccessCenter() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [users, setUsers] = useState<AppUser[]>([]);
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [actionState, setActionState] = useState<ActionState>('idle');
+  const [userActionState, setUserActionState] = useState<ActionState>('idle');
   const [message, setMessage] = useState<string>('');
+  const [userMessage, setUserMessage] = useState<string>('');
   const [query, setQuery] = useState('');
+  const [newUser, setNewUser] = useState({
+    email: '',
+    username: '',
+    name: '',
+    password: '',
+    role: 'operator_sekolah',
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -86,13 +96,17 @@ export function AdminAccessCenter() {
       setLoadState('loading');
 
       try {
-        const response = await api.getTeachers();
+        const [teacherResponse, userResponse] = await Promise.all([
+          api.getTeachers(),
+          api.getUsers().catch(() => ({ data: [] as AppUser[] })),
+        ]);
 
         if (!isMounted) {
           return;
         }
 
-        setTeachers(response.data);
+        setTeachers(teacherResponse.data);
+        setUsers(userResponse.data);
         setLoadState('success');
       } catch {
         if (isMounted) {
@@ -149,6 +163,37 @@ export function AdminAccessCenter() {
     }
   }
 
+  async function handleCreateUser(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setUserActionState('loading');
+    setUserMessage('');
+
+    try {
+      const response = await api.createUser({
+        email: newUser.email,
+        username: newUser.username,
+        name: newUser.name,
+        password: newUser.password,
+        roles: [newUser.role],
+      });
+      setUsers((currentUsers) => [response.data, ...currentUsers]);
+      setNewUser({
+        email: '',
+        username: '',
+        name: '',
+        password: '',
+        role: 'operator_sekolah',
+      });
+      setUserActionState('success');
+      setUserMessage(response.message ?? 'User berhasil dibuat.');
+    } catch {
+      setUserActionState('error');
+      setUserMessage(
+        'Gagal membuat user. Pastikan login sebagai root dan data belum dipakai.',
+      );
+    }
+  }
+
   return (
     <section className="mt-6 space-y-5">
       <div className="grid gap-3 sm:grid-cols-2">
@@ -201,6 +246,138 @@ export function AdminAccessCenter() {
               </div>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+        <div>
+          <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
+            User Management
+          </p>
+          <h2 className="mt-1 text-2xl font-black text-ink">Root Menentukan Admin</h2>
+          <p className="mt-1 text-sm leading-6 text-muted">
+            Buat user pertama untuk `operator_sekolah`. Setelah itu operator sekolah yang mengelola guru dan data operasional.
+          </p>
+        </div>
+
+        <form className="mt-5 grid gap-3" onSubmit={handleCreateUser}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input
+              className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm outline-none transition focus:border-brand-600 focus:bg-white"
+              onChange={(event) =>
+                setNewUser((current) => ({ ...current, name: event.target.value }))
+              }
+              placeholder="Nama lengkap"
+              type="text"
+              value={newUser.name}
+            />
+            <input
+              className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm outline-none transition focus:border-brand-600 focus:bg-white"
+              onChange={(event) =>
+                setNewUser((current) => ({
+                  ...current,
+                  username: event.target.value,
+                }))
+              }
+              placeholder="Username"
+              type="text"
+              value={newUser.username}
+            />
+            <input
+              className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm outline-none transition focus:border-brand-600 focus:bg-white"
+              onChange={(event) =>
+                setNewUser((current) => ({ ...current, email: event.target.value }))
+              }
+              placeholder="Email"
+              type="email"
+              value={newUser.email}
+            />
+            <input
+              className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm outline-none transition focus:border-brand-600 focus:bg-white"
+              onChange={(event) =>
+                setNewUser((current) => ({
+                  ...current,
+                  password: event.target.value,
+                }))
+              }
+              placeholder="Password sementara"
+              type="password"
+              value={newUser.password}
+            />
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <select
+              className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-brand-600 focus:bg-white sm:min-w-64"
+              onChange={(event) =>
+                setNewUser((current) => ({ ...current, role: event.target.value }))
+              }
+              value={newUser.role}
+            >
+              {roleCards.map((role) => (
+                <option key={role.role} value={role.role}>
+                  {role.label}
+                </option>
+              ))}
+            </select>
+            <button
+              className="rounded-2xl bg-brand-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              disabled={
+                userActionState === 'loading' ||
+                !newUser.email ||
+                !newUser.username ||
+                !newUser.name ||
+                !newUser.password
+              }
+              type="submit"
+            >
+              {userActionState === 'loading' ? 'Membuat...' : 'Buat User'}
+            </button>
+          </div>
+        </form>
+
+        {userMessage ? (
+          <div
+            className={[
+              'mt-4 rounded-2xl border p-4 text-sm font-semibold',
+              userActionState === 'success'
+                ? 'border-emerald-100 bg-emerald-50 text-emerald-700'
+                : 'border-amber-200 bg-amber-50 text-amber-900',
+            ].join(' ')}
+          >
+            {userMessage}
+          </div>
+        ) : null}
+
+        <div className="mt-5 grid gap-3">
+          {users.map((user) => (
+            <article className="rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4" key={user.id}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="font-black text-slate-900">{user.name}</h3>
+                  <p className="mt-1 text-xs font-semibold text-muted">
+                    {user.username ?? '-'} · {user.email}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {user.roles.map((role) => (
+                    <span
+                      className="rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700"
+                      key={role}
+                    >
+                      {role}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </article>
+          ))}
+
+          {!users.length ? (
+            <p className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-muted">
+              Daftar user hanya muncul setelah login sebagai root.
+            </p>
+          ) : null}
         </div>
       </section>
 

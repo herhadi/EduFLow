@@ -1,6 +1,35 @@
+'use client';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { FormEvent, useState } from 'react';
+import { api } from '../../lib/api';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      const session = await api.login({ username, password });
+      localStorage.setItem('accessToken', session.accessToken);
+      localStorage.setItem('refreshToken', session.refreshToken);
+      localStorage.setItem('sessionExpiresAt', session.expiresAt);
+      router.push('/dashboard');
+    } catch {
+      setErrorMessage('Login gagal. Periksa username dan password.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <main className="min-h-dvh bg-[radial-gradient(circle_at_top,_#bfdbfe_0,_#eff6ff_34%,_#ffffff_80%)] px-4 py-6">
       <div className="mx-auto flex min-h-[calc(100dvh-3rem)] max-w-md flex-col justify-center">
@@ -35,26 +64,31 @@ export default function LoginPage() {
             Masuk ke EduFlow
           </h1>
           <p className="mt-2 text-sm leading-6 text-muted">
-            Masuk sebagai operator, guru, kepala sekolah, atau admin sekolah.
-            Autentikasi penuh akan disambungkan pada tahap berikutnya.
+            Masuk memakai username atau email. Session aktif selama 24 jam.
           </p>
 
-          <form className="mt-6 space-y-4">
+          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <label className="grid gap-2 text-sm font-bold text-slate-700">
-              Email
+              Username atau Email
               <input
+                autoComplete="username"
                 className="rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600 focus:bg-white"
-                placeholder="operator@sekolah.sch.id"
-                type="email"
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="herhadi"
+                type="text"
+                value={username}
               />
             </label>
 
             <label className="grid gap-2 text-sm font-bold text-slate-700">
               Password
               <input
+                autoComplete="current-password"
                 className="rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600 focus:bg-white"
+                onChange={(event) => setPassword(event.target.value)}
                 placeholder="••••••••"
                 type="password"
+                value={password}
               />
             </label>
 
@@ -68,18 +102,25 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            <Link
-              className="block rounded-2xl bg-brand-600 px-5 py-4 text-center text-sm font-black text-white shadow-xl shadow-blue-200 transition hover:bg-brand-700"
-              href="/dashboard"
+            {errorMessage ? (
+              <div className="rounded-2xl border border-rose-100 bg-rose-50 p-3 text-sm font-semibold text-rose-700">
+                {errorMessage}
+              </div>
+            ) : null}
+
+            <button
+              className="block w-full rounded-2xl bg-brand-600 px-5 py-4 text-center text-sm font-black text-white shadow-xl shadow-blue-200 transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              disabled={isLoading || !username || !password}
+              type="submit"
             >
-              Masuk Sistem EduFlow
-            </Link>
+              {isLoading ? 'Masuk...' : 'Masuk Sistem EduFlow'}
+            </button>
           </form>
         </section>
 
         <p className="mt-5 text-center text-xs leading-5 text-muted">
-          Untuk sementara login belum memvalidasi akun. Berikutnya bisa
-          disambungkan ke endpoint `POST /api/auth/login`.
+          Root awal: username `herhadi`. Setelah masuk, root menentukan siapa
+          yang menjadi operator sekolah dan pengelola data.
         </p>
       </div>
     </main>
