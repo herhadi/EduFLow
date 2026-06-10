@@ -3,8 +3,10 @@ import { RequirePermissions } from '../../common/decorators/permissions.decorato
 import { Public } from '../../common/decorators/public.decorator';
 import { PERMISSIONS } from '../../common/constants/permissions';
 import { AcademicService } from './academic.service';
+import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { GenerateAgendaDto } from './dto/generate-agenda.dto';
+import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
 @Controller('academic')
@@ -39,6 +41,24 @@ export class AcademicController {
   @Get('teachers')
   getTeachers() {
     return this.academicService.getTeachers();
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Patch('teachers/:id/account')
+  configureTeacherAccount(
+    @Param('id') id: string,
+    @Body() dto: ConfigureTeacherAccountDto,
+  ) {
+    return this.academicService.configureTeacherAccount(id, dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Patch('teachers/:id/subjects')
+  setTeacherSubjects(
+    @Param('id') id: string,
+    @Body() dto: SetTeacherSubjectsDto,
+  ) {
+    return this.academicService.setTeacherSubjects(id, dto);
   }
 
   @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)

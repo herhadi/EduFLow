@@ -24,6 +24,7 @@ export interface Subject {
 
 export interface Teacher {
   id: string;
+  userId?: string | null;
   name: string;
   nip?: string | null;
   nuptk?: string | null;
@@ -31,6 +32,14 @@ export interface Teacher {
   phone?: string | null;
   telegramId?: string | null;
   isActive?: boolean;
+  user?: {
+    id: string;
+    email: string;
+    username?: string | null;
+    name: string;
+    roles: Array<{ role: { name: string } }>;
+  } | null;
+  subjects?: Array<{ subject: Subject }>;
 }
 
 export interface SchoolYear {
@@ -468,6 +477,24 @@ export const api = {
     ),
   getSubjects: () => request<ApiResponse<Subject[]>>('/academic/subjects'),
   getTeachers: () => request<ApiResponse<Teacher[]>>('/academic/teachers'),
+  configureTeacherAccount: (
+    id: string,
+    payload: {
+      username: string;
+      email?: string;
+      password?: string;
+      roles: string[];
+    },
+  ) =>
+    request<ApiResponse<AppUser>>(`/academic/teachers/${id}/account`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  setTeacherSubjects: (id: string, subjectIds: string[]) =>
+    request<ApiResponse<Teacher>>(`/academic/teachers/${id}/subjects`, {
+      method: 'PATCH',
+      body: JSON.stringify({ subjectIds }),
+    }),
   deleteTeacher: (id: string) =>
     request<ApiResponse<Teacher>>(`/academic/teachers/${id}`, {
       method: 'DELETE',

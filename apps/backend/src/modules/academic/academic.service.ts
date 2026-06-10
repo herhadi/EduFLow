@@ -1,9 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { AgendaStatus } from '@prisma/client';
+import { hash } from 'bcryptjs';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { GenerateAgendaDto } from './dto/generate-agenda.dto';
+import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
 @Injectable()
@@ -55,9 +58,164 @@ export class AcademicService {
     return {
       data: await this.prisma.teacher.findMany({
         where: { deletedAt: null },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              name: true,
+              roles: { include: { role: true } },
+            },
+          },
+          subjects: { include: { subject: true } },
+        },
         orderBy: { name: 'asc' },
       }),
     };
+  }
+
+  async configureTeacherAccount(id: string, dto: ConfigureTeacherAccountDto) {
+    const teacher = await this.prisma.teacher.findFirst({
+      where: { id, deletedAt: null },
+      include: { user: true },
+    });
+
+    if (!teacher) {
+      throw new NotFoundException('Guru tidak ditemukan');
+    }
+
+    const username = dto.username.trim().toLowerCase();
+    const email =
+      dto.email?.trim().toLowerCase() ??
+      teacher.email?.trim().toLowerCase() ??
+      `${username}@eduflow.local`;
+    const roles = await this.prisma.role.findMany({
+      where: { name: { in: dto.roles } },
+    });
+
+    if (roles.length !== new Set(dto.roles).size) {
+      throw new BadRequestException('Ada role yang tidak terdaftar');
+    }
+
+    const existingUser = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ username }, { email }],
+        id: teacher.userId ? { not: teacher.userId } : undefined,
+      },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('Username atau email sudah digunakan');
+    }
+
+    const password = dto.password ?? 'Password123';
+    const user = await this.prisma.$transaction(async (tx) => {
+      const savedUser = teacher.userId
+        ? await tx.user.update({
+            where: { id: teacher.userId },
+            data: {
+              email,
+              username,
+              name: teacher.name,
+              deletedAt: null,
+              ...(dto.password ? { password: await hash(password, 12) } : {}),
+            },
+          })
+        : await tx.user.create({
+            data: {
+              email,
+              username,
+              name: teacher.name,
+              password: await hash(password, 12),
+            },
+          });
+
+      await tx.teacher.update({
+        where: { id: teacher.id },
+        data: { userId: savedUser.id },
+      });
+
+      await tx.userRole.deleteMany({ where: { userId: savedUser.id } });
+      await Promise.all(
+        roles.map((role) =>
+          tx.userRole.create({
+            data: { userId: savedUser.id, roleId: role.id },
+          }),
+        ),
+      );
+
+      return tx.user.findUniqueOrThrow({
+        where: { id: savedUser.id },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          name: true,
+          roles: { include: { role: true } },
+        },
+      });
+    });
+
+    await this.auditService.record({
+      action: 'teacher.account.configured',
+      entityType: 'Teacher',
+      entityId: teacher.id,
+      before: teacher,
+      after: user,
+    });
+
+    return {
+      data: {
+        ...user,
+        roles: user.roles.map(({ role }) => role.name),
+      },
+      message: 'Akun dan role guru berhasil disimpan.',
+    };
+  }
+
+  async setTeacherSubjects(id: string, dto: SetTeacherSubjectsDto) {
+    const teacher = await this.prisma.teacher.findFirst({
+      where: { id, deletedAt: null },
+      include: { subjects: true },
+    });
+
+    if (!teacher) {
+      throw new NotFoundException('Guru tidak ditemukan');
+    }
+
+    const subjectIds = [...new Set(dto.subjectIds)];
+    const subjectCount = await this.prisma.subject.count({
+      where: { id: { in: subjectIds }, deletedAt: null },
+    });
+
+    if (subjectCount !== subjectIds.length) {
+      throw new BadRequestException('Ada mata pelajaran yang tidak ditemukan');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.teacherSubject.deleteMany({ where: { teacherId: id } }),
+      ...subjectIds.map((subjectId) =>
+        this.prisma.teacherSubject.create({
+          data: { teacherId: id, subjectId },
+        }),
+      ),
+    ]);
+
+    const result = await this.prisma.teacher.findUniqueOrThrow({
+      where: { id },
+      include: { subjects: { include: { subject: true } } },
+    });
+
+    await this.auditService.record({
+      action: 'teacher.subjects.updated',
+      entityType: 'Teacher',
+      entityId: id,
+      before: teacher.subjects,
+      after: result.subjects,
+    });
+
+    return { data: result, message: 'Mapel ampu guru berhasil disimpan.' };
   }
 
   async deleteTeacher(id: string) {

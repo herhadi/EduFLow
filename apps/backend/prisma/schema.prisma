@@ -115,6 +115,7 @@ model User {
   correctedAttendances Attendance[]   @relation("AttendanceCorrectedBy")
   lockedAttendances    Attendance[]   @relation("AttendanceLockedBy")
   receivedPayments     Payment[]      @relation("PaymentReceivedBy")
+  teacherProfile       Teacher?
   failedLoginCount     Int            @default(0)
   lockedUntil          DateTime?
   lastLoginAt          DateTime?
@@ -265,6 +266,7 @@ model Subject {
   isActive  Boolean       @default(true)
   schedules Schedule[]
   agendas   DailyAgenda[]
+  teachers  TeacherSubject[]
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   deletedAt DateTime?
@@ -272,6 +274,7 @@ model Subject {
 
 model Teacher {
   id              String        @id @default(uuid()) @db.Uuid
+  userId          String?       @unique @db.Uuid
   name            String
   nip             String?       @unique
   nuptk           String?       @unique
@@ -281,6 +284,8 @@ model Teacher {
   isActive        Boolean       @default(true)
   schedules       Schedule[]
   agendas         DailyAgenda[]
+  user            User?         @relation(fields: [userId], references: [id])
+  subjects        TeacherSubject[]
   homeroomClasses Class[]       @relation("ClassHomeroomTeacher")
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -289,6 +294,18 @@ model Teacher {
   @@index([phone])
   @@index([telegramId])
   @@index([isActive])
+  @@index([userId])
+}
+
+model TeacherSubject {
+  teacherId String   @db.Uuid
+  subjectId String   @db.Uuid
+  teacher   Teacher  @relation(fields: [teacherId], references: [id])
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@id([teacherId, subjectId])
+  @@index([subjectId])
 }
 
 model Student {

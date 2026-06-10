@@ -1,4 +1,5 @@
 import { AdminAccessCenter } from '../../components/admin-access-center';
+import { TeacherRoleManagement } from '../../components/teacher-role-management';
 import { Container } from '../../components/ui/container';
 import { PageHeader } from '../../components/ui/page-header';
 
@@ -12,6 +13,7 @@ export default function AdminPage() {
           title="Manajemen Akses & Data"
         />
 
+        <TeacherRoleManagement />
         <AdminAccessCenter />
       </Container>
     </main>

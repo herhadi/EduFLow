@@ -71,6 +71,60 @@ Efek:
 - relasi wali kelas pada `Class.homeroomTeacherId` dilepas jika ada,
 - histori `DailyAgenda`, `Attendance`, dan laporan lama tetap aman.
 
+### Atur Akun Dan Role Guru
+
+```http
+PATCH /api/academic/teachers/:id/account
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "username": "guru.matematika",
+  "email": "guru.matematika@sekolah.sch.id",
+  "password": "Password123",
+  "roles": ["guru"]
+}
+```
+
+Contoh kepala sekolah:
+
+```json
+{
+  "username": "kepala.sekolah",
+  "roles": ["kepala_sekolah"]
+}
+```
+
+Permission:
+
+- `academic.manage`
+
+Catatan:
+
+- Jabatan sistem seperti `kepala_sekolah`, `guru`, `wali_kelas`, `bk`, dan `tu` disimpan sebagai role user.
+- Identitas guru tetap di tabel `Teacher`.
+
+### Atur Mapel Ampu Guru
+
+```http
+PATCH /api/academic/teachers/:id/subjects
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "subjectIds": ["uuid-mapel-matematika"]
+}
+```
+
+Permission:
+
+- `academic.manage`
+
+Catatan:
+
+- “Guru Matematika” bukan role baru.
+- Role user tetap `guru`, sedangkan mapel ampu disimpan di `TeacherSubject`.
+
 ## Schedule Management API
 
 Jadwal dan kalender pendidikan dikelola oleh `operator_sekolah`. Guru hanya membaca jadwal yang terkait dengan dirinya.
