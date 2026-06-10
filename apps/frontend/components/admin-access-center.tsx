@@ -170,9 +170,9 @@ export function AdminAccessCenter() {
 
     try {
       const response = await api.createUser({
-        email: newUser.email,
-        username: newUser.username,
-        name: newUser.name,
+        email: newUser.email.trim(),
+        username: newUser.username.trim(),
+        name: newUser.name.trim(),
         password: newUser.password,
         roles: [newUser.role],
       });
@@ -186,10 +186,12 @@ export function AdminAccessCenter() {
       });
       setUserActionState('success');
       setUserMessage(response.message ?? 'User berhasil dibuat.');
-    } catch {
+    } catch (error) {
       setUserActionState('error');
       setUserMessage(
-        'Gagal membuat user. Pastikan login sebagai root dan data belum dipakai.',
+        error instanceof Error
+          ? `Gagal membuat user: ${error.message}`
+          : 'Gagal membuat user. Pastikan login sebagai root dan data belum dipakai.',
       );
     }
   }
@@ -288,7 +290,7 @@ export function AdminAccessCenter() {
               onChange={(event) =>
                 setNewUser((current) => ({ ...current, email: event.target.value }))
               }
-              placeholder="Email"
+              placeholder="Email (opsional)"
               type="email"
               value={newUser.email}
             />
@@ -300,7 +302,7 @@ export function AdminAccessCenter() {
                   password: event.target.value,
                 }))
               }
-              placeholder="Password sementara"
+              placeholder="Password sementara, minimal 8 karakter"
               type="password"
               value={newUser.password}
             />
@@ -324,10 +326,9 @@ export function AdminAccessCenter() {
               className="rounded-2xl bg-brand-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300"
               disabled={
                 userActionState === 'loading' ||
-                !newUser.email ||
-                !newUser.username ||
-                !newUser.name ||
-                !newUser.password
+                !newUser.username.trim() ||
+                !newUser.name.trim() ||
+                newUser.password.length < 8
               }
               type="submit"
             >

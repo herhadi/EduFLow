@@ -18,14 +18,26 @@ async function proxy(request: NextRequest, context: RouteContext) {
   headers.delete('host');
   headers.delete('content-length');
 
-  const response = await fetch(targetUrl, {
-    body: ['GET', 'HEAD'].includes(request.method)
-      ? undefined
-      : await request.arrayBuffer(),
-    headers,
-    method: request.method,
-    redirect: 'manual',
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(targetUrl, {
+      body: ['GET', 'HEAD'].includes(request.method)
+        ? undefined
+        : await request.arrayBuffer(),
+      headers,
+      method: request.method,
+      redirect: 'manual',
+    });
+  } catch {
+    return Response.json(
+      {
+        message:
+          'Backend tidak bisa dihubungi. Pastikan backend berjalan di port 3001 dan frontend sudah direstart.',
+      },
+      { status: 503 },
+    );
+  }
   const responseHeaders = new Headers(response.headers);
 
   responseHeaders.delete('content-encoding');

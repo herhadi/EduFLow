@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { cn } from '../lib/cn';
 import { api } from '../lib/api';
 
@@ -37,6 +37,7 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
         <AppTopBar />
 
         <div className="px-3 pt-3 pb-28 sm:px-5 md:px-6">
+          <MobileGreeting />
           <QuickMenu pathname={pathname} />
           <div className="mobile-app-content min-w-0">{children}</div>
         </div>
@@ -47,7 +48,58 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
   );
 }
 
+function MobileGreeting() {
+  const [displayName, setDisplayName] = useState('Pengguna EduFlow');
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('currentUser');
+
+    if (!storedUser) {
+      return;
+    }
+
+    try {
+      const user = JSON.parse(storedUser) as {
+        name?: string;
+        username?: string | null;
+      };
+      setDisplayName(user.name ?? user.username ?? 'Pengguna EduFlow');
+    } catch {
+      localStorage.removeItem('currentUser');
+    }
+  }, []);
+
+  return (
+    <div className="mb-3 rounded-[1.5rem] border border-blue-100 bg-white/80 px-4 py-3 shadow-sm shadow-blue-100/60 min-[390px]:hidden">
+      <p className="text-xs font-bold text-muted">Sedang login sebagai</p>
+      <p className="mt-1 truncate text-sm font-black text-brand-700">
+        Hai, {displayName}
+      </p>
+    </div>
+  );
+}
+
 function AppTopBar() {
+  const [currentUser, setCurrentUser] = useState<{
+    name?: string;
+    username?: string | null;
+    roles?: string[];
+  } | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('currentUser');
+
+    if (!storedUser) {
+      return;
+    }
+
+    try {
+      setCurrentUser(JSON.parse(storedUser));
+    } catch {
+      localStorage.removeItem('currentUser');
+    }
+  }, []);
+
   async function handleLogout() {
     const refreshToken = localStorage.getItem('refreshToken');
 
@@ -62,8 +114,13 @@ function AppTopBar() {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('sessionExpiresAt');
+    localStorage.removeItem('currentUser');
     window.location.href = '/login';
   }
+
+  const displayName =
+    currentUser?.name ?? currentUser?.username ?? 'Pengguna EduFlow';
+  const displayRole = currentUser?.roles?.[0]?.replaceAll('_', ' ') ?? 'online';
 
   return (
     <header className="sticky top-0 z-30 border-b border-blue-100/70 bg-white/85 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 shadow-sm shadow-blue-100/60 backdrop-blur-xl sm:px-6">
@@ -81,9 +138,14 @@ function AppTopBar() {
             </span>
           </span>
         </Link>
-        <div className="flex items-center gap-2">
-          <div className="hidden rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 min-[380px]:block">
-            Online
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="hidden min-w-0 rounded-2xl bg-brand-50 px-3 py-2 text-right min-[390px]:block">
+            <p className="max-w-32 truncate text-xs font-black text-brand-700">
+              Hai, {displayName}
+            </p>
+            <p className="max-w-32 truncate text-[0.65rem] font-bold capitalize text-muted">
+              {displayRole}
+            </p>
           </div>
           <button
             className="rounded-full border border-blue-100 bg-white px-3 py-2 text-xs font-black text-brand-700 shadow-sm transition hover:bg-brand-50"

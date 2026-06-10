@@ -22,6 +22,7 @@ export default function LoginPage() {
       localStorage.setItem('accessToken', session.accessToken);
       localStorage.setItem('refreshToken', session.refreshToken);
       localStorage.setItem('sessionExpiresAt', session.expiresAt);
+      localStorage.setItem('currentUser', JSON.stringify(session.user));
       router.push('/dashboard');
     } catch {
       setErrorMessage('Login gagal. Periksa username dan password.');

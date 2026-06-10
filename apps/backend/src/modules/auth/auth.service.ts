@@ -304,8 +304,8 @@ export class AuthService {
   }
 
   async createUser(dto: CreateUserDto) {
-    const email = dto.email.toLowerCase();
     const username = dto.username.trim().toLowerCase();
+    const email = dto.email?.trim().toLowerCase() || `${username}@eduflow.local`;
     const existingUser = await this.prisma.user.findFirst({
       where: { OR: [{ email }, { username }] },
     });
@@ -396,6 +396,7 @@ export class AuthService {
         ),
       ),
     ];
+    const roles = [...new Set(user.roles.map(({ role }) => role.name))];
     const refreshToken = randomBytes(48).toString('base64url');
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + LOGIN_SESSION_LIFETIME_HOURS);
@@ -412,6 +413,8 @@ export class AuthService {
         id: user.id,
         email: user.email,
         username: user.username,
+        name: user.name,
+        roles,
         permissions,
       },
       { expiresIn: `${LOGIN_SESSION_LIFETIME_HOURS}h` },
@@ -421,6 +424,14 @@ export class AuthService {
       accessToken,
       refreshToken,
       expiresAt,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        name: user.name,
+        roles,
+        permissions,
+      },
     };
   }
 

@@ -65,6 +65,9 @@ export interface ApiResponse<T> {
 export interface AuthUser {
   id: string;
   email: string;
+  username?: string | null;
+  name?: string;
+  roles?: string[];
   permissions: string[];
 }
 

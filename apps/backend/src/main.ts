@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { RequestMethod } from '@nestjs/common';
 import { AppModule } from './app.module';
@@ -43,6 +43,15 @@ async function bootstrap() {
   });
   app.useGlobalPipes(
     new ValidationPipe({
+      exceptionFactory(errors) {
+        const messages = errors.flatMap((error) =>
+          Object.values(error.constraints ?? {}),
+        );
+
+        return new BadRequestException(
+          messages.length ? messages : 'Payload tidak valid',
+        );
+      },
       transform: true,
       whitelist: true,
       forbidNonWhitelisted: true,

@@ -362,6 +362,14 @@ export interface LoginResult {
   accessToken: string;
   refreshToken: string;
   expiresAt: string;
+  user: {
+    id: string;
+    email: string;
+    username?: string | null;
+    name: string;
+    roles: string[];
+    permissions: string[];
+  };
 }
 
 export interface AppUser {
@@ -388,7 +396,22 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
+    let message = `API request failed: ${response.status}`;
+
+    try {
+      const body = (await response.json()) as { message?: string | string[] };
+      const responseMessage = Array.isArray(body.message)
+        ? body.message.join(', ')
+        : body.message;
+
+      if (responseMessage) {
+        message = responseMessage;
+      }
+    } catch {
+      // Biarkan fallback status dipakai jika response bukan JSON.
+    }
+
+    throw new Error(message);
   }
 
   return response.json() as Promise<T>;
@@ -423,7 +446,7 @@ export const api = {
     }),
   getUsers: () => request<ApiResponse<AppUser[]>>('/auth/users'),
   createUser: (payload: {
-    email: string;
+    email?: string;
     username: string;
     name: string;
     password: string;
