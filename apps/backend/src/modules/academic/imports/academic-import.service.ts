@@ -4,7 +4,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../audit/audit.service';
 import { ImportExcelService, type ImportRow } from './import-excel.service';
 
-type ImportType = 'teachers' | 'students' | 'classes' | 'subjects' | 'schedules';
+type ImportType = 'teachers' | 'students';
 
 export interface ImportSummary {
   type: ImportType;
@@ -64,19 +64,11 @@ export class AcademicImportService {
       return this.importTeacher(row);
     }
 
-    if (type === 'subjects') {
-      return this.importSubject(row);
-    }
-
-    if (type === 'classes') {
-      return this.importClass(row);
-    }
-
     if (type === 'students') {
       return this.importStudent(row);
     }
 
-    return this.importSchedule(row);
+    throw new BadRequestException('Tipe import tidak valid');
   }
 
   private async importTeacher(row: ImportRow): Promise<'created' | 'updated' | 'skipped'> {

@@ -153,10 +153,12 @@ Content-Type: application/json
 {
   "username": "guru.matematika",
   "email": "guru.matematika@sekolah.sch.id",
-  "password": "Password123",
+  "password": "123456",
   "roles": ["guru"]
 }
 ```
+
+Jika `password` dikosongkan saat membuat akun guru baru, backend memakai `DEFAULT_USER_PASSWORD` dari `apps/backend/.env`. Aturan panjang password: minimal 6 dan maksimal 10 karakter.
 
 Contoh kepala sekolah:
 
@@ -223,6 +225,8 @@ Catatan:
 ## Schedule Management API
 
 Jadwal dan kalender pendidikan dikelola oleh `operator_sekolah`. Guru hanya membaca jadwal yang terkait dengan dirinya.
+
+Jadwal wajib memilih `classId`, `subjectId`, dan `teacherId`. Guru yang dipilih harus sudah diatur mengampu mapel tersebut melalui relasi `TeacherSubject`. Jika kelas memiliki wali kelas, UI menampilkan informasi wali kelas sebagai konteks, tetapi jadwal tetap memakai guru pengajar mapel.
 
 ### Buat Jadwal
 
@@ -759,16 +763,13 @@ docs/backup-recovery.md
 ```http
 POST /api/academic/import/teachers
 POST /api/academic/import/students
-POST /api/academic/import/classes
-POST /api/academic/import/subjects
-POST /api/academic/import/schedules
 Content-Type: multipart/form-data
 ```
 
 Field upload:
 
 ```text
-file: Guru.xlsx | Siswa.xlsx | Kelas.xlsx | Mapel.xlsx | Jadwal.xlsx
+file: Guru.xlsx | Siswa.xlsx
 ```
 
 Format kolom:
@@ -777,15 +778,12 @@ Format kolom:
 | --- | --- |
 | `Guru.xlsx` | `nama`, `nip`, `nuptk`, `email`, `no_hp`, `telegram_id`, `status` |
 | `Siswa.xlsx` | `nama`, `nis`, `nisn`, `jenis_kelamin`, `tanggal_lahir`, `kelas`, `tahun_ajaran`, `nama_wali`, `hp_wali`, `telegram_id_wali`, `alamat_wali`, `status` |
-| `Kelas.xlsx` | `nama`, `kode`, `tingkat`, `tahun_ajaran`, `wali_kelas` |
-| `Mapel.xlsx` | `nama`, `kode`, `status` |
-| `Jadwal.xlsx` | `tahun_ajaran`, `semester`, `kelas`, `kode_mapel`, `guru`, `hari`, `mulai`, `selesai`, `ruang`, `status` |
 
 Catatan:
 
-- Import jadwal membutuhkan data tahun ajaran, semester, kelas, mapel, dan guru sudah ada.
-- `semester` menerima `ganjil`, `genap`, `odd`, `even`, `1`, atau `2`.
-- `hari` menerima nama hari Indonesia/Inggris atau angka `1-7`.
+- Import hanya untuk data massal yang berat: guru dan siswa.
+- Kelas, mata pelajaran, jadwal, role guru, mapel ampu, dan wali kelas diatur lewat halaman admin.
+- Data siswa membutuhkan kelas dan tahun ajaran sudah tersedia.
 - `status` menerima nilai aktif secara default. Nilai `nonaktif`, `inactive`, `false`, `0`, atau `tidak` dianggap nonaktif.
 - Reminder guru memakai `Teacher.phone` atau `Teacher.telegramId`.
 - Notifikasi wali murid memakai `Guardian.phone` atau `Guardian.telegramId`.

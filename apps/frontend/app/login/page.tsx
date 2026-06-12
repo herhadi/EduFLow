@@ -9,6 +9,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -25,7 +26,7 @@ export default function LoginPage() {
       localStorage.setItem('currentUser', JSON.stringify(session.user));
       router.push('/dashboard');
     } catch {
-      setErrorMessage('Login gagal. Periksa username dan password.');
+      setErrorMessage('Username atau password salah. Periksa kembali data login Anda.');
     } finally {
       setIsLoading(false);
     }
@@ -83,14 +84,25 @@ export default function LoginPage() {
 
             <label className="grid gap-2 text-sm font-bold text-slate-700">
               Password
-              <input
-                autoComplete="current-password"
-                className="rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600 focus:bg-white"
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="••••••••"
-                type="password"
-                value={password}
-              />
+              <span className="flex overflow-hidden rounded-2xl border border-blue-100 bg-blue-50/50 transition focus-within:border-brand-600 focus-within:bg-white">
+                <input
+                  autoComplete="current-password"
+                  className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm font-normal outline-none"
+                  maxLength={10}
+                  minLength={6}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="6-10 karakter"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                />
+                <button
+                  className="px-4 text-xs font-black text-brand-700"
+                  onClick={() => setShowPassword((current) => !current)}
+                  type="button"
+                >
+                  {showPassword ? 'Sembunyikan' : 'Lihat'}
+                </button>
+              </span>
             </label>
 
             <div className="flex items-center justify-between gap-3 text-sm">

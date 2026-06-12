@@ -10,9 +10,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Public } from '../../../common/decorators/public.decorator';
 import { AcademicImportService } from './academic-import.service';
 
-type ImportType = 'teachers' | 'students' | 'classes' | 'subjects' | 'schedules';
+type ImportType = 'teachers' | 'students';
 
-const allowedTypes = ['teachers', 'students', 'classes', 'subjects', 'schedules'];
+const allowedTypes = ['teachers', 'students'];
 
 @Public()
 @Controller('academic/import')

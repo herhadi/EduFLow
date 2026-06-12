@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AgendaStatus } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -17,6 +18,7 @@ export class AcademicService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
+    private readonly configService: ConfigService,
   ) {}
 
   async getSchoolYears() {
@@ -314,7 +316,7 @@ export class AcademicService {
       throw new BadRequestException('Username atau email sudah digunakan');
     }
 
-    const password = dto.password ?? 'Password123';
+    const password = dto.password ?? this.getDefaultUserPassword();
     const user = await this.prisma.$transaction(async (tx) => {
       const savedUser = teacher.userId
         ? await tx.user.update({
@@ -799,11 +801,28 @@ export class AcademicService {
     if (!teacher) {
       throw new BadRequestException('Guru tidak valid');
     }
+
+    const teacherSubject = await this.prisma.teacherSubject.findUnique({
+      where: {
+        teacherId_subjectId: {
+          teacherId: dto.teacherId,
+          subjectId: dto.subjectId,
+        },
+      },
+    });
+
+    if (!teacherSubject) {
+      throw new BadRequestException('Guru belum diatur mengampu mata pelajaran ini');
+    }
   }
 
   private toDateOnly(value: string) {
     const date = new Date(value);
     date.setUTCHours(0, 0, 0, 0);
     return date;
+  }
+
+  private getDefaultUserPassword() {
+    return this.configService.get<string>('DEFAULT_USER_PASSWORD') ?? '123456';
   }
 }

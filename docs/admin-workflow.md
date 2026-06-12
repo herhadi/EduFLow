@@ -11,7 +11,7 @@ Dokumen ini menjelaskan urutan konfigurasi awal EduFlow setelah root pertama ber
 | `/admin/akademik` | Kelas dan mata pelajaran |
 | `/admin/akses` | User, role, status akun, dan penghapusan user |
 | `/schedules` | Jadwal pelajaran dan generate agenda |
-| `/import-data` | Import data sekolah dari Excel |
+| `/import-data` | Import data guru dan siswa dari Excel |
 
 ## Urutan Konfigurasi Awal
 
@@ -21,7 +21,7 @@ Root login
   -> atur tahun ajaran dan semester
   -> atur kelas/rombel
   -> atur mata pelajaran
-  -> import atau lengkapi data guru
+  -> import atau lengkapi data guru dan siswa
   -> hubungkan guru ke akun login
   -> atur role guru
   -> atur mapel ampu guru
@@ -52,6 +52,15 @@ Admin dapat menambah mapel nasional maupun muatan lokal. Satu guru dapat mengamp
 
 Mapel tidak dapat dihapus jika sudah digunakan pada jadwal atau agenda. Tujuannya agar histori akademik tetap valid.
 
+## Import Data
+
+Import Excel hanya disediakan untuk:
+
+- `Guru.xlsx`
+- `Siswa.xlsx`
+
+Kelas, mata pelajaran, jadwal, role guru, mapel ampu, dan wali kelas sengaja tidak diimpor massal agar konfigurasi akademik tetap mudah diaudit dan dikoreksi melalui halaman admin.
+
 ## Manajemen Guru
 
 `Teacher` adalah profil pegawai/guru. `User` adalah akun login.
@@ -61,7 +70,7 @@ Flow membuat guru dapat login:
 ```text
 Pilih Teacher
   -> tentukan username/email
-  -> tentukan password sementara
+  -> tentukan password sementara atau kosongkan untuk default
   -> pilih role
   -> pilih satu atau beberapa mapel
   -> pilih kelas binaan jika wali kelas
@@ -74,6 +83,8 @@ Aturan:
 - wali kelas pasti guru mapel,
 - memilih `wali_kelas` otomatis mempertahankan role `guru`,
 - satu guru dapat mengampu banyak mata pelajaran,
+- password default akun baru memakai `DEFAULT_USER_PASSWORD` di `apps/backend/.env`,
+- panjang password minimal 6 dan maksimal 10 karakter,
 - satu mata pelajaran dapat diampu banyak guru.
 
 ## Manajemen User

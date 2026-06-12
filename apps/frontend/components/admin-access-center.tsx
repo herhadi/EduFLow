@@ -94,6 +94,7 @@ export function AdminAccessCenter({
     password: '',
     role: 'operator_sekolah',
   });
+  const [showNewUserPassword, setShowNewUserPassword] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -215,10 +216,10 @@ export function AdminAccessCenter({
 
     try {
       const response = await api.createUser({
-        email: newUser.email.trim(),
+        email: newUser.email.trim() || undefined,
         username: newUser.username.trim(),
         name: newUser.name.trim(),
-        password: newUser.password,
+        password: newUser.password || undefined,
         roles: [newUser.role],
       });
       setUsers((currentUsers) => [response.data, ...currentUsers]);
@@ -365,18 +366,34 @@ export function AdminAccessCenter({
               type="email"
               value={newUser.email}
             />
-            <input
-              className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm outline-none transition focus:border-brand-600 focus:bg-white"
-              onChange={(event) =>
-                setNewUser((current) => ({
-                  ...current,
-                  password: event.target.value,
-                }))
-              }
-              placeholder="Password sementara, minimal 8 karakter"
-              type="password"
-              value={newUser.password}
-            />
+            <label className="grid gap-1">
+              <span className="text-xs font-black text-slate-500">
+                Password sementara
+              </span>
+              <span className="flex overflow-hidden rounded-2xl border border-blue-100 bg-blue-50/60 transition focus-within:border-brand-600 focus-within:bg-white">
+                <input
+                  className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm outline-none"
+                  maxLength={10}
+                  minLength={6}
+                  onChange={(event) =>
+                    setNewUser((current) => ({
+                      ...current,
+                      password: event.target.value,
+                    }))
+                  }
+                  placeholder="Kosongkan: default 123456"
+                  type={showNewUserPassword ? 'text' : 'password'}
+                  value={newUser.password}
+                />
+                <button
+                  className="px-4 text-xs font-black text-brand-700"
+                  onClick={() => setShowNewUserPassword((current) => !current)}
+                  type="button"
+                >
+                  {showNewUserPassword ? 'Hide' : 'Show'}
+                </button>
+              </span>
+            </label>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -399,7 +416,8 @@ export function AdminAccessCenter({
                 userActionState === 'loading' ||
                 !newUser.username.trim() ||
                 !newUser.name.trim() ||
-                newUser.password.length < 8
+                (!!newUser.password &&
+                  (newUser.password.length < 6 || newUser.password.length > 10))
               }
               type="submit"
             >

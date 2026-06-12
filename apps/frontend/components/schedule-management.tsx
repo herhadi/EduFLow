@@ -87,14 +87,20 @@ export function ScheduleManagement() {
         const firstClass = classResponse.data.find(
           (schoolClass) => schoolClass.schoolYearId === firstSchoolYear.id,
         );
+        const firstSubject = subjectResponse.data[0];
+        const firstTeacher = firstSubject
+          ? teacherResponse.data.find((teacher) =>
+              teacher.subjects?.some(({ subject }) => subject.id === firstSubject.id),
+            )
+          : undefined;
 
         setForm((currentForm) => ({
           ...currentForm,
           schoolYearId: firstSchoolYear.id,
           semesterId: firstSemester?.id ?? '',
           classId: firstClass?.id ?? '',
-          subjectId: subjectResponse.data[0]?.id ?? '',
-          teacherId: teacherResponse.data[0]?.id ?? '',
+          subjectId: firstSubject?.id ?? '',
+          teacherId: firstTeacher?.id ?? '',
         }));
       }
     } catch {
@@ -115,6 +121,26 @@ export function ScheduleManagement() {
     () => classes.filter((schoolClass) => schoolClass.schoolYearId === form.schoolYearId),
     [classes, form.schoolYearId],
   );
+
+  const selectedClass = useMemo(
+    () => classes.find((schoolClass) => schoolClass.id === form.classId),
+    [classes, form.classId],
+  );
+
+  const selectedSubject = useMemo(
+    () => subjects.find((subject) => subject.id === form.subjectId),
+    [form.subjectId, subjects],
+  );
+
+  const subjectTeachers = useMemo(() => {
+    if (!form.subjectId) {
+      return teachers;
+    }
+
+    return teachers.filter((teacher) =>
+      teacher.subjects?.some(({ subject }) => subject.id === form.subjectId),
+    );
+  }, [form.subjectId, teachers]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -225,14 +251,31 @@ export function ScheduleManagement() {
             label="Kelas"
             onChange={(value) => setForm({ ...form, classId: value })}
             options={filteredClasses.map((schoolClass) => ({
-              label: schoolClass.name,
+              label: schoolClass.homeroomTeacher
+                ? `${schoolClass.name} · Wali: ${schoolClass.homeroomTeacher.name}`
+                : schoolClass.name,
               value: schoolClass.id,
             }))}
             value={form.classId}
           />
+          {selectedClass?.homeroomTeacher ? (
+            <p className="-mt-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs font-semibold text-brand-700">
+              Wali kelas: {selectedClass.homeroomTeacher.name}
+            </p>
+          ) : null}
           <SelectField
             label="Mata Pelajaran"
-            onChange={(value) => setForm({ ...form, subjectId: value })}
+            onChange={(value) => {
+              const firstTeacherForSubject = teachers.find((teacher) =>
+                teacher.subjects?.some(({ subject }) => subject.id === value),
+              );
+
+              setForm({
+                ...form,
+                subjectId: value,
+                teacherId: firstTeacherForSubject?.id ?? '',
+              });
+            }}
             options={subjects.map((subject) => ({
               label: subject.name,
               value: subject.id,
@@ -242,12 +285,17 @@ export function ScheduleManagement() {
           <SelectField
             label="Guru"
             onChange={(value) => setForm({ ...form, teacherId: value })}
-            options={teachers.map((teacher) => ({
+            options={subjectTeachers.map((teacher) => ({
               label: teacher.name,
               value: teacher.id,
             }))}
             value={form.teacherId}
           />
+          {selectedSubject && subjectTeachers.length === 0 ? (
+            <p className="-mt-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800">
+              Belum ada guru yang diatur mengampu {selectedSubject.name}. Atur dulu di Admin Guru.
+            </p>
+          ) : null}
           <SelectField
             label="Hari"
             onChange={(value) => setForm({ ...form, dayOfWeek: Number(value) })}

@@ -235,7 +235,7 @@ export interface OperationsDashboard {
   failedJobs: FailedJob[];
 }
 
-export type ImportType = 'teachers' | 'students' | 'classes' | 'subjects' | 'schedules';
+export type ImportType = 'teachers' | 'students';
 
 export interface ImportSummary {
   type: ImportType;
@@ -459,7 +459,7 @@ export const api = {
     email?: string;
     username: string;
     name: string;
-    password: string;
+    password?: string;
     roles: string[];
   }) =>
     request<ApiResponse<AppUser>>('/auth/users', {

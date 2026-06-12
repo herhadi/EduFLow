@@ -48,6 +48,7 @@ export function TeacherRoleManagement() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [message, setMessage] = useState('');
@@ -306,13 +307,28 @@ export function TeacherRoleManagement() {
                 </label>
                 <label className="grid gap-2 text-sm font-bold text-slate-700 sm:col-span-2">
                   Password Sementara
-                  <input
-                    className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600"
-                    onChange={(event) => setPassword(event.target.value)}
-                    placeholder={selectedTeacher.user ? 'Kosongkan jika tidak diubah' : 'Default: Password123'}
-                    type="password"
-                    value={password}
-                  />
+                  <span className="flex overflow-hidden rounded-2xl border border-blue-100 bg-white transition focus-within:border-brand-600">
+                    <input
+                      className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm font-normal outline-none"
+                      maxLength={10}
+                      minLength={6}
+                      onChange={(event) => setPassword(event.target.value)}
+                      placeholder={
+                        selectedTeacher.user
+                          ? 'Kosongkan jika tidak diubah'
+                          : 'Kosongkan: default 123456'
+                      }
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                    />
+                    <button
+                      className="px-4 text-xs font-black text-brand-700"
+                      onClick={() => setShowPassword((current) => !current)}
+                      type="button"
+                    >
+                      {showPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </span>
                 </label>
               </div>
 

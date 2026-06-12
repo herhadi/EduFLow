@@ -16,7 +16,7 @@ const importItems: Array<{
     type: 'teachers',
     title: 'Guru',
     filename: 'Guru.xlsx',
-    description: 'Import data guru pengajar.',
+    description: 'Import data guru pengajar. Role, mapel, dan wali kelas diatur lewat Admin.',
     columns: ['nama', 'nip', 'nuptk', 'email', 'no_hp', 'telegram_id', 'status'],
   },
   {
@@ -36,38 +36,6 @@ const importItems: Array<{
       'hp_wali',
       'telegram_id_wali',
       'alamat_wali',
-      'status',
-    ],
-  },
-  {
-    type: 'classes',
-    title: 'Kelas',
-    filename: 'Kelas.xlsx',
-    description: 'Import rombongan belajar per tahun ajaran.',
-    columns: ['nama', 'kode', 'tingkat', 'tahun_ajaran', 'wali_kelas'],
-  },
-  {
-    type: 'subjects',
-    title: 'Mata Pelajaran',
-    filename: 'Mapel.xlsx',
-    description: 'Import daftar mata pelajaran.',
-    columns: ['nama', 'kode', 'status'],
-  },
-  {
-    type: 'schedules',
-    title: 'Jadwal',
-    filename: 'Jadwal.xlsx',
-    description: 'Import jadwal tetap sebagai template DailyAgenda.',
-    columns: [
-      'tahun_ajaran',
-      'semester',
-      'kelas',
-      'kode_mapel',
-      'guru',
-      'hari',
-      'mulai',
-      'selesai',
-      'ruang',
       'status',
     ],
   },
@@ -103,6 +71,12 @@ export function ImportDataCenter() {
 
   return (
     <section className="mt-10 space-y-5">
+      <div className="rounded-[2rem] border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-slate-700">
+        Import hanya dipakai untuk data massal yang paling berat: guru dan siswa.
+        Kelas, mata pelajaran, jadwal, role guru, mapel ampu, dan wali kelas
+        diatur lewat halaman admin agar lebih aman dan mudah dikoreksi.
+      </div>
+
       {message ? (
         <p className="rounded-2xl border border-blue-100 bg-white p-4 text-sm text-slate-700">
           {message}

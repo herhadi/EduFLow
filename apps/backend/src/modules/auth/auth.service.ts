@@ -5,6 +5,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { LoginAuditStatus } from '@prisma/client';
 import { compare, hash } from 'bcryptjs';
@@ -45,6 +46,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -308,6 +310,7 @@ export class AuthService {
   async createUser(dto: CreateUserDto) {
     const username = dto.username.trim().toLowerCase();
     const email = dto.email?.trim().toLowerCase() || `${username}@eduflow.local`;
+    const password = dto.password ?? this.getDefaultUserPassword();
     const existingUser = await this.prisma.user.findFirst({
       where: { OR: [{ email }, { username }] },
     });
@@ -322,7 +325,7 @@ export class AuthService {
         email,
         username,
         name: dto.name,
-        password: await hash(dto.password, 12),
+        password: await hash(password, 12),
         roles: {
           create: roles.map((role) => ({
             roleId: role.id,
@@ -588,5 +591,9 @@ export class AuthService {
         userId: input.userId ?? null,
       },
     });
+  }
+
+  private getDefaultUserPassword() {
+    return this.configService.get<string>('DEFAULT_USER_PASSWORD') ?? '123456';
   }
 }
