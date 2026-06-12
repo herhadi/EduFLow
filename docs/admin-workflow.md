@@ -111,6 +111,17 @@ Catatan penting:
 - Jadwal menjawab pertanyaan "guru ini mengajar mapel itu di kelas mana dan jam berapa?"
 - Wali kelas adalah tugas binaan kelas, bukan pembatas jadwal mengajar.
 - Guru A tetap bisa menjadi wali kelas IX B walaupun jadwal mengajarnya PPKn di VII A-D.
+- Untuk mengosongkan wali kelas, klik ulang kelas yang sedang aktif atau tekan `Kosongkan wali kelas`, lalu simpan.
+- Untuk mengganti wali kelas, kosongkan pilihan lama atau langsung pilih kelas lain pada guru yang sama, lalu simpan.
+
+## Tabel Jadwal Kelas
+
+Halaman `/schedules` menyediakan tabel jadwal per kelas:
+
+- pilih kelas,
+- lihat daftar hari, jam, mapel, dan guru,
+- klik `Edit` untuk memperbaiki jadwal,
+- wali kelas ditampilkan sebagai konteks kelas, bukan sebagai guru pengajar otomatis.
 
 ## Manajemen User
 

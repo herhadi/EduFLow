@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { PasswordToggleIcon } from '../../components/ui/password-toggle-icon';
 
@@ -13,6 +13,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+
+    if (searchParams.get('reason') === 'session-expired') {
+      setErrorMessage('Session berakhir atau token tidak valid. Silakan login ulang.');
+    }
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

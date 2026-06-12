@@ -50,6 +50,7 @@ export function ScheduleManagement() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [form, setForm] = useState<SchedulePayload>(emptyForm);
+  const [scheduleClassId, setScheduleClassId] = useState('');
 
   async function loadData() {
     setLoadState('loading');
@@ -102,6 +103,8 @@ export function ScheduleManagement() {
           subjectId: firstSubject?.id ?? '',
           teacherId: firstTeacher?.id ?? '',
         }));
+
+        setScheduleClassId(firstClass?.id ?? '');
       }
     } catch {
       setLoadState('error');
@@ -141,6 +144,23 @@ export function ScheduleManagement() {
       teacher.subjects?.some(({ subject }) => subject.id === form.subjectId),
     );
   }, [form.subjectId, teachers]);
+
+  const selectedScheduleClass = useMemo(
+    () => classes.find((schoolClass) => schoolClass.id === scheduleClassId),
+    [classes, scheduleClassId],
+  );
+
+  const schedulesByClass = useMemo(
+    () =>
+      schedules
+        .filter((schedule) => schedule.classId === scheduleClassId)
+        .sort(
+          (firstSchedule, secondSchedule) =>
+            firstSchedule.dayOfWeek - secondSchedule.dayOfWeek ||
+            firstSchedule.startsAt.localeCompare(secondSchedule.startsAt),
+        ),
+    [scheduleClassId, schedules],
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -356,6 +376,95 @@ export function ScheduleManagement() {
       </form>
 
       <div className="space-y-4">
+        <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
+                Jadwal Kelas
+              </p>
+              <h2 className="mt-1 text-2xl font-black text-slate-900">
+                {selectedScheduleClass?.name ?? 'Pilih Kelas'}
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-muted">
+                Tabel ini membantu cek mapel, guru, dan jam mengajar per kelas.
+              </p>
+            </div>
+            <select
+              className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-brand-600 focus:bg-white sm:min-w-48"
+              onChange={(event) => setScheduleClassId(event.target.value)}
+              value={scheduleClassId}
+            >
+              <option value="">Pilih kelas</option>
+              {classes.map((schoolClass) => (
+                <option key={schoolClass.id} value={schoolClass.id}>
+                  {schoolClass.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {selectedScheduleClass?.homeroomTeacher ? (
+            <div className="mt-4 rounded-2xl bg-blue-50 px-4 py-3 text-xs font-bold text-brand-700">
+              Wali kelas: {selectedScheduleClass.homeroomTeacher.name}
+            </div>
+          ) : null}
+
+          <div className="mt-5 overflow-x-auto rounded-2xl border border-slate-100">
+            <table className="min-w-[720px] w-full border-collapse bg-white text-left text-sm">
+              <thead className="bg-slate-50 text-xs font-black tracking-[0.08em] text-slate-500 uppercase">
+                <tr>
+                  <th className="px-4 py-3">Hari</th>
+                  <th className="px-4 py-3">Jam</th>
+                  <th className="px-4 py-3">Mata Pelajaran</th>
+                  <th className="px-4 py-3">Guru</th>
+                  <th className="px-4 py-3">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {schedulesByClass.map((schedule) => (
+                  <tr key={schedule.id}>
+                    <td className="px-4 py-3 font-black text-slate-800">
+                      {getDayLabel(schedule.dayOfWeek)}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {schedule.startsAt}-{schedule.endsAt}
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-slate-800">
+                      {schedule.subject.name}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">{schedule.teacher.name}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-black text-brand-700"
+                        onClick={() => startEdit(schedule)}
+                        type="button"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
+                {scheduleClassId && !schedulesByClass.length ? (
+                  <tr>
+                    <td className="px-4 py-5 text-sm font-semibold text-muted" colSpan={5}>
+                      Belum ada jadwal untuk kelas ini.
+                    </td>
+                  </tr>
+                ) : null}
+
+                {!scheduleClassId ? (
+                  <tr>
+                    <td className="px-4 py-5 text-sm font-semibold text-muted" colSpan={5}>
+                      Pilih kelas untuk melihat tabel jadwal.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>

@@ -405,6 +405,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     },
   });
 
+  if (response.status === 401) {
+    clearSessionAndRedirect();
+    throw new Error('Session berakhir. Silakan login ulang.');
+  }
+
   if (!response.ok) {
     let message = `API request failed: ${response.status}`;
 
@@ -430,17 +435,42 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 async function upload<T>(path: string, file: File): Promise<T> {
   const formData = new FormData();
   formData.append('file', file);
+  const accessToken =
+    typeof window === 'undefined' ? undefined : localStorage.getItem('accessToken');
 
   const response = await fetch(`${API_URL}${path}`, {
     method: 'POST',
     body: formData,
+    headers: {
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
   });
+
+  if (response.status === 401) {
+    clearSessionAndRedirect();
+    throw new Error('Session berakhir. Silakan login ulang.');
+  }
 
   if (!response.ok) {
     throw new Error(`API upload failed: ${response.status}`);
   }
 
   return response.json() as Promise<T>;
+}
+
+function clearSessionAndRedirect() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('sessionExpiresAt');
+  localStorage.removeItem('currentUser');
+
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login?reason=session-expired';
+  }
 }
 
 export const api = {

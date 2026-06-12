@@ -139,17 +139,28 @@ export function TeacherRoleManagement() {
   function toggleHomeroomClass(classId: string) {
     setSelectedHomeroomClassIds((currentClassIds) => {
       const nextClassIds = currentClassIds.includes(classId)
-        ? currentClassIds.filter((currentClassId) => currentClassId !== classId)
-        : [...currentClassIds, classId];
+        ? []
+        : [classId];
 
       if (nextClassIds.length) {
         setSelectedRoles((currentRoles) =>
           normalizeTeacherRoles([...currentRoles, 'wali_kelas']),
         );
+      } else {
+        setSelectedRoles((currentRoles) =>
+          currentRoles.filter((currentRole) => currentRole !== 'wali_kelas'),
+        );
       }
 
       return nextClassIds;
     });
+  }
+
+  function clearHomeroomClasses() {
+    setSelectedHomeroomClassIds([]);
+    setSelectedRoles((currentRoles) =>
+      currentRoles.filter((currentRole) => currentRole !== 'wali_kelas'),
+    );
   }
 
   async function handleSave() {
@@ -390,8 +401,17 @@ export function TeacherRoleManagement() {
               <div>
                 <p className="text-sm font-black text-slate-800">Kelas Binaan Wali Kelas</p>
                 <p className="mt-1 text-xs font-semibold text-muted">
-                  Kosongkan jika guru ini bukan wali kelas.
+                  Klik kelas aktif untuk mengosongkan/default. Pilih kelas lain untuk mengganti sebelum simpan.
                 </p>
+                {selectedHomeroomClassIds.length ? (
+                  <button
+                    className="mt-3 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-black text-amber-800"
+                    onClick={clearHomeroomClasses}
+                    type="button"
+                  >
+                    Kosongkan wali kelas
+                  </button>
+                ) : null}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {classes.map((schoolClass) => {
                     const active = selectedHomeroomClassIds.includes(schoolClass.id);
@@ -415,12 +435,21 @@ export function TeacherRoleManagement() {
                         type="button"
                       >
                         {schoolClass.name}
+                        {active ? ' · aktif, klik untuk kosongkan' : ''}
                         {assignedToOtherTeacher
                           ? ` · ${schoolClass.homeroomTeacher?.name ?? 'sudah ada wali'}`
                           : ''}
                       </button>
                     );
                   })}
+
+                  {!classes.length ? (
+                    <div className="w-full rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs font-semibold leading-5 text-amber-900">
+                      Data kelas belum tersedia atau belum berhasil dimuat. Cek
+                      halaman `/admin/akademik` untuk memastikan kelas sudah ada,
+                      lalu refresh halaman ini.
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
