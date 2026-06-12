@@ -4,7 +4,9 @@ import { hash } from 'bcryptjs';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
+import { CreateClassDto } from './dto/create-class.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
+import { CreateSubjectDto } from './dto/create-subject.dto';
 import { GenerateAgendaDto } from './dto/generate-agenda.dto';
 import { SetClassHomeroomTeacherDto } from './dto/set-class-homeroom-teacher.dto';
 import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
@@ -44,6 +46,80 @@ export class AcademicService {
         orderBy: { name: 'asc' },
       }),
     };
+  }
+
+  async createClass(dto: CreateClassDto) {
+    const schoolYear = await this.prisma.schoolYear.findFirst({
+      where: { id: dto.schoolYearId, deletedAt: null },
+    });
+
+    if (!schoolYear) {
+      throw new NotFoundException('Tahun ajaran tidak ditemukan');
+    }
+
+    const name = dto.name.trim();
+    const existingClass = await this.prisma.class.findFirst({
+      where: { schoolYearId: dto.schoolYearId, name, deletedAt: null },
+    });
+
+    if (existingClass) {
+      throw new BadRequestException('Nama kelas sudah digunakan pada tahun ajaran ini');
+    }
+
+    const schoolClass = await this.prisma.class.create({
+      data: {
+        schoolYearId: dto.schoolYearId,
+        name,
+        code: dto.code?.trim() || name.replace(/[^A-Za-z0-9]/g, '').toUpperCase(),
+        grade: dto.grade?.trim() || undefined,
+      },
+      include: { schoolYear: true, homeroomTeacher: true },
+    });
+
+    await this.auditService.record({
+      action: 'class.created',
+      entityType: 'Class',
+      entityId: schoolClass.id,
+      after: schoolClass,
+    });
+
+    return { data: schoolClass, message: 'Kelas berhasil ditambahkan.' };
+  }
+
+  async deleteClass(id: string) {
+    const schoolClass = await this.prisma.class.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        enrollments: { where: { deletedAt: null }, select: { id: true } },
+        schedules: { where: { deletedAt: null }, select: { id: true } },
+        agendas: { select: { id: true } },
+      },
+    });
+
+    if (!schoolClass) {
+      throw new NotFoundException('Kelas tidak ditemukan');
+    }
+
+    if (schoolClass.enrollments.length || schoolClass.schedules.length || schoolClass.agendas.length) {
+      throw new BadRequestException(
+        'Kelas sudah dipakai siswa, jadwal, atau agenda. Pindahkan data terkait sebelum menghapus kelas.',
+      );
+    }
+
+    const result = await this.prisma.class.update({
+      where: { id },
+      data: { deletedAt: new Date(), homeroomTeacherId: null },
+    });
+
+    await this.auditService.record({
+      action: 'class.deleted',
+      entityType: 'Class',
+      entityId: id,
+      before: schoolClass,
+      after: result,
+    });
+
+    return { data: result, message: 'Kelas berhasil dihapus.' };
   }
 
   async setClassHomeroomTeacher(
@@ -112,6 +188,72 @@ export class AcademicService {
         orderBy: { name: 'asc' },
       }),
     };
+  }
+
+  async createSubject(dto: CreateSubjectDto) {
+    const name = dto.name.trim();
+    const code = dto.code?.trim().toUpperCase() || undefined;
+    const existingSubject = await this.prisma.subject.findFirst({
+      where: {
+        deletedAt: null,
+        OR: [{ name }, ...(code ? [{ code }] : [])],
+      },
+    });
+
+    if (existingSubject) {
+      throw new BadRequestException('Nama atau kode mata pelajaran sudah digunakan');
+    }
+
+    const subject = await this.prisma.subject.create({
+      data: { name, code, isActive: true },
+    });
+
+    await this.auditService.record({
+      action: 'subject.created',
+      entityType: 'Subject',
+      entityId: subject.id,
+      after: subject,
+    });
+
+    return { data: subject, message: 'Mata pelajaran berhasil ditambahkan.' };
+  }
+
+  async deleteSubject(id: string) {
+    const subject = await this.prisma.subject.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        schedules: { where: { deletedAt: null }, select: { id: true } },
+        agendas: { select: { id: true } },
+      },
+    });
+
+    if (!subject) {
+      throw new NotFoundException('Mata pelajaran tidak ditemukan');
+    }
+
+    if (subject.schedules.length || subject.agendas.length) {
+      throw new BadRequestException(
+        'Mata pelajaran sudah dipakai jadwal atau agenda. Gunakan data tersebut sampai histori selesai.',
+      );
+    }
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      await tx.teacherSubject.deleteMany({ where: { subjectId: id } });
+      return tx.subject.update({
+        where: { id },
+        data: { isActive: false, deletedAt: new Date() },
+      });
+    });
+
+    await this.auditService.record({
+      action: 'subject.deleted',
+      entityType: 'Subject',
+      entityId: id,
+      before: subject,
+      after: result,
+    });
+
+    return { data: result, message: 'Mata pelajaran berhasil dihapus.' };
   }
 
   async getTeachers() {

@@ -24,6 +24,8 @@ Content-Type: application/json
 GET /api/auth/users
 POST /api/auth/users
 POST /api/auth/users/:id/roles
+PATCH /api/auth/users/:id/deactivate
+DELETE /api/auth/users/:id
 ```
 
 Permission:
@@ -31,6 +33,13 @@ Permission:
 - `user.manage`
 
 Root memakai endpoint ini untuk menentukan siapa `operator_sekolah`, `kepala_sekolah`, `guru`, `tu`, `bk`, `wali_kelas`, atau `orang_tua`.
+
+Aturan penghapusan:
+
+- akun sendiri tidak dapat dinonaktifkan atau dihapus,
+- minimal satu root harus tetap aktif,
+- hard delete akan ditolak jika user sudah dipakai histori operasional,
+- gunakan nonaktif untuk akun real yang pernah beraktivitas.
 
 ## Academic Read API
 
@@ -49,6 +58,60 @@ GET /api/academic/schedules?classId=:classId
 GET /api/academic/agendas
 GET /api/academic/agendas?date=2026-06-03
 ```
+
+## Academic Master Management API
+
+### Tambah Kelas
+
+```http
+POST /api/academic/classes
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "schoolYearId": "uuid-tahun-ajaran",
+  "name": "VII-I",
+  "code": "VIIII",
+  "grade": "VII"
+}
+```
+
+### Hapus Kelas
+
+```http
+DELETE /api/academic/classes/:id
+Authorization: Bearer <accessToken>
+```
+
+Kelas hanya dapat dihapus jika belum memiliki enrollment siswa, jadwal, atau agenda.
+
+### Tambah Mata Pelajaran
+
+```http
+POST /api/academic/subjects
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "name": "Muatan Lokal",
+  "code": "MULOK"
+}
+```
+
+### Hapus Mata Pelajaran
+
+```http
+DELETE /api/academic/subjects/:id
+Authorization: Bearer <accessToken>
+```
+
+Mapel hanya dapat dihapus jika belum dipakai jadwal atau agenda. Relasi mapel ampu guru akan ikut dibersihkan.
+
+Permission seluruh endpoint master akademik:
+
+- `academic.manage`
+
+UI tersedia di `/admin/akademik`.
 
 ## Teacher Management API
 
@@ -70,6 +133,15 @@ Efek:
 - jadwal aktif guru ikut dinonaktifkan,
 - relasi wali kelas pada `Class.homeroomTeacherId` dilepas jika ada,
 - histori `DailyAgenda`, `Attendance`, dan laporan lama tetap aman.
+
+### Hapus Permanen Guru
+
+```http
+DELETE /api/academic/teachers/:id/permanent
+Authorization: Bearer <accessToken>
+```
+
+Hard delete hanya diizinkan jika guru belum mempunyai histori jadwal atau agenda. Untuk guru real yang sudah beraktivitas, gunakan nonaktif.
 
 ### Atur Akun Dan Role Guru
 

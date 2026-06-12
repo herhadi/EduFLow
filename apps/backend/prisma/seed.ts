@@ -209,6 +209,39 @@ async function main() {
 
   await migrateLegacyRole('admin', 'root', rolesByName);
   await migrateLegacyRole('operator', 'operator_sekolah', rolesByName);
+
+  const subjects = [
+    { code: 'PPKN', name: 'PPKn' },
+    { code: 'PJOK', name: 'PJOK' },
+    { code: 'PKY', name: 'Prakarya' },
+    { code: 'IPA', name: 'IPA' },
+    { code: 'IPS', name: 'IPS' },
+    { code: 'TIK', name: 'TIK' },
+    { code: 'SBD', name: 'Seni Budaya' },
+    { code: 'BJW', name: 'Bahasa Jawa' },
+    { code: 'BIN', name: 'Bahasa Indonesia' },
+    { code: 'BIG', name: 'Bahasa Inggris' },
+    { code: 'PAI', name: 'Pendidikan Agama Islam' },
+    { code: 'MAT', name: 'Matematika' },
+  ];
+
+  await Promise.all(
+    subjects.map((subject) =>
+      prisma.subject.upsert({
+        where: { code: subject.code },
+        update: {
+          name: subject.name,
+          isActive: true,
+          deletedAt: null,
+        },
+        create: {
+          code: subject.code,
+          name: subject.name,
+          isActive: true,
+        },
+      }),
+    ),
+  );
 }
 
 async function migrateLegacyRole(

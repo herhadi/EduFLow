@@ -16,6 +16,9 @@ const primaryNavItems = [
 
 const quickMenuItems = [
   { href: '/admin', label: 'Admin' },
+  { href: '/admin/guru', label: 'Guru' },
+  { href: '/admin/akademik', label: 'Akademik' },
+  { href: '/admin/akses', label: 'Akses' },
   { href: '/master-data', label: 'Master Data' },
   { href: '/import-data', label: 'Import' },
   { href: '/audit', label: 'Audit' },
@@ -167,7 +170,9 @@ function QuickMenu({ pathname }: { pathname: string }) {
       className="no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:-mx-5 sm:px-5 md:-mx-6 md:px-6"
     >
       {quickMenuItems.map((item) => {
-        const active = pathname === item.href;
+        const active =
+          pathname === item.href ||
+          (item.href !== '/admin' && pathname.startsWith(`${item.href}/`));
 
         return (
           <Link

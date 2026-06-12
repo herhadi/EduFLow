@@ -69,10 +69,16 @@ StudentEnrollment
 Subject
   1 -> n Schedule
   1 -> n DailyAgenda
+  n -> n Teacher melalui TeacherSubject
 
 Teacher
   1 -> n Schedule
   1 -> n DailyAgenda
+  0..1 -> 1 User
+  n -> n Subject melalui TeacherSubject
+
+User
+  1 -> 0..1 Teacher
 
 Schedule
   1 -> n DailyAgenda
@@ -93,7 +99,9 @@ Attendance
 | `Semester` | Periode akademik dalam tahun ajaran | Terikat ke `SchoolYear` |
 | `Class` | Rombel atau kelas akademik | Terikat ke `SchoolYear`, berisi siswa |
 | `Subject` | Mata pelajaran | Dipakai jadwal dan agenda |
-| `Teacher` | Guru pengajar | Dipakai jadwal dan agenda |
+| `Teacher` | Profil guru sekolah | Dipakai jadwal, agenda, akun login, mapel ampu, dan wali kelas |
+| `TeacherSubject` | Relasi mapel yang diampu guru | Satu guru dapat mengampu banyak mapel dan satu mapel dapat diampu banyak guru |
+| `User` | Akun login dan otorisasi | Dapat ditautkan ke satu profil `Teacher` melalui `Teacher.userId` |
 | `Student` | Data identitas siswa | Tidak menyimpan `classId` langsung |
 | `Guardian` | Data wali murid atau orang tua | Menyimpan kontak HP, Telegram, dan email |
 | `StudentGuardian` | Relasi siswa dan wali murid | Menyimpan hubungan dan kontak utama |
@@ -143,6 +151,9 @@ Pemisahan ini membuat rekap, audit, koreksi, pindah kelas, dan reporting lebih b
 - `SchoolYear.name` unik.
 - `Semester` unik berdasarkan `schoolYearId` dan `type`.
 - `Class` unik berdasarkan `schoolYearId` dan `name`.
+- Jumlah `Class` tidak dibatasi oleh kode aplikasi; admin dapat menambah atau mengurangi rombel per tahun ajaran.
+- `Teacher.userId` unik agar satu profil guru hanya terkait ke satu akun login.
+- `TeacherSubject` unik berdasarkan `teacherId` dan `subjectId`.
 - `StudentGuardian` unik berdasarkan `studentId` dan `guardianId`.
 - `StudentEnrollment` unik berdasarkan `studentId`, `classId`, dan `schoolYearId`.
 - `StudentEnrollment` memiliki `startedAt` dan `endedAt` untuk histori pindah kelas.
@@ -161,6 +172,23 @@ Pemisahan ini membuat rekap, audit, koreksi, pindah kelas, dan reporting lebih b
 - Presensi siswa mengacu ke `StudentEnrollment`, bukan hanya `Student`.
 - Guru pengganti belum dibuat sebagai tabel terpisah.
 - Multi sekolah belum dibuat.
+
+## Penghapusan Master Akademik
+
+- `Class` hanya boleh dihapus jika belum dipakai `StudentEnrollment`, `Schedule`, atau `DailyAgenda`.
+- `Subject` hanya boleh dihapus jika belum dipakai `Schedule` atau `DailyAgenda`.
+- Penghapusan `Subject` juga membersihkan relasi `TeacherSubject`.
+- Data yang sudah menjadi histori operasional sebaiknya dinonaktifkan, bukan dihapus permanen.
+
+## Data Awal Kelas
+
+Tahun ajaran `2026/2027` saat ini memiliki data awal:
+
+- VII A sampai VII H: 8 rombel.
+- VIII A sampai VIII G: 7 rombel.
+- IX A sampai IX G: 7 rombel.
+
+Data tersebut hanya konfigurasi awal. Jumlah rombel tetap fleksibel dan dapat disesuaikan melalui `/admin/akademik`.
 
 Tambahan tersebut dilakukan setelah workflow jadwal, agenda, dan presensi stabil.
 

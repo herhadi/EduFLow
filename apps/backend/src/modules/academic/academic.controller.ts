@@ -4,7 +4,9 @@ import { Public } from '../../common/decorators/public.decorator';
 import { PERMISSIONS } from '../../common/constants/permissions';
 import { AcademicService } from './academic.service';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
+import { CreateClassDto } from './dto/create-class.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
+import { CreateSubjectDto } from './dto/create-subject.dto';
 import { GenerateAgendaDto } from './dto/generate-agenda.dto';
 import { SetClassHomeroomTeacherDto } from './dto/set-class-homeroom-teacher.dto';
 import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
@@ -33,6 +35,18 @@ export class AcademicController {
   }
 
   @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Post('classes')
+  createClass(@Body() dto: CreateClassDto) {
+    return this.academicService.createClass(dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Delete('classes/:id')
+  deleteClass(@Param('id') id: string) {
+    return this.academicService.deleteClass(id);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
   @Patch('classes/:id/homeroom-teacher')
   setClassHomeroomTeacher(
     @Param('id') id: string,
@@ -45,6 +59,18 @@ export class AcademicController {
   @Get('subjects')
   getSubjects() {
     return this.academicService.getSubjects();
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Post('subjects')
+  createSubject(@Body() dto: CreateSubjectDto) {
+    return this.academicService.createSubject(dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Delete('subjects/:id')
+  deleteSubject(@Param('id') id: string) {
+    return this.academicService.deleteSubject(id);
   }
 
   @Public()

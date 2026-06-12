@@ -73,7 +73,11 @@ const explanationCards = [
   },
 ];
 
-export function AdminAccessCenter() {
+export function AdminAccessCenter({
+  showTeacherAdmin = false,
+}: {
+  showTeacherAdmin?: boolean;
+}) {
   const toast = useToast();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [users, setUsers] = useState<AppUser[]>([]);
@@ -319,50 +323,6 @@ export function AdminAccessCenter() {
       </div>
 
       <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
-              Role & Permission
-            </p>
-            <h2 className="mt-1 text-2xl font-black text-ink">Actor Sistem</h2>
-            <p className="mt-1 text-sm leading-6 text-muted">
-              Role adalah kumpulan permission. Logic controller tetap memakai capability, bukan nama jabatan.
-            </p>
-          </div>
-          <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">
-            {roleCards.length} role aktif
-          </span>
-        </div>
-
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {roleCards.map((role) => (
-            <article className="rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4" key={role.role}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="font-black text-slate-900">{role.label}</h3>
-                  <p className="mt-1 font-mono text-[0.7rem] font-bold text-brand-700">{role.role}</p>
-                </div>
-                <span className="rounded-full bg-white px-2 py-1 text-[0.68rem] font-black text-muted">
-                  RBAC
-                </span>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-muted">{role.description}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {role.permissions.map((permission) => (
-                  <span
-                    className="rounded-full border border-blue-100 bg-white px-2 py-1 text-[0.68rem] font-bold text-slate-600"
-                    key={permission}
-                  >
-                    {permission}
-                  </span>
-                ))}
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
         <div>
           <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
             User Management
@@ -513,7 +473,7 @@ export function AdminAccessCenter() {
         </div>
       </section>
 
-      <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      {showTeacherAdmin ? <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
@@ -602,7 +562,7 @@ export function AdminAccessCenter() {
             </p>
           ) : null}
         </div>
-      </section>
+      </section> : null}
     </section>
   );
 }

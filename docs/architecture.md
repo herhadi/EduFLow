@@ -49,6 +49,27 @@ Presensi wajib mengacu pada `DailyAgenda`, bukan langsung pada `Schedule`.
 
 API menerapkan authentication guard dan permission guard secara global. Endpoint publik harus menggunakan `@Public()`. Endpoint khusus menggunakan `@RequirePermissions(...)`, bukan pengecekan role yang di-hardcode.
 
+## Struktur Frontend Admin
+
+Area admin dipisahkan berdasarkan domain agar halaman tidak terlalu besar dan lebih mudah dirawat:
+
+```text
+/admin
+  /guru
+  /akademik
+  /akses
+```
+
+- `/admin`: hub atau menu utama administrasi.
+- `/admin/guru`: akun login guru, role, mapel ampu, dan kelas binaan wali kelas.
+- `/admin/akademik`: CRUD kelas dan mata pelajaran.
+- `/admin/akses`: user sistem, role, permission, nonaktif, dan hapus permanen.
+- `/schedules`: manajemen jadwal tetap dan generate agenda.
+
+Komponen feedback aksi memakai `ToastProvider` global di root layout. Komponen fitur menggunakan `useToast()` dan tidak membuat implementasi toast sendiri-sendiri.
+
+Frontend memakai Tailwind CSS v4 dengan theme global di `apps/frontend/app/globals.css`.
+
 ## Dokumen Operasional
 
 - `docs/database.md`: desain relasi akademik.
@@ -58,6 +79,7 @@ API menerapkan authentication guard dan permission guard secara global. Endpoint
 - `docs/queues.md`: strategi queue, job naming, retry, dan idempotency.
 - `docs/permission-matrix.md`: role, capability, dan scope data.
 - `docs/academic-planning.md`: pembagian admin dan guru untuk kalender pendidikan, perangkat ajar, dan nilai siswa.
+- `docs/admin-workflow.md`: route admin dan urutan konfigurasi awal sekolah.
 
 ## Batas Infra
 

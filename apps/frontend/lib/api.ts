@@ -484,7 +484,30 @@ export const api = {
     request<ApiResponse<SchoolClass[]>>(
       `/academic/classes${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,
     ),
+  createClass: (payload: {
+    schoolYearId: string;
+    name: string;
+    code?: string;
+    grade?: string;
+  }) =>
+    request<ApiResponse<SchoolClass>>('/academic/classes', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  deleteClass: (id: string) =>
+    request<ApiResponse<SchoolClass>>(`/academic/classes/${id}`, {
+      method: 'DELETE',
+    }),
   getSubjects: () => request<ApiResponse<Subject[]>>('/academic/subjects'),
+  createSubject: (payload: { name: string; code?: string }) =>
+    request<ApiResponse<Subject>>('/academic/subjects', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  deleteSubject: (id: string) =>
+    request<ApiResponse<Subject>>(`/academic/subjects/${id}`, {
+      method: 'DELETE',
+    }),
   getTeachers: () => request<ApiResponse<Teacher[]>>('/academic/teachers'),
   configureTeacherAccount: (
     id: string,
