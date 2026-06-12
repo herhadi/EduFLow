@@ -77,6 +77,12 @@ export class AcademicController {
     return this.academicService.deleteTeacher(id);
   }
 
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Delete('teachers/:id/permanent')
+  deleteTeacherPermanently(@Param('id') id: string) {
+    return this.academicService.deleteTeacherPermanently(id);
+  }
+
   @Public()
   @Get('students')
   getStudents(@Query('classId') classId?: string) {

@@ -466,6 +466,14 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  deactivateUser: (id: string) =>
+    request<ApiResponse<AppUser>>(`/auth/users/${id}/deactivate`, {
+      method: 'PATCH',
+    }),
+  deleteUser: (id: string) =>
+    request<ApiResponse<AppUser>>(`/auth/users/${id}`, {
+      method: 'DELETE',
+    }),
   getSchoolYears: () =>
     request<ApiResponse<SchoolYear[]>>('/academic/school-years'),
   getSemesters: (schoolYearId?: string) =>
@@ -503,6 +511,10 @@ export const api = {
     }),
   deleteTeacher: (id: string) =>
     request<ApiResponse<Teacher>>(`/academic/teachers/${id}`, {
+      method: 'DELETE',
+    }),
+  deleteTeacherPermanently: (id: string) =>
+    request<ApiResponse<Teacher>>(`/academic/teachers/${id}/permanent`, {
       method: 'DELETE',
     }),
   getStudents: () => request<ApiResponse<Student[]>>('/academic/students'),

@@ -2,6 +2,7 @@
 
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { api, type AppUser, type Teacher } from '../lib/api';
+import { useToast } from './ui/toast';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 type ActionState = 'idle' | 'loading' | 'success' | 'error';
@@ -73,6 +74,7 @@ const explanationCards = [
 ];
 
 export function AdminAccessCenter() {
+  const toast = useToast();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [users, setUsers] = useState<AppUser[]>([]);
   const [loadState, setLoadState] = useState<LoadState>('idle');
@@ -155,11 +157,50 @@ export function AdminAccessCenter() {
       );
       setActionState('success');
       setMessage(response.message ?? `${teacher.name} berhasil dinonaktifkan.`);
+      toast.success(
+        response.message ?? `${teacher.name} berhasil dinonaktifkan.`,
+        'Guru Dinonaktifkan',
+      );
     } catch {
       setActionState('error');
       setMessage(
         'Gagal menonaktifkan guru. Pastikan sudah login sebagai root/operator_sekolah dan token tersimpan.',
       );
+      toast.error('Gagal menonaktifkan guru.', 'Aksi Gagal');
+    }
+  }
+
+  async function handleDeleteTeacherPermanently(teacher: Teacher) {
+    const confirmed = window.confirm(
+      `Hapus permanen guru ${teacher.name}? Gunakan hanya untuk data salah input. Jika guru sudah punya histori jadwal/agenda, sistem akan menolak.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setActionState('loading');
+    setMessage('');
+
+    try {
+      const response = await api.deleteTeacherPermanently(teacher.id);
+      setTeachers((currentTeachers) =>
+        currentTeachers.filter((currentTeacher) => currentTeacher.id !== teacher.id),
+      );
+      setActionState('success');
+      setMessage(response.message ?? `${teacher.name} berhasil dihapus permanen.`);
+      toast.success(
+        response.message ?? `${teacher.name} berhasil dihapus permanen.`,
+        'Guru Dihapus',
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? `Gagal hapus permanen guru: ${error.message}`
+          : 'Gagal hapus permanen guru.';
+      setActionState('error');
+      setMessage(errorMessage);
+      toast.error(errorMessage, 'Aksi Gagal');
     }
   }
 
@@ -186,13 +227,83 @@ export function AdminAccessCenter() {
       });
       setUserActionState('success');
       setUserMessage(response.message ?? 'User berhasil dibuat.');
+      toast.success(response.message ?? 'User berhasil dibuat.', 'User Baru');
     } catch (error) {
-      setUserActionState('error');
-      setUserMessage(
+      const errorMessage =
         error instanceof Error
           ? `Gagal membuat user: ${error.message}`
-          : 'Gagal membuat user. Pastikan login sebagai root dan data belum dipakai.',
+          : 'Gagal membuat user. Pastikan login sebagai root dan data belum dipakai.';
+      setUserActionState('error');
+      setUserMessage(errorMessage);
+      toast.error(errorMessage, 'Aksi Gagal');
+    }
+  }
+
+  async function handleDeactivateUser(user: AppUser) {
+    const confirmed = window.confirm(
+      `Nonaktifkan user ${user.username ?? user.email}? User tidak bisa login lagi, tetapi histori tetap aman.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setUserActionState('loading');
+    setUserMessage('');
+
+    try {
+      const response = await api.deactivateUser(user.id);
+      setUsers((currentUsers) =>
+        currentUsers.filter((currentUser) => currentUser.id !== user.id),
       );
+      setUserActionState('success');
+      setUserMessage(response.message ?? 'User berhasil dinonaktifkan.');
+      toast.success(
+        response.message ?? 'User berhasil dinonaktifkan.',
+        'User Dinonaktifkan',
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? `Gagal menonaktifkan user: ${error.message}`
+          : 'Gagal menonaktifkan user.';
+      setUserActionState('error');
+      setUserMessage(errorMessage);
+      toast.error(errorMessage, 'Aksi Gagal');
+    }
+  }
+
+  async function handleDeleteUser(user: AppUser) {
+    const confirmed = window.confirm(
+      `Hapus permanen user ${user.username ?? user.email}? Gunakan hanya untuk user salah input/test. Aksi ini tidak bisa dibatalkan.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setUserActionState('loading');
+    setUserMessage('');
+
+    try {
+      const response = await api.deleteUser(user.id);
+      setUsers((currentUsers) =>
+        currentUsers.filter((currentUser) => currentUser.id !== user.id),
+      );
+      setUserActionState('success');
+      setUserMessage(response.message ?? 'User berhasil dihapus permanen.');
+      toast.success(
+        response.message ?? 'User berhasil dihapus permanen.',
+        'User Dihapus',
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? `Gagal hapus permanen user: ${error.message}`
+          : 'Gagal hapus permanen user.';
+      setUserActionState('error');
+      setUserMessage(errorMessage);
+      toast.error(errorMessage, 'Aksi Gagal');
     }
   }
 
@@ -360,15 +471,35 @@ export function AdminAccessCenter() {
                     {user.username ?? '-'} · {user.email}
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {user.roles.map((role) => (
-                    <span
-                      className="rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700"
-                      key={role}
+                <div className="flex flex-col gap-3 sm:items-end">
+                  <div className="flex flex-wrap gap-2 sm:justify-end">
+                    {user.roles.map((role) => (
+                      <span
+                        className="rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700"
+                        key={role}
+                      >
+                        {role}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 sm:flex">
+                    <button
+                      className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-black text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={userActionState === 'loading'}
+                      onClick={() => void handleDeactivateUser(user)}
+                      type="button"
                     >
-                      {role}
-                    </span>
-                  ))}
+                      Nonaktif
+                    </button>
+                    <button
+                      className="rounded-2xl bg-rose-600 px-4 py-2 text-xs font-black text-white shadow-sm shadow-rose-100 transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={userActionState === 'loading'}
+                      onClick={() => void handleDeleteUser(user)}
+                      type="button"
+                    >
+                      Hapus
+                    </button>
+                  </div>
                 </div>
               </div>
             </article>
@@ -443,14 +574,24 @@ export function AdminAccessCenter() {
                     <span>Telegram: {teacher.telegramId ?? '-'}</span>
                   </div>
                 </div>
-                <button
-                  className="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-rose-100 transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-                  disabled={actionState === 'loading'}
-                  onClick={() => void handleDeactivateTeacher(teacher)}
-                  type="button"
-                >
-                  {actionState === 'loading' ? 'Memproses...' : 'Nonaktifkan'}
-                </button>
+                <div className="grid grid-cols-2 gap-2 sm:flex">
+                  <button
+                    className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-black text-amber-800 shadow-sm shadow-amber-100 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:bg-slate-300"
+                    disabled={actionState === 'loading'}
+                    onClick={() => void handleDeactivateTeacher(teacher)}
+                    type="button"
+                  >
+                    {actionState === 'loading' ? 'Proses...' : 'Nonaktif'}
+                  </button>
+                  <button
+                    className="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-rose-100 transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                    disabled={actionState === 'loading'}
+                    onClick={() => void handleDeleteTeacherPermanently(teacher)}
+                    type="button"
+                  >
+                    Hapus
+                  </button>
+                </div>
               </div>
             </article>
           ))}

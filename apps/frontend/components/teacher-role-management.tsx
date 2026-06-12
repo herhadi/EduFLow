@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { api, type SchoolClass, type Subject, type Teacher } from '../lib/api';
+import { useToast } from './ui/toast';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 type SaveState = 'idle' | 'loading' | 'success' | 'error';
@@ -36,6 +37,7 @@ function normalizeTeacherRoles(roles: string[]) {
 }
 
 export function TeacherRoleManagement() {
+  const toast = useToast();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [classes, setClasses] = useState<SchoolClass[]>([]);
@@ -189,13 +191,15 @@ export function TeacherRoleManagement() {
       setClasses(classResponse.data);
       setSaveState('success');
       setMessage('Pengaturan guru berhasil disimpan.');
+      toast.success('Pengaturan guru berhasil disimpan.', 'Berhasil');
     } catch (error) {
-      setSaveState('error');
-      setMessage(
+      const errorMessage =
         error instanceof Error
           ? `Gagal menyimpan: ${error.message}`
-          : 'Gagal menyimpan pengaturan guru.',
-      );
+          : 'Gagal menyimpan pengaturan guru.';
+      setSaveState('error');
+      setMessage(errorMessage);
+      toast.error(errorMessage, 'Aksi Gagal');
     }
   }
 

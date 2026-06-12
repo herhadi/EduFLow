@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import { PERMISSIONS } from '../../common/constants/permissions';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { Public } from '../../common/decorators/public.decorator';
@@ -100,6 +100,18 @@ export class AuthController {
     @Body() dto: UpdateUserRolesDto,
   ) {
     return this.authService.updateUserRoles(id, dto.roles);
+  }
+
+  @RequirePermissions(PERMISSIONS.USER_MANAGE)
+  @Patch('users/:id/deactivate')
+  deactivateUser(@Param('id') id: string, @Req() request: RequestWithUser) {
+    return this.authService.deactivateUser(id, request.user.id);
+  }
+
+  @RequirePermissions(PERMISSIONS.USER_MANAGE)
+  @Delete('users/:id')
+  deleteUser(@Param('id') id: string, @Req() request: RequestWithUser) {
+    return this.authService.deleteUser(id, request.user.id);
   }
 
   private getIpAddress(request: RequestWithUser) {

@@ -1,6 +1,8 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -374,6 +376,87 @@ export class AuthService {
     };
   }
 
+  async deactivateUser(userId: string, actorUserId: string) {
+    if (userId === actorUserId) {
+      throw new BadRequestException('Tidak bisa menonaktifkan akun sendiri');
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+      include: { roles: { include: { role: true } } },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User tidak ditemukan');
+    }
+
+    await this.ensureRootSafety(userId, user.roles.map(({ role }) => role.name));
+
+    const now = new Date();
+    const result = await this.prisma.$transaction(async (tx) => {
+      await tx.refreshToken.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: now, revokedReason: 'user_deactivated' },
+      });
+      await tx.userRole.deleteMany({ where: { userId } });
+
+      return tx.user.update({
+        where: { id: userId },
+        data: { deletedAt: now, lockedUntil: now },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          name: true,
+          deletedAt: true,
+        },
+      });
+    });
+
+    return { data: result, message: 'User berhasil dinonaktifkan.' };
+  }
+
+  async deleteUser(userId: string, actorUserId: string) {
+    if (userId === actorUserId) {
+      throw new BadRequestException('Tidak bisa menghapus akun sendiri');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { roles: { include: { role: true } } },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User tidak ditemukan');
+    }
+
+    await this.ensureRootSafety(userId, user.roles.map(({ role }) => role.name));
+
+    try {
+      const result = await this.prisma.$transaction(async (tx) => {
+        await tx.teacher.updateMany({
+          where: { userId },
+          data: { userId: null },
+        });
+        await tx.userRole.deleteMany({ where: { userId } });
+        await tx.refreshToken.deleteMany({ where: { userId } });
+        await tx.passwordResetToken.deleteMany({ where: { userId } });
+        await tx.loginAudit.deleteMany({ where: { userId } });
+
+        return tx.user.delete({
+          where: { id: userId },
+          select: { id: true, email: true, username: true, name: true },
+        });
+      });
+
+      return { data: result, message: 'User berhasil dihapus permanen.' };
+    } catch {
+      throw new BadRequestException(
+        'User tidak bisa dihapus permanen karena sudah dipakai histori operasional. Gunakan Nonaktifkan.',
+      );
+    }
+  }
+
   private async createSession(userId: string) {
     const user = await this.prisma.user.findFirstOrThrow({
       where: { id: userId, deletedAt: null },
@@ -437,6 +520,24 @@ export class AuthService {
 
   private hashToken(token: string) {
     return createHash('sha256').update(token).digest('hex');
+  }
+
+  private async ensureRootSafety(userId: string, targetRoleNames: string[]) {
+    if (!targetRoleNames.includes('root')) {
+      return;
+    }
+
+    const activeRootCount = await this.prisma.user.count({
+      where: {
+        deletedAt: null,
+        id: { not: userId },
+        roles: { some: { role: { name: 'root' } } },
+      },
+    });
+
+    if (activeRootCount < 1) {
+      throw new BadRequestException('Minimal harus ada satu root aktif');
+    }
   }
 
   private async getRolesByNames(roleNames: string[]) {

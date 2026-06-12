@@ -333,6 +333,53 @@ export class AcademicService {
     };
   }
 
+  async deleteTeacherPermanently(id: string) {
+    const teacher = await this.prisma.teacher.findFirst({
+      where: { id },
+      include: {
+        schedules: { select: { id: true } },
+        agendas: { select: { id: true } },
+        homeroomClasses: { select: { id: true, name: true } },
+        subjects: { select: { teacherId: true, subjectId: true } },
+      },
+    });
+
+    if (!teacher) {
+      throw new NotFoundException('Guru tidak ditemukan');
+    }
+
+    if (teacher.schedules.length || teacher.agendas.length) {
+      throw new BadRequestException(
+        'Guru tidak bisa dihapus permanen karena sudah memiliki histori jadwal atau agenda. Gunakan Nonaktifkan.',
+      );
+    }
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      await tx.class.updateMany({
+        where: { homeroomTeacherId: id },
+        data: { homeroomTeacherId: null },
+      });
+      await tx.teacherSubject.deleteMany({ where: { teacherId: id } });
+
+      return tx.teacher.delete({
+        where: { id },
+      });
+    });
+
+    await this.auditService.record({
+      action: 'teacher.hard-deleted',
+      entityType: 'Teacher',
+      entityId: id,
+      before: teacher,
+      after: result,
+    });
+
+    return {
+      data: result,
+      message: 'Guru berhasil dihapus permanen.',
+    };
+  }
+
   async getStudents(classId?: string) {
     return {
       data: await this.prisma.student.findMany({
