@@ -2,6 +2,7 @@
 
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { api, type AppUser, type Teacher } from '../lib/api';
+import { PasswordToggleIcon } from './ui/password-toggle-icon';
 import { useToast } from './ui/toast';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
@@ -386,11 +387,14 @@ export function AdminAccessCenter({
                   value={newUser.password}
                 />
                 <button
-                  className="px-4 text-xs font-black text-brand-700"
+                  aria-label={
+                    showNewUserPassword ? 'Sembunyikan password' : 'Tampilkan password'
+                  }
+                  className="grid place-items-center px-4 text-brand-700"
                   onClick={() => setShowNewUserPassword((current) => !current)}
                   type="button"
                 >
-                  {showNewUserPassword ? 'Hide' : 'Show'}
+                  <PasswordToggleIcon visible={showNewUserPassword} />
                 </button>
               </span>
             </label>

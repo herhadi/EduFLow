@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { api } from '../../lib/api';
+import { PasswordToggleIcon } from '../../components/ui/password-toggle-icon';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -96,11 +97,12 @@ export default function LoginPage() {
                   value={password}
                 />
                 <button
-                  className="px-4 text-xs font-black text-brand-700"
+                  aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                  className="grid place-items-center px-4 text-brand-700"
                   onClick={() => setShowPassword((current) => !current)}
                   type="button"
                 >
-                  {showPassword ? 'Sembunyikan' : 'Lihat'}
+                  <PasswordToggleIcon visible={showPassword} />
                 </button>
               </span>
             </label>

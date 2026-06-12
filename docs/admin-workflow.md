@@ -87,6 +87,31 @@ Aturan:
 - panjang password minimal 6 dan maksimal 10 karakter,
 - satu mata pelajaran dapat diampu banyak guru.
 
+Contoh konfigurasi:
+
+```text
+Guru A
+  Role:
+    - guru
+    - wali_kelas
+  Mapel ampu:
+    - PPKn
+  Wali kelas:
+    - IX B
+  Jadwal mengajar:
+    - PPKn VII A
+    - PPKn VII B
+    - PPKn VII C
+    - PPKn VII D
+```
+
+Catatan penting:
+
+- Mapel ampu menjawab pertanyaan "guru ini boleh mengajar mapel apa?"
+- Jadwal menjawab pertanyaan "guru ini mengajar mapel itu di kelas mana dan jam berapa?"
+- Wali kelas adalah tugas binaan kelas, bukan pembatas jadwal mengajar.
+- Guru A tetap bisa menjadi wali kelas IX B walaupun jadwal mengajarnya PPKn di VII A-D.
+
 ## Manajemen User
 
 Gunakan `/admin/akses` untuk:
