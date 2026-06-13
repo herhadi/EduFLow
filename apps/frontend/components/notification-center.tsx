@@ -87,6 +87,11 @@ export function NotificationCenter() {
     void loadNotifications();
   }, []);
 
+  const activeDescription = useMemo(
+    () => tabs.find((tab) => tab.id === activeTab)?.description,
+    [activeTab],
+  );
+
   if (isTeacherInbox) {
     return (
       <TeacherNotificationInbox
@@ -96,11 +101,6 @@ export function NotificationCenter() {
       />
     );
   }
-
-  const activeDescription = useMemo(
-    () => tabs.find((tab) => tab.id === activeTab)?.description,
-    [activeTab],
-  );
 
   async function handleRetry(notification: NotificationLog) {
     setActionState('loading');
