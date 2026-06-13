@@ -614,6 +614,8 @@ export const api = {
     }),
   getStudents: () => request<ApiResponse<Student[]>>('/academic/students'),
   getSchedules: () => request<ApiResponse<Schedule[]>>('/academic/schedules'),
+  getMySchedules: () =>
+    request<ApiResponse<Schedule[]>>('/academic/me/schedules'),
   getAcademicTimeSlots: (schoolYearId?: string) =>
     request<ApiResponse<AcademicTimeSlot[]>>(
       `/academic/time-slots${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,

@@ -74,3 +74,39 @@ export interface AuthUser {
 export function compact<T>(values: Array<T | null | undefined>): T[] {
   return values.filter((value): value is T => value != null);
 }
+
+export interface SortableSchoolClass {
+  name: string;
+  grade?: string | null;
+}
+
+const gradeOrder: Record<string, number> = {
+  VII: 7,
+  VIII: 8,
+  IX: 9,
+};
+
+export function compareSchoolClasses(
+  firstClass: SortableSchoolClass,
+  secondClass: SortableSchoolClass,
+) {
+  const gradeDifference =
+    getSchoolGradeOrder(firstClass.grade) -
+    getSchoolGradeOrder(secondClass.grade);
+
+  return (
+    gradeDifference ||
+    firstClass.name.localeCompare(secondClass.name, 'id', {
+      numeric: true,
+      sensitivity: 'base',
+    })
+  );
+}
+
+export function sortSchoolClasses<T extends SortableSchoolClass>(classes: T[]) {
+  return [...classes].sort(compareSchoolClasses);
+}
+
+export function getSchoolGradeOrder(grade?: string | null) {
+  return gradeOrder[grade?.trim().toUpperCase() ?? ''] ?? Number.MAX_SAFE_INTEGER;
+}

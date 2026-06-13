@@ -1,5 +1,6 @@
 'use client';
 
+import { sortSchoolClasses } from '@eduflow/shared';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import {
   api,
@@ -125,7 +126,10 @@ export function ScheduleManagement() {
   );
 
   const filteredClasses = useMemo(
-    () => classes.filter((schoolClass) => schoolClass.schoolYearId === form.schoolYearId),
+    () =>
+      sortSchoolClasses(
+        classes.filter((schoolClass) => schoolClass.schoolYearId === form.schoolYearId),
+      ),
     [classes, form.schoolYearId],
   );
 
@@ -153,6 +157,19 @@ export function ScheduleManagement() {
   const selectedScheduleClass = useMemo(
     () => classes.find((schoolClass) => schoolClass.id === scheduleClassId),
     [classes, scheduleClassId],
+  );
+
+  const classesByGrade = useMemo(
+    () => {
+      const sortedClasses = sortSchoolClasses(classes);
+
+      return sortedClasses.reduce<Record<string, SchoolClass[]>>((groups, schoolClass) => {
+        const grade = schoolClass.grade ?? 'Lainnya';
+        groups[grade] = [...(groups[grade] ?? []), schoolClass];
+        return groups;
+      }, {});
+    },
+    [classes],
   );
 
   const schedulesByClass = useMemo(
@@ -410,7 +427,7 @@ export function ScheduleManagement() {
 
       <div className="space-y-4">
         <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
             <div>
               <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
                 Jadwal Kelas
@@ -422,18 +439,33 @@ export function ScheduleManagement() {
                 Tabel ini membantu cek mapel, guru, dan jam mengajar per kelas.
               </p>
             </div>
-            <select
-              className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-brand-600 focus:bg-white sm:min-w-48"
-              onChange={(event) => setScheduleClassId(event.target.value)}
-              value={scheduleClassId}
-            >
-              <option value="">Pilih kelas</option>
-              {classes.map((schoolClass) => (
-                <option key={schoolClass.id} value={schoolClass.id}>
-                  {schoolClass.name}
-                </option>
+            <div className="mt-5 space-y-3">
+              {Object.entries(classesByGrade).map(([grade, gradeClasses]) => (
+                <div className="grid gap-2 sm:grid-cols-[4rem_1fr]" key={grade}>
+                  <p className="pt-2 text-xs font-black text-muted">Kelas {grade}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {gradeClasses.map((schoolClass) => {
+                      const active = schoolClass.id === scheduleClassId;
+                      return (
+                        <button
+                          className={[
+                            'rounded-xl border px-3 py-2 text-xs font-black transition',
+                            active
+                              ? 'border-brand-600 bg-brand-600 text-white shadow-md shadow-blue-100'
+                              : 'border-blue-100 bg-blue-50/60 text-brand-700 hover:bg-blue-100',
+                          ].join(' ')}
+                          key={schoolClass.id}
+                          onClick={() => setScheduleClassId(schoolClass.id)}
+                          type="button"
+                        >
+                          {schoolClass.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               ))}
-            </select>
+            </div>
           </div>
 
           {selectedScheduleClass?.homeroomTeacher ? (

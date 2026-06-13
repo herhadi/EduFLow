@@ -25,6 +25,10 @@ Slot terikat pada tahun ajaran sehingga sekolah dapat mengubah susunan jam untuk
 
 Pada `/admin/guru`, operator dapat menambahkan data guru baru langsung dari panel `Pilih Guru`. Setelah dibuat, guru otomatis terpilih untuk dilanjutkan ke pengaturan akun login, role, mata pelajaran, dan wali kelas.
 
+Semua daftar dan dropdown kelas wajib memakai helper `sortSchoolClasses` dari `@eduflow/shared`. Urutan standar adalah tingkat VII, VIII, IX, kemudian rombel A, B, C, dan seterusnya. Jangan membuat sorting kelas lokal di masing-masing komponen.
+
+Halaman `/teacher/schedules` membaca `GET /api/academic/me/schedules`, sehingga guru hanya melihat jadwal yang terhubung ke akun guru yang sedang login.
+
 | URL | Fungsi |
 | --- | --- |
 | `/admin` | Menu utama administrasi |

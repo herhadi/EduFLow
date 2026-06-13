@@ -1,6 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { sortSchoolClasses } from '@eduflow/shared';
+import {
+  type CSSProperties,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { api, type SchoolClass, type Subject, type Teacher } from '../lib/api';
 import { PasswordToggleIcon } from './ui/password-toggle-icon';
 import { useToast } from './ui/toast';
@@ -53,6 +60,8 @@ export function TeacherRoleManagement() {
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [message, setMessage] = useState('');
+  const detailCardRef = useRef<HTMLDivElement>(null);
+  const [detailCardHeight, setDetailCardHeight] = useState<number>();
   const [showCreateTeacher, setShowCreateTeacher] = useState(false);
   const [newTeacher, setNewTeacher] = useState({
     name: '',
@@ -80,7 +89,7 @@ export function TeacherRoleManagement() {
 
         setTeachers(teacherResponse.data);
         setSubjects(subjectResponse.data);
-        setClasses(classResponse.data);
+        setClasses(sortSchoolClasses(classResponse.data));
         setSelectedTeacherId(teacherResponse.data[0]?.id ?? '');
         setLoadState('success');
       } catch {
@@ -124,6 +133,19 @@ export function TeacherRoleManagement() {
     setMessage('');
     setSaveState('idle');
   }, [classes, selectedTeacher]);
+
+  useEffect(() => {
+    const detailCard = detailCardRef.current;
+
+    if (!detailCard) return;
+
+    const syncHeight = () => setDetailCardHeight(detailCard.offsetHeight);
+    const observer = new ResizeObserver(syncHeight);
+    syncHeight();
+    observer.observe(detailCard);
+
+    return () => observer.disconnect();
+  }, [selectedTeacherId]);
 
   function toggleRole(role: string) {
     setSelectedRoles((currentRoles) =>
@@ -208,7 +230,7 @@ export function TeacherRoleManagement() {
         api.getClasses(),
       ]);
       setTeachers(teacherResponse.data);
-      setClasses(classResponse.data);
+      setClasses(sortSchoolClasses(classResponse.data));
       setSaveState('success');
       setMessage('Pengaturan guru berhasil disimpan.');
       toast.success('Pengaturan guru berhasil disimpan.', 'Berhasil');
@@ -274,7 +296,16 @@ export function TeacherRoleManagement() {
       ) : null}
 
       <div className="mt-5 grid items-stretch gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-        <div className="flex h-full min-h-[40rem] flex-col rounded-[1.5rem] border border-blue-50 bg-slate-50 p-3">
+        <div
+          className="flex flex-col rounded-[1.5rem] border border-blue-50 bg-slate-50 p-3 lg:h-[var(--detail-card-height)] lg:min-h-0 lg:overflow-hidden"
+          style={
+            {
+              '--detail-card-height': detailCardHeight
+                ? `${detailCardHeight}px`
+                : 'auto',
+            } as CSSProperties
+          }
+        >
           <div className="flex items-center justify-between gap-3 px-2">
             <p className="text-xs font-black text-muted">Pilih Guru</p>
             <button
@@ -319,7 +350,7 @@ export function TeacherRoleManagement() {
             </div>
           ) : null}
 
-          <div className="mt-3 grid flex-1 content-start gap-2 overflow-y-auto pr-1 lg:max-h-none">
+          <div className="mt-3 grid content-start gap-2 overflow-y-auto overscroll-contain pr-1 lg:min-h-0 lg:flex-1">
             {teachers.map((teacher) => {
               const active = teacher.id === selectedTeacherId;
               const roles = teacher.user?.roles.map(({ role }) => role.name).join(', ');
@@ -364,7 +395,10 @@ export function TeacherRoleManagement() {
           </div>
         </div>
 
-        <div className="h-full min-h-[40rem] rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4">
+        <div
+          className="rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4"
+          ref={detailCardRef}
+        >
           {selectedTeacher ? (
             <div className="space-y-5">
               <div>

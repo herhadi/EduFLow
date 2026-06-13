@@ -1,5 +1,6 @@
 'use client';
 
+import { sortSchoolClasses } from '@eduflow/shared';
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import {
   api,
@@ -36,7 +37,7 @@ export function AcademicMasterManagement() {
         api.getSubjects(),
         api.getSchoolYears(),
       ]);
-      setClasses(classResponse.data);
+      setClasses(sortSchoolClasses(classResponse.data));
       setSubjects(subjectResponse.data);
       setSchoolYears(yearResponse.data);
       setClassForm((current) => ({
@@ -58,7 +59,9 @@ export function AcademicMasterManagement() {
     () =>
       grades.map((grade) => ({
         grade,
-        classes: classes.filter((schoolClass) => schoolClass.grade === grade),
+        classes: sortSchoolClasses(
+          classes.filter((schoolClass) => schoolClass.grade === grade),
+        ),
       })),
     [classes],
   );
@@ -82,7 +85,7 @@ export function AcademicMasterManagement() {
         name,
         code: `${classForm.grade}${suffix}`,
       });
-      setClasses((current) => [...current, response.data]);
+      setClasses((current) => sortSchoolClasses([...current, response.data]));
       setClassForm((current) => ({ ...current, suffix: '' }));
       toast.success(response.message ?? `${name} berhasil ditambahkan.`, 'Kelas Ditambahkan');
     } catch (error) {

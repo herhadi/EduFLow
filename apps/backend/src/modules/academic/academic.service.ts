@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import { AgendaStatus } from '@prisma/client';
 import { hash } from 'bcryptjs';
+import { sortSchoolClasses } from '@eduflow/shared';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
@@ -44,12 +45,13 @@ export class AcademicService {
   }
 
   async getClasses(schoolYearId?: string) {
+    const classes = await this.prisma.class.findMany({
+      where: { deletedAt: null, schoolYearId },
+      include: { schoolYear: true, homeroomTeacher: true },
+    });
+
     return {
-      data: await this.prisma.class.findMany({
-        where: { deletedAt: null, schoolYearId },
-        include: { schoolYear: true, homeroomTeacher: true },
-        orderBy: { name: 'asc' },
-      }),
+      data: sortSchoolClasses(classes),
     };
   }
 

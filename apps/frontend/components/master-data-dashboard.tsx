@@ -1,5 +1,7 @@
 'use client';
 
+import { sortSchoolClasses } from '@eduflow/shared';
+
 import { useEffect, useMemo, useState } from 'react';
 import {
   api,
@@ -206,7 +208,7 @@ function ClassList({ classes }: { classes: SchoolClass[] }) {
     <ResponsiveList
       emptyLabel="Belum ada kelas."
       headers={['Nama Kelas', 'Kode', 'Tingkat', 'Tahun Ajaran']}
-      rows={classes.map((schoolClass) => [
+      rows={sortSchoolClasses(classes).map((schoolClass) => [
         schoolClass.name,
         schoolClass.code ?? '-',
         schoolClass.grade ?? '-',
