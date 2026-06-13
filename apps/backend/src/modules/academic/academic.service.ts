@@ -564,6 +564,45 @@ export class AcademicService {
     };
   }
 
+  async getMySchedules(userId: string) {
+    const teacher = await this.getTeacherAccount(userId);
+
+    return {
+      data: await this.prisma.schedule.findMany({
+        where: { deletedAt: null, teacherId: teacher.id },
+        include: {
+          schoolYear: true,
+          semester: true,
+          class: true,
+          subject: true,
+          teacher: true,
+        },
+        orderBy: [{ dayOfWeek: 'asc' }, { startsAt: 'asc' }],
+      }),
+    };
+  }
+
+  async getMyAgendas(userId: string, date?: string) {
+    const teacher = await this.getTeacherAccount(userId);
+    const agendaDate = date ? this.toDateOnly(date) : undefined;
+
+    return {
+      data: await this.prisma.dailyAgenda.findMany({
+        where: { teacherId: teacher.id, date: agendaDate },
+        include: {
+          class: true,
+          subject: true,
+          teacher: true,
+          schedule: true,
+          attendance: {
+            include: { items: true },
+          },
+        },
+        orderBy: [{ date: 'asc' }, { schedule: { startsAt: 'asc' } }],
+      }),
+    };
+  }
+
   async getSchedule(id: string) {
     const schedule = await this.prisma.schedule.findFirst({
       where: { id, deletedAt: null },
@@ -754,6 +793,19 @@ export class AcademicService {
     if (startsAt >= endsAt) {
       throw new BadRequestException('Jam mulai harus lebih awal dari jam selesai');
     }
+  }
+
+  private async getTeacherAccount(userId: string) {
+    const teacher = await this.prisma.teacher.findFirst({
+      where: { userId, deletedAt: null, isActive: true },
+      select: { id: true },
+    });
+
+    if (!teacher) {
+      throw new NotFoundException('Akun ini belum terhubung dengan data guru aktif');
+    }
+
+    return teacher;
   }
 
   private async ensureScheduleRelations(dto: {

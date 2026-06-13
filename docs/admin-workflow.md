@@ -17,12 +17,21 @@ Dokumen ini menjelaskan urutan konfigurasi awal EduFlow setelah root pertama ber
 
 Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama sesuai actor yang sedang login:
 
-- `root` dan `operator_sekolah`: `Home`, `Admin`, `Setup`, `Ops`, `Report`.
-- `kepala_sekolah`: `Home`, `Guru`, `Report`, `Audit`, `Ops`.
-- `guru` dan `wali_kelas`: `Hari Ini`, `Jadwal Saya`, `Siswa`, `Nilai`, `Notif`.
-- `tu`: `Data`, `Import`, `Report`, `Audit`, `Home`.
-- `bk`: `Home`, `Siswa`, `Report`, `Notif`, `Audit`.
-- `orang_tua`: `Anak`, `Notif`, `Riwayat`, `Info`, `Akun`.
+- `root`: `Admin`, `Ops`, `Audit`, `Notif`, `Profil`.
+- `operator_sekolah`: `Home`, `Admin`, `Setup`, `Notif`, `Profil`.
+- `kepala_sekolah`: `Home`, `Guru`, `Report`, `Notif`, `Profil`.
+- `guru` dan `wali_kelas`: `Hari Ini`, `Jadwal Saya`, `Presensi`, `Notif`, `Profil`.
+- `tu`: `Data`, `Import`, `Report`, `Notif`, `Profil`.
+- `bk`: `Home`, `Siswa`, `Laporan`, `Notif`, `Profil`.
+- `orang_tua`: `Anak`, `Notif`, `Riwayat`, `Info`, `Profil`.
+
+Item paling kanan selalu `Profil` untuk kebutuhan personal seperti ganti password, session management, dan preferensi akun.
+
+Item `Notif` memiliki badge/dot jika ada notifikasi `PENDING` atau `FAILED`.
+
+`Ops` hanya muncul untuk `root` karena berisi health check, queue monitoring, failed jobs, dan tindakan teknis operasional sistem.
+
+`Admin` pada bottom navigation berarti pekerjaan `operator_sekolah` sebagai admin operasional akademik, bukan root teknis.
 
 Top navigation adalah submenu dari menu utama aktif. Contoh:
 
@@ -30,6 +39,7 @@ Top navigation adalah submenu dari menu utama aktif. Contoh:
 - Saat berada di area `Setup Jadwal`: `Setup Jadwal`, `Mapel Guru`, `Kelas & Mapel`.
 - Saat berada di area `Ops`: `Health`, `Notifikasi`, `Audit`.
 - Saat berada di area `Report`: `Export`, `Performa Guru`, `Parent Portal`.
+- Saat berada di area `Profil`: `Profil`, `Notifikasi`.
 
 Konfigurasi navigasi global berada di `apps/frontend/lib/navigation.config.ts`.
 
@@ -37,6 +47,7 @@ Catatan jadwal:
 
 - `/schedules` adalah area admin/operator untuk setup jadwal keseluruhan.
 - `/teacher/schedules` adalah area guru untuk melihat jadwal mengajar miliknya sendiri.
+- `/teacher/attendance` adalah area guru untuk membuka kelas dan mengisi presensi.
 - Role lain dapat memiliki halaman jadwal berbeda sesuai konteks, misalnya monitoring jadwal untuk kepala sekolah atau jadwal anak untuk orang tua.
 
 ## Urutan Konfigurasi Awal

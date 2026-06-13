@@ -38,6 +38,10 @@ Kalender pendidikan dipakai untuk menentukan hari efektif, libur, ujian, kegiata
 
 Admin teknis tidak sama dengan TU. Dalam EduFlow, `root` atau admin teknis dipakai untuk akses penuh dan recovery, sedangkan pekerjaan operasional harian sekolah memakai `operator_sekolah` dan `tu`.
 
+Dalam navigasi frontend, `operator_sekolah` diperlakukan sebagai admin operasional sekolah. Menu personal seperti profil, ganti password, dan session management tetap dipisahkan di menu `Profil`.
+
+Menu teknis seperti health check, queue monitoring, worker status, dan failed jobs berada di area `Ops` dan hanya ditampilkan untuk `root`.
+
 ## Hak Guru
 
 Guru tidak mengelola kalender pendidikan dan jadwal sekolah secara umum. Guru mengelola pekerjaan akademik untuk mapel dan kelas yang diampu:
@@ -48,6 +52,32 @@ Guru tidak mengelola kalender pendidikan dan jadwal sekolah secara umum. Guru me
 - Perencanaan Pembelajaran,
 - data buku yang digunakan untuk KBM,
 - nilai siswa.
+
+Dalam navigasi frontend, guru diarahkan ke `Hari Ini`, `Jadwal Saya`, `Presensi`, `Notif`, dan `Profil`. Guru tidak melihat menu `Admin`, `Setup`, atau `Ops`.
+
+Halaman `/dashboard` juga wajib role-aware. Untuk guru, halaman tersebut menjadi beranda personal berisi agenda hari ini, jadwal saya, presensi, perangkat ajar, penilaian, notifikasi, dan kelas binaan jika memiliki role wali kelas. Dashboard monitoring global hanya ditampilkan kepada actor yang memiliki tanggung jawab monitoring sekolah.
+
+## Notifikasi Guru
+
+Notifikasi guru adalah inbox personal, bukan Notification Center operasional. Isinya:
+
+- reminder sebelum kelas dimulai,
+- pengingat presensi belum disubmit,
+- permintaan koreksi presensi,
+- perangkat ajar diminta revisi atau telah disetujui,
+- nilai semester diminta revisi atau telah disetujui,
+- pengumuman akademik yang memang ditujukan kepada guru.
+
+Guru tidak melihat:
+
+- log pengiriman notifikasi seluruh sekolah,
+- nomor penerima wali murid lain,
+- status provider WhatsApp/Telegram global,
+- failed jobs,
+- tombol retry queue,
+- pengelolaan template notifikasi.
+
+Endpoint inbox personal guru adalah `GET /api/notifications/mine`. Notification Center global tetap membutuhkan permission `notification.read` atau `notification.manage`.
 
 Perangkat ajar sebaiknya tidak hanya berupa upload dokumen mentah. Sistem perlu menyimpan status review, catatan revisi, dan approval supaya kepala sekolah bisa memonitor kelengkapan dan kualitas administrasi guru.
 

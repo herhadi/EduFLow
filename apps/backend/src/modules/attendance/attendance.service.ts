@@ -18,7 +18,7 @@ export class AttendanceService {
     private readonly auditService: AuditService,
   ) {}
 
-  async getAttendance(id: string) {
+  async getAttendance(id: string, userId: string) {
     const attendance = await this.prisma.attendance.findUnique({
       where: { id },
       include: {
@@ -37,10 +37,12 @@ export class AttendanceService {
       throw new NotFoundException('Attendance tidak ditemukan');
     }
 
+    await this.ensureTeacherOwnsAgenda(userId, attendance.agenda.teacher.id);
+
     return { data: attendance };
   }
 
-  async openClass(dto: OpenClassDto) {
+  async openClass(dto: OpenClassDto, userId: string) {
     const agenda = await this.prisma.dailyAgenda.findUnique({
       where: { id: dto.agendaId },
       include: { attendance: true },
@@ -49,6 +51,9 @@ export class AttendanceService {
     if (!agenda) {
       throw new NotFoundException('Agenda tidak ditemukan');
     }
+
+
+    await this.ensureTeacherOwnsAgenda(userId, agenda.teacherId);
 
     const enrollments = await this.prisma.studentEnrollment.findMany({
       where: {
@@ -116,7 +121,7 @@ export class AttendanceService {
     };
   }
 
-  async submit(dto: SubmitAttendanceDto) {
+  async submit(dto: SubmitAttendanceDto, userId: string) {
     const attendance = await this.prisma.attendance.findUnique({
       where: { id: dto.attendanceId },
       include: { agenda: true },
@@ -125,6 +130,9 @@ export class AttendanceService {
     if (!attendance) {
       throw new NotFoundException('Attendance tidak ditemukan');
     }
+
+
+    await this.ensureTeacherOwnsAgenda(userId, attendance.agenda.teacherId);
 
     if (attendance.state !== AttendanceState.DRAFT) {
       throw new BadRequestException('Attendance tidak dalam state DRAFT');
@@ -146,6 +154,7 @@ export class AttendanceService {
         data: {
           state: AttendanceState.SUBMITTED,
           submittedAt: new Date(),
+          submittedById: userId,
           endedAt: new Date(),
           notes: dto.notes,
         },
@@ -192,5 +201,16 @@ export class AttendanceService {
       },
       message: 'Attendance disubmit dan summary job terkirim.',
     };
+  }
+
+  private async ensureTeacherOwnsAgenda(userId: string, teacherId: string) {
+    const teacher = await this.prisma.teacher.findFirst({
+      where: { id: teacherId, userId, deletedAt: null, isActive: true },
+      select: { id: true },
+    });
+
+    if (!teacher) {
+      throw new BadRequestException('Agenda ini bukan milik guru yang sedang login');
+    }
   }
 }

@@ -34,6 +34,45 @@ export class NotificationService implements OnModuleInit {
     return this.getLogsByStatus(NotificationStatus.PENDING);
   }
 
+  async getMine(userId: string) {
+    const teacher = await this.prisma.teacher.findUnique({
+      where: { userId },
+      select: {
+        email: true,
+        phone: true,
+        telegramId: true,
+      },
+    });
+
+    if (!teacher) {
+      return { data: [] };
+    }
+
+    const recipients = [teacher.email, teacher.phone, teacher.telegramId].filter(
+      (recipient): recipient is string => Boolean(recipient),
+    );
+
+    if (!recipients.length) {
+      return { data: [] };
+    }
+
+    return {
+      data: await this.prisma.notificationLog.findMany({
+        where: {
+          recipient: { in: recipients },
+          OR: [
+            { templateKey: { startsWith: 'teacher.' } },
+            { templateKey: { startsWith: 'attendance.correction.' } },
+            { templateKey: { startsWith: 'teaching-plan.' } },
+            { templateKey: { startsWith: 'student-grade.' } },
+          ],
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+    };
+  }
+
   async getTemplates() {
     return {
       data: await this.prisma.notificationTemplate.findMany({

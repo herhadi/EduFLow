@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { PERMISSIONS } from '../../common/constants/permissions';
+import { RequestWithUser } from '../../core/http/request-with-user';
 import { AcademicService } from './academic.service';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
 import { CreateClassDto } from './dto/create-class.dto';
@@ -119,6 +120,19 @@ export class AcademicController {
   @Get('schedules')
   getSchedules(@Query('classId') classId?: string) {
     return this.academicService.getSchedules(classId);
+  }
+
+  @Get('me/schedules')
+  getMySchedules(@Req() request: RequestWithUser) {
+    return this.academicService.getMySchedules(request.user.id);
+  }
+
+  @Get('me/agendas')
+  getMyAgendas(
+    @Req() request: RequestWithUser,
+    @Query('date') date?: string,
+  ) {
+    return this.academicService.getMyAgendas(request.user.id, date);
   }
 
   @Public()

@@ -5,6 +5,7 @@ import {
   api,
   type NotificationLog,
 } from '../lib/api';
+import { getPrimaryRole } from '../lib/navigation.config';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 type NotificationTab = 'sent' | 'pending' | 'failed' | 'retry';
@@ -33,6 +34,8 @@ const tabs: Array<{ id: NotificationTab; label: string; description: string }> =
 ];
 
 export function NotificationCenter() {
+  const [isTeacherInbox, setIsTeacherInbox] = useState(false);
+  const [myNotifications, setMyNotifications] = useState<NotificationLog[]>([]);
   const [activeTab, setActiveTab] = useState<NotificationTab>('sent');
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [actionState, setActionState] = useState<LoadState>('idle');
@@ -46,6 +49,22 @@ export function NotificationCenter() {
     setLoadState('loading');
 
     try {
+      const storedUser = localStorage.getItem('currentUser');
+      const roles = storedUser
+        ? ((JSON.parse(storedUser) as { roles?: string[] }).roles ?? [])
+        : [];
+      const primaryRole = getPrimaryRole(roles);
+      const teacherInbox = primaryRole === 'guru' || primaryRole === 'wali_kelas';
+
+      setIsTeacherInbox(teacherInbox);
+
+      if (teacherInbox) {
+        const response = await api.getMyNotifications();
+        setMyNotifications(response.data);
+        setLoadState('success');
+        return;
+      }
+
       const [sentResponse, pendingResponse, failedResponse, retryResponse] =
         await Promise.all([
           api.getSentNotifications(),
@@ -67,6 +86,16 @@ export function NotificationCenter() {
   useEffect(() => {
     void loadNotifications();
   }, []);
+
+  if (isTeacherInbox) {
+    return (
+      <TeacherNotificationInbox
+        items={myNotifications}
+        loadState={loadState}
+        onRefresh={loadNotifications}
+      />
+    );
+  }
 
   const activeDescription = useMemo(
     () => tabs.find((tab) => tab.id === activeTab)?.description,
@@ -177,6 +206,106 @@ export function NotificationCenter() {
 
     return retry.length;
   }
+}
+
+function TeacherNotificationInbox({
+  items,
+  loadState,
+  onRefresh,
+}: {
+  items: NotificationLog[];
+  loadState: LoadState;
+  onRefresh: () => Promise<void>;
+}) {
+  return (
+    <section className="mt-6 space-y-4">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
+              Inbox Guru
+            </p>
+            <h2 className="mt-2 text-2xl font-black text-slate-900">
+              Pemberitahuan Saya
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              Reminder kelas, koreksi presensi, revisi perangkat ajar, dan status penilaian.
+            </p>
+          </div>
+          <button
+            className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-black text-brand-700"
+            onClick={() => void onRefresh()}
+            type="button"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {loadState === 'error' ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
+          Notifikasi guru belum bisa dimuat.
+        </div>
+      ) : null}
+
+      {loadState === 'loading' ? (
+        <p className="rounded-2xl bg-blue-50 p-4 text-sm font-semibold text-brand-700">
+          Memuat notifikasi pribadi...
+        </p>
+      ) : null}
+
+      {loadState === 'success' && !items.length ? (
+        <div className="rounded-[2rem] border border-blue-100 bg-white p-5 text-sm leading-6 text-muted shadow-sm shadow-blue-100/60">
+          Belum ada notifikasi untuk akun guru ini. Reminder hanya muncul jika kontak guru
+          sudah lengkap dan job terkait sudah dibuat.
+        </div>
+      ) : null}
+
+      <div className="grid gap-3">
+        {items.map((item) => (
+          <article
+            className="rounded-[1.75rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60"
+            key={item.id}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-black text-brand-700">
+                  {getTeacherNotificationLabel(item.templateKey)}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">{item.message}</p>
+              </div>
+              {item.status === 'PENDING' ? (
+                <span className="size-2.5 shrink-0 rounded-full bg-rose-500" />
+              ) : null}
+            </div>
+            <p className="mt-3 text-xs font-semibold text-muted">
+              {formatDateTime(item.sentAt ?? item.failedAt ?? item.createdAt)}
+            </p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function getTeacherNotificationLabel(templateKey?: string | null) {
+  if (templateKey?.startsWith('teacher.reminder.')) {
+    return 'Reminder Kelas';
+  }
+
+  if (templateKey?.startsWith('attendance.correction.')) {
+    return 'Koreksi Presensi';
+  }
+
+  if (templateKey?.startsWith('teaching-plan.')) {
+    return 'Perangkat Ajar';
+  }
+
+  if (templateKey?.startsWith('student-grade.')) {
+    return 'Penilaian';
+  }
+
+  return 'Informasi Guru';
 }
 
 function NotificationTable({

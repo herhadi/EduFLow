@@ -482,6 +482,17 @@ Catatan:
 
 ## Notification Center API
 
+### Inbox Personal Guru
+
+```http
+GET /api/notifications/mine
+Authorization: Bearer <accessToken>
+```
+
+Response hanya berisi notifikasi yang ditujukan ke kontak guru yang terhubung dengan akun login, seperti reminder kelas, koreksi presensi, revisi perangkat ajar, dan status penilaian.
+
+Guru tidak mendapat akses ke log global, retry queue, atau template provider.
+
 ```http
 GET /api/notifications/sent
 GET /api/notifications/pending

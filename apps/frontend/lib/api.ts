@@ -593,6 +593,8 @@ export const api = {
     }),
   getSentNotifications: () =>
     request<ApiResponse<NotificationLog[]>>('/notifications/sent'),
+  getMyNotifications: () =>
+    request<ApiResponse<NotificationLog[]>>('/notifications/mine'),
   getFailedNotifications: () =>
     request<ApiResponse<NotificationLog[]>>('/notifications/failed'),
   getPendingNotifications: () =>

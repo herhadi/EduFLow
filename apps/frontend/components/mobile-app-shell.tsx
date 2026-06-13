@@ -20,6 +20,7 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
     username?: string | null;
     roles?: string[];
   } | null>(null);
+  const [notificationBadgeCount, setNotificationBadgeCount] = useState(0);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
@@ -34,6 +35,42 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
       localStorage.removeItem('currentUser');
     }
   }, []);
+
+  useEffect(() => {
+    const user = currentUser;
+
+    if (isPublicPage || !user) {
+      return;
+    }
+
+    const primaryRole = getPrimaryRole(user.roles ?? []);
+
+    async function loadNotificationBadge() {
+      try {
+        if (primaryRole === 'guru' || primaryRole === 'wali_kelas') {
+          const response = await api.getMyNotifications();
+          setNotificationBadgeCount(
+            response.data.filter((notification) => notification.status === 'PENDING')
+              .length,
+          );
+          return;
+        }
+
+        const [pendingResponse, failedResponse] = await Promise.all([
+          api.getPendingNotifications(),
+          api.getFailedNotifications(),
+        ]);
+
+        setNotificationBadgeCount(
+          pendingResponse.data.length + failedResponse.data.length,
+        );
+      } catch {
+        setNotificationBadgeCount(0);
+      }
+    }
+
+    void loadNotificationBadge();
+  }, [currentUser, isPublicPage]);
 
   if (isPublicPage) {
     return <>{children}</>;
@@ -52,7 +89,11 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
           <div className="mobile-app-content min-w-0">{children}</div>
         </div>
 
-        <BottomNavigation pathname={pathname} roles={roles} />
+        <BottomNavigation
+          notificationBadgeCount={notificationBadgeCount}
+          pathname={pathname}
+          roles={roles}
+        />
       </div>
     </div>
   );
@@ -181,9 +222,11 @@ function SectionSubMenu({ pathname }: { pathname: string }) {
 }
 
 function BottomNavigation({
+  notificationBadgeCount,
   pathname,
   roles,
 }: {
+  notificationBadgeCount: number;
   pathname: string;
   roles: string[];
 }) {
@@ -214,7 +257,12 @@ function BottomNavigation({
               href={item.href}
               key={item.href}
             >
-              <span className="text-lg leading-none">{item.icon}</span>
+              <span className="relative text-lg leading-none">
+                {item.icon}
+                {item.badge === 'notifications' && notificationBadgeCount > 0 ? (
+                  <span className="absolute -top-1 -right-2 size-2.5 rounded-full bg-rose-500 ring-2 ring-white" />
+                ) : null}
+              </span>
               <span className="mt-1">{item.label}</span>
             </Link>
           );

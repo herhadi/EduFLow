@@ -7,9 +7,9 @@ export default function NotificationsPage() {
     <main className="py-10">
       <Container>
         <PageHeader
-          description="Pantau notifikasi terkirim, gagal, antrean retry, dan template pesan operasional sekolah."
-          eyebrow="Notification Center"
-          title="Pusat Notifikasi"
+          description="Konten halaman otomatis disesuaikan dengan role: inbox personal untuk guru dan pusat delivery untuk pengelola notifikasi."
+          eyebrow="Notifikasi"
+          title="Pusat Pemberitahuan"
         />
 
         <NotificationCenter />
