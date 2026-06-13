@@ -23,8 +23,8 @@ const adminMenus = [
   },
   {
     href: '/schedules',
-    title: 'Jadwal Pelajaran',
-    description: 'Susun jadwal berdasarkan kelas, guru, dan mapel.',
+    title: 'Setup Jadwal',
+    description: 'Susun jadwal kelas keseluruhan berdasarkan kelas, guru, dan mapel.',
     icon: 'J',
   },
   {

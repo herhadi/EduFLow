@@ -17,7 +17,7 @@ export interface NavigationItem {
 const rootNavigation: NavigationItem[] = [
   { href: '/dashboard', label: 'Home', icon: '⌂' },
   { href: '/admin', label: 'Admin', icon: '⚙' },
-  { href: '/schedules', label: 'Jadwal', icon: '◷' },
+  { href: '/schedules', label: 'Setup', icon: '◷' },
   { href: '/operations', label: 'Ops', icon: '●' },
   { href: '/reports', label: 'Report', icon: '▣' },
 ];
@@ -25,7 +25,7 @@ const rootNavigation: NavigationItem[] = [
 const operatorNavigation: NavigationItem[] = [
   { href: '/dashboard', label: 'Home', icon: '⌂' },
   { href: '/admin', label: 'Admin', icon: '⚙' },
-  { href: '/schedules', label: 'Jadwal', icon: '◷' },
+  { href: '/schedules', label: 'Setup', icon: '◷' },
   { href: '/operations', label: 'Ops', icon: '●' },
   { href: '/reports', label: 'Report', icon: '▣' },
 ];
@@ -40,7 +40,7 @@ const principalNavigation: NavigationItem[] = [
 
 const teacherNavigation: NavigationItem[] = [
   { href: '/dashboard', label: 'Hari Ini', icon: '⌂' },
-  { href: '/schedules', label: 'Jadwal', icon: '◷' },
+  { href: '/teacher/schedules', label: 'Jadwal Saya', icon: '◷' },
   { href: '/master-data', label: 'Siswa', icon: '☷' },
   { href: '/reports', label: 'Nilai', icon: '▣' },
   { href: '/notifications', label: 'Notif', icon: '✦' },
@@ -83,7 +83,7 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'admin', href: '/admin/akses', label: 'Akses' },
   { section: 'admin', href: '/import-data', label: 'Import' },
   { section: 'admin', href: '/audit', label: 'Audit' },
-  { section: 'schedules', href: '/schedules', label: 'Jadwal Kelas' },
+  { section: 'schedules', href: '/schedules', label: 'Setup Jadwal' },
   { section: 'schedules', href: '/admin/guru', label: 'Mapel Guru' },
   { section: 'schedules', href: '/admin/akademik', label: 'Kelas & Mapel' },
   { section: 'operations', href: '/operations', label: 'Health' },
@@ -92,6 +92,9 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'reports', href: '/reports', label: 'Export' },
   { section: 'reports', href: '/teacher-performance', label: 'Performa Guru' },
   { section: 'reports', href: '/parent-portal', label: 'Parent Portal' },
+  { section: 'teacher', href: '/teacher/schedules', label: 'Jadwal Saya' },
+  { section: 'teacher', href: '/dashboard', label: 'Hari Ini' },
+  { section: 'teacher', href: '/notifications', label: 'Notifikasi' },
 ];
 
 const rolePriority: UserRole[] = [
@@ -120,6 +123,10 @@ export function getSectionFromPath(pathname: string) {
 
   if (pathname.startsWith('/schedules')) {
     return 'schedules';
+  }
+
+  if (pathname.startsWith('/teacher')) {
+    return 'teacher';
   }
 
   if (pathname.startsWith('/operations') || pathname.startsWith('/notifications')) {

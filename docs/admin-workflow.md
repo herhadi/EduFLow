@@ -10,16 +10,16 @@ Dokumen ini menjelaskan urutan konfigurasi awal EduFlow setelah root pertama ber
 | `/admin/guru` | Akun, role, mapel ampu, dan wali kelas |
 | `/admin/akademik` | Kelas dan mata pelajaran |
 | `/admin/akses` | User, role, status akun, dan penghapusan user |
-| `/schedules` | Jadwal pelajaran dan generate agenda |
+| `/schedules` | Setup jadwal kelas keseluruhan dan generate agenda |
 | `/import-data` | Import data guru dan siswa dari Excel |
 
 ## Navigasi Role-Based
 
 Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama sesuai actor yang sedang login:
 
-- `root` dan `operator_sekolah`: `Home`, `Admin`, `Jadwal`, `Ops`, `Report`.
+- `root` dan `operator_sekolah`: `Home`, `Admin`, `Setup`, `Ops`, `Report`.
 - `kepala_sekolah`: `Home`, `Guru`, `Report`, `Audit`, `Ops`.
-- `guru` dan `wali_kelas`: `Hari Ini`, `Jadwal`, `Siswa`, `Nilai`, `Notif`.
+- `guru` dan `wali_kelas`: `Hari Ini`, `Jadwal Saya`, `Siswa`, `Nilai`, `Notif`.
 - `tu`: `Data`, `Import`, `Report`, `Audit`, `Home`.
 - `bk`: `Home`, `Siswa`, `Report`, `Notif`, `Audit`.
 - `orang_tua`: `Anak`, `Notif`, `Riwayat`, `Info`, `Akun`.
@@ -27,11 +27,17 @@ Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama 
 Top navigation adalah submenu dari menu utama aktif. Contoh:
 
 - Saat berada di area `Admin`: `Guru`, `Akademik`, `Akses`, `Import`, `Audit`.
-- Saat berada di area `Jadwal`: `Jadwal Kelas`, `Mapel Guru`, `Kelas & Mapel`.
+- Saat berada di area `Setup Jadwal`: `Setup Jadwal`, `Mapel Guru`, `Kelas & Mapel`.
 - Saat berada di area `Ops`: `Health`, `Notifikasi`, `Audit`.
 - Saat berada di area `Report`: `Export`, `Performa Guru`, `Parent Portal`.
 
 Konfigurasi navigasi global berada di `apps/frontend/lib/navigation.config.ts`.
+
+Catatan jadwal:
+
+- `/schedules` adalah area admin/operator untuk setup jadwal keseluruhan.
+- `/teacher/schedules` adalah area guru untuk melihat jadwal mengajar miliknya sendiri.
+- Role lain dapat memiliki halaman jadwal berbeda sesuai konteks, misalnya monitoring jadwal untuk kepala sekolah atau jadwal anak untuk orang tua.
 
 ## Urutan Konfigurasi Awal
 

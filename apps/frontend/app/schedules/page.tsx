@@ -7,9 +7,9 @@ export default function SchedulesPage() {
     <main className="py-10">
       <Container>
         <PageHeader
-          description="Buat template jadwal, ubah jadwal aktif, dan generate agenda harian sebagai dasar presensi."
-          eyebrow="Schedule Management"
-          title="Manajemen Jadwal"
+          description="Area admin untuk membuat template jadwal keseluruhan, mengubah jadwal aktif, dan generate agenda harian sebagai dasar presensi."
+          eyebrow="Admin Schedule Setup"
+          title="Setup Jadwal Kelas"
         />
 
         <ScheduleManagement />
