@@ -6,6 +6,11 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { cn } from '../lib/cn';
 import { api } from '../lib/api';
 import {
+  clearBrowserSession,
+  getCurrentSessionUser,
+  SESSION_CHANGED_EVENT,
+} from '../lib/session';
+import {
   getPrimaryNavigation,
   getPrimaryRole,
   getSectionFromPath,
@@ -23,17 +28,18 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
   const [notificationBadgeCount, setNotificationBadgeCount] = useState(0);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('currentUser');
-
-    if (!storedUser) {
-      return;
+    function syncCurrentUser() {
+      setCurrentUser(getCurrentSessionUser());
     }
 
-    try {
-      setCurrentUser(JSON.parse(storedUser));
-    } catch {
-      localStorage.removeItem('currentUser');
-    }
+    syncCurrentUser();
+    window.addEventListener(SESSION_CHANGED_EVENT, syncCurrentUser);
+    window.addEventListener('storage', syncCurrentUser);
+
+    return () => {
+      window.removeEventListener(SESSION_CHANGED_EVENT, syncCurrentUser);
+      window.removeEventListener('storage', syncCurrentUser);
+    };
   }, []);
 
   useEffect(() => {
@@ -47,7 +53,11 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
 
     async function loadNotificationBadge() {
       try {
-        if (primaryRole === 'guru' || primaryRole === 'wali_kelas') {
+        if (
+          primaryRole === 'guru' ||
+          primaryRole === 'wali_kelas' ||
+          primaryRole === 'kepala_sekolah'
+        ) {
           const response = await api.getMyNotifications();
           setNotificationBadgeCount(
             response.data.filter((notification) => notification.status === 'PENDING')
@@ -136,10 +146,7 @@ function AppTopBar({
       }
     }
 
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('sessionExpiresAt');
-    localStorage.removeItem('currentUser');
+    clearBrowserSession();
     window.location.href = '/login';
   }
 

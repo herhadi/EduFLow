@@ -101,28 +101,28 @@ enum LoginAuditStatus {
 }
 
 model User {
-  id                   String         @id @default(uuid()) @db.Uuid
-  email                String         @unique
-  username             String?        @unique
+  id                   String               @id @default(uuid()) @db.Uuid
+  username             String?              @unique
   password             String
   name                 String
+  email                String               @unique
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  deletedAt            DateTime?
+  failedLoginCount     Int                  @default(0)
+  lockedUntil          DateTime?
+  lastLoginAt          DateTime?
+  passwordChangedAt    DateTime?
   roles                UserRole[]
   refreshTokens        RefreshToken[]
   passwordResetTokens  PasswordResetToken[]
   loginAudits          LoginAudit[]
-  submittedAttendances Attendance[]   @relation("AttendanceSubmittedBy")
-  approvedAttendances  Attendance[]   @relation("AttendanceApprovedBy")
-  correctedAttendances Attendance[]   @relation("AttendanceCorrectedBy")
-  lockedAttendances    Attendance[]   @relation("AttendanceLockedBy")
-  receivedPayments     Payment[]      @relation("PaymentReceivedBy")
+  submittedAttendances Attendance[]         @relation("AttendanceSubmittedBy")
+  approvedAttendances  Attendance[]         @relation("AttendanceApprovedBy")
+  correctedAttendances Attendance[]         @relation("AttendanceCorrectedBy")
+  lockedAttendances    Attendance[]         @relation("AttendanceLockedBy")
+  receivedPayments     Payment[]            @relation("PaymentReceivedBy")
   teacherProfile       Teacher?
-  failedLoginCount     Int            @default(0)
-  lockedUntil          DateTime?
-  lastLoginAt          DateTime?
-  passwordChangedAt    DateTime?
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
-  deletedAt            DateTime?
 
   @@index([lockedUntil])
 }
@@ -237,21 +237,21 @@ model Semester {
 }
 
 model Class {
-  id           String              @id @default(uuid()) @db.Uuid
-  schoolYearId String              @db.Uuid
-  homeroomTeacherId String?         @db.Uuid
-  name         String
-  code         String?
-  grade        String?
-  schoolYear   SchoolYear          @relation(fields: [schoolYearId], references: [id])
-  homeroomTeacher Teacher?          @relation("ClassHomeroomTeacher", fields: [homeroomTeacherId], references: [id])
-  enrollments  StudentEnrollment[]
-  schedules    Schedule[]
-  agendas      DailyAgenda[]
-  attendances  Attendance[]
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  deletedAt    DateTime?
+  id                String              @id @default(uuid()) @db.Uuid
+  schoolYearId      String              @db.Uuid
+  homeroomTeacherId String?             @db.Uuid
+  name              String
+  code              String?
+  grade             String?
+  schoolYear        SchoolYear          @relation(fields: [schoolYearId], references: [id])
+  homeroomTeacher   Teacher?            @relation("ClassHomeroomTeacher", fields: [homeroomTeacherId], references: [id])
+  enrollments       StudentEnrollment[]
+  schedules         Schedule[]
+  agendas           DailyAgenda[]
+  attendances       Attendance[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  deletedAt         DateTime?
 
   @@unique([schoolYearId, name])
   @@unique([schoolYearId, code])
@@ -260,35 +260,35 @@ model Class {
 }
 
 model Subject {
-  id        String        @id @default(uuid()) @db.Uuid
+  id        String           @id @default(uuid()) @db.Uuid
   name      String
-  code      String?       @unique
-  isActive  Boolean       @default(true)
+  code      String?          @unique
+  isActive  Boolean          @default(true)
   schedules Schedule[]
   agendas   DailyAgenda[]
   teachers  TeacherSubject[]
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
   deletedAt DateTime?
 }
 
 model Teacher {
-  id              String        @id @default(uuid()) @db.Uuid
-  userId          String?       @unique @db.Uuid
+  id              String           @id @default(uuid()) @db.Uuid
+  userId          String?          @unique @db.Uuid
   name            String
-  nip             String?       @unique
-  nuptk           String?       @unique
-  email           String?       @unique
+  nip             String?          @unique
+  nuptk           String?          @unique
+  email           String?          @unique
   phone           String?
   telegramId      String?
-  isActive        Boolean       @default(true)
+  isActive        Boolean          @default(true)
   schedules       Schedule[]
   agendas         DailyAgenda[]
-  user            User?         @relation(fields: [userId], references: [id])
+  user            User?            @relation(fields: [userId], references: [id])
   subjects        TeacherSubject[]
-  homeroomClasses Class[]       @relation("ClassHomeroomTeacher")
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  homeroomClasses Class[]          @relation("ClassHomeroomTeacher")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   deletedAt       DateTime?
 
   @@index([phone])

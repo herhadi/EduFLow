@@ -482,16 +482,16 @@ Catatan:
 
 ## Notification Center API
 
-### Inbox Personal Guru
+### Inbox Personal Guru dan Kepala Sekolah
 
 ```http
 GET /api/notifications/mine
 Authorization: Bearer <accessToken>
 ```
 
-Response hanya berisi notifikasi yang ditujukan ke kontak guru yang terhubung dengan akun login, seperti reminder kelas, koreksi presensi, revisi perangkat ajar, dan status penilaian.
+Response menyesuaikan role utama dan hanya berisi notifikasi yang ditujukan ke kontak akun login. Guru menerima reminder kelas, koreksi presensi, revisi perangkat ajar, dan status penilaian. Kepala Sekolah menerima approval perangkat ajar/nilai, kelas kosong, guru belum submit, koreksi penting, guru pengganti, ringkasan sekolah, dan pengumuman akademik.
 
-Guru tidak mendapat akses ke log global, retry queue, atau template provider.
+Guru dan Kepala Sekolah tidak mendapat akses ke log global, retry queue, atau template provider.
 
 ```http
 GET /api/notifications/sent

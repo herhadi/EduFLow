@@ -7,7 +7,7 @@ export default function NotificationsPage() {
     <main className="py-10">
       <Container>
         <PageHeader
-          description="Konten halaman otomatis disesuaikan dengan role: inbox personal untuk guru dan pusat delivery untuk pengelola notifikasi."
+          description="Konten otomatis disesuaikan dengan role: inbox personal untuk guru dan Kepala Sekolah, pusat delivery untuk pengelola notifikasi."
           eyebrow="Notifikasi"
           title="Pusat Pemberitahuan"
         />

@@ -2,6 +2,14 @@
 
 Fokus awal database EduFlow adalah relasi akademik yang benar. Jangan menambah banyak tabel sebelum flow inti stabil.
 
+## Urutan Kolom User
+
+Urutan fisik kolom tabel `User` distandarkan menjadi:
+
+`id`, `username`, `password`, `name`, `email`, `createdAt`, `updatedAt`, `deletedAt`, `failedLoginCount`, `lockedUntil`, `lastLoginAt`, `passwordChangedAt`.
+
+Migration `20260613100000_reorder_user_columns` membangun ulang tabel secara transaksional dengan mempertahankan data, index, dan seluruh foreign key.
+
 ## Urutan Entity Inti
 
 ```text

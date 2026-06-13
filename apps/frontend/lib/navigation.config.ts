@@ -32,9 +32,9 @@ const operatorNavigation: NavigationItem[] = [
 ];
 
 const principalNavigation: NavigationItem[] = [
-  { href: '/dashboard', label: 'Home', icon: '⌂' },
+  { href: '/dashboard', label: 'Ringkasan', icon: '⌂' },
+  { href: '/principal/review', label: 'Review', icon: '✓' },
   { href: '/teacher-performance', label: 'Guru', icon: '◎' },
-  { href: '/reports', label: 'Report', icon: '▣' },
   { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
   { href: '/profile', label: 'Profil', icon: '◎' },
 ];
@@ -99,6 +99,9 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'teacher', href: '/teacher/attendance', label: 'Presensi' },
   { section: 'teacher', href: '/dashboard', label: 'Hari Ini' },
   { section: 'teacher', href: '/notifications', label: 'Notifikasi' },
+  { section: 'principal', href: '/principal/review', label: 'Persetujuan' },
+  { section: 'principal', href: '/teacher-performance', label: 'Performa Guru' },
+  { section: 'principal', href: '/reports', label: 'Laporan Sekolah' },
 ];
 
 const rolePriority: UserRole[] = [
@@ -129,8 +132,12 @@ export function getSectionFromPath(pathname: string) {
     return 'schedules';
   }
 
-  if (pathname.startsWith('/teacher')) {
+  if (pathname.startsWith('/teacher/')) {
     return 'teacher';
+  }
+
+  if (pathname.startsWith('/principal')) {
+    return 'principal';
   }
 
   if (pathname.startsWith('/operations') || pathname.startsWith('/notifications')) {

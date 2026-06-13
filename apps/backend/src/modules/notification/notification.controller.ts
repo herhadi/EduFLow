@@ -10,7 +10,10 @@ export class NotificationController {
 
   @Get('mine')
   getMine(@Req() request: RequestWithUser) {
-    return this.notificationService.getMine(request.user.id);
+    return this.notificationService.getMine(
+      request.user.id,
+      request.user.roles ?? [],
+    );
   }
 
   @RequirePermissions(PERMISSIONS.NOTIFICATION_READ)

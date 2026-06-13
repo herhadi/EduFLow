@@ -34,7 +34,9 @@ const tabs: Array<{ id: NotificationTab; label: string; description: string }> =
 ];
 
 export function NotificationCenter() {
-  const [isTeacherInbox, setIsTeacherInbox] = useState(false);
+  const [personalInboxRole, setPersonalInboxRole] = useState<
+    'teacher' | 'principal' | null
+  >(null);
   const [myNotifications, setMyNotifications] = useState<NotificationLog[]>([]);
   const [activeTab, setActiveTab] = useState<NotificationTab>('sent');
   const [loadState, setLoadState] = useState<LoadState>('idle');
@@ -55,10 +57,13 @@ export function NotificationCenter() {
         : [];
       const primaryRole = getPrimaryRole(roles);
       const teacherInbox = primaryRole === 'guru' || primaryRole === 'wali_kelas';
+      const principalInbox = primaryRole === 'kepala_sekolah';
 
-      setIsTeacherInbox(teacherInbox);
+      setPersonalInboxRole(
+        teacherInbox ? 'teacher' : principalInbox ? 'principal' : null,
+      );
 
-      if (teacherInbox) {
+      if (teacherInbox || principalInbox) {
         const response = await api.getMyNotifications();
         setMyNotifications(response.data);
         setLoadState('success');
@@ -92,12 +97,13 @@ export function NotificationCenter() {
     [activeTab],
   );
 
-  if (isTeacherInbox) {
+  if (personalInboxRole) {
     return (
-      <TeacherNotificationInbox
+      <PersonalNotificationInbox
         items={myNotifications}
         loadState={loadState}
         onRefresh={loadNotifications}
+        role={personalInboxRole}
       />
     );
   }
@@ -208,28 +214,34 @@ export function NotificationCenter() {
   }
 }
 
-function TeacherNotificationInbox({
+function PersonalNotificationInbox({
   items,
   loadState,
   onRefresh,
+  role,
 }: {
   items: NotificationLog[];
   loadState: LoadState;
   onRefresh: () => Promise<void>;
+  role: 'teacher' | 'principal';
 }) {
+  const isPrincipal = role === 'principal';
+
   return (
     <section className="mt-6 space-y-4">
       <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
-              Inbox Guru
+              {isPrincipal ? 'Inbox Kepala Sekolah' : 'Inbox Guru'}
             </p>
             <h2 className="mt-2 text-2xl font-black text-slate-900">
               Pemberitahuan Saya
             </h2>
             <p className="mt-2 text-sm leading-6 text-muted">
-              Reminder kelas, koreksi presensi, revisi perangkat ajar, dan status penilaian.
+              {isPrincipal
+                ? 'Approval perangkat ajar dan nilai, kelas kosong, keterlambatan submit, serta ringkasan sekolah.'
+                : 'Reminder kelas, koreksi presensi, revisi perangkat ajar, dan status penilaian.'}
             </p>
           </div>
           <button
@@ -244,7 +256,7 @@ function TeacherNotificationInbox({
 
       {loadState === 'error' ? (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
-          Notifikasi guru belum bisa dimuat.
+          Notifikasi pribadi belum bisa dimuat.
         </div>
       ) : null}
 
@@ -256,8 +268,9 @@ function TeacherNotificationInbox({
 
       {loadState === 'success' && !items.length ? (
         <div className="rounded-[2rem] border border-blue-100 bg-white p-5 text-sm leading-6 text-muted shadow-sm shadow-blue-100/60">
-          Belum ada notifikasi untuk akun guru ini. Reminder hanya muncul jika kontak guru
-          sudah lengkap dan job terkait sudah dibuat.
+          {isPrincipal
+            ? 'Belum ada notifikasi yang membutuhkan perhatian Kepala Sekolah.'
+            : 'Belum ada notifikasi untuk akun guru ini. Reminder hanya muncul jika kontak guru sudah lengkap dan job terkait sudah dibuat.'}
         </div>
       ) : null}
 
@@ -270,7 +283,7 @@ function TeacherNotificationInbox({
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-black text-brand-700">
-                  {getTeacherNotificationLabel(item.templateKey)}
+                  {getPersonalNotificationLabel(item.templateKey, role)}
                 </p>
                 <p className="mt-2 text-sm leading-6 text-slate-700">{item.message}</p>
               </div>
@@ -288,7 +301,22 @@ function TeacherNotificationInbox({
   );
 }
 
-function getTeacherNotificationLabel(templateKey?: string | null) {
+function getPersonalNotificationLabel(
+  templateKey: string | null | undefined,
+  role: 'teacher' | 'principal',
+) {
+  if (role === 'principal') {
+    if (templateKey?.startsWith('teaching-plan.')) return 'Review Perangkat Ajar';
+    if (templateKey?.startsWith('student-grade.')) return 'Approval Nilai';
+    if (templateKey?.startsWith('attendance.class.empty')) return 'Kelas Kosong';
+    if (templateKey?.startsWith('attendance.teacher.not-submitted')) return 'Belum Submit';
+    if (templateKey?.startsWith('attendance.correction.')) return 'Koreksi Penting';
+    if (templateKey?.startsWith('teacher.substitute.')) return 'Guru Pengganti';
+    if (templateKey?.startsWith('school.summary.')) return 'Ringkasan Sekolah';
+    if (templateKey?.startsWith('academic.announcement.')) return 'Pengumuman Akademik';
+    return 'Informasi Kepala Sekolah';
+  }
+
   if (templateKey?.startsWith('teacher.reminder.')) {
     return 'Reminder Kelas';
   }

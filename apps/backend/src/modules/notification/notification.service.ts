@@ -34,38 +34,59 @@ export class NotificationService implements OnModuleInit {
     return this.getLogsByStatus(NotificationStatus.PENDING);
   }
 
-  async getMine(userId: string) {
-    const teacher = await this.prisma.teacher.findUnique({
-      where: { userId },
+  async getMine(userId: string, roles: string[]) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
       select: {
         email: true,
-        phone: true,
-        telegramId: true,
+        teacherProfile: {
+          select: { email: true, phone: true, telegramId: true },
+        },
       },
     });
 
-    if (!teacher) {
+    if (!user) {
       return { data: [] };
     }
 
-    const recipients = [teacher.email, teacher.phone, teacher.telegramId].filter(
-      (recipient): recipient is string => Boolean(recipient),
-    );
+    const recipients = [
+      user.email,
+      user.teacherProfile?.email,
+      user.teacherProfile?.phone,
+      user.teacherProfile?.telegramId,
+    ].filter((recipient): recipient is string => Boolean(recipient));
 
     if (!recipients.length) {
       return { data: [] };
     }
 
+    const allowedTemplates = roles.includes('kepala_sekolah')
+      ? [
+          'principal.',
+          'teaching-plan.',
+          'student-grade.',
+          'attendance.class.empty',
+          'attendance.teacher.not-submitted',
+          'attendance.correction.important',
+          'teacher.substitute.',
+          'school.summary.',
+          'academic.announcement.',
+        ]
+      : [
+          'teacher.',
+          'attendance.correction.',
+          'teaching-plan.',
+          'student-grade.',
+          'academic.announcement.',
+        ];
+
     return {
       data: await this.prisma.notificationLog.findMany({
         where: {
           recipient: { in: recipients },
-          OR: [
-            { templateKey: { startsWith: 'teacher.' } },
-            { templateKey: { startsWith: 'attendance.correction.' } },
-            { templateKey: { startsWith: 'teaching-plan.' } },
-            { templateKey: { startsWith: 'student-grade.' } },
-          ],
+          OR: allowedTemplates.map((templateKey) => ({
+            templateKey: { startsWith: templateKey },
+          })),
         },
         orderBy: { createdAt: 'desc' },
         take: 100,
@@ -157,6 +178,34 @@ export class NotificationService implements OnModuleInit {
         name: 'Notifikasi Kelas Kosong',
         channel: 'WHATSAPP' as const,
         body: 'Kelas {{className}} belum dibuka oleh guru pada jadwal {{startsAt}}.',
+      },
+      {
+        key: 'teaching-plan.submitted',
+        name: 'Perangkat Ajar Menunggu Review',
+        channel: 'EMAIL' as const,
+        subject: 'Perangkat ajar menunggu review',
+        body: '{{teacherName}} mengirim {{documentType}} untuk diperiksa.',
+      },
+      {
+        key: 'student-grade.submitted',
+        name: 'Nilai Semester Menunggu Approval',
+        channel: 'EMAIL' as const,
+        subject: 'Nilai semester menunggu approval',
+        body: 'Nilai {{className}} untuk {{subjectName}} menunggu persetujuan Kepala Sekolah.',
+      },
+      {
+        key: 'attendance.teacher.not-submitted',
+        name: 'Guru Belum Submit Presensi',
+        channel: 'EMAIL' as const,
+        subject: 'Presensi belum disubmit',
+        body: '{{teacherName}} belum submit presensi {{className}} sesuai batas waktu.',
+      },
+      {
+        key: 'school.summary.daily',
+        name: 'Ringkasan Operasional Harian',
+        channel: 'EMAIL' as const,
+        subject: 'Ringkasan operasional sekolah',
+        body: 'Ringkasan hari ini: {{completedClasses}} kelas selesai, {{emptyClasses}} kelas kosong, {{notSubmitted}} belum submit.',
       },
     ];
 

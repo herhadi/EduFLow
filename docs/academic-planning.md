@@ -55,6 +55,10 @@ Guru tidak mengelola kalender pendidikan dan jadwal sekolah secara umum. Guru me
 
 Dalam navigasi frontend, guru diarahkan ke `Hari Ini`, `Jadwal Saya`, `Presensi`, `Notif`, dan `Profil`. Guru tidak melihat menu `Admin`, `Setup`, atau `Ops`.
 
+Navigasi Kepala Sekolah berisi `Ringkasan`, `Review`, `Guru`, `Notif`, dan `Profil`. Menu `Review` menjadi pusat persetujuan perangkat ajar, penilaian semester, dan tindak lanjut operasional guru. Laporan sekolah tersedia sebagai submenu pada area Kepala Sekolah.
+
+Notifikasi Kepala Sekolah menggunakan inbox personal. Isinya dibatasi pada perangkat ajar dan nilai yang menunggu persetujuan, kelas kosong, guru belum submit, koreksi presensi penting, penugasan guru pengganti, ringkasan operasional, dan pengumuman akademik. Kepala Sekolah tidak melihat payload queue, status provider, failed job, atau tombol retry.
+
 Halaman `/dashboard` juga wajib role-aware. Untuk guru, halaman tersebut menjadi beranda personal berisi agenda hari ini, jadwal saya, presensi, perangkat ajar, penilaian, notifikasi, dan kelas binaan jika memiliki role wali kelas. Dashboard monitoring global hanya ditampilkan kepada actor yang memiliki tanggung jawab monitoring sekolah.
 
 ## Notifikasi Guru

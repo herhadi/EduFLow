@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import { api } from '../../lib/api';
+import { saveSession } from '../../lib/session';
 import { PasswordToggleIcon } from '../../components/ui/password-toggle-icon';
 
 export default function LoginPage() {
@@ -29,11 +30,9 @@ export default function LoginPage() {
 
     try {
       const session = await api.login({ username, password });
-      localStorage.setItem('accessToken', session.accessToken);
-      localStorage.setItem('refreshToken', session.refreshToken);
-      localStorage.setItem('sessionExpiresAt', session.expiresAt);
-      localStorage.setItem('currentUser', JSON.stringify(session.user));
+      saveSession(session);
       router.push('/dashboard');
+      router.refresh();
     } catch {
       setErrorMessage('Username atau password salah. Periksa kembali data login Anda.');
     } finally {
