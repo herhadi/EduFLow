@@ -13,6 +13,26 @@ Dokumen ini menjelaskan urutan konfigurasi awal EduFlow setelah root pertama ber
 | `/schedules` | Jadwal pelajaran dan generate agenda |
 | `/import-data` | Import data guru dan siswa dari Excel |
 
+## Navigasi Role-Based
+
+Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama sesuai actor yang sedang login:
+
+- `root` dan `operator_sekolah`: `Home`, `Admin`, `Jadwal`, `Ops`, `Report`.
+- `kepala_sekolah`: `Home`, `Guru`, `Report`, `Audit`, `Ops`.
+- `guru` dan `wali_kelas`: `Hari Ini`, `Jadwal`, `Siswa`, `Nilai`, `Notif`.
+- `tu`: `Data`, `Import`, `Report`, `Audit`, `Home`.
+- `bk`: `Home`, `Siswa`, `Report`, `Notif`, `Audit`.
+- `orang_tua`: `Anak`, `Notif`, `Riwayat`, `Info`, `Akun`.
+
+Top navigation adalah submenu dari menu utama aktif. Contoh:
+
+- Saat berada di area `Admin`: `Guru`, `Akademik`, `Akses`, `Import`, `Audit`.
+- Saat berada di area `Jadwal`: `Jadwal Kelas`, `Mapel Guru`, `Kelas & Mapel`.
+- Saat berada di area `Ops`: `Health`, `Notifikasi`, `Audit`.
+- Saat berada di area `Report`: `Export`, `Performa Guru`, `Parent Portal`.
+
+Konfigurasi navigasi global berada di `apps/frontend/lib/navigation.config.ts`.
+
 ## Urutan Konfigurasi Awal
 
 ```text

@@ -5,84 +5,16 @@ import { usePathname } from 'next/navigation';
 import { type ReactNode, useEffect, useState } from 'react';
 import { cn } from '../lib/cn';
 import { api } from '../lib/api';
-
-const primaryNavItems = [
-  { href: '/dashboard', label: 'Home', icon: '⌂' },
-  { href: '/schedules', label: 'Jadwal', icon: '◷' },
-  { href: '/notifications', label: 'Notif', icon: '✦' },
-  { href: '/operations', label: 'Ops', icon: '●' },
-  { href: '/reports', label: 'Report', icon: '▣' },
-];
-
-const quickMenuItems = [
-  { href: '/admin', label: 'Admin' },
-  { href: '/admin/guru', label: 'Guru' },
-  { href: '/admin/akademik', label: 'Akademik' },
-  { href: '/admin/akses', label: 'Akses' },
-  { href: '/master-data', label: 'Master Data' },
-  { href: '/import-data', label: 'Import' },
-  { href: '/audit', label: 'Audit' },
-  { href: '/parent-portal', label: 'Parent' },
-  { href: '/teacher-performance', label: 'Guru' },
-];
+import {
+  getPrimaryNavigation,
+  getPrimaryRole,
+  getSectionFromPath,
+  getSubNavigation,
+} from '../lib/navigation.config';
 
 export function MobileAppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isPublicPage = pathname === '/' || pathname === '/login';
-
-  if (isPublicPage) {
-    return <>{children}</>;
-  }
-
-  return (
-    <div className="min-h-dvh overflow-x-hidden bg-[radial-gradient(circle_at_top,_#dbeafe_0,_#eff6ff_28%,_#f8fafc_70%)]">
-      <div className="mx-auto min-h-dvh max-w-md overflow-x-hidden bg-blue-50/30 shadow-2xl shadow-blue-950/5 md:max-w-5xl">
-        <AppTopBar />
-
-        <div className="px-3 pt-3 pb-28 sm:px-5 md:px-6">
-          <MobileGreeting />
-          <QuickMenu pathname={pathname} />
-          <div className="mobile-app-content min-w-0">{children}</div>
-        </div>
-
-        <BottomNavigation pathname={pathname} />
-      </div>
-    </div>
-  );
-}
-
-function MobileGreeting() {
-  const [displayName, setDisplayName] = useState('Pengguna EduFlow');
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('currentUser');
-
-    if (!storedUser) {
-      return;
-    }
-
-    try {
-      const user = JSON.parse(storedUser) as {
-        name?: string;
-        username?: string | null;
-      };
-      setDisplayName(user.name ?? user.username ?? 'Pengguna EduFlow');
-    } catch {
-      localStorage.removeItem('currentUser');
-    }
-  }, []);
-
-  return (
-    <div className="mb-3 rounded-[1.5rem] border border-blue-100 bg-white/80 px-4 py-3 shadow-sm shadow-blue-100/60 min-[390px]:hidden">
-      <p className="text-xs font-bold text-muted">Sedang login sebagai</p>
-      <p className="mt-1 truncate text-sm font-black text-brand-700">
-        Hai, {displayName}
-      </p>
-    </div>
-  );
-}
-
-function AppTopBar() {
   const [currentUser, setCurrentUser] = useState<{
     name?: string;
     username?: string | null;
@@ -103,6 +35,55 @@ function AppTopBar() {
     }
   }, []);
 
+  if (isPublicPage) {
+    return <>{children}</>;
+  }
+
+  const roles = currentUser?.roles ?? [];
+
+  return (
+    <div className="min-h-dvh overflow-x-hidden bg-[radial-gradient(circle_at_top,_#dbeafe_0,_#eff6ff_28%,_#f8fafc_70%)]">
+      <div className="mx-auto min-h-dvh max-w-md overflow-x-hidden bg-blue-50/30 shadow-2xl shadow-blue-950/5 md:max-w-5xl">
+        <AppTopBar currentUser={currentUser} />
+
+        <div className="px-3 pt-3 pb-28 sm:px-5 md:px-6">
+          <MobileGreeting currentUser={currentUser} />
+          <SectionSubMenu pathname={pathname} />
+          <div className="mobile-app-content min-w-0">{children}</div>
+        </div>
+
+        <BottomNavigation pathname={pathname} roles={roles} />
+      </div>
+    </div>
+  );
+}
+
+function MobileGreeting({
+  currentUser,
+}: {
+  currentUser: { name?: string; username?: string | null; roles?: string[] } | null;
+}) {
+  const displayName =
+    currentUser?.name ?? currentUser?.username ?? 'Pengguna EduFlow';
+  const displayRole = getPrimaryRole(currentUser?.roles ?? []).replaceAll('_', ' ');
+  return (
+    <div className="mb-3 rounded-[1.5rem] border border-blue-100 bg-white/80 px-4 py-3 shadow-sm shadow-blue-100/60 min-[390px]:hidden">
+      <p className="text-xs font-bold text-muted">Sedang login sebagai</p>
+      <p className="mt-1 truncate text-sm font-black text-brand-700">
+        Hai, {displayName}
+      </p>
+      <p className="mt-1 truncate text-[0.65rem] font-bold capitalize text-muted">
+        {displayRole}
+      </p>
+    </div>
+  );
+}
+
+function AppTopBar({
+  currentUser,
+}: {
+  currentUser: { name?: string; username?: string | null; roles?: string[] } | null;
+}) {
   async function handleLogout() {
     const refreshToken = localStorage.getItem('refreshToken');
 
@@ -123,7 +104,7 @@ function AppTopBar() {
 
   const displayName =
     currentUser?.name ?? currentUser?.username ?? 'Pengguna EduFlow';
-  const displayRole = currentUser?.roles?.[0]?.replaceAll('_', ' ') ?? 'online';
+  const displayRole = getPrimaryRole(currentUser?.roles ?? []).replaceAll('_', ' ');
 
   return (
     <header className="sticky top-0 z-30 border-b border-blue-100/70 bg-white/85 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 shadow-sm shadow-blue-100/60 backdrop-blur-xl sm:px-6">
@@ -163,13 +144,19 @@ function AppTopBar() {
   );
 }
 
-function QuickMenu({ pathname }: { pathname: string }) {
+function SectionSubMenu({ pathname }: { pathname: string }) {
+  const subNavigation = getSubNavigation(pathname);
+
+  if (!subNavigation.length) {
+    return null;
+  }
+
   return (
     <nav
-      aria-label="Menu cepat"
+      aria-label="Sub menu"
       className="no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:-mx-5 sm:px-5 md:-mx-6 md:px-6"
     >
-      {quickMenuItems.map((item) => {
+      {subNavigation.map((item) => {
         const active =
           pathname === item.href ||
           (item.href !== '/admin' && pathname.startsWith(`${item.href}/`));
@@ -193,7 +180,16 @@ function QuickMenu({ pathname }: { pathname: string }) {
   );
 }
 
-function BottomNavigation({ pathname }: { pathname: string }) {
+function BottomNavigation({
+  pathname,
+  roles,
+}: {
+  pathname: string;
+  roles: string[];
+}) {
+  const primaryNavItems = getPrimaryNavigation(roles);
+  const section = getSectionFromPath(pathname);
+
   return (
     <nav
       aria-label="Navigasi utama"
@@ -201,7 +197,11 @@ function BottomNavigation({ pathname }: { pathname: string }) {
     >
       <div className="mx-auto grid grid-cols-5 gap-1 rounded-[1.75rem] border border-blue-100 bg-white/90 p-2 shadow-2xl shadow-blue-950/15 backdrop-blur-xl">
         {primaryNavItems.map((item) => {
-          const active = pathname.startsWith(item.href);
+          const active =
+            pathname.startsWith(item.href) ||
+            (item.href === '/admin' && section === 'admin') ||
+            (item.href === '/operations' && section === 'operations') ||
+            (item.href === '/reports' && section === 'reports');
 
           return (
             <Link

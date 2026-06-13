@@ -70,6 +70,13 @@ Komponen feedback aksi memakai `ToastProvider` global di root layout. Komponen f
 
 Frontend memakai Tailwind CSS v4 dengan theme global di `apps/frontend/app/globals.css`.
 
+Navigasi frontend memakai role-based mobile shell:
+
+- bottom navigation berisi menu utama sesuai role user login,
+- top navigation berisi submenu dari section aktif,
+- konfigurasi menu dipusatkan di `apps/frontend/lib/navigation.config.ts`,
+- root dianggap role teknis/setup, bukan menu operasional harian untuk semua user.
+
 ## Dokumen Operasional
 
 - `docs/database.md`: desain relasi akademik.

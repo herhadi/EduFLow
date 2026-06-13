@@ -30,7 +30,7 @@ const adminMenus = [
   {
     href: '/import-data',
     title: 'Import Data',
-    description: 'Import guru, siswa, kelas, mapel, dan jadwal.',
+    description: 'Import data massal guru dan siswa dari Excel.',
     icon: 'I',
   },
   {
