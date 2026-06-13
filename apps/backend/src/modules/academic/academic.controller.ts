@@ -5,9 +5,12 @@ import { PERMISSIONS } from '../../common/constants/permissions';
 import { RequestWithUser } from '../../core/http/request-with-user';
 import { AcademicService } from './academic.service';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
+import { CreateAcademicTimeSlotDto } from './dto/create-academic-time-slot.dto';
+import { CreateBulkScheduleDto } from './dto/create-bulk-schedule.dto';
 import { CreateClassDto } from './dto/create-class.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { CreateSubjectDto } from './dto/create-subject.dto';
+import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { GenerateAgendaDto } from './dto/generate-agenda.dto';
 import { SetClassHomeroomTeacherDto } from './dto/set-class-homeroom-teacher.dto';
 import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
@@ -81,6 +84,12 @@ export class AcademicController {
   }
 
   @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Post('teachers')
+  createTeacher(@Body() dto: CreateTeacherDto) {
+    return this.academicService.createTeacher(dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
   @Patch('teachers/:id/account')
   configureTeacherAccount(
     @Param('id') id: string,
@@ -122,6 +131,18 @@ export class AcademicController {
     return this.academicService.getSchedules(classId);
   }
 
+  @Public()
+  @Get('time-slots')
+  getTimeSlots(@Query('schoolYearId') schoolYearId?: string) {
+    return this.academicService.getTimeSlots(schoolYearId);
+  }
+
+  @RequirePermissions(PERMISSIONS.SCHEDULE_MANAGE)
+  @Post('time-slots')
+  createTimeSlot(@Body() dto: CreateAcademicTimeSlotDto) {
+    return this.academicService.createTimeSlot(dto);
+  }
+
   @Get('me/schedules')
   getMySchedules(@Req() request: RequestWithUser) {
     return this.academicService.getMySchedules(request.user.id);
@@ -145,6 +166,12 @@ export class AcademicController {
   @Post('schedules')
   createSchedule(@Body() dto: CreateScheduleDto) {
     return this.academicService.createSchedule(dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.SCHEDULE_MANAGE)
+  @Post('schedules/bulk')
+  createBulkSchedule(@Body() dto: CreateBulkScheduleDto) {
+    return this.academicService.createBulkSchedule(dto);
   }
 
   @RequirePermissions(PERMISSIONS.SCHEDULE_MANAGE)

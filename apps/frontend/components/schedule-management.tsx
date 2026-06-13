@@ -3,13 +3,14 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import {
   api,
+  type AcademicTimeSlot,
+  type BulkSchedulePayload,
   type DailyAgenda,
   type Schedule,
   type SchedulePayload,
   type SchoolClass,
   type SchoolYear,
   type Semester,
-  type Subject,
   type Teacher,
 } from '../lib/api';
 
@@ -47,9 +48,10 @@ export function ScheduleManagement() {
   const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [classes, setClasses] = useState<SchoolClass[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [timeSlots, setTimeSlots] = useState<AcademicTimeSlot[]>([]);
   const [form, setForm] = useState<SchedulePayload>(emptyForm);
+  const [selectedTimeSlotId, setSelectedTimeSlotId] = useState('');
   const [scheduleClassId, setScheduleClassId] = useState('');
 
   async function loadData() {
@@ -61,23 +63,23 @@ export function ScheduleManagement() {
         schoolYearResponse,
         semesterResponse,
         classResponse,
-        subjectResponse,
         teacherResponse,
+        timeSlotResponse,
       ] = await Promise.all([
         api.getSchedules(),
         api.getSchoolYears(),
         api.getSemesters(),
         api.getClasses(),
-        api.getSubjects(),
         api.getTeachers(),
+        api.getAcademicTimeSlots(),
       ]);
 
       setSchedules(scheduleResponse.data);
       setSchoolYears(schoolYearResponse.data);
       setSemesters(semesterResponse.data);
       setClasses(classResponse.data);
-      setSubjects(subjectResponse.data);
       setTeachers(teacherResponse.data);
+      setTimeSlots(timeSlotResponse.data);
       setLoadState('success');
 
       if (!form.schoolYearId && schoolYearResponse.data[0]) {
@@ -88,12 +90,8 @@ export function ScheduleManagement() {
         const firstClass = classResponse.data.find(
           (schoolClass) => schoolClass.schoolYearId === firstSchoolYear.id,
         );
-        const firstSubject = subjectResponse.data[0];
-        const firstTeacher = firstSubject
-          ? teacherResponse.data.find((teacher) =>
-              teacher.subjects?.some(({ subject }) => subject.id === firstSubject.id),
-            )
-          : undefined;
+        const firstTeacher = teacherResponse.data[0];
+        const firstSubject = firstTeacher?.subjects?.[0]?.subject;
 
         setForm((currentForm) => ({
           ...currentForm,
@@ -103,6 +101,12 @@ export function ScheduleManagement() {
           subjectId: firstSubject?.id ?? '',
           teacherId: firstTeacher?.id ?? '',
         }));
+
+        setSelectedTimeSlotId(
+          timeSlotResponse.data.find(
+            (slot) => slot.schoolYearId === firstSchoolYear.id && slot.isAssignable,
+          )?.id ?? '',
+        );
 
         setScheduleClassId(firstClass?.id ?? '');
       }
@@ -125,25 +129,26 @@ export function ScheduleManagement() {
     [classes, form.schoolYearId],
   );
 
-  const selectedClass = useMemo(
-    () => classes.find((schoolClass) => schoolClass.id === form.classId),
-    [classes, form.classId],
+  const teacherSubjectOptions = useMemo(
+    () =>
+      teachers.flatMap((teacher) =>
+        (teacher.subjects ?? []).map(({ subject }) => ({
+          label: `${teacher.name} · ${subject.name}`,
+          value: `${teacher.id}:${subject.id}`,
+        })),
+      ),
+    [teachers],
   );
 
-  const selectedSubject = useMemo(
-    () => subjects.find((subject) => subject.id === form.subjectId),
-    [form.subjectId, subjects],
+  const dayTimeSlots = useMemo(
+    () =>
+      timeSlots.filter(
+        (slot) =>
+          slot.schoolYearId === form.schoolYearId &&
+          slot.dayOfWeek === form.dayOfWeek,
+      ),
+    [form.dayOfWeek, form.schoolYearId, timeSlots],
   );
-
-  const subjectTeachers = useMemo(() => {
-    if (!form.subjectId) {
-      return teachers;
-    }
-
-    return teachers.filter((teacher) =>
-      teacher.subjects?.some(({ subject }) => subject.id === form.subjectId),
-    );
-  }, [form.subjectId, teachers]);
 
   const selectedScheduleClass = useMemo(
     () => classes.find((schoolClass) => schoolClass.id === scheduleClassId),
@@ -170,15 +175,27 @@ export function ScheduleManagement() {
     try {
       const response = editingId
         ? await api.updateSchedule(editingId, form)
-        : await api.createSchedule(form);
+        : await api.createBulkSchedules({
+            schoolYearId: form.schoolYearId,
+            semesterId: form.semesterId,
+            classIds: [form.classId],
+            subjectId: form.subjectId,
+            teacherId: form.teacherId,
+            timeSlotId: selectedTimeSlotId,
+          } satisfies BulkSchedulePayload);
 
       setMessage(response.message ?? 'Jadwal berhasil disimpan.');
       setEditingId(null);
       setForm(emptyForm);
+      setSelectedTimeSlotId('');
       await loadData();
       setSubmitState('success');
-    } catch {
-      setMessage('Jadwal gagal disimpan. Periksa isian dan backend.');
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? `Jadwal gagal disimpan: ${error.message}`
+          : 'Jadwal gagal disimpan. Periksa isian dan backend.',
+      );
       setSubmitState('error');
     }
   }
@@ -220,6 +237,7 @@ export function ScheduleManagement() {
       startsAt: schedule.startsAt,
       endsAt: schedule.endsAt,
     });
+    setSelectedTimeSlotId(schedule.timeSlotId ?? '');
     setMessage(null);
   }
 
@@ -269,90 +287,105 @@ export function ScheduleManagement() {
           />
           <SelectField
             label="Kelas"
-            onChange={(value) => setForm({ ...form, classId: value })}
+            onChange={(value) => {
+              setForm({ ...form, classId: value });
+            }}
             options={filteredClasses.map((schoolClass) => ({
-              label: schoolClass.homeroomTeacher
-                ? `${schoolClass.name} · Wali: ${schoolClass.homeroomTeacher.name}`
-                : schoolClass.name,
+              label: schoolClass.name,
               value: schoolClass.id,
             }))}
             value={form.classId}
           />
-          {selectedClass?.homeroomTeacher ? (
-            <p className="-mt-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs font-semibold text-brand-700">
-              Wali kelas: {selectedClass.homeroomTeacher.name}
-            </p>
-          ) : null}
-          <SelectField
-            label="Mata Pelajaran"
-            onChange={(value) => {
-              const firstTeacherForSubject = teachers.find((teacher) =>
-                teacher.subjects?.some(({ subject }) => subject.id === value),
-              );
-
-              setForm({
-                ...form,
-                subjectId: value,
-                teacherId: firstTeacherForSubject?.id ?? '',
-              });
-            }}
-            options={subjects.map((subject) => ({
-              label: subject.name,
-              value: subject.id,
-            }))}
-            value={form.subjectId}
-          />
-          <SelectField
-            label="Guru"
-            onChange={(value) => setForm({ ...form, teacherId: value })}
-            options={subjectTeachers.map((teacher) => ({
-              label: teacher.name,
-              value: teacher.id,
-            }))}
-            value={form.teacherId}
-          />
-          {selectedSubject && subjectTeachers.length === 0 ? (
-            <p className="-mt-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800">
-              Belum ada guru yang diatur mengampu {selectedSubject.name}. Atur dulu di Admin Guru.
-            </p>
-          ) : null}
           <SelectField
             label="Hari"
-            onChange={(value) => setForm({ ...form, dayOfWeek: Number(value) })}
+            onChange={(value) => {
+              const dayOfWeek = Number(value);
+              const firstSlot = timeSlots.find(
+                (slot) =>
+                  slot.schoolYearId === form.schoolYearId &&
+                  slot.dayOfWeek === dayOfWeek &&
+                  slot.isAssignable,
+              );
+              setForm({ ...form, dayOfWeek });
+              setSelectedTimeSlotId(firstSlot?.id ?? '');
+            }}
             options={dayOptions.map((day) => ({
               label: day.label,
               value: String(day.value),
             }))}
             value={String(form.dayOfWeek)}
           />
+          <SelectField
+            label="Jam Pelajaran"
+            onChange={setSelectedTimeSlotId}
+            options={dayTimeSlots
+              .filter((slot) => slot.isAssignable)
+              .map((slot) => ({
+                label: `${slot.name} · ${slot.startsAt}-${slot.endsAt}`,
+                value: slot.id,
+              }))}
+            value={selectedTimeSlotId}
+          />
 
-          <div className="grid grid-cols-2 gap-3">
-            <InputField
-              label="Mulai"
-              onChange={(value) => setForm({ ...form, startsAt: value })}
-              type="time"
-              value={form.startsAt}
-            />
-            <InputField
-              label="Selesai"
-              onChange={(value) => setForm({ ...form, endsAt: value })}
-              type="time"
-              value={form.endsAt}
-            />
+          <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+            <p className="text-xs font-black tracking-[0.1em] text-brand-700 uppercase">
+              Susunan Hari Ini
+            </p>
+            <div className="mt-3 space-y-2">
+              {dayTimeSlots.map((slot) => (
+                <div
+                  className={`flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-xs font-bold ${
+                    slot.id === selectedTimeSlotId
+                      ? 'bg-brand-600 text-white'
+                      : slot.isAssignable
+                        ? 'bg-white text-slate-700'
+                        : 'bg-amber-50 text-amber-800'
+                  }`}
+                  key={slot.id}
+                >
+                  <span>{slot.name}</span>
+                  <span>{slot.startsAt}-{slot.endsAt}</span>
+                </div>
+              ))}
+            </div>
           </div>
+
+          <SelectField
+            label="Guru Pengampu"
+            onChange={(value) => {
+              const [teacherId, subjectId] = value.split(':');
+              setForm({ ...form, teacherId, subjectId });
+            }}
+            options={teacherSubjectOptions}
+            value={
+              form.teacherId && form.subjectId
+                ? `${form.teacherId}:${form.subjectId}`
+                : ''
+            }
+          />
+          <p className="-mt-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs font-semibold leading-5 text-brand-700">
+            Mata pelajaran mengikuti pilihan guru pengampu. Guru dengan dua mapel tampil sebagai dua opsi terpisah.
+          </p>
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
           <button
             className="rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={submitState === 'loading'}
+            disabled={
+              submitState === 'loading' ||
+              !form.teacherId ||
+              !form.subjectId ||
+              !form.classId ||
+              !selectedTimeSlotId ||
+              !form.semesterId
+            }
             type="submit"
           >
             {submitState === 'loading'
               ? 'Menyimpan...'
               : editingId
                 ? 'Simpan Perubahan'
-                : 'Buat Jadwal'}
+                : 'Simpan Jadwal'}
           </button>
           {editingId ? (
             <button

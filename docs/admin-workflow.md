@@ -2,7 +2,28 @@
 
 Dokumen ini menjelaskan urutan konfigurasi awal EduFlow setelah root pertama berhasil login.
 
+## Setup Jadwal Banyak Kelas
+
+Urutan setup jadwal:
+
+1. Pilih tahun ajaran dan semester.
+2. Pilih satu kelas, misalnya `VII-A`.
+3. Pilih hari.
+4. Pilih jam pelajaran dari template waktu sekolah.
+5. Pilih guru pengampu. Nama mata pelajaran melekat pada opsi guru, misalnya `Guru A · PPKn`.
+6. Simpan jadwal.
+
+Jika seorang guru mengampu dua mata pelajaran, guru tersebut tampil sebagai dua opsi berbeda. Backend tetap menolak bentrok kelas maupun bentrok jam mengajar guru.
+
+Jadwal pelajaran memakai `AcademicTimeSlot` sebagai template jam sekolah. Operator memilih hari dan jam pelajaran yang sudah disiapkan, bukan mengetik waktu bebas. Setelah itu operator memilih guru, mapel, tingkat, dan rombel.
+
+Kegiatan tetap seperti Upacara, Senam Bersama, istirahat, dan sholat berjamaah disimpan sebagai slot non-assignable. Kegiatan tersebut muncul pada susunan hari tetapi tidak diperlakukan sebagai mata pelajaran. Preset awal menetapkan Senin jam pertama sebagai Upacara dan Selasa jam pertama sebagai Senam Bersama.
+
+Slot terikat pada tahun ajaran sehingga sekolah dapat mengubah susunan jam untuk tahun ajaran berikutnya tanpa merusak histori jadwal lama.
+
 ## Route Admin
+
+Pada `/admin/guru`, operator dapat menambahkan data guru baru langsung dari panel `Pilih Guru`. Setelah dibuat, guru otomatis terpilih untuk dilanjutkan ke pengaturan akun login, role, mata pelajaran, dan wali kelas.
 
 | URL | Fungsi |
 | --- | --- |

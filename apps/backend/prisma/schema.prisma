@@ -12,6 +12,16 @@ enum SemesterType {
   EVEN
 }
 
+enum AcademicTimeSlotType {
+  LESSON
+  BREAK
+  CEREMONY
+  EXERCISE
+  CO_CURRICULAR
+  RELIGIOUS
+  OTHER
+}
+
 enum AgendaStatus {
   SCHEDULED
   IN_PROGRESS
@@ -212,11 +222,34 @@ model SchoolYear {
   enrollments StudentEnrollment[]
   schedules   Schedule[]
   agendas     DailyAgenda[]
+  timeSlots   AcademicTimeSlot[]
   feeTypes    FeeType[]
   invoices    Invoice[]
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
   deletedAt   DateTime?
+}
+
+model AcademicTimeSlot {
+  id           String               @id @default(uuid()) @db.Uuid
+  schoolYearId String               @db.Uuid
+  dayOfWeek    Int
+  periodNumber Int?
+  name         String
+  type         AcademicTimeSlotType
+  startsAt     String
+  endsAt       String
+  isAssignable Boolean              @default(true)
+  isActive     Boolean              @default(true)
+  schoolYear   SchoolYear           @relation(fields: [schoolYearId], references: [id])
+  schedules    Schedule[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  deletedAt    DateTime?
+
+  @@unique([schoolYearId, dayOfWeek, startsAt, endsAt])
+  @@index([schoolYearId, dayOfWeek, periodNumber])
+  @@index([isActive])
 }
 
 model Semester {
@@ -391,30 +424,33 @@ model StudentEnrollment {
 }
 
 model Schedule {
-  id           String        @id @default(uuid()) @db.Uuid
-  schoolYearId String        @db.Uuid
-  semesterId   String        @db.Uuid
-  classId      String        @db.Uuid
-  subjectId    String        @db.Uuid
-  teacherId    String        @db.Uuid
+  id           String            @id @default(uuid()) @db.Uuid
+  schoolYearId String            @db.Uuid
+  semesterId   String            @db.Uuid
+  classId      String            @db.Uuid
+  subjectId    String            @db.Uuid
+  teacherId    String            @db.Uuid
+  timeSlotId   String?           @db.Uuid
   dayOfWeek    Int
   startsAt     String
   endsAt       String
   room         String?
-  isActive     Boolean       @default(true)
-  schoolYear   SchoolYear    @relation(fields: [schoolYearId], references: [id])
-  semester     Semester      @relation(fields: [semesterId], references: [id])
-  class        Class         @relation(fields: [classId], references: [id])
-  subject      Subject       @relation(fields: [subjectId], references: [id])
-  teacher      Teacher       @relation(fields: [teacherId], references: [id])
+  isActive     Boolean           @default(true)
+  schoolYear   SchoolYear        @relation(fields: [schoolYearId], references: [id])
+  semester     Semester          @relation(fields: [semesterId], references: [id])
+  class        Class             @relation(fields: [classId], references: [id])
+  subject      Subject           @relation(fields: [subjectId], references: [id])
+  teacher      Teacher           @relation(fields: [teacherId], references: [id])
+  timeSlot     AcademicTimeSlot? @relation(fields: [timeSlotId], references: [id])
   agendas      DailyAgenda[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
   deletedAt    DateTime?
 
   @@index([schoolYearId, semesterId])
   @@index([classId, dayOfWeek])
   @@index([teacherId, dayOfWeek])
+  @@index([timeSlotId])
   @@index([isActive])
 }
 

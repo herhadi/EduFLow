@@ -84,7 +84,7 @@ export default function LoginPage() {
                 autoComplete="username"
                 className="rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600 focus:bg-white"
                 onChange={(event) => setUsername(event.target.value)}
-                placeholder="herhadi"
+                placeholder=""
                 type="text"
                 value={username}
               />
@@ -99,7 +99,7 @@ export default function LoginPage() {
                   maxLength={10}
                   minLength={6}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="6-10 karakter"
+                  placeholder=""
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                 />
@@ -131,7 +131,7 @@ export default function LoginPage() {
             ) : null}
 
             <button
-              className="block w-full rounded-2xl bg-brand-600 px-5 py-4 text-center text-sm font-black text-white shadow-xl shadow-blue-200 transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="mt-8 block w-full rounded-2xl bg-brand-600 px-5 py-4 text-center text-sm font-black text-white shadow-xl shadow-blue-200 transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300"
               disabled={isLoading || !username || !password}
               type="submit"
             >
@@ -141,8 +141,7 @@ export default function LoginPage() {
         </section>
 
         <p className="mt-5 text-center text-xs leading-5 text-muted">
-          Root awal: username `herhadi`. Setelah masuk, root menentukan siapa
-          yang menjadi operator sekolah dan pengelola data.
+          Ada saran atau ide di halaman inikah? :D
         </p>
       </div>
     </main>

@@ -53,6 +53,13 @@ export function TeacherRoleManagement() {
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [message, setMessage] = useState('');
+  const [showCreateTeacher, setShowCreateTeacher] = useState(false);
+  const [newTeacher, setNewTeacher] = useState({
+    name: '',
+    nip: '',
+    phone: '',
+    email: '',
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -216,6 +223,33 @@ export function TeacherRoleManagement() {
     }
   }
 
+  async function handleCreateTeacher() {
+    if (!newTeacher.name.trim()) return;
+
+    setSaveState('loading');
+    try {
+      const response = await api.createTeacher({
+        name: newTeacher.name.trim(),
+        nip: newTeacher.nip.trim() || undefined,
+        phone: newTeacher.phone.trim() || undefined,
+        email: newTeacher.email.trim() || undefined,
+      });
+      setTeachers((currentTeachers) =>
+        [...currentTeachers, response.data].sort((a, b) => a.name.localeCompare(b.name)),
+      );
+      setSelectedTeacherId(response.data.id);
+      setNewTeacher({ name: '', nip: '', phone: '', email: '' });
+      setShowCreateTeacher(false);
+      setSaveState('success');
+      toast.success('Guru berhasil ditambahkan.', 'Berhasil');
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Guru gagal ditambahkan.';
+      setSaveState('error');
+      toast.error(errorMessage, 'Aksi Gagal');
+    }
+  }
+
   return (
     <section className="mt-6 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -239,10 +273,53 @@ export function TeacherRoleManagement() {
         </div>
       ) : null}
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-        <div className="rounded-[1.5rem] border border-blue-50 bg-slate-50 p-3">
-          <p className="px-2 text-xs font-black text-muted">Pilih Guru</p>
-          <div className="mt-3 grid max-h-[28rem] gap-2 overflow-y-auto pr-1">
+      <div className="mt-5 grid items-stretch gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+        <div className="flex h-full min-h-[40rem] flex-col rounded-[1.5rem] border border-blue-50 bg-slate-50 p-3">
+          <div className="flex items-center justify-between gap-3 px-2">
+            <p className="text-xs font-black text-muted">Pilih Guru</p>
+            <button
+              className="rounded-full bg-brand-600 px-3 py-2 text-xs font-black text-white"
+              onClick={() => setShowCreateTeacher((current) => !current)}
+              type="button"
+            >
+              + Tambah Guru
+            </button>
+          </div>
+
+          {showCreateTeacher ? (
+            <div className="mt-3 grid gap-2 rounded-2xl border border-blue-100 bg-white p-3">
+              {[
+                ['name', 'Nama guru *'],
+                ['nip', 'NIP'],
+                ['phone', 'Nomor HP'],
+                ['email', 'Email'],
+              ].map(([field, placeholder]) => (
+                <input
+                  className="rounded-xl border border-blue-100 px-3 py-2 text-sm outline-none focus:border-brand-600"
+                  key={field}
+                  onChange={(event) =>
+                    setNewTeacher((current) => ({
+                      ...current,
+                      [field]: event.target.value,
+                    }))
+                  }
+                  placeholder={placeholder}
+                  type={field === 'email' ? 'email' : 'text'}
+                  value={newTeacher[field as keyof typeof newTeacher]}
+                />
+              ))}
+              <button
+                className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-black text-white disabled:bg-slate-300"
+                disabled={saveState === 'loading' || !newTeacher.name.trim()}
+                onClick={() => void handleCreateTeacher()}
+                type="button"
+              >
+                Simpan Guru Baru
+              </button>
+            </div>
+          ) : null}
+
+          <div className="mt-3 grid flex-1 content-start gap-2 overflow-y-auto pr-1 lg:max-h-none">
             {teachers.map((teacher) => {
               const active = teacher.id === selectedTeacherId;
               const roles = teacher.user?.roles.map(({ role }) => role.name).join(', ');
@@ -287,7 +364,7 @@ export function TeacherRoleManagement() {
           </div>
         </div>
 
-        <div className="rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4">
+        <div className="h-full min-h-[40rem] rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4">
           {selectedTeacher ? (
             <div className="space-y-5">
               <div>

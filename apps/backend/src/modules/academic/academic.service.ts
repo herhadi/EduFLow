@@ -5,9 +5,12 @@ import { hash } from 'bcryptjs';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
+import { CreateAcademicTimeSlotDto } from './dto/create-academic-time-slot.dto';
+import { CreateBulkScheduleDto } from './dto/create-bulk-schedule.dto';
 import { CreateClassDto } from './dto/create-class.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { CreateSubjectDto } from './dto/create-subject.dto';
+import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { GenerateAgendaDto } from './dto/generate-agenda.dto';
 import { SetClassHomeroomTeacherDto } from './dto/set-class-homeroom-teacher.dto';
 import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
@@ -277,6 +280,47 @@ export class AcademicService {
         orderBy: { name: 'asc' },
       }),
     };
+  }
+
+  async createTeacher(dto: CreateTeacherDto) {
+    const name = dto.name.trim();
+    const nip = dto.nip?.trim() || null;
+    const email = dto.email?.trim().toLowerCase() || null;
+
+    const existingTeacher = await this.prisma.teacher.findFirst({
+      where: {
+        OR: [
+          ...(nip ? [{ nip }] : []),
+          ...(email ? [{ email }] : []),
+        ],
+      },
+    });
+
+    if (existingTeacher) {
+      throw new BadRequestException('NIP atau email guru sudah digunakan');
+    }
+
+    const teacher = await this.prisma.teacher.create({
+      data: {
+        name,
+        nip,
+        phone: dto.phone?.trim() || null,
+        email,
+      },
+      include: {
+        user: { include: { roles: { include: { role: true } } } },
+        subjects: { include: { subject: true } },
+      },
+    });
+
+    await this.auditService.record({
+      action: 'teacher.created',
+      entityType: 'Teacher',
+      entityId: teacher.id,
+      after: teacher,
+    });
+
+    return { data: teacher, message: 'Guru berhasil ditambahkan.' };
   }
 
   async configureTeacherAccount(id: string, dto: ConfigureTeacherAccountDto) {
@@ -558,10 +602,43 @@ export class AcademicService {
           class: true,
           subject: true,
           teacher: true,
+          timeSlot: true,
         },
         orderBy: [{ dayOfWeek: 'asc' }, { startsAt: 'asc' }],
       }),
     };
+  }
+
+  async getTimeSlots(schoolYearId?: string) {
+    return {
+      data: await this.prisma.academicTimeSlot.findMany({
+        where: { schoolYearId, deletedAt: null, isActive: true },
+        include: { schoolYear: true },
+        orderBy: [{ dayOfWeek: 'asc' }, { startsAt: 'asc' }],
+      }),
+    };
+  }
+
+  async createTimeSlot(dto: CreateAcademicTimeSlotDto) {
+    this.validateScheduleTime(dto.startsAt, dto.endsAt);
+
+    const timeSlot = await this.prisma.academicTimeSlot.create({
+      data: {
+        ...dto,
+        name: dto.name.trim(),
+        isAssignable: dto.isAssignable ?? dto.type === 'LESSON',
+      },
+      include: { schoolYear: true },
+    });
+
+    await this.auditService.record({
+      action: 'academic-time-slot.created',
+      entityType: 'AcademicTimeSlot',
+      entityId: timeSlot.id,
+      after: timeSlot,
+    });
+
+    return { data: timeSlot, message: 'Slot waktu berhasil ditambahkan.' };
   }
 
   async getMySchedules(userId: string) {
@@ -645,6 +722,58 @@ export class AcademicService {
     });
 
     return { data: schedule, message: 'Jadwal berhasil dibuat.' };
+  }
+
+  async createBulkSchedule(dto: CreateBulkScheduleDto) {
+    const classIds = [...new Set(dto.classIds)];
+    const timeSlot = await this.ensureBulkScheduleRelations({ ...dto, classIds });
+    await this.ensureScheduleAvailability({ ...dto, classIds }, timeSlot);
+
+    const schedules = await this.prisma.$transaction(
+      classIds.map((classId) =>
+        this.prisma.schedule.create({
+          data: {
+            schoolYearId: dto.schoolYearId,
+            semesterId: dto.semesterId,
+            classId,
+            subjectId: dto.subjectId,
+            teacherId: dto.teacherId,
+            timeSlotId: timeSlot.id,
+            dayOfWeek: timeSlot.dayOfWeek,
+            startsAt: timeSlot.startsAt,
+            endsAt: timeSlot.endsAt,
+          },
+          include: {
+            schoolYear: true,
+            semester: true,
+            class: true,
+            subject: true,
+            teacher: true,
+            timeSlot: true,
+          },
+        }),
+      ),
+    );
+
+    await this.auditService.record({
+      action: 'schedule.bulk-created',
+      entityType: 'Schedule',
+      entityId: schedules.map((schedule) => schedule.id).join(','),
+      after: {
+        teacherId: dto.teacherId,
+        subjectId: dto.subjectId,
+        classIds,
+        timeSlotId: timeSlot.id,
+        dayOfWeek: timeSlot.dayOfWeek,
+        startsAt: timeSlot.startsAt,
+        endsAt: timeSlot.endsAt,
+      },
+    });
+
+    return {
+      data: schedules,
+      message: `${schedules.length} jadwal kelas berhasil dibuat.`,
+    };
   }
 
   async updateSchedule(id: string, dto: UpdateScheduleDto) {
@@ -865,6 +994,87 @@ export class AcademicService {
 
     if (!teacherSubject) {
       throw new BadRequestException('Guru belum diatur mengampu mata pelajaran ini');
+    }
+  }
+
+  private async ensureBulkScheduleRelations(dto: CreateBulkScheduleDto) {
+    const [semester, classes, subject, teacher, timeSlot] = await Promise.all([
+      this.prisma.semester.findFirst({
+        where: {
+          id: dto.semesterId,
+          schoolYearId: dto.schoolYearId,
+          deletedAt: null,
+        },
+      }),
+      this.prisma.class.findMany({
+        where: {
+          id: { in: dto.classIds },
+          schoolYearId: dto.schoolYearId,
+          deletedAt: null,
+        },
+      }),
+      this.prisma.subject.findFirst({
+        where: { id: dto.subjectId, deletedAt: null, isActive: true },
+      }),
+      this.prisma.teacher.findFirst({
+        where: { id: dto.teacherId, deletedAt: null, isActive: true },
+        include: {
+          subjects: true,
+          user: { include: { roles: { include: { role: true } } } },
+        },
+      }),
+      this.prisma.academicTimeSlot.findFirst({
+        where: {
+          id: dto.timeSlotId,
+          schoolYearId: dto.schoolYearId,
+          deletedAt: null,
+          isActive: true,
+          isAssignable: true,
+        },
+      }),
+    ]);
+
+    if (!semester) {
+      throw new BadRequestException('Semester tidak valid untuk tahun ajaran ini');
+    }
+
+    if (classes.length !== dto.classIds.length) {
+      throw new BadRequestException('Ada kelas yang tidak valid untuk tahun ajaran ini');
+    }
+
+    if (!subject || !teacher || !timeSlot) {
+      throw new BadRequestException('Guru, mata pelajaran, atau slot waktu tidak valid');
+    }
+
+    if (!teacher.subjects.some(({ subjectId }) => subjectId === dto.subjectId)) {
+      throw new BadRequestException('Guru belum diatur mengampu mata pelajaran ini');
+    }
+
+    return timeSlot;
+  }
+
+  private async ensureScheduleAvailability(
+    dto: CreateBulkScheduleDto,
+    timeSlot: { dayOfWeek: number; startsAt: string; endsAt: string },
+  ) {
+    const conflict = await this.prisma.schedule.findFirst({
+      where: {
+        schoolYearId: dto.schoolYearId,
+        semesterId: dto.semesterId,
+        dayOfWeek: timeSlot.dayOfWeek,
+        deletedAt: null,
+        isActive: true,
+        startsAt: { lt: timeSlot.endsAt },
+        endsAt: { gt: timeSlot.startsAt },
+        OR: [{ classId: { in: dto.classIds } }, { teacherId: dto.teacherId }],
+      },
+      include: { class: true, teacher: true },
+    });
+
+    if (conflict) {
+      throw new BadRequestException(
+        `Jadwal bentrok dengan ${conflict.class.name} (${conflict.startsAt}-${conflict.endsAt}) atau jadwal guru ${conflict.teacher.name}`,
+      );
     }
   }
 

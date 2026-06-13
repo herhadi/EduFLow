@@ -28,6 +28,12 @@ Attendance
 AttendanceItem
 ```
 
+## Template Jam Pelajaran
+
+`AcademicTimeSlot` menyimpan susunan waktu per tahun ajaran dan hari, meliputi nomor jam, label kegiatan, jenis slot, waktu mulai/selesai, serta apakah slot dapat diisi jadwal mapel. `Schedule.timeSlotId` menunjuk slot tersebut, sedangkan `dayOfWeek`, `startsAt`, dan `endsAt` tetap disimpan sebagai snapshot histori.
+
+Jenis slot meliputi pelajaran, istirahat, upacara, senam, kokurikuler, kegiatan keagamaan, dan kegiatan lain. Slot non-assignable tetap terlihat dalam timeline sekolah tetapi tidak dapat dipilih untuk penugasan guru/mapel.
+
 ## Prinsip Utama
 
 - PostgreSQL adalah sumber data permanen.

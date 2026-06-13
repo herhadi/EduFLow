@@ -242,6 +242,117 @@ async function main() {
       }),
     ),
   );
+
+  const schoolYears = await prisma.schoolYear.findMany({
+    where: { deletedAt: null },
+    select: { id: true },
+  });
+
+  const regularWeekdaySlots = [
+    [1, 'Jam ke-1', 'LESSON', '07:00', '07:50', true],
+    [2, 'Jam ke-2', 'LESSON', '07:50', '08:30', true],
+    [3, 'Jam ke-3', 'LESSON', '08:30', '09:10', true],
+    [null, 'Istirahat', 'BREAK', '09:10', '09:30', false],
+    [4, 'Jam ke-4', 'LESSON', '09:30', '10:10', true],
+    [5, 'Jam ke-5', 'LESSON', '10:10', '10:50', true],
+    [6, 'Jam ke-6', 'LESSON', '10:50', '11:30', true],
+    [null, "Istirahat / Sholat Berjamaah", 'RELIGIOUS', '11:30', '12:10', false],
+    [7, 'Jam ke-7', 'LESSON', '12:10', '12:50', true],
+    [8, 'Jam ke-8', 'LESSON', '12:50', '13:30', true],
+  ] as const;
+  const fridaySlots = [
+    [1, 'Kokurikuler ke-1', 'CO_CURRICULAR', '07:00', '07:50', true],
+    [2, 'Kokurikuler ke-2', 'CO_CURRICULAR', '07:50', '08:30', true],
+    [3, 'Kokurikuler ke-3', 'CO_CURRICULAR', '08:30', '09:10', true],
+    [null, 'Istirahat', 'BREAK', '09:10', '09:40', false],
+    [4, 'Kokurikuler ke-4', 'CO_CURRICULAR', '09:40', '10:20', true],
+    [5, 'Kokurikuler ke-5', 'CO_CURRICULAR', '10:20', '11:00', true],
+  ] as const;
+  const saturdaySlots = [
+    [1, 'Jam ke-1', 'LESSON', '07:00', '07:50', true],
+    [2, 'Jam ke-2', 'LESSON', '07:50', '08:30', true],
+    [null, 'Istirahat', 'BREAK', '08:30', '08:50', false],
+    [3, 'Jam ke-3', 'LESSON', '08:50', '09:30', true],
+    [4, 'Jam ke-4', 'LESSON', '09:30', '10:10', true],
+    [null, 'Istirahat', 'BREAK', '10:10', '10:50', false],
+    [5, 'Jam ke-5', 'LESSON', '10:50', '11:30', true],
+    [6, 'Jam ke-6', 'LESSON', '11:30', '12:10', true],
+  ] as const;
+
+  for (const schoolYear of schoolYears) {
+    for (const dayOfWeek of [1, 2, 3, 4]) {
+      for (const slot of regularWeekdaySlots) {
+        const [periodNumber, defaultName, defaultType, startsAt, endsAt, isAssignable] = slot;
+        const isMondayCeremony = dayOfWeek === 1 && periodNumber === 1;
+        const isTuesdayExercise = dayOfWeek === 2 && periodNumber === 1;
+        const name = isMondayCeremony
+          ? 'Upacara'
+          : isTuesdayExercise
+            ? 'Senam Bersama'
+            : defaultName;
+        const type = isMondayCeremony
+          ? 'CEREMONY'
+          : isTuesdayExercise
+            ? 'EXERCISE'
+            : defaultType;
+
+        await prisma.academicTimeSlot.upsert({
+          where: {
+            schoolYearId_dayOfWeek_startsAt_endsAt: {
+              schoolYearId: schoolYear.id,
+              dayOfWeek,
+              startsAt,
+              endsAt,
+            },
+          },
+          update: {
+            periodNumber,
+            name,
+            type,
+            isAssignable: isMondayCeremony || isTuesdayExercise ? false : isAssignable,
+            isActive: true,
+            deletedAt: null,
+          },
+          create: {
+            schoolYearId: schoolYear.id,
+            dayOfWeek,
+            periodNumber,
+            name,
+            type,
+            startsAt,
+            endsAt,
+            isAssignable: isMondayCeremony || isTuesdayExercise ? false : isAssignable,
+          },
+        });
+      }
+    }
+
+    for (const [dayOfWeek, slots] of [[5, fridaySlots], [6, saturdaySlots]] as const) {
+      for (const [periodNumber, name, type, startsAt, endsAt, isAssignable] of slots) {
+        await prisma.academicTimeSlot.upsert({
+          where: {
+            schoolYearId_dayOfWeek_startsAt_endsAt: {
+              schoolYearId: schoolYear.id,
+              dayOfWeek,
+              startsAt,
+              endsAt,
+            },
+          },
+          update: { periodNumber, name, type, isAssignable, isActive: true, deletedAt: null },
+          create: {
+            schoolYearId: schoolYear.id,
+            dayOfWeek,
+            periodNumber,
+            name,
+            type,
+            startsAt,
+            endsAt,
+            isAssignable,
+          },
+        });
+      }
+    }
+  }
 }
 
 async function migrateLegacyRole(

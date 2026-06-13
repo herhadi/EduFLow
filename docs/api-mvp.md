@@ -226,7 +226,24 @@ Catatan:
 
 Jadwal dan kalender pendidikan dikelola oleh `operator_sekolah`. Guru hanya membaca jadwal yang terkait dengan dirinya.
 
-Jadwal wajib memilih `classId`, `subjectId`, dan `teacherId`. Guru yang dipilih harus sudah diatur mengampu mapel tersebut melalui relasi `TeacherSubject`. Jika kelas memiliki wali kelas, UI menampilkan informasi wali kelas sebagai konteks, tetapi jadwal tetap memakai guru pengajar mapel.
+Jadwal wajib memilih slot waktu, kelas, mapel, dan guru. Guru yang dipilih harus sudah diatur mengampu mapel tersebut melalui relasi `TeacherSubject`. Jika kelas memiliki wali kelas, UI menampilkan informasi wali kelas sebagai konteks, tetapi jadwal tetap memakai guru pengajar mapel.
+
+### Template Jam Pelajaran
+
+```http
+GET /api/academic/time-slots?schoolYearId=:schoolYearId
+POST /api/academic/time-slots
+```
+
+Slot waktu menyimpan susunan jam per hari dan tahun ajaran. Slot kegiatan seperti Upacara, Senam Bersama, istirahat, atau sholat berjamaah menggunakan `isAssignable=false` sehingga terlihat dalam timeline tetapi tidak dapat diberi jadwal mapel.
+
+### Buat Jadwal Banyak Kelas
+
+```http
+POST /api/academic/schedules/bulk
+```
+
+Payload memakai `timeSlotId` dan `classIds[]`. Seluruh jadwal dibuat dalam satu transaksi dan ditolak bila salah satu kelas atau guru mengalami bentrok.
 
 ### Buat Jadwal
 

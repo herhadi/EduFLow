@@ -99,6 +99,7 @@ export interface Schedule {
   classId: string;
   subjectId: string;
   teacherId: string;
+  timeSlotId?: string | null;
   dayOfWeek: number;
   startsAt: string;
   endsAt: string;
@@ -118,6 +119,28 @@ export interface DailyAgenda {
   class: SchoolClass;
   subject: Subject;
   teacher: Teacher;
+}
+
+export type AcademicTimeSlotType =
+  | 'LESSON'
+  | 'BREAK'
+  | 'CEREMONY'
+  | 'EXERCISE'
+  | 'CO_CURRICULAR'
+  | 'RELIGIOUS'
+  | 'OTHER';
+
+export interface AcademicTimeSlot {
+  id: string;
+  schoolYearId: string;
+  dayOfWeek: number;
+  periodNumber?: number | null;
+  name: string;
+  type: AcademicTimeSlotType;
+  startsAt: string;
+  endsAt: string;
+  isAssignable: boolean;
+  isActive: boolean;
 }
 
 export type NotificationChannel = 'WHATSAPP' | 'TELEGRAM' | 'EMAIL';
@@ -349,6 +372,15 @@ export interface SchedulePayload {
   endsAt: string;
 }
 
+export interface BulkSchedulePayload {
+  schoolYearId: string;
+  semesterId: string;
+  classIds: string[];
+  subjectId: string;
+  teacherId: string;
+  timeSlotId: string;
+}
+
 export interface AttendanceDemoResult {
   steps: string[];
   reminderJob: {
@@ -539,6 +571,16 @@ export const api = {
       method: 'DELETE',
     }),
   getTeachers: () => request<ApiResponse<Teacher[]>>('/academic/teachers'),
+  createTeacher: (payload: {
+    name: string;
+    nip?: string;
+    phone?: string;
+    email?: string;
+  }) =>
+    request<ApiResponse<Teacher>>('/academic/teachers', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   configureTeacherAccount: (
     id: string,
     payload: {
@@ -572,8 +614,17 @@ export const api = {
     }),
   getStudents: () => request<ApiResponse<Student[]>>('/academic/students'),
   getSchedules: () => request<ApiResponse<Schedule[]>>('/academic/schedules'),
+  getAcademicTimeSlots: (schoolYearId?: string) =>
+    request<ApiResponse<AcademicTimeSlot[]>>(
+      `/academic/time-slots${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,
+    ),
   createSchedule: (payload: SchedulePayload) =>
     request<ApiResponse<Schedule>>('/academic/schedules', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  createBulkSchedules: (payload: BulkSchedulePayload) =>
+    request<ApiResponse<Schedule[]>>('/academic/schedules/bulk', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
