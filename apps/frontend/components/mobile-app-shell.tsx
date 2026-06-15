@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { type ReactNode, useEffect, useState } from 'react';
 import { cn } from '../lib/cn';
+import { ThemeToggle } from './ui/theme-toggle';
 import { api } from '../lib/api';
 import {
   clearBrowserSession,
@@ -89,8 +90,8 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
   const roles = currentUser?.roles ?? [];
 
   return (
-    <div className="min-h-dvh overflow-x-hidden bg-[radial-gradient(circle_at_top,_#dbeafe_0,_#eff6ff_28%,_#f8fafc_70%)]">
-      <div className="mx-auto min-h-dvh max-w-md overflow-x-hidden bg-blue-50/30 shadow-2xl shadow-blue-950/5 md:my-3 md:min-h-[calc(100dvh-1.5rem)] md:w-[calc(100%-1.5rem)] md:max-w-none md:rounded-[2rem] xl:w-[calc(100%-2rem)]">
+    <div className="app-backdrop min-h-dvh overflow-x-hidden">
+      <div className="app-frame mx-auto min-h-dvh max-w-md overflow-x-hidden md:my-3 md:min-h-[calc(100dvh-1.5rem)] md:w-[calc(100%-1.5rem)] md:max-w-none md:rounded-[2rem] xl:w-[calc(100%-2rem)]">
         <AppTopBar currentUser={currentUser} />
 
         <div className="px-3 pt-3 pb-28 sm:px-5 md:px-6">
@@ -118,7 +119,7 @@ function MobileGreeting({
     currentUser?.name ?? currentUser?.username ?? 'Pengguna EduFlow';
   const displayRole = getPrimaryRole(currentUser?.roles ?? []).replaceAll('_', ' ');
   return (
-    <div className="mb-3 rounded-[1.5rem] border border-blue-100 bg-white/80 px-4 py-3 shadow-sm shadow-blue-100/60 min-[390px]:hidden">
+    <div className="surface-card mb-3 rounded-[1.5rem] px-4 py-3 min-[390px]:hidden">
       <p className="text-xs font-bold text-muted">Sedang login sebagai</p>
       <p className="mt-1 truncate text-sm font-black text-brand-700">
         Hai, {displayName}
@@ -155,11 +156,11 @@ function AppTopBar({
   const displayRole = getPrimaryRole(currentUser?.roles ?? []).replaceAll('_', ' ');
 
   return (
-    <header className="sticky top-0 z-30 border-b border-blue-100/70 bg-white/85 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 shadow-sm shadow-blue-100/60 backdrop-blur-xl sm:px-6">
+    <header className="app-topbar sticky top-0 z-30 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur-xl sm:px-6">
       <div className="flex items-center justify-between gap-3">
         <Link className="flex items-center gap-3" href="/">
-          <span className="grid size-10 place-items-center rounded-2xl bg-brand-600 text-lg font-black text-white shadow-lg shadow-blue-200">
-            E
+          <span className="brand-mark grid size-10 place-items-center rounded-2xl text-lg font-black text-white">
+            <span>E</span>
           </span>
           <span>
             <span className="block text-base font-black leading-none text-ink">
@@ -171,7 +172,7 @@ function AppTopBar({
           </span>
         </Link>
         <div className="flex min-w-0 items-center gap-2">
-          <div className="hidden min-w-0 rounded-2xl bg-brand-50 px-3 py-2 text-right min-[390px]:block">
+          <div className="user-chip hidden min-w-0 rounded-2xl px-3 py-2 text-right min-[390px]:block">
             <p className="max-w-32 truncate text-xs font-black text-brand-700">
               Hai, {displayName}
             </p>
@@ -179,8 +180,9 @@ function AppTopBar({
               {displayRole}
             </p>
           </div>
+          <ThemeToggle compact />
           <button
-            className="rounded-full border border-blue-100 bg-white px-3 py-2 text-xs font-black text-brand-700 shadow-sm transition hover:bg-brand-50"
+            className="secondary-button rounded-full px-3 py-2 text-xs font-black"
             onClick={() => void handleLogout()}
             type="button"
           >
@@ -212,7 +214,7 @@ function SectionSubMenu({ pathname }: { pathname: string }) {
         return (
           <Link
             className={cn(
-              'shrink-0 rounded-full border px-4 py-2 text-xs font-bold shadow-sm transition',
+              'subnav-pill shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition',
               active
                 ? 'border-brand-600 bg-brand-600 text-white shadow-blue-200'
                 : 'border-blue-100 bg-white text-brand-700 hover:bg-brand-50',
@@ -245,7 +247,7 @@ function BottomNavigation({
       aria-label="Navigasi utama"
       className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] md:w-1/2 md:max-w-none"
     >
-      <div className="mx-auto grid grid-cols-5 gap-1 rounded-[1.75rem] border border-blue-100 bg-white/90 p-2 shadow-2xl shadow-blue-950/15 backdrop-blur-xl">
+      <div className="bottom-nav mx-auto grid grid-cols-5 gap-1 rounded-[1.75rem] p-2 backdrop-blur-xl">
         {primaryNavItems.map((item) => {
           const active =
             pathname.startsWith(item.href) ||
@@ -258,7 +260,7 @@ function BottomNavigation({
               className={cn(
                 'flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-[0.68rem] font-bold transition',
                 active
-                  ? 'bg-brand-600 text-white shadow-lg shadow-blue-200'
+                  ? 'nav-item-active text-white'
                   : 'text-muted hover:bg-brand-50 hover:text-brand-700',
               )}
               href={item.href}
@@ -267,7 +269,7 @@ function BottomNavigation({
               <span className="relative text-lg leading-none">
                 {item.icon}
                 {item.badge === 'notifications' && notificationBadgeCount > 0 ? (
-                  <span className="absolute -top-1 -right-2 size-2.5 rounded-full bg-rose-500 ring-2 ring-white" />
+                  <span className="notification-dot absolute -top-1 -right-2 size-2.5 rounded-full bg-rose-500 ring-2" />
                 ) : null}
               </span>
               <span className="mt-1">{item.label}</span>

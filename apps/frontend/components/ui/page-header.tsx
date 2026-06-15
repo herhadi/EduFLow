@@ -15,10 +15,11 @@ export function PageHeader({
   title: string;
 }) {
   return (
-    <header className="max-w-3xl">
+    <header className="relative max-w-4xl overflow-hidden rounded-[2rem] border border-blue-100/70 bg-white/70 p-5 shadow-sm shadow-blue-100/60 backdrop-blur-xl sm:p-7">
+      <span className="pointer-events-none absolute -top-20 -right-16 size-48 rounded-full bg-blue-400/10 blur-3xl" />
       {showBackLink ? (
         <Link
-          className="inline-flex rounded-full bg-white px-3 py-2 text-xs font-bold text-brand-700 shadow-sm shadow-blue-100 hover:text-brand-600"
+          className="secondary-button relative inline-flex rounded-full px-3 py-2 text-xs font-bold"
           href="/dashboard"
         >
           ← Kembali ke dashboard
@@ -29,7 +30,7 @@ export function PageHeader({
         <p className="text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
           {eyebrow}
         </p>
-        <h1 className="my-2 text-3xl font-black tracking-tight sm:text-5xl">
+        <h1 className="relative my-2 text-3xl font-black tracking-[-0.035em] sm:text-5xl">
           {title}
         </h1>
         <p className="text-sm leading-6 text-slate-600 sm:text-base">

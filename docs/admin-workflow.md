@@ -46,6 +46,10 @@ Halaman `/teacher/schedules` membaca `GET /api/academic/me/schedules`, sehingga 
 
 ## Navigasi Role-Based
 
+### Tema Antarmuka
+
+Frontend menggunakan tema biru modern dengan mode terang dan gelap. Pilihan tema disimpan pada browser melalui key `eduflow-theme`, mengikuti preferensi perangkat ketika pengguna belum memilih, dan diterapkan sebelum halaman dirender untuk mencegah kilatan tema. Komponen baru wajib memakai token global pada `apps/frontend/app/globals.css` atau komponen UI bersama agar konsisten dan tetap terbaca pada dark mode.
+
 Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama sesuai actor yang sedang login:
 
 - `root`: `Admin`, `Ops`, `Audit`, `Notif`, `Profil`.

@@ -24,7 +24,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#2563eb',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f4f7fb' },
+    { media: '(prefers-color-scheme: dark)', color: '#07111f' },
+  ],
   viewportFit: 'cover',
   width: 'device-width',
   initialScale: 1,
@@ -36,7 +39,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id">
+    <html lang="id" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('eduflow-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body>
         <ToastProvider>
           <MobileAppShell>{children}</MobileAppShell>

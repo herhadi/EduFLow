@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ThemeToggle } from '../components/ui/theme-toggle';
 
 const newsItems = [
   {
@@ -30,7 +31,7 @@ const highlights = [
 
 export default function LandingPage() {
   return (
-    <main className="min-h-dvh bg-[radial-gradient(circle_at_top,_#bfdbfe_0,_#eff6ff_34%,_#ffffff_80%)] px-4 py-6">
+    <main className="app-backdrop min-h-dvh px-4 py-6">
       <div className="mx-auto flex min-h-[calc(100dvh-3rem)] max-w-5xl flex-col">
         <header className="flex items-center justify-between gap-4">
           <Link className="flex items-center gap-3" href="/">
@@ -47,12 +48,12 @@ export default function LandingPage() {
             </span>
           </Link>
 
-          <Link
-            className="rounded-full bg-white px-4 py-2 text-sm font-bold text-brand-700 shadow-sm shadow-blue-100 transition hover:bg-brand-50"
-            href="/login"
-          >
-            Masuk
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle compact />
+            <Link className="secondary-button rounded-full px-4 py-2 text-sm font-bold" href="/login">
+              Masuk
+            </Link>
+          </div>
         </header>
 
         <section className="grid flex-1 items-center gap-8 py-10 md:grid-cols-[1.1fr_0.9fr]">
@@ -95,7 +96,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-blue-100 bg-white/85 p-5 shadow-2xl shadow-blue-100 backdrop-blur">
+          <div className="surface-card rounded-[2rem] p-5">
             <div className="rounded-[1.5rem] bg-gradient-to-br from-brand-700 to-brand-600 p-5 text-white">
               <p className="text-sm font-semibold text-blue-100">
                 Informasi Sekolah

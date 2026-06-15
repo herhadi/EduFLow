@@ -6,6 +6,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { saveSession } from '../../lib/session';
 import { PasswordToggleIcon } from '../../components/ui/password-toggle-icon';
+import { ThemeToggle } from '../../components/ui/theme-toggle';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-dvh bg-[radial-gradient(circle_at_top,_#bfdbfe_0,_#eff6ff_34%,_#ffffff_80%)] px-4 py-6">
+    <main className="app-backdrop min-h-dvh px-4 py-6">
       <div className="mx-auto flex min-h-[calc(100dvh-3rem)] max-w-md flex-col justify-center">
         <div className="mb-8 flex items-center justify-between gap-3">
           <Link className="flex items-center gap-3" href="/">
@@ -58,15 +59,15 @@ export default function LoginPage() {
             </span>
           </Link>
 
-          <Link
-            className="shrink-0 rounded-full border border-blue-100 bg-white px-4 py-2 text-xs font-black text-brand-700 shadow-sm shadow-blue-100 transition hover:bg-brand-50"
-            href="/"
-          >
-            ← Landing
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle compact />
+            <Link className="secondary-button shrink-0 rounded-full px-4 py-2 text-xs font-black" href="/">
+              ← Landing
+            </Link>
+          </div>
         </div>
 
-        <section className="rounded-[2rem] border border-blue-100 bg-white/90 p-5 shadow-2xl shadow-blue-100 backdrop-blur">
+        <section className="surface-card rounded-[2rem] p-5 sm:p-7">
           <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
             Login Sistem
           </p>
