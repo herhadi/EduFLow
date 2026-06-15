@@ -35,6 +35,7 @@ export function TeacherScheduleList() {
       })),
     [schedules],
   );
+  const activeDays = schedulesByDay.filter((day) => day.schedules.length > 0);
 
   if (state === 'loading') {
     return <p className="mt-6 rounded-2xl bg-blue-50 p-4 text-sm font-bold text-brand-700">Memuat jadwal Anda...</p>;
@@ -45,29 +46,42 @@ export function TeacherScheduleList() {
   }
 
   return (
-    <section className="mt-6 space-y-4">
-      {schedulesByDay.map((day) => (
-        <article className="rounded-[1.75rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60" key={day.dayOfWeek}>
+    <section className="mt-6">
+      <div className="mb-3 flex items-center justify-between gap-3 px-1">
+        <p className="text-sm font-bold text-muted">Jadwal mengajar mingguan</p>
+        <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">
+          {schedules.length} sesi
+        </span>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      {activeDays.map((day) => (
+        <article className="rounded-[1.5rem] border border-blue-100 bg-white p-3 shadow-sm shadow-blue-100/60 sm:p-4" key={day.dayOfWeek}>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-black text-slate-900">{day.label}</h2>
-            <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">{day.schedules.length} sesi</span>
+            <h2 className="text-sm font-black text-slate-900">{day.label}</h2>
+            <span className="text-[11px] font-black text-muted">{day.schedules.length} sesi</span>
           </div>
-          <div className="mt-3 space-y-2">
+          <div className="mt-2 divide-y divide-slate-100">
             {day.schedules.map((schedule) => (
-              <div className="rounded-2xl bg-slate-50 p-4" key={schedule.id}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-black text-slate-900">{schedule.subject.name}</p>
-                    <p className="mt-1 text-sm font-semibold text-muted">{schedule.class.name}</p>
+              <div className="grid grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-3 py-2.5" key={schedule.id}>
+                  <div className="rounded-xl bg-brand-50 px-2 py-2 text-center">
+                    <p className="text-[11px] font-black text-brand-700">{schedule.startsAt}</p>
+                    <p className="mt-0.5 text-[9px] font-bold text-muted">{schedule.endsAt}</p>
                   </div>
-                  <p className="shrink-0 text-xs font-black text-brand-700">{schedule.startsAt}-{schedule.endsAt}</p>
-                </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black text-slate-900">{schedule.subject.name}</p>
+                    <p className="mt-0.5 truncate text-xs font-semibold text-muted">{schedule.class.name}</p>
+                  </div>
+                  <span className="size-2 rounded-full bg-emerald-500" title="Jadwal aktif" />
               </div>
             ))}
-            {!day.schedules.length ? <p className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-muted">Tidak ada jadwal.</p> : null}
           </div>
         </article>
       ))}
+      {!activeDays.length ? (
+        <p className="rounded-[1.5rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted sm:col-span-2 xl:col-span-3">Belum ada jadwal mengajar.</p>
+      ) : null}
+      </div>
     </section>
   );
 }

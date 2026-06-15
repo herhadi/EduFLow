@@ -55,8 +55,8 @@ export function ScheduleManagement() {
   const [timeSlots, setTimeSlots] = useState<AcademicTimeSlot[]>([]);
   const [form, setForm] = useState<SchedulePayload>(emptyForm);
   const [selectedGrade, setSelectedGrade] = useState('VII');
-  const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
-  const [selectedTimeSlotIds, setSelectedTimeSlotIds] = useState<string[]>([]);
+  const [slotClassIds, setSlotClassIds] = useState<Record<string, string[]>>({});
+  const [expandedTimeSlotIds, setExpandedTimeSlotIds] = useState<string[]>([]);
   const [classTimeSlotActivities, setClassTimeSlotActivities] = useState<ClassTimeSlotActivity[]>([]);
   const [scheduleClassId, setScheduleClassId] = useState('');
   const [canGenerateAgenda, setCanGenerateAgenda] = useState(false);
@@ -110,7 +110,6 @@ export function ScheduleManagement() {
         }));
 
         setSelectedGrade(firstClass?.grade ?? 'VII');
-        setSelectedClassIds(firstClass?.id ? [firstClass.id] : []);
 
         setScheduleClassId(firstClass?.id ?? '');
       }
@@ -127,7 +126,7 @@ export function ScheduleManagement() {
   }, []);
 
   useEffect(() => {
-    if (!form.classId || selectedClassIds.length !== 1) {
+    if (!form.classId) {
       setClassTimeSlotActivities([]);
       return;
     }
@@ -135,7 +134,7 @@ export function ScheduleManagement() {
     void api.getClassTimeSlotActivities(form.classId).then((response) => {
       setClassTimeSlotActivities(response.data);
     });
-  }, [form.classId, selectedClassIds.length]);
+  }, [form.classId]);
 
   const filteredSemesters = useMemo(
     () => semesters.filter((semester) => semester.schoolYearId === form.schoolYearId),
@@ -222,17 +221,23 @@ export function ScheduleManagement() {
         : await api.createBulkSchedules({
             schoolYearId: form.schoolYearId,
             semesterId: form.semesterId,
-            classIds: selectedClassIds,
             subjectId: form.subjectId,
             teacherId: form.teacherId,
-            timeSlotIds: selectedTimeSlotIds,
+            assignments: Object.entries(slotClassIds)
+              .filter(([, classIds]) => classIds.length > 0)
+              .map(([timeSlotId, classIds]) => ({ timeSlotId, classIds })),
           } satisfies BulkSchedulePayload);
 
       setMessage(response.message ?? 'Jadwal berhasil disimpan.');
       setEditingId(null);
-      setForm(emptyForm);
-      setSelectedTimeSlotIds([]);
-      setSelectedClassIds([]);
+      setForm((currentForm) => ({
+        ...currentForm,
+        classId: '',
+        startsAt: '07:00',
+        endsAt: '08:30',
+      }));
+      setSlotClassIds({});
+      setExpandedTimeSlotIds([]);
       await loadData();
       setSubmitState('success');
     } catch (error) {
@@ -259,7 +264,8 @@ export function ScheduleManagement() {
       setMessage(response.message ?? 'Jadwal dinonaktifkan.');
       if (editingId === schedule.id) {
         setEditingId(null);
-        setSelectedTimeSlotIds([]);
+        setSlotClassIds({});
+        setExpandedTimeSlotIds([]);
       }
       await loadData();
     } catch {
@@ -292,9 +298,8 @@ export function ScheduleManagement() {
       startsAt: schedule.startsAt,
       endsAt: schedule.endsAt,
     });
-    setSelectedTimeSlotIds(schedule.timeSlotId ? [schedule.timeSlotId] : []);
     setSelectedGrade(schedule.class.grade ?? 'VII');
-    setSelectedClassIds([schedule.classId]);
+    setSlotClassIds(schedule.timeSlotId ? { [schedule.timeSlotId]: [schedule.classId] } : {});
     setMessage(null);
   }
 
@@ -316,38 +321,37 @@ export function ScheduleManagement() {
     }
   }
 
-  function toggleTimeSlot(slot: AcademicTimeSlot) {
-    if (editingId) {
-      setSelectedTimeSlotIds([slot.id]);
+  function toggleSlotClass(slot: AcademicTimeSlot, classId: string) {
+    setSlotClassIds((current) => {
+      const currentIds = current[slot.id] ?? [];
+      const nextIds = editingId
+        ? [classId]
+        : currentIds.includes(classId)
+          ? currentIds.filter((id) => id !== classId)
+          : [...currentIds, classId];
       setForm((currentForm) => ({
         ...currentForm,
+        classId: nextIds[0] ?? '',
         dayOfWeek: slot.dayOfWeek,
         startsAt: slot.startsAt,
         endsAt: slot.endsAt,
       }));
-      return;
-    }
-
-    setSelectedTimeSlotIds((currentIds) =>
-      currentIds.includes(slot.id)
-        ? currentIds.filter((id) => id !== slot.id)
-        : [...currentIds, slot.id],
-    );
+      return editingId ? { [slot.id]: nextIds } : { ...current, [slot.id]: nextIds };
+    });
   }
 
-  function toggleScheduleClass(classId: string) {
-    if (editingId) {
-      setSelectedClassIds([classId]);
-      setForm((current) => ({ ...current, classId }));
-      return;
-    }
+  function toggleTimeSlotPanel(timeSlotId: string) {
+    setExpandedTimeSlotIds((currentIds) => {
+      if (currentIds.includes(timeSlotId)) {
+        setSlotClassIds((current) => {
+          const next = { ...current };
+          delete next[timeSlotId];
+          return next;
+        });
+        return currentIds.filter((id) => id !== timeSlotId);
+      }
 
-    setSelectedClassIds((currentIds) => {
-      const nextIds = currentIds.includes(classId)
-        ? currentIds.filter((id) => id !== classId)
-        : [...currentIds, classId];
-      setForm((current) => ({ ...current, classId: nextIds[0] ?? '' }));
-      return nextIds;
+      return [...currentIds, timeSlotId];
     });
   }
 
@@ -381,7 +385,8 @@ export function ScheduleManagement() {
                 classId: '',
               }));
               setSelectedGrade(firstClass?.grade ?? 'VII');
-              setSelectedClassIds([]);
+              setSlotClassIds({});
+              setExpandedTimeSlotIds([]);
             }}
             options={schoolYears.map((schoolYear) => ({
               label: schoolYear.name,
@@ -398,9 +403,27 @@ export function ScheduleManagement() {
             }))}
             value={form.semesterId}
           />
+
+          <SelectField
+            label="Guru Pengampu"
+            onChange={(value) => {
+              const [teacherId, subjectId] = value.split(':');
+              setForm({ ...form, teacherId, subjectId });
+            }}
+            options={teacherSubjectOptions}
+            value={
+              form.teacherId && form.subjectId
+                ? `${form.teacherId}:${form.subjectId}`
+                : ''
+            }
+          />
+          <p className="-mt-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs font-semibold leading-5 text-brand-700">
+            Mata pelajaran mengikuti pilihan guru pengampu. Guru dengan dua mapel tampil sebagai dua opsi terpisah.
+          </p>
+
           <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
             <p className="text-sm font-black text-slate-800">Pilih Kelas</p>
-            <p className="mt-1 text-xs font-semibold text-muted">Pilih tingkat, lalu centang satu atau beberapa rombel.</p>
+            <p className="mt-1 text-xs font-semibold text-muted">Pilih tingkat. Rombel A, B, C, dan seterusnya dipilih pada setiap jam.</p>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {availableGrades.map((grade) => (
                 <button
@@ -408,7 +431,8 @@ export function ScheduleManagement() {
                   key={grade}
                   onClick={() => {
                     setSelectedGrade(grade);
-                    setSelectedClassIds([]);
+                    setSlotClassIds({});
+                    setExpandedTimeSlotIds([]);
                     setForm((current) => ({ ...current, classId: '' }));
                   }}
                   type="button"
@@ -417,32 +441,14 @@ export function ScheduleManagement() {
                 </button>
               ))}
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {gradeClasses.map((schoolClass) => {
-                const active = selectedClassIds.includes(schoolClass.id);
-                const rombel = schoolClass.name
-                  .replace(new RegExp(`^${schoolClass.grade ?? ''}`), '')
-                  .replace(/^[\s-]+/, '') || schoolClass.name;
-                return (
-                  <button
-                    className={active ? 'min-w-12 rounded-xl bg-emerald-600 px-3 py-3 text-sm font-black text-white' : 'min-w-12 rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm font-black text-slate-700'}
-                    key={schoolClass.id}
-                    onClick={() => toggleScheduleClass(schoolClass.id)}
-                    type="button"
-                  >
-                    {active ? '✓ ' : ''}{rombel}
-                  </button>
-                );
-              })}
-            </div>
-            {selectedClassIds.length ? <p className="mt-3 text-xs font-black text-emerald-700">{selectedClassIds.length} kelas dipilih</p> : null}
           </div>
           <SelectField
             label="Hari"
             onChange={(value) => {
               const dayOfWeek = Number(value);
               setForm({ ...form, dayOfWeek });
-              setSelectedTimeSlotIds([]);
+              setSlotClassIds({});
+              setExpandedTimeSlotIds([]);
             }}
             options={dayOptions.map((day) => ({
               label: day.label,
@@ -484,45 +490,46 @@ export function ScheduleManagement() {
                   )}
                 </div>
               ) : (
-                <button
-                  className={`flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-xs font-bold ${
-                    selectedTimeSlotIds.includes(slot.id)
-                      ? 'bg-brand-600 text-white'
-                      : slot.isAssignable
-                        ? 'bg-white text-slate-700'
-                        : 'bg-amber-50 text-amber-800'
-                  }`}
-                  disabled={!slot.isAssignable}
-                  key={slot.id}
-                  onClick={() => toggleTimeSlot(slot)}
-                  type="button"
-                >
-                  <span>{slot.name}</span>
-                  <span>{slot.startsAt}-{slot.endsAt}</span>
-                </button>
+                <div className="rounded-xl bg-white p-3" key={slot.id}>
+                  <button
+                    className="flex w-full items-center justify-between gap-3 text-left text-xs font-bold text-slate-700"
+                    disabled={!slot.isAssignable}
+                    onClick={() => toggleTimeSlotPanel(slot.id)}
+                    type="button"
+                  >
+                    <span>{slot.name}</span>
+                    <span className="flex items-center gap-2">
+                      {slot.startsAt}-{slot.endsAt}
+                      <span className="text-brand-700">{expandedTimeSlotIds.includes(slot.id) ? '−' : '+'}</span>
+                    </span>
+                  </button>
+                  {slot.isAssignable && expandedTimeSlotIds.includes(slot.id) ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {gradeClasses.map((schoolClass) => {
+                        const active = (slotClassIds[slot.id] ?? []).includes(schoolClass.id);
+                        const rombel = schoolClass.name
+                          .replace(new RegExp(`^${schoolClass.grade ?? ''}`), '')
+                          .replace(/^[\s-]+/, '') || schoolClass.name;
+                        return (
+                          <button
+                            className={active ? 'min-w-11 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-black text-white' : 'min-w-11 rounded-lg border border-blue-100 bg-blue-50/50 px-3 py-2 text-xs font-black text-slate-700'}
+                            key={schoolClass.id}
+                            onClick={() => toggleSlotClass(slot, schoolClass.id)}
+                            type="button"
+                          >
+                            {active ? '✓ ' : ''}{rombel}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
               ))}
             </div>
             <p className="mt-3 text-xs font-semibold text-brand-700">
-              Klik satu atau beberapa jam untuk guru dan mata pelajaran yang sama.
+              Klik jam yang digunakan, lalu pilih rombel kelasnya.
             </p>
           </div>
-
-          <SelectField
-            label="Guru Pengampu"
-            onChange={(value) => {
-              const [teacherId, subjectId] = value.split(':');
-              setForm({ ...form, teacherId, subjectId });
-            }}
-            options={teacherSubjectOptions}
-            value={
-              form.teacherId && form.subjectId
-                ? `${form.teacherId}:${form.subjectId}`
-                : ''
-            }
-          />
-          <p className="-mt-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs font-semibold leading-5 text-brand-700">
-            Mata pelajaran mengikuti pilihan guru pengampu. Guru dengan dua mapel tampil sebagai dua opsi terpisah.
-          </p>
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
@@ -532,8 +539,7 @@ export function ScheduleManagement() {
               submitState === 'loading' ||
               !form.teacherId ||
               !form.subjectId ||
-              selectedClassIds.length === 0 ||
-              selectedTimeSlotIds.length === 0 ||
+              Object.values(slotClassIds).every((classIds) => classIds.length === 0) ||
               !form.semesterId
             }
             type="submit"

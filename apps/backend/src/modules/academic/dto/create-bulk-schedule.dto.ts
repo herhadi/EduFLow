@@ -1,8 +1,15 @@
-import {
-  ArrayNotEmpty,
-  IsArray,
-  IsUUID,
-} from 'class-validator';
+import { Type } from 'class-transformer';
+import { ArrayNotEmpty, IsArray, IsUUID, ValidateNested } from 'class-validator';
+
+class ScheduleAssignmentDto {
+  @IsUUID()
+  timeSlotId!: string;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID('4', { each: true })
+  classIds!: string[];
+}
 
 export class CreateBulkScheduleDto {
   @IsUUID()
@@ -10,11 +17,6 @@ export class CreateBulkScheduleDto {
 
   @IsUUID()
   semesterId!: string;
-
-  @IsArray()
-  @ArrayNotEmpty()
-  @IsUUID('4', { each: true })
-  classIds!: string[];
 
   @IsUUID()
   subjectId!: string;
@@ -24,6 +26,7 @@ export class CreateBulkScheduleDto {
 
   @IsArray()
   @ArrayNotEmpty()
-  @IsUUID('4', { each: true })
-  timeSlotIds!: string[];
+  @ValidateNested({ each: true })
+  @Type(() => ScheduleAssignmentDto)
+  assignments!: ScheduleAssignmentDto[];
 }

@@ -356,6 +356,7 @@ model Teacher {
   email           String?          @unique
   phone           String?
   telegramId      String?
+  photoUrl        String?
   isActive        Boolean          @default(true)
   schedules       Schedule[]
   agendas         DailyAgenda[]

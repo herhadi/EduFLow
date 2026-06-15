@@ -5,6 +5,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { getPrimaryRole, type UserRole } from '../lib/navigation.config';
 import { OperationalDashboard } from './operational-dashboard';
 import { PageHeader } from './ui/page-header';
+import { UserAvatar } from './ui/user-avatar';
 
 type CurrentUser = {
   name?: string;
@@ -15,6 +16,7 @@ type CurrentUser = {
 export function RoleDashboard() {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
+  const [teacherPhotoUrl, setTeacherPhotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
@@ -27,6 +29,9 @@ export function RoleDashboard() {
       const user = JSON.parse(storedUser) as CurrentUser;
       setCurrentUser(user);
       setRole(getPrimaryRole(user.roles ?? []));
+      if (user.roles?.some((roleName) => roleName === 'guru' || roleName === 'wali_kelas')) {
+        void import('../lib/api').then(({ api }) => api.getMyTeacherProfile()).then((response) => setTeacherPhotoUrl(response.data.photoUrl ?? null)).catch(() => undefined);
+      }
     } catch {
       localStorage.removeItem('currentUser');
     }
@@ -45,6 +50,7 @@ export function RoleDashboard() {
       <TeacherHome
         currentUser={currentUser}
         isHomeroom={currentUser?.roles?.includes('wali_kelas') ?? false}
+        photoUrl={teacherPhotoUrl}
       />
     );
   }
@@ -129,15 +135,26 @@ function PrincipalHome({ currentUser }: { currentUser: CurrentUser | null }) {
 function TeacherHome({
   currentUser,
   isHomeroom,
+  photoUrl,
 }: {
   currentUser: CurrentUser | null;
   isHomeroom: boolean;
+  photoUrl?: string | null;
 }) {
   const displayName = currentUser?.name ?? currentUser?.username ?? 'Guru';
 
   return (
     <>
-      <RoleHero description="Lihat jadwal pribadi, buka presensi, dan selesaikan pekerjaan akademik yang menjadi tanggung jawab Anda." eyebrow={isHomeroom ? 'Guru & Wali Kelas' : 'Guru'} title={`Halo, ${displayName}`} />
+      <section className="page-hero relative w-full overflow-hidden rounded-[2rem] border border-blue-100/70 p-5 shadow-sm shadow-blue-100/60 sm:p-7">
+        <div className="flex items-center gap-4 sm:gap-5">
+          <UserAvatar className="size-20 sm:size-24" name={displayName} photoUrl={photoUrl} />
+          <div className="min-w-0">
+            <p className="text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">{isHomeroom ? 'Guru & Wali Kelas' : 'Guru'}</p>
+            <h1 className="mt-2 truncate text-2xl font-black tracking-tight sm:text-4xl">Halo, {displayName}</h1>
+            <p className="mt-2 text-sm leading-6 text-muted">Lihat jadwal pribadi, buka presensi, dan selesaikan pekerjaan akademik Anda.</p>
+          </div>
+        </div>
+      </section>
 
       <section className="mt-7 space-y-4">
         <div className="rounded-[2rem] bg-gradient-to-br from-brand-700 via-brand-600 to-blue-500 p-5 text-white shadow-xl shadow-blue-200 sm:p-7">

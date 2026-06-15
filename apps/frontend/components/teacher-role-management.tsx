@@ -57,6 +57,7 @@ export function TeacherRoleManagement() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [identity, setIdentity] = useState({ name: '', nip: '', nuptk: '', phone: '', email: '', telegramId: '', photoUrl: '' });
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [message, setMessage] = useState('');
@@ -119,6 +120,15 @@ export function TeacherRoleManagement() {
     setUsername(selectedTeacher.user?.username ?? toUsername(selectedTeacher.name));
     setEmail(selectedTeacher.user?.email ?? selectedTeacher.email ?? '');
     setPassword('');
+    setIdentity({
+      name: selectedTeacher.name,
+      nip: selectedTeacher.nip ?? '',
+      nuptk: selectedTeacher.nuptk ?? '',
+      phone: selectedTeacher.phone ?? '',
+      email: selectedTeacher.email ?? '',
+      telegramId: selectedTeacher.telegramId ?? '',
+      photoUrl: selectedTeacher.photoUrl ?? '',
+    });
     setSelectedRoles(
       selectedTeacher.user?.roles.map(({ role }) => role.name) ?? ['guru'],
     );
@@ -205,6 +215,15 @@ export function TeacherRoleManagement() {
     setMessage('');
 
     try {
+      await api.updateTeacher(selectedTeacher.id, {
+        name: identity.name,
+        nip: identity.nip || undefined,
+        nuptk: identity.nuptk || undefined,
+        phone: identity.phone || undefined,
+        email: identity.email || undefined,
+        telegramId: identity.telegramId || undefined,
+        photoUrl: identity.photoUrl || undefined,
+      });
       await api.configureTeacherAccount(selectedTeacher.id, {
         username,
         email: email || undefined,
@@ -424,6 +443,32 @@ export function TeacherRoleManagement() {
                 <p className="mt-1 text-xs font-semibold text-muted">
                   NIP: {selectedTeacher.nip ?? '-'} · HP: {selectedTeacher.phone ?? '-'}
                 </p>
+              </div>
+
+              <div>
+                <p className="text-sm font-black text-slate-800">Identitas Guru</p>
+                <p className="mt-1 text-xs font-semibold text-muted">Lengkapi atau koreksi data hasil import sebelum mengatur akun dan jadwal.</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {[
+                    ['name', 'Nama Lengkap'],
+                    ['nip', 'NIP'],
+                    ['nuptk', 'NUPTK'],
+                    ['phone', 'Nomor HP'],
+                    ['email', 'Email Guru'],
+                    ['telegramId', 'Telegram ID'],
+                    ['photoUrl', 'URL Foto'],
+                  ].map(([field, label]) => (
+                    <label className={`grid gap-2 text-sm font-bold text-slate-700 ${field === 'photoUrl' ? 'sm:col-span-2' : ''}`} key={field}>
+                      {label}
+                      <input
+                        className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600"
+                        onChange={(event) => setIdentity((current) => ({ ...current, [field]: event.target.value }))}
+                        type={field === 'email' ? 'email' : field === 'photoUrl' ? 'url' : 'text'}
+                        value={identity[field as keyof typeof identity]}
+                      />
+                    </label>
+                  ))}
+                </div>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">

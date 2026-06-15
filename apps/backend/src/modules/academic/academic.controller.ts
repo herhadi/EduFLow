@@ -8,6 +8,8 @@ import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto'
 import { CreateAcademicTimeSlotDto } from './dto/create-academic-time-slot.dto';
 import { CreateBulkScheduleDto } from './dto/create-bulk-schedule.dto';
 import { UpdateClassTimeSlotActivityDto } from './dto/update-class-time-slot-activity.dto';
+import { UpdateMyTeacherProfileDto } from './dto/update-my-teacher-profile.dto';
+import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateClassDto } from './dto/create-class.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { CreateSubjectDto } from './dto/create-subject.dto';
@@ -91,6 +93,12 @@ export class AcademicController {
   }
 
   @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Patch('teachers/:id')
+  updateTeacher(@Param('id') id: string, @Body() dto: UpdateTeacherDto) {
+    return this.academicService.updateTeacher(id, dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
   @Patch('teachers/:id/account')
   configureTeacherAccount(
     @Param('id') id: string,
@@ -168,6 +176,19 @@ export class AcademicController {
   @Get('me/subjects')
   getMySubjects(@Req() request: RequestWithUser) {
     return this.academicService.getMySubjects(request.user.id);
+  }
+
+  @Get('me/profile')
+  getMyTeacherProfile(@Req() request: RequestWithUser) {
+    return this.academicService.getMyTeacherProfile(request.user.id);
+  }
+
+  @Patch('me/profile')
+  updateMyTeacherProfile(
+    @Req() request: RequestWithUser,
+    @Body() dto: UpdateMyTeacherProfileDto,
+  ) {
+    return this.academicService.updateMyTeacherProfile(request.user.id, dto);
   }
 
   @Get('me/agendas')

@@ -13,13 +13,15 @@ Jeda pertama selalu `Istirahat`. Khusus jeda kedua tersedia pilihan per kelas: `
 Urutan setup jadwal:
 
 1. Pilih tahun ajaran dan semester.
-2. Pilih tingkat kelas (`VII`, `VIII`, atau `IX`), lalu pilih satu atau beberapa rombel seperti `A`, `B`, `C`, dan `D`.
-3. Pilih hari.
-4. Pilih jam pelajaran dari template waktu sekolah.
-5. Pilih guru pengampu. Nama mata pelajaran melekat pada opsi guru, misalnya `Guru A · PPKn`.
+2. Pilih guru pengampu. Nama mata pelajaran melekat pada opsi guru, misalnya `Guru A · PPKn`.
+3. Pilih tingkat kelas (`VII`, `VIII`, atau `IX`).
+4. Pilih hari.
+5. Klik jam pelajaran yang digunakan agar pilihan rombel terbuka, lalu pilih kelas seperti `A`, `B`, `C`, atau `D`. Jam yang tidak digunakan tetap tertutup dan tidak disimpan.
 6. Simpan jadwal.
 
-Jika seorang guru mengampu IPA kelas VII-A sampai VII-D, operator dapat memilih tingkat VII lalu mengaktifkan rombel A, B, C, dan D dalam satu penyimpanan. Jika seorang guru mengampu dua mata pelajaran, guru tersebut tampil sebagai dua opsi berbeda. Backend tetap menolak bentrok kelas maupun bentrok jam mengajar guru.
+Jika seorang guru mengampu IPA tingkat VII, operator dapat menetapkan jam ke-2 untuk VII-A, jam ke-3 untuk VII-B, dan jam ke-4 untuk VII-C serta VII-D dalam satu penyimpanan. Setiap slot membawa daftar rombelnya sendiri sehingga tidak terjadi kombinasi silang. Jika seorang guru mengampu dua mata pelajaran, guru tersebut tampil sebagai dua opsi berbeda. Backend tetap menolak bentrok kelas maupun bentrok jam mengajar guru.
+
+Setelah jadwal disimpan, form mempertahankan tahun ajaran, semester, guru/mapel, tingkat, dan hari yang sedang dikerjakan. Sistem hanya mengosongkan pilihan jam dan rombel agar operator dapat melanjutkan penyusunan jadwal guru tersebut tanpa memilih ulang konteks awal.
 
 Jadwal pelajaran memakai `AcademicTimeSlot` sebagai template jam sekolah. Operator memilih hari dan jam pelajaran yang sudah disiapkan, bukan mengetik waktu bebas. Setelah itu operator memilih guru, mapel, tingkat, dan rombel.
 
@@ -30,6 +32,8 @@ Slot terikat pada tahun ajaran sehingga sekolah dapat mengubah susunan jam untuk
 ## Route Admin
 
 Pada `/admin/guru`, operator dapat menambahkan data guru baru langsung dari panel `Pilih Guru`. Setelah dibuat, guru otomatis terpilih untuk dilanjutkan ke pengaturan akun login, role, mata pelajaran, dan wali kelas.
+
+Data guru hasil import dapat dilengkapi dari kartu `Guru Terpilih` pada `/admin/guru`. Operator dapat mengedit nama, NIP, NUPTK, nomor HP, email, Telegram ID, dan URL foto, kemudian menyimpan bersamaan dengan pengaturan akun guru.
 
 Semua daftar dan dropdown kelas wajib memakai helper `sortSchoolClasses` dari `@eduflow/shared`. Urutan standar adalah tingkat VII, VIII, IX, kemudian rombel A, B, C, dan seterusnya. Jangan membuat sorting kelas lokal di masing-masing komponen.
 
@@ -49,6 +53,8 @@ Halaman `/teacher/schedules` membaca `GET /api/academic/me/schedules`, sehingga 
 ### Tema Antarmuka
 
 Frontend menggunakan tema biru modern dengan mode terang dan gelap. Pilihan tema disimpan pada browser melalui key `eduflow-theme`, mengikuti preferensi perangkat ketika pengguna belum memilih, dan diterapkan sebelum halaman dirender untuk mencegah kilatan tema. Komponen baru wajib memakai token global pada `apps/frontend/app/globals.css` atau komponen UI bersama agar konsisten dan tetap terbaca pada dark mode.
+
+Hero/card utama halaman memakai lebar penuh container dan token `page-hero` agar kontras pada mode terang maupun gelap. Profil guru dapat menyimpan `Teacher.photoUrl`; foto tersebut tampil pada beranda guru dan halaman profil, dengan fallback inisial jika belum tersedia.
 
 Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama sesuai actor yang sedang login:
 

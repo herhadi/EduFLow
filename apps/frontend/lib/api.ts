@@ -32,6 +32,7 @@ export interface Teacher {
   email?: string | null;
   phone?: string | null;
   telegramId?: string | null;
+  photoUrl?: string | null;
   isActive?: boolean;
   user?: {
     id: string;
@@ -382,10 +383,9 @@ export interface SchedulePayload {
 export interface BulkSchedulePayload {
   schoolYearId: string;
   semesterId: string;
-  classIds: string[];
   subjectId: string;
   teacherId: string;
-  timeSlotIds: string[];
+  assignments: Array<{ timeSlotId: string; classIds: string[] }>;
 }
 
 export interface AttendanceDemoResult {
@@ -606,6 +606,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  updateTeacher: (id: string, payload: Partial<Pick<Teacher, 'name' | 'nip' | 'nuptk' | 'phone' | 'email' | 'telegramId' | 'photoUrl'>>) =>
+    request<ApiResponse<Teacher>>(`/academic/teachers/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
   configureTeacherAccount: (
     id: string,
     payload: {
@@ -642,6 +647,12 @@ export const api = {
   getMySchedules: () =>
     request<ApiResponse<Schedule[]>>('/academic/me/schedules'),
   getMySubjects: () => request<ApiResponse<Subject[]>>('/academic/me/subjects'),
+  getMyTeacherProfile: () => request<ApiResponse<Teacher>>('/academic/me/profile'),
+  updateMyTeacherProfile: (photoUrl?: string) =>
+    request<ApiResponse<Teacher>>('/academic/me/profile', {
+      method: 'PATCH',
+      body: JSON.stringify({ photoUrl: photoUrl || undefined }),
+    }),
   getMyTeachingPlans: () => request<ApiResponse<TeachingPlan[]>>('/academic-planning/mine'),
   createTeachingPlan: (payload: { subjectId: string; schoolYearId: string; semesterId?: string; type: TeachingPlanType; title: string; description?: string; attachmentUrl?: string }) =>
     request<ApiResponse<TeachingPlan>>('/academic-planning', { method: 'POST', body: JSON.stringify(payload) }),
