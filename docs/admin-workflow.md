@@ -53,9 +53,9 @@ Frontend menggunakan tema biru modern dengan mode terang dan gelap. Pilihan tema
 Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama sesuai actor yang sedang login:
 
 - `root`: `Admin`, `Ops`, `Audit`, `Notif`, `Profil`.
-- `operator_sekolah`: `Home`, `Admin`, `Setup`, `Notif`, `Profil`.
-- `kepala_sekolah`: `Home`, `Guru`, `Report`, `Notif`, `Profil`.
-- `guru` dan `wali_kelas`: `Hari Ini`, `Jadwal Saya`, `Presensi`, `Notif`, `Profil`.
+- `operator_sekolah`: `Beranda`, `Data`, `Jadwal`, `Notif`, `Profil`.
+- `kepala_sekolah`: `Beranda`, `Review`, `Performa`, `Notif`, `Profil`.
+- `guru` dan `wali_kelas`: `Hari Ini`, `Jadwal`, `Presensi`, `Notif`, `Profil`.
 - `tu`: `Data`, `Import`, `Report`, `Notif`, `Profil`.
 - `bk`: `Home`, `Siswa`, `Laporan`, `Notif`, `Profil`.
 - `orang_tua`: `Anak`, `Notif`, `Riwayat`, `Info`, `Profil`.
@@ -77,6 +77,12 @@ Top navigation adalah submenu dari menu utama aktif. Contoh:
 - Saat berada di area `Profil`: `Profil`, `Notifikasi`.
 
 Konfigurasi navigasi global berada di `apps/frontend/lib/navigation.config.ts`.
+
+Dashboard `/dashboard` wajib menampilkan information architecture sesuai actor:
+
+- Operator Sekolah melihat akses cepat penyusunan jadwal, pengelolaan guru, data akademik, import, akun, notifikasi, audit, dan laporan.
+- Guru melihat agenda hari ini, jadwal pribadi, presensi, perangkat ajar, penilaian, notifikasi, serta kelas binaan jika menjadi wali kelas.
+- Kepala Sekolah melihat pusat review, inbox keputusan, performa guru, laporan sekolah, dan jejak aktivitas supervisi.
 
 Catatan jadwal:
 

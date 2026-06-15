@@ -24,24 +24,24 @@ const rootNavigation: NavigationItem[] = [
 ];
 
 const operatorNavigation: NavigationItem[] = [
-  { href: '/dashboard', label: 'Home', icon: '⌂' },
-  { href: '/admin', label: 'Admin', icon: '⚙' },
-  { href: '/schedules', label: 'Setup', icon: '◷' },
+  { href: '/dashboard', label: 'Beranda', icon: '⌂' },
+  { href: '/admin', label: 'Data', icon: '☷' },
+  { href: '/schedules', label: 'Jadwal', icon: '◷' },
   { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
   { href: '/profile', label: 'Profil', icon: '◎' },
 ];
 
 const principalNavigation: NavigationItem[] = [
-  { href: '/dashboard', label: 'Ringkasan', icon: '⌂' },
+  { href: '/dashboard', label: 'Beranda', icon: '⌂' },
   { href: '/principal/review', label: 'Review', icon: '✓' },
-  { href: '/teacher-performance', label: 'Guru', icon: '◎' },
+  { href: '/teacher-performance', label: 'Performa', icon: '◈' },
   { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
   { href: '/profile', label: 'Profil', icon: '◎' },
 ];
 
 const teacherNavigation: NavigationItem[] = [
   { href: '/dashboard', label: 'Hari Ini', icon: '⌂' },
-  { href: '/teacher/schedules', label: 'Jadwal Saya', icon: '◷' },
+  { href: '/teacher/schedules', label: 'Jadwal', icon: '◷' },
   { href: '/teacher/attendance', label: 'Presensi', icon: '✓' },
   { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
   { href: '/profile', label: 'Profil', icon: '◎' },
