@@ -167,14 +167,6 @@
     line-height: 1;
   }
 
-  .subnav-pill {
-    border-color: var(--border);
-    background: var(--surface);
-    color: var(--primary-strong);
-    box-shadow: var(--shadow-soft);
-    backdrop-filter: blur(14px);
-  }
-
   .bottom-nav {
     border: 1px solid var(--border);
     background: color-mix(in srgb, var(--surface-solid) 86%, transparent);

@@ -6,7 +6,7 @@ import { AcademicPlanningService } from './academic-planning.service';
 import { CreateTeachingPlanDto } from './dto/create-teaching-plan.dto';
 import { ReviewTeachingPlanDto } from './dto/review-teaching-plan.dto';
 
-@Controller('api/academic-planning')
+@Controller('academic-planning')
 export class AcademicPlanningController {
   constructor(private readonly service: AcademicPlanningService) {}
 

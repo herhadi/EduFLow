@@ -15,7 +15,6 @@ import {
   getPrimaryNavigation,
   getPrimaryRole,
   getSectionFromPath,
-  getSubNavigation,
 } from '../lib/navigation.config';
 
 export function MobileAppShell({ children }: { children: ReactNode }) {
@@ -96,7 +95,6 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
 
         <div className="px-3 pt-3 pb-28 sm:px-5 md:px-6">
           <MobileGreeting currentUser={currentUser} />
-          <SectionSubMenu pathname={pathname} />
           <div className="mobile-app-content min-w-0">{children}</div>
         </div>
 
@@ -191,42 +189,6 @@ function AppTopBar({
         </div>
       </div>
     </header>
-  );
-}
-
-function SectionSubMenu({ pathname }: { pathname: string }) {
-  const subNavigation = getSubNavigation(pathname);
-
-  if (!subNavigation.length) {
-    return null;
-  }
-
-  return (
-    <nav
-      aria-label="Sub menu"
-      className="no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:-mx-5 sm:px-5 md:-mx-6 md:px-6"
-    >
-      {subNavigation.map((item) => {
-        const active =
-          pathname === item.href ||
-          (item.href !== '/admin' && pathname.startsWith(`${item.href}/`));
-
-        return (
-          <Link
-            className={cn(
-              'subnav-pill shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition',
-              active
-                ? 'border-brand-600 bg-brand-600 text-white shadow-blue-200'
-                : 'border-blue-100 bg-white text-brand-700 hover:bg-brand-50',
-            )}
-            href={item.href}
-            key={item.href}
-          >
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
   );
 }
 

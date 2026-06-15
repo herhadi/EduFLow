@@ -68,13 +68,7 @@ Item `Notif` memiliki badge/dot jika ada notifikasi `PENDING` atau `FAILED`.
 
 `Admin` pada bottom navigation berarti pekerjaan `operator_sekolah` sebagai admin operasional akademik, bukan root teknis.
 
-Top navigation adalah submenu dari menu utama aktif. Contoh:
-
-- Saat berada di area `Admin`: `Guru`, `Akademik`, `Akses`, `Import`, `Audit`.
-- Saat berada di area `Setup Jadwal`: `Setup Jadwal`, `Mapel Guru`, `Kelas & Mapel`.
-- Saat berada di area `Ops`: `Health`, `Notifikasi`, `Audit`.
-- Saat berada di area `Report`: `Export`, `Performa Guru`, `Parent Portal`.
-- Saat berada di area `Profil`: `Profil`, `Notifikasi`.
+Top submenu berbentuk deretan tombol dihapus karena menduplikasi bottom navigation dan akses cepat pada dashboard. Perpindahan fitur dilakukan melalui bottom navigation sesuai role dan kartu menu pada halaman beranda masing-masing actor.
 
 Konfigurasi navigasi global berada di `apps/frontend/lib/navigation.config.ts`.
 
