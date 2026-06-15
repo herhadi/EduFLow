@@ -165,6 +165,11 @@ export class AcademicController {
     return this.academicService.getMySchedules(request.user.id);
   }
 
+  @Get('me/subjects')
+  getMySubjects(@Req() request: RequestWithUser) {
+    return this.academicService.getMySubjects(request.user.id);
+  }
+
   @Get('me/agendas')
   getMyAgendas(
     @Req() request: RequestWithUser,

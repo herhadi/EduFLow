@@ -54,6 +54,8 @@ export function ScheduleManagement() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [timeSlots, setTimeSlots] = useState<AcademicTimeSlot[]>([]);
   const [form, setForm] = useState<SchedulePayload>(emptyForm);
+  const [selectedGrade, setSelectedGrade] = useState('VII');
+  const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
   const [selectedTimeSlotIds, setSelectedTimeSlotIds] = useState<string[]>([]);
   const [classTimeSlotActivities, setClassTimeSlotActivities] = useState<ClassTimeSlotActivity[]>([]);
   const [scheduleClassId, setScheduleClassId] = useState('');
@@ -107,6 +109,9 @@ export function ScheduleManagement() {
           teacherId: firstTeacher?.id ?? '',
         }));
 
+        setSelectedGrade(firstClass?.grade ?? 'VII');
+        setSelectedClassIds(firstClass?.id ? [firstClass.id] : []);
+
         setScheduleClassId(firstClass?.id ?? '');
       }
     } catch {
@@ -122,7 +127,7 @@ export function ScheduleManagement() {
   }, []);
 
   useEffect(() => {
-    if (!form.classId) {
+    if (!form.classId || selectedClassIds.length !== 1) {
       setClassTimeSlotActivities([]);
       return;
     }
@@ -130,7 +135,7 @@ export function ScheduleManagement() {
     void api.getClassTimeSlotActivities(form.classId).then((response) => {
       setClassTimeSlotActivities(response.data);
     });
-  }, [form.classId]);
+  }, [form.classId, selectedClassIds.length]);
 
   const filteredSemesters = useMemo(
     () => semesters.filter((semester) => semester.schoolYearId === form.schoolYearId),
@@ -143,6 +148,16 @@ export function ScheduleManagement() {
         classes.filter((schoolClass) => schoolClass.schoolYearId === form.schoolYearId),
       ),
     [classes, form.schoolYearId],
+  );
+
+  const availableGrades = useMemo(
+    () => [...new Set(filteredClasses.map((schoolClass) => schoolClass.grade).filter(Boolean))] as string[],
+    [filteredClasses],
+  );
+
+  const gradeClasses = useMemo(
+    () => filteredClasses.filter((schoolClass) => schoolClass.grade === selectedGrade),
+    [filteredClasses, selectedGrade],
   );
 
   const teacherSubjectOptions = useMemo(
@@ -207,7 +222,7 @@ export function ScheduleManagement() {
         : await api.createBulkSchedules({
             schoolYearId: form.schoolYearId,
             semesterId: form.semesterId,
-            classIds: [form.classId],
+            classIds: selectedClassIds,
             subjectId: form.subjectId,
             teacherId: form.teacherId,
             timeSlotIds: selectedTimeSlotIds,
@@ -217,6 +232,7 @@ export function ScheduleManagement() {
       setEditingId(null);
       setForm(emptyForm);
       setSelectedTimeSlotIds([]);
+      setSelectedClassIds([]);
       await loadData();
       setSubmitState('success');
     } catch (error) {
@@ -277,6 +293,8 @@ export function ScheduleManagement() {
       endsAt: schedule.endsAt,
     });
     setSelectedTimeSlotIds(schedule.timeSlotId ? [schedule.timeSlotId] : []);
+    setSelectedGrade(schedule.class.grade ?? 'VII');
+    setSelectedClassIds([schedule.classId]);
     setMessage(null);
   }
 
@@ -317,6 +335,22 @@ export function ScheduleManagement() {
     );
   }
 
+  function toggleScheduleClass(classId: string) {
+    if (editingId) {
+      setSelectedClassIds([classId]);
+      setForm((current) => ({ ...current, classId }));
+      return;
+    }
+
+    setSelectedClassIds((currentIds) => {
+      const nextIds = currentIds.includes(classId)
+        ? currentIds.filter((id) => id !== classId)
+        : [...currentIds, classId];
+      setForm((current) => ({ ...current, classId: nextIds[0] ?? '' }));
+      return nextIds;
+    });
+  }
+
   return (
     <section className="mt-10 grid gap-6 xl:grid-cols-[420px_1fr]">
       <form
@@ -335,17 +369,20 @@ export function ScheduleManagement() {
         <div className="mt-6 grid gap-4">
           <SelectField
             label="Tahun Ajaran"
-            onChange={(value) =>
+            onChange={(value) => {
+              const firstClass = classes.find(
+                (schoolClass) => schoolClass.schoolYearId === value,
+              );
               setForm((currentForm) => ({
                 ...currentForm,
                 schoolYearId: value,
                 semesterId:
                   semesters.find((semester) => semester.schoolYearId === value)?.id ?? '',
-                classId:
-                  classes.find((schoolClass) => schoolClass.schoolYearId === value)?.id ??
-                  '',
-              }))
-            }
+                classId: '',
+              }));
+              setSelectedGrade(firstClass?.grade ?? 'VII');
+              setSelectedClassIds([]);
+            }}
             options={schoolYears.map((schoolYear) => ({
               label: schoolYear.name,
               value: schoolYear.id,
@@ -361,17 +398,45 @@ export function ScheduleManagement() {
             }))}
             value={form.semesterId}
           />
-          <SelectField
-            label="Kelas"
-            onChange={(value) => {
-              setForm({ ...form, classId: value });
-            }}
-            options={filteredClasses.map((schoolClass) => ({
-              label: schoolClass.name,
-              value: schoolClass.id,
-            }))}
-            value={form.classId}
-          />
+          <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+            <p className="text-sm font-black text-slate-800">Pilih Kelas</p>
+            <p className="mt-1 text-xs font-semibold text-muted">Pilih tingkat, lalu centang satu atau beberapa rombel.</p>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {availableGrades.map((grade) => (
+                <button
+                  className={selectedGrade === grade ? 'rounded-xl bg-brand-600 px-3 py-3 text-sm font-black text-white' : 'rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm font-black text-brand-700'}
+                  key={grade}
+                  onClick={() => {
+                    setSelectedGrade(grade);
+                    setSelectedClassIds([]);
+                    setForm((current) => ({ ...current, classId: '' }));
+                  }}
+                  type="button"
+                >
+                  {grade}
+                </button>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {gradeClasses.map((schoolClass) => {
+                const active = selectedClassIds.includes(schoolClass.id);
+                const rombel = schoolClass.name
+                  .replace(new RegExp(`^${schoolClass.grade ?? ''}`), '')
+                  .replace(/^[\s-]+/, '') || schoolClass.name;
+                return (
+                  <button
+                    className={active ? 'min-w-12 rounded-xl bg-emerald-600 px-3 py-3 text-sm font-black text-white' : 'min-w-12 rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm font-black text-slate-700'}
+                    key={schoolClass.id}
+                    onClick={() => toggleScheduleClass(schoolClass.id)}
+                    type="button"
+                  >
+                    {active ? '✓ ' : ''}{rombel}
+                  </button>
+                );
+              })}
+            </div>
+            {selectedClassIds.length ? <p className="mt-3 text-xs font-black text-emerald-700">{selectedClassIds.length} kelas dipilih</p> : null}
+          </div>
           <SelectField
             label="Hari"
             onChange={(value) => {
@@ -467,7 +532,7 @@ export function ScheduleManagement() {
               submitState === 'loading' ||
               !form.teacherId ||
               !form.subjectId ||
-              !form.classId ||
+              selectedClassIds.length === 0 ||
               selectedTimeSlotIds.length === 0 ||
               !form.semesterId
             }

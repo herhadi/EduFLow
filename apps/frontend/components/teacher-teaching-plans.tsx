@@ -26,7 +26,7 @@ export function TeacherTeachingPlans() {
     setLoading(true);
     try {
       const [planResponse, subjectResponse, schoolYearResponse, semesterResponse] = await Promise.all([
-        api.getMyTeachingPlans(), api.getSubjects(), api.getSchoolYears(), api.getSemesters(),
+        api.getMyTeachingPlans(), api.getMySubjects(), api.getSchoolYears(), api.getSemesters(),
       ]);
       setPlans(planResponse.data);
       setSubjects(subjectResponse.data);

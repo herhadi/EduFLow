@@ -13,13 +13,13 @@ Jeda pertama selalu `Istirahat`. Khusus jeda kedua tersedia pilihan per kelas: `
 Urutan setup jadwal:
 
 1. Pilih tahun ajaran dan semester.
-2. Pilih satu kelas, misalnya `VII-A`.
+2. Pilih tingkat kelas (`VII`, `VIII`, atau `IX`), lalu pilih satu atau beberapa rombel seperti `A`, `B`, `C`, dan `D`.
 3. Pilih hari.
 4. Pilih jam pelajaran dari template waktu sekolah.
 5. Pilih guru pengampu. Nama mata pelajaran melekat pada opsi guru, misalnya `Guru A · PPKn`.
 6. Simpan jadwal.
 
-Jika seorang guru mengampu dua mata pelajaran, guru tersebut tampil sebagai dua opsi berbeda. Backend tetap menolak bentrok kelas maupun bentrok jam mengajar guru.
+Jika seorang guru mengampu IPA kelas VII-A sampai VII-D, operator dapat memilih tingkat VII lalu mengaktifkan rombel A, B, C, dan D dalam satu penyimpanan. Jika seorang guru mengampu dua mata pelajaran, guru tersebut tampil sebagai dua opsi berbeda. Backend tetap menolak bentrok kelas maupun bentrok jam mengajar guru.
 
 Jadwal pelajaran memakai `AcademicTimeSlot` sebagai template jam sekolah. Operator memilih hari dan jam pelajaran yang sudah disiapkan, bukan mengetik waktu bebas. Setelah itu operator memilih guru, mapel, tingkat, dan rombel.
 

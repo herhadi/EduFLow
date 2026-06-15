@@ -691,6 +691,21 @@ export class AcademicService {
     };
   }
 
+  async getMySubjects(userId: string) {
+    const teacher = await this.getTeacherAccount(userId);
+
+    return {
+      data: await this.prisma.subject.findMany({
+        where: {
+          deletedAt: null,
+          isActive: true,
+          teachers: { some: { teacherId: teacher.id } },
+        },
+        orderBy: { name: 'asc' },
+      }),
+    };
+  }
+
   async getMyAgendas(userId: string, date?: string) {
     const teacher = await this.getTeacherAccount(userId);
     const agendaDate = date ? this.toDateOnly(date) : undefined;

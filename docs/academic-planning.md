@@ -219,6 +219,8 @@ Domain `academic-planning` sudah menyediakan workflow awal:
 
 Halaman guru berada di `/teacher/teaching-plans`. Tahap awal menyimpan metadata serta `attachmentUrl`; upload file fisik akan dihubungkan melalui storage provider pada infrastructure layer agar domain tidak tergantung langsung pada vendor penyimpanan.
 
+Pilihan mata pelajaran pada halaman tersebut dibaca dari `GET /api/academic/me/subjects`, sehingga guru hanya dapat membuat perangkat ajar untuk mata pelajaran yang sudah ditugaskan kepadanya melalui `TeacherSubject`.
+
 - Jangan gabungkan `LessonPlan` dengan `DailyAgenda`; lesson plan adalah rencana, agenda adalah realisasi harian.
 - Jangan simpan nilai siswa langsung di `Student`; gunakan `StudentGrade` dengan `StudentEnrollment`.
 - Kalender pendidikan harus memengaruhi generate agenda agar agenda tidak dibuat pada hari libur atau kegiatan non-KBM.

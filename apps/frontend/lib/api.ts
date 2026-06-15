@@ -641,6 +641,7 @@ export const api = {
   getSchedules: () => request<ApiResponse<Schedule[]>>('/academic/schedules'),
   getMySchedules: () =>
     request<ApiResponse<Schedule[]>>('/academic/me/schedules'),
+  getMySubjects: () => request<ApiResponse<Subject[]>>('/academic/me/subjects'),
   getMyTeachingPlans: () => request<ApiResponse<TeachingPlan[]>>('/academic-planning/mine'),
   createTeachingPlan: (payload: { subjectId: string; schoolYearId: string; semesterId?: string; type: TeachingPlanType; title: string; description?: string; attachmentUrl?: string }) =>
     request<ApiResponse<TeachingPlan>>('/academic-planning', { method: 'POST', body: JSON.stringify(payload) }),
