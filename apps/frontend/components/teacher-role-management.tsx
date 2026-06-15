@@ -136,8 +136,12 @@ export function TeacherRoleManagement() {
 
   useEffect(() => {
     const detailCard = detailCardRef.current;
+    const desktopMedia = window.matchMedia('(min-width: 1024px)');
 
-    if (!detailCard) return;
+    if (!detailCard || !desktopMedia.matches) {
+      setDetailCardHeight(undefined);
+      return;
+    }
 
     const syncHeight = () => setDetailCardHeight(detailCard.offsetHeight);
     const observer = new ResizeObserver(syncHeight);
@@ -259,7 +263,7 @@ export function TeacherRoleManagement() {
       setTeachers((currentTeachers) =>
         [...currentTeachers, response.data].sort((a, b) => a.name.localeCompare(b.name)),
       );
-      setSelectedTeacherId(response.data.id);
+      selectTeacher(response.data.id);
       setNewTeacher({ name: '', nip: '', phone: '', email: '' });
       setShowCreateTeacher(false);
       setSaveState('success');
@@ -269,6 +273,19 @@ export function TeacherRoleManagement() {
         error instanceof Error ? error.message : 'Guru gagal ditambahkan.';
       setSaveState('error');
       toast.error(errorMessage, 'Aksi Gagal');
+    }
+  }
+
+  function selectTeacher(teacherId: string) {
+    setSelectedTeacherId(teacherId);
+
+    if (window.matchMedia('(max-width: 1023px)').matches) {
+      window.requestAnimationFrame(() => {
+        detailCardRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      });
     }
   }
 
@@ -350,7 +367,7 @@ export function TeacherRoleManagement() {
             </div>
           ) : null}
 
-          <div className="mt-3 grid content-start gap-2 overflow-y-auto overscroll-contain pr-1 lg:min-h-0 lg:flex-1">
+          <div className="mt-3 grid content-start gap-2 pr-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain">
             {teachers.map((teacher) => {
               const active = teacher.id === selectedTeacherId;
               const roles = teacher.user?.roles.map(({ role }) => role.name).join(', ');
@@ -367,7 +384,7 @@ export function TeacherRoleManagement() {
                       : 'border-blue-100 bg-white text-slate-700 hover:bg-brand-50',
                   ].join(' ')}
                   key={teacher.id}
-                  onClick={() => setSelectedTeacherId(teacher.id)}
+                  onClick={() => selectTeacher(teacher.id)}
                   type="button"
                 >
                   <p className="font-black">{teacher.name}</p>
@@ -396,7 +413,7 @@ export function TeacherRoleManagement() {
         </div>
 
         <div
-          className="rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4"
+          className="scroll-mt-24 rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4"
           ref={detailCardRef}
         >
           {selectedTeacher ? (

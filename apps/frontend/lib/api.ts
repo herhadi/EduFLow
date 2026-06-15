@@ -143,6 +143,13 @@ export interface AcademicTimeSlot {
   isActive: boolean;
 }
 
+export interface ClassTimeSlotActivity {
+  id: string;
+  classId: string;
+  timeSlotId: string;
+  type: 'BREAK' | 'RELIGIOUS';
+}
+
 export type NotificationChannel = 'WHATSAPP' | 'TELEGRAM' | 'EMAIL';
 export type NotificationStatus = 'PENDING' | 'SENT' | 'FAILED';
 
@@ -378,7 +385,7 @@ export interface BulkSchedulePayload {
   classIds: string[];
   subjectId: string;
   teacherId: string;
-  timeSlotId: string;
+  timeSlotIds: string[];
 }
 
 export interface AttendanceDemoResult {
@@ -619,6 +626,19 @@ export const api = {
   getAcademicTimeSlots: (schoolYearId?: string) =>
     request<ApiResponse<AcademicTimeSlot[]>>(
       `/academic/time-slots${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,
+    ),
+  getClassTimeSlotActivities: (classId: string) =>
+    request<ApiResponse<ClassTimeSlotActivity[]>>(
+      `/academic/classes/${classId}/time-slot-activities`,
+    ),
+  updateClassTimeSlotActivity: (
+    classId: string,
+    timeSlotId: string,
+    type: ClassTimeSlotActivity['type'],
+  ) =>
+    request<ApiResponse<ClassTimeSlotActivity>>(
+      `/academic/classes/${classId}/time-slot-activities/${timeSlotId}`,
+      { method: 'PATCH', body: JSON.stringify({ type }) },
     ),
   createSchedule: (payload: SchedulePayload) =>
     request<ApiResponse<Schedule>>('/academic/schedules', {

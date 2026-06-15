@@ -7,6 +7,7 @@ import { AcademicService } from './academic.service';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
 import { CreateAcademicTimeSlotDto } from './dto/create-academic-time-slot.dto';
 import { CreateBulkScheduleDto } from './dto/create-bulk-schedule.dto';
+import { UpdateClassTimeSlotActivityDto } from './dto/update-class-time-slot-activity.dto';
 import { CreateClassDto } from './dto/create-class.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { CreateSubjectDto } from './dto/create-subject.dto';
@@ -141,6 +142,22 @@ export class AcademicController {
   @Post('time-slots')
   createTimeSlot(@Body() dto: CreateAcademicTimeSlotDto) {
     return this.academicService.createTimeSlot(dto);
+  }
+
+  @Public()
+  @Get('classes/:classId/time-slot-activities')
+  getClassTimeSlotActivities(@Param('classId') classId: string) {
+    return this.academicService.getClassTimeSlotActivities(classId);
+  }
+
+  @RequirePermissions(PERMISSIONS.SCHEDULE_MANAGE)
+  @Patch('classes/:classId/time-slot-activities/:timeSlotId')
+  updateClassTimeSlotActivity(
+    @Param('classId') classId: string,
+    @Param('timeSlotId') timeSlotId: string,
+    @Body() dto: UpdateClassTimeSlotActivityDto,
+  ) {
+    return this.academicService.updateClassTimeSlotActivity(classId, timeSlotId, dto);
   }
 
   @Get('me/schedules')

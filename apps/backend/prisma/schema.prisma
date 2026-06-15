@@ -22,6 +22,11 @@ enum AcademicTimeSlotType {
   OTHER
 }
 
+enum ClassTimeSlotActivityType {
+  BREAK
+  RELIGIOUS
+}
+
 enum AgendaStatus {
   SCHEDULED
   IN_PROGRESS
@@ -231,25 +236,41 @@ model SchoolYear {
 }
 
 model AcademicTimeSlot {
-  id           String               @id @default(uuid()) @db.Uuid
-  schoolYearId String               @db.Uuid
-  dayOfWeek    Int
-  periodNumber Int?
-  name         String
-  type         AcademicTimeSlotType
-  startsAt     String
-  endsAt       String
-  isAssignable Boolean              @default(true)
-  isActive     Boolean              @default(true)
-  schoolYear   SchoolYear           @relation(fields: [schoolYearId], references: [id])
-  schedules    Schedule[]
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
-  deletedAt    DateTime?
+  id              String                  @id @default(uuid()) @db.Uuid
+  schoolYearId    String                  @db.Uuid
+  dayOfWeek       Int
+  periodNumber    Int?
+  name            String
+  type            AcademicTimeSlotType
+  startsAt        String
+  endsAt          String
+  isAssignable    Boolean                 @default(true)
+  isActive        Boolean                 @default(true)
+  schoolYear      SchoolYear              @relation(fields: [schoolYearId], references: [id])
+  schedules       Schedule[]
+  classActivities ClassTimeSlotActivity[]
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  deletedAt       DateTime?
 
   @@unique([schoolYearId, dayOfWeek, startsAt, endsAt])
   @@index([schoolYearId, dayOfWeek, periodNumber])
   @@index([isActive])
+}
+
+model ClassTimeSlotActivity {
+  id         String                    @id @default(uuid()) @db.Uuid
+  classId    String                    @db.Uuid
+  timeSlotId String                    @db.Uuid
+  type       ClassTimeSlotActivityType @default(BREAK)
+  class      Class                     @relation(fields: [classId], references: [id])
+  timeSlot   AcademicTimeSlot          @relation(fields: [timeSlotId], references: [id])
+  createdAt  DateTime                  @default(now())
+  updatedAt  DateTime                  @updatedAt
+
+  @@unique([classId, timeSlotId])
+  @@index([classId])
+  @@index([timeSlotId])
 }
 
 model Semester {
@@ -270,21 +291,22 @@ model Semester {
 }
 
 model Class {
-  id                String              @id @default(uuid()) @db.Uuid
-  schoolYearId      String              @db.Uuid
-  homeroomTeacherId String?             @db.Uuid
-  name              String
-  code              String?
-  grade             String?
-  schoolYear        SchoolYear          @relation(fields: [schoolYearId], references: [id])
-  homeroomTeacher   Teacher?            @relation("ClassHomeroomTeacher", fields: [homeroomTeacherId], references: [id])
-  enrollments       StudentEnrollment[]
-  schedules         Schedule[]
-  agendas           DailyAgenda[]
-  attendances       Attendance[]
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  deletedAt         DateTime?
+  id                 String                  @id @default(uuid()) @db.Uuid
+  schoolYearId       String                  @db.Uuid
+  homeroomTeacherId  String?                 @db.Uuid
+  name               String
+  code               String?
+  grade              String?
+  schoolYear         SchoolYear              @relation(fields: [schoolYearId], references: [id])
+  homeroomTeacher    Teacher?                @relation("ClassHomeroomTeacher", fields: [homeroomTeacherId], references: [id])
+  enrollments        StudentEnrollment[]
+  schedules          Schedule[]
+  agendas            DailyAgenda[]
+  attendances        Attendance[]
+  timeSlotActivities ClassTimeSlotActivity[]
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  deletedAt          DateTime?
 
   @@unique([schoolYearId, name])
   @@unique([schoolYearId, code])

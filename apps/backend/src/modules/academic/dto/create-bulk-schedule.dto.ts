@@ -22,6 +22,8 @@ export class CreateBulkScheduleDto {
   @IsUUID()
   teacherId!: string;
 
-  @IsUUID()
-  timeSlotId!: string;
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID('4', { each: true })
+  timeSlotIds!: string[];
 }

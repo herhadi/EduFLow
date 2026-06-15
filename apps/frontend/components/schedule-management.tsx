@@ -2,9 +2,11 @@
 
 import { sortSchoolClasses } from '@eduflow/shared';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { getCurrentSessionUser } from '../lib/session';
 import {
   api,
   type AcademicTimeSlot,
+  type ClassTimeSlotActivity,
   type BulkSchedulePayload,
   type DailyAgenda,
   type Schedule,
@@ -39,7 +41,7 @@ const emptyForm: SchedulePayload = {
 };
 
 export function ScheduleManagement() {
-  const [loadState, setLoadState] = useState<LoadState>('idle');
+  const [, setLoadState] = useState<LoadState>('idle');
   const [submitState, setSubmitState] = useState<LoadState>('idle');
   const [message, setMessage] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -52,8 +54,10 @@ export function ScheduleManagement() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [timeSlots, setTimeSlots] = useState<AcademicTimeSlot[]>([]);
   const [form, setForm] = useState<SchedulePayload>(emptyForm);
-  const [selectedTimeSlotId, setSelectedTimeSlotId] = useState('');
+  const [selectedTimeSlotIds, setSelectedTimeSlotIds] = useState<string[]>([]);
+  const [classTimeSlotActivities, setClassTimeSlotActivities] = useState<ClassTimeSlotActivity[]>([]);
   const [scheduleClassId, setScheduleClassId] = useState('');
+  const [canGenerateAgenda, setCanGenerateAgenda] = useState(false);
 
   async function loadData() {
     setLoadState('loading');
@@ -103,12 +107,6 @@ export function ScheduleManagement() {
           teacherId: firstTeacher?.id ?? '',
         }));
 
-        setSelectedTimeSlotId(
-          timeSlotResponse.data.find(
-            (slot) => slot.schoolYearId === firstSchoolYear.id && slot.isAssignable,
-          )?.id ?? '',
-        );
-
         setScheduleClassId(firstClass?.id ?? '');
       }
     } catch {
@@ -118,7 +116,21 @@ export function ScheduleManagement() {
 
   useEffect(() => {
     void loadData();
+    setCanGenerateAgenda(
+      getCurrentSessionUser()?.permissions.includes('agenda.generate') ?? false,
+    );
   }, []);
+
+  useEffect(() => {
+    if (!form.classId) {
+      setClassTimeSlotActivities([]);
+      return;
+    }
+
+    void api.getClassTimeSlotActivities(form.classId).then((response) => {
+      setClassTimeSlotActivities(response.data);
+    });
+  }, [form.classId]);
 
   const filteredSemesters = useMemo(
     () => semesters.filter((semester) => semester.schoolYearId === form.schoolYearId),
@@ -198,13 +210,13 @@ export function ScheduleManagement() {
             classIds: [form.classId],
             subjectId: form.subjectId,
             teacherId: form.teacherId,
-            timeSlotId: selectedTimeSlotId,
+            timeSlotIds: selectedTimeSlotIds,
           } satisfies BulkSchedulePayload);
 
       setMessage(response.message ?? 'Jadwal berhasil disimpan.');
       setEditingId(null);
       setForm(emptyForm);
-      setSelectedTimeSlotId('');
+      setSelectedTimeSlotIds([]);
       await loadData();
       setSubmitState('success');
     } catch (error) {
@@ -218,11 +230,21 @@ export function ScheduleManagement() {
   }
 
   async function handleDelete(schedule: Schedule) {
+    const confirmed = window.confirm(
+      `Hapus jadwal ${schedule.subject.name} kelas ${schedule.class.name} pada ${getDayLabel(schedule.dayOfWeek)} ${schedule.startsAt}-${schedule.endsAt}?`,
+    );
+
+    if (!confirmed) return;
+
     setMessage(null);
 
     try {
       const response = await api.deleteSchedule(schedule.id);
       setMessage(response.message ?? 'Jadwal dinonaktifkan.');
+      if (editingId === schedule.id) {
+        setEditingId(null);
+        setSelectedTimeSlotIds([]);
+      }
       await loadData();
     } catch {
       setMessage('Jadwal gagal dinonaktifkan.');
@@ -254,8 +276,45 @@ export function ScheduleManagement() {
       startsAt: schedule.startsAt,
       endsAt: schedule.endsAt,
     });
-    setSelectedTimeSlotId(schedule.timeSlotId ?? '');
+    setSelectedTimeSlotIds(schedule.timeSlotId ? [schedule.timeSlotId] : []);
     setMessage(null);
+  }
+
+  async function setBreakActivity(
+    slot: AcademicTimeSlot,
+    type: ClassTimeSlotActivity['type'],
+  ) {
+    if (!form.classId) return;
+
+    try {
+      const response = await api.updateClassTimeSlotActivity(form.classId, slot.id, type);
+      setClassTimeSlotActivities((activities) => [
+        ...activities.filter((activity) => activity.timeSlotId !== slot.id),
+        response.data,
+      ]);
+      setMessage(response.message ?? 'Kegiatan jeda berhasil disimpan.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Kegiatan jeda gagal disimpan.');
+    }
+  }
+
+  function toggleTimeSlot(slot: AcademicTimeSlot) {
+    if (editingId) {
+      setSelectedTimeSlotIds([slot.id]);
+      setForm((currentForm) => ({
+        ...currentForm,
+        dayOfWeek: slot.dayOfWeek,
+        startsAt: slot.startsAt,
+        endsAt: slot.endsAt,
+      }));
+      return;
+    }
+
+    setSelectedTimeSlotIds((currentIds) =>
+      currentIds.includes(slot.id)
+        ? currentIds.filter((id) => id !== slot.id)
+        : [...currentIds, slot.id],
+    );
   }
 
   return (
@@ -317,14 +376,8 @@ export function ScheduleManagement() {
             label="Hari"
             onChange={(value) => {
               const dayOfWeek = Number(value);
-              const firstSlot = timeSlots.find(
-                (slot) =>
-                  slot.schoolYearId === form.schoolYearId &&
-                  slot.dayOfWeek === dayOfWeek &&
-                  slot.isAssignable,
-              );
               setForm({ ...form, dayOfWeek });
-              setSelectedTimeSlotId(firstSlot?.id ?? '');
+              setSelectedTimeSlotIds([]);
             }}
             options={dayOptions.map((day) => ({
               label: day.label,
@@ -332,39 +385,61 @@ export function ScheduleManagement() {
             }))}
             value={String(form.dayOfWeek)}
           />
-          <SelectField
-            label="Jam Pelajaran"
-            onChange={setSelectedTimeSlotId}
-            options={dayTimeSlots
-              .filter((slot) => slot.isAssignable)
-              .map((slot) => ({
-                label: `${slot.name} · ${slot.startsAt}-${slot.endsAt}`,
-                value: slot.id,
-              }))}
-            value={selectedTimeSlotId}
-          />
-
           <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
             <p className="text-xs font-black tracking-[0.1em] text-brand-700 uppercase">
               Susunan Hari Ini
             </p>
             <div className="mt-3 space-y-2">
-              {dayTimeSlots.map((slot) => (
-                <div
+              {dayTimeSlots.map((slot) => slot.type === 'BREAK' || slot.type === 'RELIGIOUS' ? (
+                <div className="rounded-xl bg-amber-50 p-3" key={slot.id}>
+                  <div className="flex items-center justify-between gap-3 text-xs font-bold text-amber-900">
+                    <span>{slot.startsAt}-{slot.endsAt}</span>
+                    <span>{slot.type === 'RELIGIOUS' ? 'Jeda kedua' : 'Istirahat'}</span>
+                  </div>
+                  {slot.type === 'RELIGIOUS' ? <div className="mt-2 grid grid-cols-2 gap-2">
+                    {(['BREAK', 'RELIGIOUS'] as const).map((type) => {
+                      const currentType = classTimeSlotActivities.find(
+                        (activity) => activity.timeSlotId === slot.id,
+                      )?.type ?? 'BREAK';
+                      return (
+                        <button
+                          className={`rounded-lg px-2 py-2 text-[11px] font-bold ${currentType === type ? 'bg-brand-600 text-white' : 'bg-white text-slate-700'}`}
+                          key={type}
+                          onClick={() => void setBreakActivity(slot, type)}
+                          type="button"
+                        >
+                          {type === 'BREAK' ? 'Istirahat' : 'Istirahat/Sholat Berjamaah'}
+                        </button>
+                      );
+                    })}
+                  </div> : (
+                    <p className="mt-2 rounded-lg bg-white px-3 py-2 text-[11px] font-bold text-slate-700">
+                      Istirahat
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <button
                   className={`flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-xs font-bold ${
-                    slot.id === selectedTimeSlotId
+                    selectedTimeSlotIds.includes(slot.id)
                       ? 'bg-brand-600 text-white'
                       : slot.isAssignable
                         ? 'bg-white text-slate-700'
                         : 'bg-amber-50 text-amber-800'
                   }`}
+                  disabled={!slot.isAssignable}
                   key={slot.id}
+                  onClick={() => toggleTimeSlot(slot)}
+                  type="button"
                 >
                   <span>{slot.name}</span>
                   <span>{slot.startsAt}-{slot.endsAt}</span>
-                </div>
+                </button>
               ))}
             </div>
+            <p className="mt-3 text-xs font-semibold text-brand-700">
+              Klik satu atau beberapa jam untuk guru dan mata pelajaran yang sama.
+            </p>
           </div>
 
           <SelectField
@@ -393,7 +468,7 @@ export function ScheduleManagement() {
               !form.teacherId ||
               !form.subjectId ||
               !form.classId ||
-              !selectedTimeSlotId ||
+              selectedTimeSlotIds.length === 0 ||
               !form.semesterId
             }
             type="submit"
@@ -428,7 +503,8 @@ export function ScheduleManagement() {
       <div className="space-y-4">
         <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
           <div>
-            <div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
               <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
                 Jadwal Kelas
               </p>
@@ -438,6 +514,13 @@ export function ScheduleManagement() {
               <p className="mt-1 text-sm leading-6 text-muted">
                 Tabel ini membantu cek mapel, guru, dan jam mengajar per kelas.
               </p>
+              </div>
+              {canGenerateAgenda ? <InputField
+                label="Tanggal agenda"
+                onChange={setGenerateDate}
+                type="date"
+                value={generateDate}
+              /> : null}
             </div>
             <div className="mt-5 space-y-3">
               {Object.entries(classesByGrade).map(([grade, gradeClasses]) => (
@@ -499,6 +582,7 @@ export function ScheduleManagement() {
                     </td>
                     <td className="px-4 py-3 text-slate-600">{schedule.teacher.name}</td>
                     <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
                       <button
                         className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-black text-brand-700"
                         onClick={() => startEdit(schedule)}
@@ -506,6 +590,21 @@ export function ScheduleManagement() {
                       >
                         Edit
                       </button>
+                      {canGenerateAgenda ? <button
+                        className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700 transition hover:bg-emerald-100"
+                        onClick={() => void handleGenerate(schedule)}
+                        type="button"
+                      >
+                        Generate Agenda
+                      </button> : null}
+                      <button
+                        className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-black text-red-700 transition hover:bg-red-100"
+                        onClick={() => void handleDelete(schedule)}
+                        type="button"
+                      >
+                        Hapus
+                      </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -530,81 +629,7 @@ export function ScheduleManagement() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold">List Jadwal</h2>
-              <p className="mt-1 text-sm text-muted">
-                Template jadwal tetap. Presensi tetap memakai DailyAgenda.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <InputField
-                label="Tanggal agenda"
-                onChange={setGenerateDate}
-                type="date"
-                value={generateDate}
-              />
-            </div>
-          </div>
-
-          {loadState === 'error' ? (
-            <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
-              Jadwal belum bisa dimuat. Pastikan backend berjalan.
-            </div>
-          ) : null}
-
-          <div className="mt-5 divide-y divide-slate-100">
-            {schedules.map((schedule) => (
-              <div className="grid gap-4 py-5" key={schedule.id}>
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <strong>{schedule.class.name}</strong>
-                    <span className="text-muted">•</span>
-                    <span>{schedule.subject.name}</span>
-                    <span className="rounded-full bg-brand-50 px-2 py-1 text-xs font-semibold text-brand-700">
-                      {getDayLabel(schedule.dayOfWeek)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-muted">
-                    {schedule.teacher.name} · {schedule.startsAt}-{schedule.endsAt} ·{' '}
-                    {schedule.schoolYear.name}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                    onClick={() => startEdit(schedule)}
-                    type="button"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="rounded-xl border border-brand-100 bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-100"
-                    onClick={() => void handleGenerate(schedule)}
-                    type="button"
-                  >
-                    Generate Agenda
-                  </button>
-                  <button
-                    className="rounded-xl border border-red-100 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
-                    onClick={() => void handleDelete(schedule)}
-                    type="button"
-                  >
-                    Nonaktifkan
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            {loadState === 'success' && schedules.length === 0 ? (
-              <p className="py-4 text-sm text-muted">Belum ada jadwal.</p>
-            ) : null}
-          </div>
-        </div>
-
-        {generatedAgenda ? (
+        {canGenerateAgenda && generatedAgenda ? (
           <div className="rounded-2xl border border-brand-100 bg-brand-50 p-5 text-sm text-brand-700">
             Agenda: <strong>{generatedAgenda.class.name}</strong> ·{' '}
             {generatedAgenda.subject.name} · {generatedAgenda.status}

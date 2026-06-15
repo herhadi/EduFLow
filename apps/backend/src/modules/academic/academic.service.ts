@@ -7,6 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
 import { CreateAcademicTimeSlotDto } from './dto/create-academic-time-slot.dto';
+import { UpdateClassTimeSlotActivityDto } from './dto/update-class-time-slot-activity.dto';
 import { CreateBulkScheduleDto } from './dto/create-bulk-schedule.dto';
 import { CreateClassDto } from './dto/create-class.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
@@ -643,6 +644,35 @@ export class AcademicService {
     return { data: timeSlot, message: 'Slot waktu berhasil ditambahkan.' };
   }
 
+  async getClassTimeSlotActivities(classId: string) {
+    return {
+      data: await this.prisma.classTimeSlotActivity.findMany({
+        where: { classId },
+      }),
+    };
+  }
+
+  async updateClassTimeSlotActivity(
+    classId: string,
+    timeSlotId: string,
+    dto: UpdateClassTimeSlotActivityDto,
+  ) {
+    const activity = await this.prisma.classTimeSlotActivity.upsert({
+      where: { classId_timeSlotId: { classId, timeSlotId } },
+      update: { type: dto.type },
+      create: { classId, timeSlotId, type: dto.type },
+    });
+
+    await this.auditService.record({
+      action: 'class-time-slot-activity.updated',
+      entityType: 'ClassTimeSlotActivity',
+      entityId: activity.id,
+      after: activity,
+    });
+
+    return { data: activity, message: 'Kegiatan jeda kelas berhasil disimpan.' };
+  }
+
   async getMySchedules(userId: string) {
     const teacher = await this.getTeacherAccount(userId);
 
@@ -728,12 +758,21 @@ export class AcademicService {
 
   async createBulkSchedule(dto: CreateBulkScheduleDto) {
     const classIds = [...new Set(dto.classIds)];
-    const timeSlot = await this.ensureBulkScheduleRelations({ ...dto, classIds });
-    await this.ensureScheduleAvailability({ ...dto, classIds }, timeSlot);
+    const timeSlotIds = [...new Set(dto.timeSlotIds)];
+    const timeSlots = await this.ensureBulkScheduleRelations({
+      ...dto,
+      classIds,
+      timeSlotIds,
+    });
+
+    for (const timeSlot of timeSlots) {
+      await this.ensureScheduleAvailability({ ...dto, classIds, timeSlotIds }, timeSlot);
+    }
 
     const schedules = await this.prisma.$transaction(
-      classIds.map((classId) =>
-        this.prisma.schedule.create({
+      timeSlots.flatMap((timeSlot) =>
+        classIds.map((classId) =>
+          this.prisma.schedule.create({
           data: {
             schoolYearId: dto.schoolYearId,
             semesterId: dto.semesterId,
@@ -753,7 +792,8 @@ export class AcademicService {
             teacher: true,
             timeSlot: true,
           },
-        }),
+          }),
+        ),
       ),
     );
 
@@ -765,16 +805,13 @@ export class AcademicService {
         teacherId: dto.teacherId,
         subjectId: dto.subjectId,
         classIds,
-        timeSlotId: timeSlot.id,
-        dayOfWeek: timeSlot.dayOfWeek,
-        startsAt: timeSlot.startsAt,
-        endsAt: timeSlot.endsAt,
+        timeSlotIds,
       },
     });
 
     return {
       data: schedules,
-      message: `${schedules.length} jadwal kelas berhasil dibuat.`,
+      message: `${schedules.length} sesi jadwal berhasil dibuat.`,
     };
   }
 
@@ -1000,7 +1037,7 @@ export class AcademicService {
   }
 
   private async ensureBulkScheduleRelations(dto: CreateBulkScheduleDto) {
-    const [semester, classes, subject, teacher, timeSlot] = await Promise.all([
+    const [semester, classes, subject, teacher, timeSlots] = await Promise.all([
       this.prisma.semester.findFirst({
         where: {
           id: dto.semesterId,
@@ -1025,9 +1062,9 @@ export class AcademicService {
           user: { include: { roles: { include: { role: true } } } },
         },
       }),
-      this.prisma.academicTimeSlot.findFirst({
+      this.prisma.academicTimeSlot.findMany({
         where: {
-          id: dto.timeSlotId,
+          id: { in: dto.timeSlotIds },
           schoolYearId: dto.schoolYearId,
           deletedAt: null,
           isActive: true,
@@ -1044,7 +1081,7 @@ export class AcademicService {
       throw new BadRequestException('Ada kelas yang tidak valid untuk tahun ajaran ini');
     }
 
-    if (!subject || !teacher || !timeSlot) {
+    if (!subject || !teacher || timeSlots.length !== dto.timeSlotIds.length) {
       throw new BadRequestException('Guru, mata pelajaran, atau slot waktu tidak valid');
     }
 
@@ -1052,7 +1089,7 @@ export class AcademicService {
       throw new BadRequestException('Guru belum diatur mengampu mata pelajaran ini');
     }
 
-    return timeSlot;
+    return timeSlots;
   }
 
   private async ensureScheduleAvailability(

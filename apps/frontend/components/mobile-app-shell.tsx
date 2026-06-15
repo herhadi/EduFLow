@@ -90,7 +90,7 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh overflow-x-hidden bg-[radial-gradient(circle_at_top,_#dbeafe_0,_#eff6ff_28%,_#f8fafc_70%)]">
-      <div className="mx-auto min-h-dvh max-w-md overflow-x-hidden bg-blue-50/30 shadow-2xl shadow-blue-950/5 md:max-w-5xl">
+      <div className="mx-auto min-h-dvh max-w-md overflow-x-hidden bg-blue-50/30 shadow-2xl shadow-blue-950/5 md:my-3 md:min-h-[calc(100dvh-1.5rem)] md:w-[calc(100%-1.5rem)] md:max-w-none md:rounded-[2rem] xl:w-[calc(100%-2rem)]">
         <AppTopBar currentUser={currentUser} />
 
         <div className="px-3 pt-3 pb-28 sm:px-5 md:px-6">
@@ -243,7 +243,7 @@ function BottomNavigation({
   return (
     <nav
       aria-label="Navigasi utama"
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] md:max-w-5xl"
+      className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] md:w-1/2 md:max-w-none"
     >
       <div className="mx-auto grid grid-cols-5 gap-1 rounded-[1.75rem] border border-blue-100 bg-white/90 p-2 shadow-2xl shadow-blue-950/15 backdrop-blur-xl">
         {primaryNavItems.map((item) => {
