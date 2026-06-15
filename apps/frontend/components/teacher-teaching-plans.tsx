@@ -20,7 +20,8 @@ export function TeacherTeachingPlans() {
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ type: 'ANNUAL_PROGRAM' as TeachingPlanType, subjectId: '', schoolYearId: '', semesterId: '', title: '', description: '', attachmentUrl: '' });
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [form, setForm] = useState({ type: 'ANNUAL_PROGRAM' as TeachingPlanType, subjectId: '', schoolYearId: '', semesterId: '', title: '', description: '' });
 
   async function loadData() {
     setLoading(true);
@@ -43,10 +44,12 @@ export function TeacherTeachingPlans() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault(); setSaving(true);
     try {
-      const response = await api.createTeachingPlan({ ...form, semesterId: form.semesterId || undefined, description: form.description || undefined, attachmentUrl: form.attachmentUrl || undefined });
-      setPlans((current) => [response.data, ...current]);
-      setForm((current) => ({ ...current, title: '', description: '', attachmentUrl: '' }));
-      toast.success(response.message ?? 'Draft berhasil disimpan.');
+      const response = await api.createTeachingPlan({ ...form, semesterId: form.semesterId || undefined, description: form.description || undefined });
+      const savedPlan = attachment ? (await api.uploadTeachingPlanAttachment(response.data.id, attachment)).data : response.data;
+      setPlans((current) => [savedPlan, ...current]);
+      setForm((current) => ({ ...current, title: '', description: '' }));
+      setAttachment(null);
+      toast.success(attachment ? 'Draft dan dokumen berhasil disimpan.' : response.message ?? 'Draft berhasil disimpan.');
     } catch (error) { toast.error(error instanceof Error ? error.message : 'Draft gagal disimpan.'); }
     finally { setSaving(false); }
   }
@@ -59,20 +62,30 @@ export function TeacherTeachingPlans() {
     } catch (error) { toast.error(error instanceof Error ? error.message : 'Submit gagal.'); }
   }
 
+  async function openAttachment(plan: TeachingPlan) {
+    try {
+      const response = await api.getTeachingPlanAttachmentUrl(plan.id);
+      window.open(response.data.url, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Dokumen gagal dibuka.');
+    }
+  }
+
   const filteredSemesters = semesters.filter((semester) => semester.schoolYearId === form.schoolYearId);
 
   return (
     <section className="mt-7 grid gap-5 xl:grid-cols-[minmax(320px,0.8fr)_minmax(0,1.2fr)]">
       <form className="surface-card rounded-[2rem] p-5" onSubmit={handleSubmit}>
         <h2 className="text-xl font-black">Buat Draft</h2>
-        <p className="mt-1 text-sm text-muted">Simpan metadata dan tautan dokumen sebelum dikirim ke Kepala Sekolah.</p>
+        <p className="mt-1 text-sm text-muted">Unggah dokumen DOCX maksimal 10 MB sebelum dikirim ke Kepala Sekolah.</p>
         <div className="mt-5 grid gap-3">
           <Select label="Jenis" value={form.type} onChange={(value) => setForm({ ...form, type: value as TeachingPlanType })} options={planTypes} />
           <Select label="Mata Pelajaran" value={form.subjectId} onChange={(value) => setForm({ ...form, subjectId: value })} options={subjects.map((subject) => ({ value: subject.id, label: subject.name }))} />
           <Select label="Tahun Ajaran" value={form.schoolYearId} onChange={(value) => setForm({ ...form, schoolYearId: value, semesterId: '' })} options={schoolYears.map((item) => ({ value: item.id, label: item.name }))} />
           <Select label="Semester (opsional)" value={form.semesterId} onChange={(value) => setForm({ ...form, semesterId: value })} options={[{ value: '', label: 'Tidak spesifik semester' }, ...filteredSemesters.map((item) => ({ value: item.id, label: item.type === 'ODD' ? 'Ganjil' : 'Genap' }))]} />
           <Field label="Judul" value={form.title} onChange={(value) => setForm({ ...form, title: value })} required />
-          <Field label="Tautan Dokumen" value={form.attachmentUrl} onChange={(value) => setForm({ ...form, attachmentUrl: value })} placeholder="https://drive.google.com/..." type="url" />
+          <label className="grid gap-2 text-sm font-bold">Dokumen DOCX (opsional)<input accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="rounded-2xl border bg-white px-4 py-3 text-sm font-normal outline-none file:mr-3 file:rounded-xl file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:font-black file:text-brand-700" onChange={(event) => setAttachment(event.target.files?.[0] ?? null)} type="file" /></label>
+          {attachment ? <p className="text-xs font-semibold text-muted">{attachment.name} · {formatFileSize(attachment.size)}</p> : null}
           <label className="grid gap-2 text-sm font-bold">Keterangan<textarea className="min-h-24 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
         </div>
         <button className="mt-5 w-full rounded-2xl bg-brand-600 px-5 py-4 text-sm font-black text-white disabled:opacity-50" disabled={saving || !form.title || !form.subjectId || !form.schoolYearId}>{saving ? 'Menyimpan...' : 'Simpan Draft'}</button>
@@ -89,7 +102,7 @@ export function TeacherTeachingPlans() {
             </div>
             {plan.reviewNote ? <p className="mt-4 rounded-2xl bg-amber-50 p-3 text-sm font-semibold text-amber-800">Catatan KS: {plan.reviewNote}</p> : null}
             <div className="mt-4 flex flex-wrap gap-2">
-              {plan.attachmentUrl ? <a className="secondary-button rounded-xl px-3 py-2 text-xs font-black" href={plan.attachmentUrl} rel="noreferrer" target="_blank">Buka Dokumen</a> : null}
+              {plan.attachmentKey || plan.attachmentUrl ? <button className="secondary-button rounded-xl px-3 py-2 text-xs font-black" onClick={() => void openAttachment(plan)} type="button">Buka Dokumen{plan.attachmentName ? ` · ${plan.attachmentName}` : ''}</button> : null}
               {plan.status === 'DRAFT' || plan.status === 'REVISION_REQUESTED' ? <button className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-black text-white" onClick={() => void submitPlan(plan)} type="button">Kirim ke KS</button> : null}
             </div>
           </article>
@@ -103,3 +116,4 @@ export function TeacherTeachingPlans() {
 function Select({ label, onChange, options, value }: { label: string; onChange: (value: string) => void; options: Array<{ label: string; value: string }>; value: string }) { return <label className="grid gap-2 text-sm font-bold">{label}<select className="rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600" onChange={(event) => onChange(event.target.value)} value={value}>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>; }
 function Field({ label, onChange, placeholder, required, type = 'text', value }: { label: string; onChange: (value: string) => void; placeholder?: string; required?: boolean; type?: string; value: string }) { return <label className="grid gap-2 text-sm font-bold">{label}<input className="rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600" onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={required} type={type} value={value} /></label>; }
 function Status({ status }: { status: TeachingPlan['status'] }) { const labels = { DRAFT: 'Draft', SUBMITTED: 'Menunggu Review', REVISION_REQUESTED: 'Perlu Revisi', APPROVED: 'Disetujui', ARCHIVED: 'Diarsipkan' }; return <span className="rounded-full bg-brand-50 px-3 py-2 text-xs font-black text-brand-700">{labels[status]}</span>; }
+function formatFileSize(size: number) { return size < 1024 * 1024 ? `${Math.ceil(size / 1024)} KB` : `${(size / 1024 / 1024).toFixed(1)} MB`; }

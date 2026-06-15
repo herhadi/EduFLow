@@ -432,6 +432,11 @@ export interface TeachingPlan {
   title: string;
   description?: string | null;
   attachmentUrl?: string | null;
+  attachmentKey?: string | null;
+  attachmentName?: string | null;
+  attachmentMimeType?: string | null;
+  attachmentSize?: number | null;
+  attachmentUploadedAt?: string | null;
   status: TeachingPlanStatus;
   reviewNote?: string | null;
   subject: Subject;
@@ -656,6 +661,10 @@ export const api = {
   getMyTeachingPlans: () => request<ApiResponse<TeachingPlan[]>>('/academic-planning/mine'),
   createTeachingPlan: (payload: { subjectId: string; schoolYearId: string; semesterId?: string; type: TeachingPlanType; title: string; description?: string; attachmentUrl?: string }) =>
     request<ApiResponse<TeachingPlan>>('/academic-planning', { method: 'POST', body: JSON.stringify(payload) }),
+  uploadTeachingPlanAttachment: (id: string, file: File) =>
+    upload<ApiResponse<TeachingPlan>>(`/academic-planning/${id}/attachment`, file),
+  getTeachingPlanAttachmentUrl: (id: string) =>
+    request<ApiResponse<{ url: string }>>(`/academic-planning/${id}/attachment-url`),
   submitTeachingPlan: (id: string) =>
     request<ApiResponse<TeachingPlan>>(`/academic-planning/${id}/submit`, { method: 'POST' }),
   getAcademicTimeSlots: (schoolYearId?: string) =>

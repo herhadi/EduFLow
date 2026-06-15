@@ -171,7 +171,7 @@ function AppTopBar({
         </Link>
         <div className="flex min-w-0 items-center gap-2">
           <div className="user-chip hidden min-w-0 rounded-2xl px-3 py-2 text-right min-[390px]:block">
-            <p className="max-w-32 truncate text-xs font-black text-brand-700">
+            <p className="max-w-48 truncate text-xs font-black text-brand-700">
               Hai, {displayName}
             </p>
             <p className="max-w-32 truncate text-[0.65rem] font-bold capitalize text-muted">

@@ -4,6 +4,8 @@
 
 - `GET /api/academic-planning/mine`
 - `POST /api/academic-planning`
+- `POST /api/academic-planning/:id/attachment`
+- `GET /api/academic-planning/:id/attachment-url`
 - `POST /api/academic-planning/:id/submit`
 - `GET /api/academic-planning/review-queue`
 - `PATCH /api/academic-planning/:id/review`

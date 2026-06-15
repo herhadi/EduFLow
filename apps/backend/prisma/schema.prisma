@@ -386,28 +386,33 @@ model TeacherSubject {
 }
 
 model TeachingPlan {
-  id            String             @id @default(uuid()) @db.Uuid
-  teacherId     String             @db.Uuid
-  subjectId     String             @db.Uuid
-  schoolYearId  String             @db.Uuid
-  semesterId    String?            @db.Uuid
-  type          TeachingPlanType
-  title         String
-  description   String?
-  attachmentUrl String?
-  status        TeachingPlanStatus @default(DRAFT)
-  submittedAt   DateTime?
-  reviewedAt    DateTime?
-  reviewedById  String?            @db.Uuid
-  reviewNote    String?
-  teacher       Teacher            @relation(fields: [teacherId], references: [id])
-  subject       Subject            @relation(fields: [subjectId], references: [id])
-  schoolYear    SchoolYear         @relation(fields: [schoolYearId], references: [id])
-  semester      Semester?          @relation(fields: [semesterId], references: [id])
-  reviewedBy    User?              @relation("TeachingPlanReviewedBy", fields: [reviewedById], references: [id])
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  deletedAt     DateTime?
+  id                   String             @id @default(uuid()) @db.Uuid
+  teacherId            String             @db.Uuid
+  subjectId            String             @db.Uuid
+  schoolYearId         String             @db.Uuid
+  semesterId           String?            @db.Uuid
+  type                 TeachingPlanType
+  title                String
+  description          String?
+  attachmentUrl        String?
+  attachmentKey        String?
+  attachmentName       String?
+  attachmentMimeType   String?
+  attachmentSize       Int?
+  attachmentUploadedAt DateTime?
+  status               TeachingPlanStatus @default(DRAFT)
+  submittedAt          DateTime?
+  reviewedAt           DateTime?
+  reviewedById         String?            @db.Uuid
+  reviewNote           String?
+  teacher              Teacher            @relation(fields: [teacherId], references: [id])
+  subject              Subject            @relation(fields: [subjectId], references: [id])
+  schoolYear           SchoolYear         @relation(fields: [schoolYearId], references: [id])
+  semester             Semester?          @relation(fields: [semesterId], references: [id])
+  reviewedBy           User?              @relation("TeachingPlanReviewedBy", fields: [reviewedById], references: [id])
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  deletedAt            DateTime?
 
   @@index([teacherId, schoolYearId, semesterId])
   @@index([status, type])

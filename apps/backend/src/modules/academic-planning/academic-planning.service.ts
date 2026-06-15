@@ -1,5 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { TeachingPlanStatus } from '@prisma/client';
+import { randomUUID } from 'node:crypto';
+import { extname } from 'node:path';
+import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
+import { PERMISSIONS } from '../../common/constants/permissions';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { CreateTeachingPlanDto } from './dto/create-teaching-plan.dto';
@@ -7,7 +11,13 @@ import { ReviewTeachingPlanDto } from './dto/review-teaching-plan.dto';
 
 @Injectable()
 export class AcademicPlanningService {
-  constructor(private readonly prisma: PrismaService, private readonly audit: AuditService) {}
+  private readonly logger = new Logger(AcademicPlanningService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+  ) {}
 
   async getMine(userId: string) {
     const teacher = await this.getTeacher(userId);
@@ -45,6 +55,57 @@ export class AcademicPlanningService {
     });
     await this.audit.record({ action: 'teaching-plan.submitted', entityType: 'TeachingPlan', entityId: id, before: existing, after: plan, userId });
     return { data: plan, message: 'Perangkat ajar dikirim untuk review Kepala Sekolah.' };
+  }
+
+  async uploadAttachment(userId: string, id: string, file: { buffer: Buffer; originalname: string; mimetype: string; size: number }) {
+    const teacher = await this.getTeacher(userId);
+    const existing = await this.prisma.teachingPlan.findFirst({ where: { id, teacherId: teacher.id, deletedAt: null } });
+    if (!existing) throw new NotFoundException('Perangkat ajar tidak ditemukan');
+    if (!['DRAFT', 'REVISION_REQUESTED'].includes(existing.status)) throw new BadRequestException('Dokumen hanya dapat diganti saat draft atau revisi');
+
+    const extension = extname(file.originalname).toLowerCase();
+    const key = `teaching-plans/${teacher.id}/${id}/${randomUUID()}${extension}`;
+    const stored = await this.storage.upload({ buffer: file.buffer, key, name: file.originalname, mimeType: file.mimetype });
+
+    const plan = await this.prisma.teachingPlan.update({
+      where: { id },
+      data: {
+        attachmentKey: stored.key,
+        attachmentName: stored.name,
+        attachmentMimeType: stored.mimeType,
+        attachmentSize: stored.size,
+        attachmentUploadedAt: new Date(),
+        attachmentUrl: null,
+      },
+      include: { subject: true, schoolYear: true, semester: true },
+    });
+
+    if (existing.attachmentKey) {
+      try {
+        await this.storage.delete(existing.attachmentKey);
+      } catch (error) {
+        this.logger.warn(`Dokumen lama gagal dihapus dari storage: ${error instanceof Error ? error.message : 'unknown error'}`);
+      }
+    }
+    await this.audit.record({ action: 'teaching-plan.attachment-uploaded', entityType: 'TeachingPlan', entityId: id, before: existing, after: plan, userId });
+    return { data: plan, message: 'Dokumen DOCX berhasil diunggah.' };
+  }
+
+  async getAttachmentUrl(userId: string, id: string, permissions: string[]) {
+    const plan = await this.prisma.teachingPlan.findFirst({ where: { id, deletedAt: null } });
+    if (!plan) throw new NotFoundException('Perangkat ajar tidak ditemukan');
+
+    const canReview = permissions.includes(PERMISSIONS.TEACHING_PLAN_REVIEW);
+    if (!canReview) {
+      const teacher = await this.getTeacher(userId);
+      if (plan.teacherId !== teacher.id) throw new NotFoundException('Perangkat ajar tidak ditemukan');
+    }
+
+    if (plan.attachmentKey && plan.attachmentName) {
+      return { data: { url: await this.storage.createDownloadUrl(plan.attachmentKey, plan.attachmentName) } };
+    }
+    if (plan.attachmentUrl) return { data: { url: plan.attachmentUrl } };
+    throw new NotFoundException('Dokumen belum tersedia');
   }
 
   async getReviewQueue() {

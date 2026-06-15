@@ -217,7 +217,17 @@ Domain `academic-planning` sudah menyediakan workflow awal:
 - `GET /api/academic-planning/review-queue` untuk antrean review Kepala Sekolah.
 - `PATCH /api/academic-planning/:id/review` untuk approve atau meminta revisi.
 
-Halaman guru berada di `/teacher/teaching-plans`. Tahap awal menyimpan metadata serta `attachmentUrl`; upload file fisik akan dihubungkan melalui storage provider pada infrastructure layer agar domain tidak tergantung langsung pada vendor penyimpanan.
+Halaman guru berada di `/teacher/teaching-plans`. Dokumen DOCX disimpan pada bucket privat Cloudflare R2 melalui `StorageProvider` di infrastructure layer. Domain menyimpan object key, nama asli, MIME type, ukuran, dan waktu upload; URL unduhan dibuat sementara saat pengguna berhak membuka dokumen.
+
+Konfigurasi backend yang wajib tersedia:
+
+- `R2_ACCOUNT_ID`
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
+- `R2_BUCKET_NAME`
+- `R2_DOWNLOAD_URL_EXPIRES_IN` (default 900 detik)
+
+File dibatasi pada DOCX maksimal 10 MB. Guru hanya dapat mengganti file ketika status masih `DRAFT` atau `REVISION_REQUESTED`.
 
 Pilihan mata pelajaran pada halaman tersebut dibaca dari `GET /api/academic/me/subjects`, sehingga guru hanya dapat membuat perangkat ajar untuk mata pelajaran yang sudah ditugaskan kepadanya melalui `TeacherSubject`.
 

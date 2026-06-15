@@ -30,7 +30,7 @@ export function PageHeader({
         <p className="text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
           {eyebrow}
         </p>
-        <h1 className="relative my-2 text-3xl font-black tracking-[-0.035em] sm:text-5xl">
+        <h1 className="relative my-2 text-2xl font-black tracking-[-0.035em] sm:text-4xl">
           {title}
         </h1>
         <p className="text-sm leading-6 text-slate-600 sm:text-base">
