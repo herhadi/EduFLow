@@ -207,6 +207,18 @@ Operator sekolah membuat kalender pendidikan
 
 ## Catatan Implementasi
 
+## Implementasi Perangkat Ajar Tahap Awal
+
+Domain `academic-planning` sudah menyediakan workflow awal:
+
+- `GET /api/academic-planning/mine` untuk daftar perangkat ajar guru login.
+- `POST /api/academic-planning` untuk menyimpan draft.
+- `POST /api/academic-planning/:id/submit` untuk mengirim pengajuan kepada Kepala Sekolah.
+- `GET /api/academic-planning/review-queue` untuk antrean review Kepala Sekolah.
+- `PATCH /api/academic-planning/:id/review` untuk approve atau meminta revisi.
+
+Halaman guru berada di `/teacher/teaching-plans`. Tahap awal menyimpan metadata serta `attachmentUrl`; upload file fisik akan dihubungkan melalui storage provider pada infrastructure layer agar domain tidak tergantung langsung pada vendor penyimpanan.
+
 - Jangan gabungkan `LessonPlan` dengan `DailyAgenda`; lesson plan adalah rencana, agenda adalah realisasi harian.
 - Jangan simpan nilai siswa langsung di `Student`; gunakan `StudentGrade` dengan `StudentEnrollment`.
 - Kalender pendidikan harus memengaruhi generate agenda agar agenda tidak dibuat pada hari libur atau kegiatan non-KBM.

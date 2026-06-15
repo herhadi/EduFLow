@@ -13,6 +13,7 @@ import { CorrelationIdMiddleware } from './infrastructure/observability/correlat
 import { ErrorTrackingFilter } from './infrastructure/observability/error-tracking.filter';
 import { RequestLoggingInterceptor } from './infrastructure/observability/request-logging.interceptor';
 import { AcademicModule } from './modules/academic/academic.module';
+import { AcademicPlanningModule } from './modules/academic-planning/academic-planning.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -38,6 +39,7 @@ import { WorkersModule } from './workers/workers.module';
     QueueModule,
     AuthModule,
     AcademicModule,
+    AcademicPlanningModule,
     AttendanceModule,
     FinanceModule,
     HealthModule,

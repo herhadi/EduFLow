@@ -97,6 +97,7 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'profile', href: '/notifications', label: 'Notifikasi' },
   { section: 'teacher', href: '/teacher/schedules', label: 'Jadwal Saya' },
   { section: 'teacher', href: '/teacher/attendance', label: 'Presensi' },
+  { section: 'teacher', href: '/teacher/teaching-plans', label: 'Perangkat Ajar' },
   { section: 'teacher', href: '/dashboard', label: 'Hari Ini' },
   { section: 'teacher', href: '/notifications', label: 'Notifikasi' },
   { section: 'principal', href: '/principal/review', label: 'Persetujuan' },

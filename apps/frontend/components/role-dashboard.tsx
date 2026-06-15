@@ -155,6 +155,7 @@ function TeacherHome({
         <RoleSection description="Menu personal berdasarkan kelas dan mata pelajaran yang Anda ampu." title="Pekerjaan Saya">
           <TeacherCard
             description="Program Tahunan, Program Semester, KKTP, perencanaan pembelajaran, dan buku KBM."
+            href="/teacher/teaching-plans"
             label="Perangkat Ajar"
           />
           <TeacherCard

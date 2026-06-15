@@ -421,6 +421,24 @@ export interface LoginResult {
   };
 }
 
+export type TeachingPlanType = 'ANNUAL_PROGRAM' | 'SEMESTER_PROGRAM' | 'KKTP' | 'LESSON_PLAN' | 'TEACHING_BOOK';
+export type TeachingPlanStatus = 'DRAFT' | 'SUBMITTED' | 'REVISION_REQUESTED' | 'APPROVED' | 'ARCHIVED';
+export interface TeachingPlan {
+  id: string;
+  subjectId: string;
+  schoolYearId: string;
+  semesterId?: string | null;
+  type: TeachingPlanType;
+  title: string;
+  description?: string | null;
+  attachmentUrl?: string | null;
+  status: TeachingPlanStatus;
+  reviewNote?: string | null;
+  subject: Subject;
+  schoolYear: SchoolYear;
+  semester?: Semester | null;
+}
+
 export interface AppUser {
   id: string;
   email: string;
@@ -623,6 +641,11 @@ export const api = {
   getSchedules: () => request<ApiResponse<Schedule[]>>('/academic/schedules'),
   getMySchedules: () =>
     request<ApiResponse<Schedule[]>>('/academic/me/schedules'),
+  getMyTeachingPlans: () => request<ApiResponse<TeachingPlan[]>>('/academic-planning/mine'),
+  createTeachingPlan: (payload: { subjectId: string; schoolYearId: string; semesterId?: string; type: TeachingPlanType; title: string; description?: string; attachmentUrl?: string }) =>
+    request<ApiResponse<TeachingPlan>>('/academic-planning', { method: 'POST', body: JSON.stringify(payload) }),
+  submitTeachingPlan: (id: string) =>
+    request<ApiResponse<TeachingPlan>>(`/academic-planning/${id}/submit`, { method: 'POST' }),
   getAcademicTimeSlots: (schoolYearId?: string) =>
     request<ApiResponse<AcademicTimeSlot[]>>(
       `/academic/time-slots${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,

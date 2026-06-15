@@ -1,5 +1,13 @@
 # API MVP
 
+## Academic Planning
+
+- `GET /api/academic-planning/mine`
+- `POST /api/academic-planning`
+- `POST /api/academic-planning/:id/submit`
+- `GET /api/academic-planning/review-queue`
+- `PATCH /api/academic-planning/:id/review`
+
 Endpoint berikut bersifat dasar untuk memvalidasi flow backend sebelum frontend lengkap dibuat.
 
 ## Auth API
