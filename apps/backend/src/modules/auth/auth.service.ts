@@ -34,6 +34,11 @@ type ResetPasswordInput = {
   newPassword: string;
 };
 
+type ChangeInitialPasswordInput = {
+  newPassword: string;
+  repeatPassword: string;
+};
+
 type LoginAuditInput = AuthRequestMeta & {
   email: string;
   reason?: string;
@@ -161,6 +166,49 @@ export class AuthService {
     });
 
     return { success: true };
+  }
+
+  async changeInitialPassword(
+    userId: string,
+    input: ChangeInitialPasswordInput,
+  ) {
+    if (input.newPassword !== input.repeatPassword) {
+      throw new BadRequestException('Konfirmasi password tidak sama');
+    }
+
+    if (input.newPassword === this.getDefaultUserPassword()) {
+      throw new BadRequestException('Password baru tidak boleh sama dengan password default');
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User tidak ditemukan');
+    }
+
+    const stillUsesDefaultPassword = await this.isDefaultPassword(user.password);
+
+    if (!stillUsesDefaultPassword) {
+      return {
+        data: await this.getSessionUser(userId),
+        message: 'Password sudah pernah diganti.',
+      };
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: await hash(input.newPassword, 12),
+        passwordChangedAt: new Date(),
+      },
+    });
+
+    return {
+      data: await this.getSessionUser(userId),
+      message: 'Password berhasil diganti.',
+    };
   }
 
   async requestPasswordReset(dto: RequestPasswordResetInput) {
@@ -506,6 +554,8 @@ export class AuthService {
       { expiresIn: `${LOGIN_SESSION_LIFETIME_HOURS}h` },
     );
 
+    const mustChangePassword = await this.isDefaultPassword(user.password);
+
     return {
       accessToken,
       refreshToken,
@@ -517,8 +567,48 @@ export class AuthService {
         name: user.name,
         roles,
         permissions,
+        mustChangePassword,
       },
     };
+  }
+
+  private async getSessionUser(userId: string) {
+    const user = await this.prisma.user.findFirstOrThrow({
+      where: { id: userId, deletedAt: null },
+      include: {
+        roles: {
+          include: {
+            role: {
+              include: {
+                permissions: { include: { permission: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+    const permissions = [
+      ...new Set(
+        user.roles.flatMap(({ role }) =>
+          role.permissions.map(({ permission }) => permission.key),
+        ),
+      ),
+    ];
+    const roles = [...new Set(user.roles.map(({ role }) => role.name))];
+
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      name: user.name,
+      roles,
+      permissions,
+      mustChangePassword: await this.isDefaultPassword(user.password),
+    };
+  }
+
+  private async isDefaultPassword(passwordHash: string) {
+    return compare(this.getDefaultUserPassword(), passwordHash);
   }
 
   private hashToken(token: string) {

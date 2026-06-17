@@ -420,6 +420,7 @@ export interface LoginResult {
     name: string;
     roles: string[];
     permissions: string[];
+    mustChangePassword?: boolean;
   };
 }
 
@@ -541,6 +542,14 @@ function clearSessionAndRedirect() {
 export const api = {
   login: (payload: { username: string; password: string }) =>
     request<LoginResult>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  changeInitialPassword: (payload: {
+    newPassword: string;
+    repeatPassword: string;
+  }) =>
+    request<ApiResponse<LoginResult['user']>>('/auth/change-initial-password', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),

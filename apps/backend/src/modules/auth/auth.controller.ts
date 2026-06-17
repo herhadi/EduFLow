@@ -4,6 +4,7 @@ import { RequirePermissions } from '../../common/decorators/permissions.decorato
 import { Public } from '../../common/decorators/public.decorator';
 import { RequestWithUser } from '../../core/http/request-with-user';
 import { AuthService } from './auth.service';
+import { ChangeInitialPasswordDto } from './dto/change-initial-password.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -41,6 +42,14 @@ export class AuthController {
   @Post('logout')
   logout(@Body() dto: RefreshTokenDto) {
     return this.authService.logout(dto.refreshToken);
+  }
+
+  @Post('change-initial-password')
+  changeInitialPassword(
+    @Body() dto: ChangeInitialPasswordDto,
+    @Req() request: RequestWithUser,
+  ) {
+    return this.authService.changeInitialPassword(request.user.id, dto);
   }
 
   @Public()

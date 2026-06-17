@@ -122,21 +122,67 @@ function OperatorHome({ currentUser }: { currentUser: CurrentUser | null }) {
         eyebrow="Operator Sekolah"
         title={`Selamat bekerja, ${displayName}`}
       />
-      <RoleSection
-        description="Pekerjaan yang paling sering dilakukan operator."
-        title="Akses Cepat"
-      >
-        <RoleActionCard href="/schedules" icon="◷" label="Susun Jadwal" description="Atur jadwal kelas berdasarkan hari, jam, guru, dan mata pelajaran." priority />
-        <RoleActionCard href="/admin/guru" icon="♙" label="Kelola Guru" description="Atur akun, role, mapel ampu, dan wali kelas." />
-        <RoleActionCard href="/admin/akademik" icon="▦" label="Data Akademik" description="Kelola tahun ajaran, semester, kelas, dan mata pelajaran." />
-        <RoleActionCard href="/import-data" icon="⇧" label="Import Data" description="Masukkan data guru dan siswa dari file Excel." />
-      </RoleSection>
-      <RoleSection description="Kontrol administratif yang tidak perlu dibuka setiap hari." title="Administrasi">
-        <RoleActionCard href="/admin/akses" icon="⚿" label="Akun & Akses" description="Kelola akun pengguna sekolah dan status aksesnya." />
-        <RoleActionCard href="/notifications" icon="✦" label="Notifikasi" description="Pantau pesan pending, terkirim, dan gagal." />
-        <RoleActionCard href="/audit" icon="◇" label="Aktivitas" description="Lihat perubahan penting yang terjadi di sistem." />
-        <RoleActionCard href="/reports" icon="▣" label="Laporan" description="Export rekap sekolah ke Excel atau PDF." />
-      </RoleSection>
+      <section className="mt-7">
+        <div className="mb-4">
+          <h2 className="text-xl font-black tracking-tight text-slate-900">
+            Ruang Kerja Admin
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            Fokus pengecekan data sebelum aktivitas KBM berjalan penuh.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <AdminInsightCard
+            description="Pastikan tahun ajaran, semester, kelas, dan mapel aktif sudah benar."
+            href="/admin/akademik"
+            label="Kesiapan Data Akademik"
+            status="Fondasi"
+            tone="primary"
+          />
+          <AdminInsightCard
+            description="Cek jadwal yang belum lengkap, bentrok guru, atau slot kelas kosong."
+            href="/schedules"
+            label="Validasi Jadwal"
+            status="Harian"
+            tone="warning"
+          />
+          <AdminInsightCard
+            description="Tinjau akun guru, role wali kelas, dan mapel ampu yang belum terhubung."
+            href="/admin/guru"
+            label="Kelengkapan Guru"
+            status="Akses"
+            tone="primary"
+          />
+          <AdminInsightCard
+            description="Lihat notifikasi gagal, perubahan data penting, dan laporan yang perlu diekspor."
+            href="/notifications"
+            label="Kesehatan Operasional"
+            status="Monitoring"
+            tone="danger"
+          />
+        </div>
+      </section>
+
+      <section className="mt-7 rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="text-xl font-black tracking-tight text-slate-900">
+              Checklist Sebelum KBM
+            </h2>
+            <p className="mt-1 text-sm text-muted">
+              Urutan kerja singkat agar data harian tidak tercecer.
+            </p>
+          </div>
+          <span className="w-fit rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">
+            Admin
+          </span>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <AdminChecklistItem label="Data guru dan siswa sudah terbaru" />
+          <AdminChecklistItem label="Jadwal hari ini tidak ada bentrok" />
+          <AdminChecklistItem label="Notifikasi dan audit dipantau" />
+        </div>
+      </section>
     </>
   );
 }
@@ -252,6 +298,55 @@ function RoleActionCard({ description, href, icon, label, priority = false }: { 
       <p className={priority ? 'mt-2 text-sm leading-6 text-blue-100' : 'mt-2 text-sm leading-6 text-muted'}>{description}</p>
       <span className={priority ? 'mt-4 inline-flex text-xs font-black text-white' : 'mt-4 inline-flex text-xs font-black text-brand-700'}>Buka menu →</span>
     </Link>
+  );
+}
+
+function AdminInsightCard({
+  description,
+  href,
+  label,
+  status,
+  tone,
+}: {
+  description: string;
+  href: string;
+  label: string;
+  status: string;
+  tone: 'primary' | 'warning' | 'danger';
+}) {
+  const toneClass = {
+    primary:
+      'border-blue-100 bg-white text-brand-700 dark:border-blue-400/20 dark:bg-[var(--surface-soft)] dark:text-blue-200',
+    warning:
+      'border-amber-100 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-200',
+    danger:
+      'border-red-100 bg-red-50 text-red-700 dark:border-red-400/20 dark:bg-red-500/15 dark:text-red-200',
+  }[tone];
+
+  return (
+    <Link
+      className={`group rounded-[1.75rem] border p-5 shadow-sm shadow-blue-100/60 transition hover:-translate-y-0.5 hover:shadow-lg dark:shadow-black/20 ${toneClass}`}
+      href={href}
+    >
+      <span className="inline-flex rounded-full bg-white/70 px-3 py-1 text-xs font-black dark:bg-white/10">
+        {status}
+      </span>
+      <h3 className="mt-4 text-lg font-black text-slate-900 dark:text-[var(--text)]">
+        {label}
+      </h3>
+      <p className="mt-2 text-sm leading-6 text-muted">{description}</p>
+      <span className="mt-4 inline-flex text-xs font-black">Tinjau data →</span>
+    </Link>
+  );
+}
+
+function AdminChecklistItem({ label }: { label: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-[var(--border)] dark:bg-[var(--surface-soft)]">
+      <p className="text-sm font-bold text-slate-900 dark:text-[var(--text)]">
+        {label}
+      </p>
+    </div>
   );
 }
 

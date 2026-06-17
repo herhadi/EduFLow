@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
-import { api } from '../../lib/api';
+import { api, type LoginResult } from '../../lib/api';
 import { saveSession } from '../../lib/session';
 import { PasswordToggleIcon } from '../../components/ui/password-toggle-icon';
 import { ThemeToggle } from '../../components/ui/theme-toggle';
@@ -13,9 +13,12 @@ export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [repeatPassword, setRepeatPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [pendingSession, setPendingSession] = useState<LoginResult | null>(null);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -33,10 +36,58 @@ export default function LoginPage() {
     try {
       const session = await api.login({ username, password });
       saveSession(session);
+
+      if (session.user.mustChangePassword) {
+        setPendingSession(session);
+        setPassword('');
+        setErrorMessage('');
+        return;
+      }
+
       router.push(getDashboardPathForRoles(session.user.roles ?? []));
       router.refresh();
     } catch {
       setErrorMessage('Username atau password salah. Periksa kembali data login Anda.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleChangeInitialPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!pendingSession) {
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage('');
+
+    if (newPassword !== repeatPassword) {
+      setIsLoading(false);
+      setErrorMessage('Konfirmasi password tidak sama.');
+      return;
+    }
+
+    try {
+      const response = await api.changeInitialPassword({
+        newPassword,
+        repeatPassword,
+      });
+      const nextSession = {
+        ...pendingSession,
+        user: response.data,
+      };
+
+      saveSession(nextSession);
+      router.push(getDashboardPathForRoles(response.data.roles ?? []));
+      router.refresh();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Password baru belum bisa disimpan.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -74,61 +125,85 @@ export default function LoginPage() {
 
         <section className="surface-card rounded-[2rem] p-5 sm:p-7">
           <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
-            Login Sistem
+            {pendingSession ? 'Password Default' : 'Login Sistem'}
           </p>
           <h1 className="mt-2 text-3xl font-black tracking-tight text-ink">
-            Masuk ke EduFlow
+            {pendingSession ? 'Ganti Password' : 'Masuk ke EduFlow'}
           </h1>
           <p className="mt-2 text-sm leading-6 text-muted">
-            Masuk memakai username atau email. Session aktif selama 24 jam.
+            {pendingSession
+              ? 'Akun masih memakai password default. Buat password baru sebelum masuk dashboard.'
+              : 'Masuk memakai username atau email. Session aktif selama 24 jam.'}
           </p>
 
-          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-            <label className="grid gap-2 text-sm font-bold text-slate-700">
-              Username atau Email
-              <input
-                autoComplete="username"
-                className="rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600 focus:bg-white"
-                onChange={(event) => setUsername(event.target.value)}
-                placeholder=""
-                type="text"
-                value={username}
-              />
-            </label>
+          <form
+            className="mt-6 space-y-4"
+            onSubmit={pendingSession ? handleChangeInitialPassword : handleSubmit}
+          >
+            {pendingSession ? null : (
+              <>
+                <label className="grid gap-2 text-sm font-bold text-slate-700">
+                  Username atau Email
+                  <input
+                    autoComplete="username"
+                    className="rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600 focus:bg-white"
+                    onChange={(event) => setUsername(event.target.value)}
+                    placeholder=""
+                    type="text"
+                    value={username}
+                  />
+                </label>
 
-            <label className="grid gap-2 text-sm font-bold text-slate-700">
-              Password
-              <span className="flex overflow-hidden rounded-2xl border border-blue-100 bg-blue-50/50 transition focus-within:border-brand-600 focus-within:bg-white">
-                <input
-                  autoComplete="current-password"
-                  className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm font-normal outline-none"
-                  maxLength={10}
-                  minLength={6}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder=""
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
+                <label className="grid gap-2 text-sm font-bold text-slate-700">
+                  Password
+                  <span className="flex overflow-hidden rounded-2xl border border-blue-100 bg-blue-50/50 transition focus-within:border-brand-600 focus-within:bg-white">
+                    <input
+                      autoComplete="current-password"
+                      className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm font-normal outline-none"
+                      maxLength={10}
+                      minLength={6}
+                      onChange={(event) => setPassword(event.target.value)}
+                      placeholder=""
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                    />
+                    <button
+                      aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                      className="grid place-items-center px-4 text-brand-700"
+                      onClick={() => setShowPassword((current) => !current)}
+                      type="button"
+                    >
+                      <PasswordToggleIcon visible={showPassword} />
+                    </button>
+                  </span>
+                </label>
+
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <label className="flex items-center gap-2 font-semibold text-muted">
+                    <input className="size-4 accent-brand-600" type="checkbox" />
+                    Ingat saya
+                  </label>
+                  <Link className="font-bold text-brand-700" href="/login">
+                    Lupa password?
+                  </Link>
+                </div>
+              </>
+            )}
+
+            {pendingSession ? (
+              <>
+                <PasswordField
+                  label="Password Baru"
+                  onChange={setNewPassword}
+                  value={newPassword}
                 />
-                <button
-                  aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
-                  className="grid place-items-center px-4 text-brand-700"
-                  onClick={() => setShowPassword((current) => !current)}
-                  type="button"
-                >
-                  <PasswordToggleIcon visible={showPassword} />
-                </button>
-              </span>
-            </label>
-
-            <div className="flex items-center justify-between gap-3 text-sm">
-              <label className="flex items-center gap-2 font-semibold text-muted">
-                <input className="size-4 accent-brand-600" type="checkbox" />
-                Ingat saya
-              </label>
-              <Link className="font-bold text-brand-700" href="/login">
-                Lupa password?
-              </Link>
-            </div>
+                <PasswordField
+                  label="Ulangi Password Baru"
+                  onChange={setRepeatPassword}
+                  value={repeatPassword}
+                />
+              </>
+            ) : null}
 
             {errorMessage ? (
               <div className="rounded-2xl border border-rose-100 bg-rose-50 p-3 text-sm font-semibold text-rose-700">
@@ -138,10 +213,20 @@ export default function LoginPage() {
 
             <button
               className="mt-8 block w-full rounded-2xl bg-brand-600 px-5 py-4 text-center text-sm font-black text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:text-slate-100 disabled:opacity-70 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
-              disabled={isLoading || !username || !password}
+              disabled={
+                isLoading ||
+                (!pendingSession && (!username || !password)) ||
+                (!!pendingSession && (!newPassword || !repeatPassword))
+              }
               type="submit"
             >
-              {isLoading ? 'Masuk...' : 'Masuk Sistem EduFlow'}
+              {isLoading
+                ? pendingSession
+                  ? 'Menyimpan...'
+                  : 'Masuk...'
+                : pendingSession
+                  ? 'Simpan Password & Masuk'
+                  : 'Masuk Sistem EduFlow'}
             </button>
           </form>
         </section>
@@ -151,5 +236,42 @@ export default function LoginPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+function PasswordField({
+  label,
+  onChange,
+  value,
+}: {
+  label: string;
+  onChange: (value: string) => void;
+  value: string;
+}) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <label className="grid gap-2 text-sm font-bold text-slate-700">
+      {label}
+      <span className="flex overflow-hidden rounded-2xl border border-blue-100 bg-blue-50/50 transition focus-within:border-brand-600 focus-within:bg-white">
+        <input
+          autoComplete="new-password"
+          className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm font-normal outline-none"
+          maxLength={10}
+          minLength={6}
+          onChange={(event) => onChange(event.target.value)}
+          type={visible ? 'text' : 'password'}
+          value={value}
+        />
+        <button
+          aria-label={visible ? 'Sembunyikan password' : 'Tampilkan password'}
+          className="grid place-items-center px-4 text-brand-700"
+          onClick={() => setVisible((current) => !current)}
+          type="button"
+        >
+          <PasswordToggleIcon visible={visible} />
+        </button>
+      </span>
+    </label>
   );
 }
