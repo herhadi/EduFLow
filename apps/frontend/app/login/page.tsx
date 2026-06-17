@@ -44,7 +44,7 @@ export default function LoginPage() {
   return (
     <main className="app-backdrop min-h-dvh px-4 py-6">
       <div className="mx-auto flex min-h-[calc(100dvh-3rem)] max-w-md flex-col justify-center">
-        <div className="mb-8 flex items-center justify-between gap-3">
+        <div className="mb-6 flex items-center justify-between gap-3 sm:mb-8">
           <Link className="flex items-center gap-3" href="/">
             <span className="grid size-11 place-items-center rounded-2xl bg-brand-600 text-xl font-black text-white shadow-lg shadow-blue-200">
               E
@@ -59,9 +59,9 @@ export default function LoginPage() {
             </span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle compact />
-            <Link className="secondary-button shrink-0 rounded-full px-4 py-2 text-xs font-black" href="/">
+            <Link className="secondary-button shrink-0 rounded-full px-3 py-2 text-xs font-black sm:px-4" href="/">
               ← Landing
             </Link>
           </div>

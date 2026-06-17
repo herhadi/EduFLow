@@ -162,6 +162,12 @@
     padding: 0.55rem 0.75rem;
   }
 
+  .theme-toggle--compact {
+    min-height: 2rem;
+    width: 2rem;
+    padding: 0;
+  }
+
   .theme-toggle:hover,
   .secondary-button:hover {
     border-color: var(--border-strong);
@@ -327,7 +333,7 @@
   margin-top: 0.875rem !important;
 }
 
-.mobile-app-content :is(.rounded-\[2rem\], .rounded-3xl, .rounded-\[1\.75rem\]) {
+.mobile-app-content :is([class~="rounded-[2rem]"], .rounded-3xl, [class~="rounded-[1.75rem]"]) {
   border-radius: 1rem !important;
 }
 

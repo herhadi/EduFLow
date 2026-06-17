@@ -205,20 +205,19 @@ function AppTopBar({
             <button
               aria-expanded={menuOpen}
               aria-label="Buka menu pengguna"
-              className="secondary-button grid size-10 place-items-center rounded-full text-xl font-black"
+              className="secondary-button grid min-h-0 size-8 place-items-center rounded-full p-0 text-base font-black"
               onClick={() => setMenuOpen((current) => !current)}
               type="button"
             >
               ⋮
             </button>
             {menuOpen ? (
-              <div className="surface-card absolute top-12 right-0 z-50 w-44 rounded-2xl p-2 shadow-xl">
-                <div className="flex items-center gap-3 px-2 py-2">
+              <div className="surface-card absolute top-10 right-0 z-50 grid w-24 grid-cols-[2rem_1fr] items-center gap-1 rounded-xl p-1.5 shadow-xl">
+                <div className="grid place-items-center">
                   <ThemeToggle compact showLabel={false} />
-                  <span className="text-sm font-black text-ink">Ganti Tema</span>
                 </div>
                 <button
-                  className="mt-1 w-full rounded-xl bg-red-600 px-3 py-3 text-left text-sm font-black text-white transition hover:bg-red-700"
+                  className="h-8 rounded-lg bg-red-600 px-2 text-center text-xs font-black text-white transition hover:bg-red-700"
                   onClick={() => void handleLogout()}
                   type="button"
                 >

@@ -25,7 +25,7 @@ export function ThemeToggle({ compact = false, showLabel = true }: { compact?: b
   return (
     <button
       aria-label={`Aktifkan mode ${nextTheme === 'dark' ? 'gelap' : 'terang'}`}
-      className="theme-toggle"
+      className={compact ? 'theme-toggle theme-toggle--compact' : 'theme-toggle'}
       onClick={() => {
         applyTheme(nextTheme);
         setTheme(nextTheme);

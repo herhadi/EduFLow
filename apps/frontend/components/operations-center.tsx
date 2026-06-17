@@ -122,7 +122,7 @@ export function OperationsCenter() {
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           {dashboard.queues.map((queue) => (
             <article
-              className="rounded-3xl border border-slate-200 bg-slate-50/60 p-4"
+              className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 dark:border-[var(--border)] dark:bg-[var(--surface-soft)]"
               key={queue.name}
             >
               <div className="flex items-center justify-between gap-3">
@@ -218,13 +218,13 @@ function HealthCard({ label, status }: { label: string; status: HealthStatus }) 
 
   return (
     <article
-      className={`rounded-3xl border p-4 ${
+      className={`rounded-2xl border p-4 ${
         isHealthy
-          ? 'border-blue-100 bg-blue-50 text-blue-700'
-          : 'border-red-100 bg-red-50 text-red-700'
+          ? 'border-blue-100 bg-blue-50 text-blue-700 dark:border-blue-400/20 dark:bg-blue-500/15 dark:text-blue-200'
+          : 'border-red-100 bg-red-50 text-red-700 dark:border-red-400/20 dark:bg-red-500/15 dark:text-red-200'
       }`}
     >
-      <p className="text-sm font-semibold text-slate-600">{label}</p>
+      <p className="text-sm font-semibold text-slate-600 dark:text-[var(--text-soft)]">{label}</p>
       <strong className="mt-2 block text-lg">{status}</strong>
     </article>
   );
@@ -235,8 +235,8 @@ function StatusPill({ status }: { status: HealthStatus }) {
     <span
       className={`rounded-full px-2 py-1 text-xs font-bold ${
         status === 'Healthy'
-          ? 'bg-blue-50 text-blue-700'
-          : 'bg-red-50 text-red-700'
+          ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200'
+          : 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-200'
       }`}
     >
       {status}
@@ -254,9 +254,15 @@ function QueueCount({
   value: number;
 }) {
   return (
-    <div className="rounded-2xl bg-white p-3">
+    <div className="rounded-xl border border-slate-100 bg-white p-3 dark:border-[var(--border)] dark:bg-[var(--surface-solid)]">
       <p className="text-xs text-muted">{label}</p>
-      <strong className={danger && value > 0 ? 'text-red-700' : 'text-slate-900'}>
+      <strong
+        className={
+          danger && value > 0
+            ? 'text-red-700 dark:text-red-200'
+            : 'text-slate-900 dark:text-[var(--text)]'
+        }
+      >
         {formatNumber(value)}
       </strong>
     </div>
