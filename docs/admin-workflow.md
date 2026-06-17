@@ -218,6 +218,12 @@ Halaman `/schedules` menyediakan tabel jadwal per kelas:
 - klik `Edit` untuk memperbaiki jadwal,
 - wali kelas ditampilkan sebagai konteks kelas, bukan sebagai guru pengajar otomatis.
 
+Catatan UI `/schedules`:
+
+- card form dan card tabel wajib memakai `min-w-0` di dalam grid agar tampilan mobile tidak terpotong,
+- tabel jadwal boleh horizontal scroll di dalam card, tetapi card tidak boleh melebar keluar viewport,
+- date picker pada `Tanggal agenda` mengikuti pola global `.date-picker-control`.
+
 ## Manajemen User
 
 Gunakan `/admin/akses` untuk:

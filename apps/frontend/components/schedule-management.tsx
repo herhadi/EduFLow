@@ -356,9 +356,9 @@ export function ScheduleManagement() {
   }
 
   return (
-    <section className="mt-10 grid gap-6 xl:grid-cols-[420px_1fr]">
+    <section className="mt-10 grid min-w-0 gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
       <form
-        className="rounded-2xl border border-slate-200 bg-white p-6"
+        className="min-w-0 rounded-2xl border border-slate-200 bg-white p-6"
         onSubmit={handleSubmit}
       >
         <div>
@@ -467,7 +467,7 @@ export function ScheduleManagement() {
                     <span>{slot.startsAt}-{slot.endsAt}</span>
                     <span>{slot.type === 'RELIGIOUS' ? 'Jeda kedua' : 'Istirahat'}</span>
                   </div>
-                  {slot.type === 'RELIGIOUS' ? <div className="mt-2 grid grid-cols-2 gap-2">
+                  {slot.type === 'RELIGIOUS' ? <div className="mt-2 grid gap-2 sm:grid-cols-2">
                     {(['BREAK', 'RELIGIOUS'] as const).map((type) => {
                       const currentType = classTimeSlotActivities.find(
                         (activity) => activity.timeSlotId === slot.id,
@@ -571,11 +571,11 @@ export function ScheduleManagement() {
         ) : null}
       </form>
 
-      <div className="space-y-4">
-        <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      <div className="min-w-0 space-y-4">
+        <div className="min-w-0 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
           <div>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
+            <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
               <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
                 Jadwal Kelas
               </p>
@@ -586,12 +586,16 @@ export function ScheduleManagement() {
                 Tabel ini membantu cek mapel, guru, dan jam mengajar per kelas.
               </p>
               </div>
-              {canGenerateAgenda ? <InputField
-                label="Tanggal agenda"
-                onChange={setGenerateDate}
-                type="date"
-                value={generateDate}
-              /> : null}
+              {canGenerateAgenda ? (
+                <div className="w-full sm:w-44">
+                  <InputField
+                    label="Tanggal agenda"
+                    onChange={setGenerateDate}
+                    type="date"
+                    value={generateDate}
+                  />
+                </div>
+              ) : null}
             </div>
             <div className="mt-5 space-y-3">
               {Object.entries(classesByGrade).map(([grade, gradeClasses]) => (
@@ -628,8 +632,8 @@ export function ScheduleManagement() {
             </div>
           ) : null}
 
-          <div className="mt-5 overflow-x-auto rounded-2xl border border-slate-100">
-            <table className="min-w-[720px] w-full border-collapse bg-white text-left text-sm">
+          <div className="mt-5 max-w-full overflow-x-auto rounded-2xl border border-slate-100">
+            <table className="w-full min-w-[640px] border-collapse bg-white text-left text-sm sm:min-w-[720px]">
               <thead className="bg-slate-50 text-xs font-black tracking-[0.08em] text-slate-500 uppercase">
                 <tr>
                   <th className="px-4 py-3">Hari</th>
@@ -753,17 +757,54 @@ function InputField({
   type: 'date' | 'time';
   value: string;
 }) {
+  const isDate = type === 'date';
+
   return (
     <label className="grid gap-1 text-sm font-semibold text-slate-700">
       {label}
-      <input
-        className="rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600"
-        onChange={(event) => onChange(event.target.value)}
-        required
-        type={type}
-        value={value}
-      />
+      {isDate ? (
+        <span className="date-picker-control grid grid-cols-[minmax(0,1fr)_2rem] items-center gap-1 rounded-xl py-1 pl-3 pr-1">
+          <input
+            className="h-9 text-sm font-normal"
+            onChange={(event) => onChange(event.target.value)}
+            required
+            type={type}
+            value={value}
+          />
+          <span className="date-picker-control__button" aria-hidden="true">
+            <CalendarIcon className="h-4 w-4" />
+          </span>
+        </span>
+      ) : (
+        <input
+          className="rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600"
+          onChange={(event) => onChange(event.target.value)}
+          required
+          type={type}
+          value={value}
+        />
+      )}
     </label>
+  );
+}
+
+function CalendarIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
+      <path d="M3 10h18" />
+      <rect height="18" rx="2" width="18" x="3" y="4" />
+    </svg>
   );
 }
 
