@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   api,
   type NotificationLog,
 } from '../lib/api';
 import { getPrimaryRole } from '../lib/navigation.config';
+import { NOTIFICATION_CHANGED_EVENT } from './mobile-app-shell';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 type NotificationTab = 'sent' | 'pending' | 'failed' | 'retry';
@@ -225,7 +227,17 @@ function PersonalNotificationInbox({
   onRefresh: () => Promise<void>;
   role: 'teacher' | 'principal';
 }) {
+  const router = useRouter();
   const isPrincipal = role === 'principal';
+
+  async function openNotification(item: NotificationLog) {
+    if (!item.readAt) {
+      await api.markMyNotificationAsRead(item.id);
+      window.dispatchEvent(new Event(NOTIFICATION_CHANGED_EVENT));
+    }
+    if (item.actionUrl) router.push(item.actionUrl);
+    else await onRefresh();
+  }
 
   return (
     <section className="mt-6 space-y-4">
@@ -276,29 +288,44 @@ function PersonalNotificationInbox({
 
       <div className="grid gap-3">
         {items.map((item) => (
-          <article
-            className="rounded-[1.75rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60"
+          <button
+            className={`w-full rounded-[1.75rem] border p-4 text-left shadow-sm transition ${getInboxTone(item.templateKey)}`}
             key={item.id}
+            onClick={() => void openNotification(item)}
+            type="button"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-black text-brand-700">
+                <p className={`text-xs font-black ${getInboxLabelTone(item.templateKey)}`}>
                   {getPersonalNotificationLabel(item.templateKey, role)}
                 </p>
                 <p className="mt-2 text-sm leading-6 text-slate-700">{item.message}</p>
               </div>
-              {item.status === 'PENDING' ? (
+              {!item.readAt ? (
                 <span className="size-2.5 shrink-0 rounded-full bg-rose-500" />
               ) : null}
             </div>
             <p className="mt-3 text-xs font-semibold text-muted">
               {formatDateTime(item.sentAt ?? item.failedAt ?? item.createdAt)}
             </p>
-          </article>
+            {item.actionUrl ? <p className={`mt-3 text-xs font-black ${getInboxLabelTone(item.templateKey)}`}>{isPrincipal ? 'Buka Review' : 'Buka Perangkat Ajar'} →</p> : null}
+          </button>
         ))}
       </div>
     </section>
   );
+}
+
+function getInboxTone(templateKey?: string | null) {
+  if (templateKey === 'teaching-plan.revision-requested') return 'border-amber-200 bg-amber-50 shadow-amber-100/60 hover:border-amber-300 dark:border-amber-800 dark:bg-amber-950/35';
+  if (templateKey === 'teaching-plan.approved') return 'border-emerald-200 bg-emerald-50 shadow-emerald-100/60 hover:border-emerald-300 dark:border-emerald-800 dark:bg-emerald-950/35';
+  return 'border-blue-100 bg-white shadow-blue-100/60 hover:border-brand-300 hover:bg-brand-50/40 dark:border-slate-800 dark:bg-slate-950';
+}
+
+function getInboxLabelTone(templateKey?: string | null) {
+  if (templateKey === 'teaching-plan.revision-requested') return 'text-amber-700 dark:text-amber-300';
+  if (templateKey === 'teaching-plan.approved') return 'text-emerald-700 dark:text-emerald-300';
+  return 'text-brand-700';
 }
 
 function getPersonalNotificationLabel(

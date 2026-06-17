@@ -151,7 +151,7 @@ export interface ClassTimeSlotActivity {
   type: 'BREAK' | 'RELIGIOUS';
 }
 
-export type NotificationChannel = 'WHATSAPP' | 'TELEGRAM' | 'EMAIL';
+export type NotificationChannel = 'WHATSAPP' | 'TELEGRAM' | 'EMAIL' | 'IN_APP';
 export type NotificationStatus = 'PENDING' | 'SENT' | 'FAILED';
 
 export interface NotificationLog {
@@ -167,6 +167,8 @@ export interface NotificationLog {
   lastError?: string | null;
   sentAt?: string | null;
   failedAt?: string | null;
+  readAt?: string | null;
+  actionUrl?: string | null;
   createdAt: string;
 }
 
@@ -442,6 +444,7 @@ export interface TeachingPlan {
   subject: Subject;
   schoolYear: SchoolYear;
   semester?: Semester | null;
+  teacher?: Teacher;
 }
 
 export interface AppUser {
@@ -665,6 +668,13 @@ export const api = {
     upload<ApiResponse<TeachingPlan>>(`/academic-planning/${id}/attachment`, file),
   getTeachingPlanAttachmentUrl: (id: string) =>
     request<ApiResponse<{ url: string }>>(`/academic-planning/${id}/attachment-url`),
+  getTeachingPlanReviewQueue: () =>
+    request<ApiResponse<TeachingPlan[]>>('/academic-planning/review-queue'),
+  reviewTeachingPlan: (id: string, payload: { status: 'APPROVED' | 'REVISION_REQUESTED'; reviewNote?: string }) =>
+    request<ApiResponse<TeachingPlan>>(`/academic-planning/${id}/review`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
   submitTeachingPlan: (id: string) =>
     request<ApiResponse<TeachingPlan>>(`/academic-planning/${id}/submit`, { method: 'POST' }),
   getAcademicTimeSlots: (schoolYearId?: string) =>
@@ -712,6 +722,8 @@ export const api = {
     request<ApiResponse<NotificationLog[]>>('/notifications/sent'),
   getMyNotifications: () =>
     request<ApiResponse<NotificationLog[]>>('/notifications/mine'),
+  markMyNotificationAsRead: (id: string) =>
+    request<ApiResponse<NotificationLog>>(`/notifications/mine/${id}/read`, { method: 'PATCH' }),
   getFailedNotifications: () =>
     request<ApiResponse<NotificationLog[]>>('/notifications/failed'),
   getPendingNotifications: () =>

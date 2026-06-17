@@ -229,6 +229,14 @@ Konfigurasi backend yang wajib tersedia:
 
 File dibatasi pada DOCX maksimal 10 MB. Guru hanya dapat mengganti file ketika status masih `DRAFT` atau `REVISION_REQUESTED`.
 
+Kepala Sekolah membuka `/principal/review` untuk melihat antrean `SUBMITTED`, membuka dokumen melalui signed URL R2, menyetujui perangkat ajar, atau meminta revisi dengan catatan wajib.
+
+Saat guru submit, sistem membuat notifikasi `IN_APP` untuk setiap akun Kepala Sekolah. Badge navigasi menghitung notifikasi dengan `readAt = null`; klik inbox menandai notifikasi dibaca dan membuka `/principal/review`.
+
+Hasil review membuat notifikasi inbox untuk guru. Status `REVISION_REQUESTED` menggunakan indikator kuning dan status `APPROVED` menggunakan indikator hijau. Keputusan KS menandai notifikasi pengajuan terkait sebagai sudah dibaca sehingga badge langsung berkurang.
+
+Badge pada daftar perangkat ajar juga menggunakan kuning untuk revisi dan hijau untuk disetujui. Pembukaan DOCX memakai helper frontend bersama: desktop diarahkan ke Microsoft Office Online Viewer, sedangkan perangkat mobile membuka signed URL sementara langsung dan menyerahkan penanganan file kepada browser atau sistem operasi. Web browser tidak dapat memaksa dialog pemilihan aplikasi secara konsisten.
+
 Pilihan mata pelajaran pada halaman tersebut dibaca dari `GET /api/academic/me/subjects`, sehingga guru hanya dapat membuat perangkat ajar untuk mata pelajaran yang sudah ditugaskan kepadanya melalui `TeacherSubject`.
 
 - Jangan gabungkan `LessonPlan` dengan `DailyAgenda`; lesson plan adalah rencana, agenda adalah realisasi harian.

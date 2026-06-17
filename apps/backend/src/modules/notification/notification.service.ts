@@ -56,10 +56,6 @@ export class NotificationService implements OnModuleInit {
       user.teacherProfile?.telegramId,
     ].filter((recipient): recipient is string => Boolean(recipient));
 
-    if (!recipients.length) {
-      return { data: [] };
-    }
-
     const allowedTemplates = roles.includes('kepala_sekolah')
       ? [
           'principal.',
@@ -83,15 +79,97 @@ export class NotificationService implements OnModuleInit {
     return {
       data: await this.prisma.notificationLog.findMany({
         where: {
-          recipient: { in: recipients },
-          OR: allowedTemplates.map((templateKey) => ({
-            templateKey: { startsWith: templateKey },
-          })),
+          OR: [
+            { recipientUserId: userId },
+            ...(recipients.length ? [{
+              recipient: { in: recipients },
+              OR: allowedTemplates.map((templateKey) => ({
+                templateKey: { startsWith: templateKey },
+              })),
+            }] : []),
+          ],
         },
         orderBy: { createdAt: 'desc' },
         take: 100,
       }),
     };
+  }
+
+  async createPrincipalInbox(input: { entityId: string; teacherName: string; title: string }) {
+    const principals = await this.prisma.user.findMany({
+      where: { deletedAt: null, roles: { some: { role: { name: 'kepala_sekolah' } } } },
+      select: { id: true, name: true, email: true },
+    });
+
+    if (!principals.length) return;
+
+    await Promise.all(principals.map((principal) => this.prisma.notificationLog.upsert({
+      where: { dedupeKey: `teaching-plan.submitted.${input.entityId}.${principal.id}` },
+      update: { readAt: null, status: NotificationStatus.SENT, message: `${input.teacherName} mengirim ${input.title} untuk direview.`, actionUrl: '/principal/review' },
+      create: {
+        channel: 'IN_APP',
+        status: NotificationStatus.SENT,
+        recipient: principal.email,
+        recipientUserId: principal.id,
+        recipientName: principal.name,
+        subject: 'Perangkat ajar menunggu review',
+        message: `${input.teacherName} mengirim ${input.title} untuk direview.`,
+        templateKey: 'teaching-plan.submitted',
+        dedupeKey: `teaching-plan.submitted.${input.entityId}.${principal.id}`,
+        entityType: 'TeachingPlan',
+        entityId: input.entityId,
+        actionUrl: '/principal/review',
+        attempts: 1,
+        sentAt: new Date(),
+      },
+    })));
+  }
+
+  async createTeacherReviewInbox(input: { teacherId: string; entityId: string; title: string; approved: boolean; reviewNote?: string }) {
+    const teacher = await this.prisma.teacher.findUnique({
+      where: { id: input.teacherId },
+      select: { user: { select: { id: true, name: true, email: true } } },
+    });
+    if (!teacher?.user) return;
+
+    const templateKey = input.approved ? 'teaching-plan.approved' : 'teaching-plan.revision-requested';
+    const message = input.approved
+      ? `${input.title} telah disetujui Kepala Sekolah.`
+      : `${input.title} perlu direvisi.${input.reviewNote ? ` Catatan: ${input.reviewNote}` : ''}`;
+
+    await this.prisma.notificationLog.upsert({
+      where: { dedupeKey: `${templateKey}.${input.entityId}.${teacher.user.id}` },
+      update: { readAt: null, status: NotificationStatus.SENT, message, actionUrl: '/teacher/teaching-plans', sentAt: new Date() },
+      create: {
+        channel: 'IN_APP',
+        status: NotificationStatus.SENT,
+        recipient: teacher.user.email,
+        recipientUserId: teacher.user.id,
+        recipientName: teacher.user.name,
+        subject: input.approved ? 'Perangkat ajar disetujui' : 'Revisi perangkat ajar',
+        message,
+        templateKey,
+        dedupeKey: `${templateKey}.${input.entityId}.${teacher.user.id}`,
+        entityType: 'TeachingPlan',
+        entityId: input.entityId,
+        actionUrl: '/teacher/teaching-plans',
+        attempts: 1,
+        sentAt: new Date(),
+      },
+    });
+  }
+
+  async markEntityAsRead(userId: string, entityType: string, entityId: string) {
+    await this.prisma.notificationLog.updateMany({
+      where: { recipientUserId: userId, entityType, entityId, readAt: null },
+      data: { readAt: new Date() },
+    });
+  }
+
+  async markAsRead(userId: string, id: string) {
+    const notification = await this.prisma.notificationLog.findFirst({ where: { id, recipientUserId: userId } });
+    if (!notification) throw new NotFoundException('Notifikasi tidak ditemukan');
+    return { data: await this.prisma.notificationLog.update({ where: { id }, data: { readAt: new Date() } }) };
   }
 
   async getTemplates() {
@@ -114,6 +192,10 @@ export class NotificationService implements OnModuleInit {
 
     if (notification.status !== NotificationStatus.FAILED) {
       throw new BadRequestException('Hanya notifikasi gagal yang bisa retry');
+    }
+
+    if (notification.channel === 'IN_APP') {
+      throw new BadRequestException('Notifikasi inbox tidak diproses melalui queue provider');
     }
 
     const updatedNotification = await this.prisma.notificationLog.update({

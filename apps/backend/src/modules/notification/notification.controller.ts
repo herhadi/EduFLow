@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Req } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import { PERMISSIONS } from '../../common/constants/permissions';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { RequestWithUser } from '../../core/http/request-with-user';
@@ -14,6 +14,11 @@ export class NotificationController {
       request.user.id,
       request.user.roles ?? [],
     );
+  }
+
+  @Patch('mine/:id/read')
+  markMineAsRead(@Req() request: RequestWithUser, @Param('id') id: string) {
+    return this.notificationService.markAsRead(request.user.id, id);
   }
 
   @RequirePermissions(PERMISSIONS.NOTIFICATION_READ)

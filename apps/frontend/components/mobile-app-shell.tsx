@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { cn } from '../lib/cn';
 import { ThemeToggle } from './ui/theme-toggle';
 import { api } from '../lib/api';
@@ -16,6 +16,8 @@ import {
   getPrimaryRole,
   getSectionFromPath,
 } from '../lib/navigation.config';
+
+export const NOTIFICATION_CHANGED_EVENT = 'eduflow-notification-changed';
 
 export function MobileAppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -60,7 +62,7 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
         ) {
           const response = await api.getMyNotifications();
           setNotificationBadgeCount(
-            response.data.filter((notification) => notification.status === 'PENDING')
+            response.data.filter((notification) => !notification.readAt)
               .length,
           );
           return;
@@ -80,6 +82,8 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
     }
 
     void loadNotificationBadge();
+    window.addEventListener(NOTIFICATION_CHANGED_EVENT, loadNotificationBadge);
+    return () => window.removeEventListener(NOTIFICATION_CHANGED_EVENT, loadNotificationBadge);
   }, [currentUser, isPublicPage]);
 
   if (isPublicPage) {
@@ -134,6 +138,17 @@ function AppTopBar({
 }: {
   currentUser: { name?: string; username?: string | null; roles?: string[] } | null;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function closeMenu(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener('mousedown', closeMenu);
+    return () => document.removeEventListener('mousedown', closeMenu);
+  }, []);
+
   async function handleLogout() {
     const refreshToken = localStorage.getItem('refreshToken');
 
@@ -178,14 +193,40 @@ function AppTopBar({
               {displayRole}
             </p>
           </div>
-          <ThemeToggle compact />
+          <div className="hidden sm:block"><ThemeToggle compact /></div>
           <button
-            className="secondary-button rounded-full px-3 py-2 text-xs font-black"
+            className="hidden rounded-full bg-red-600 px-3 py-2 text-xs font-black text-white transition hover:bg-red-700 sm:block"
             onClick={() => void handleLogout()}
             type="button"
           >
             Keluar
           </button>
+          <div className="relative sm:hidden" ref={menuRef}>
+            <button
+              aria-expanded={menuOpen}
+              aria-label="Buka menu pengguna"
+              className="secondary-button grid size-10 place-items-center rounded-full text-xl font-black"
+              onClick={() => setMenuOpen((current) => !current)}
+              type="button"
+            >
+              ⋮
+            </button>
+            {menuOpen ? (
+              <div className="surface-card absolute top-12 right-0 z-50 w-44 rounded-2xl p-2 shadow-xl">
+                <div className="flex items-center gap-3 px-2 py-2">
+                  <ThemeToggle compact showLabel={false} />
+                  <span className="text-sm font-black text-ink">Ganti Tema</span>
+                </div>
+                <button
+                  className="mt-1 w-full rounded-xl bg-red-600 px-3 py-3 text-left text-sm font-black text-white transition hover:bg-red-700"
+                  onClick={() => void handleLogout()}
+                  type="button"
+                >
+                  Keluar
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </header>

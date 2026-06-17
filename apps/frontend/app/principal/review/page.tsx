@@ -1,11 +1,8 @@
+import { PrincipalTeachingPlanReview } from '../../../components/principal-teaching-plan-review';
 import { Container } from '../../../components/ui/container';
 import { PageHeader } from '../../../components/ui/page-header';
 
 const reviewItems = [
-  {
-    title: 'Perangkat Ajar',
-    description: 'Program Tahunan, Program Semester, KKTP, dan perencanaan pembelajaran guru.',
-  },
   {
     title: 'Penilaian Semester',
     description: 'Nilai semester yang menunggu pemeriksaan dan persetujuan Kepala Sekolah.',
@@ -26,7 +23,9 @@ export default function PrincipalReviewPage() {
           title="Review & Persetujuan"
         />
 
-        <section className="mt-6 grid gap-3 sm:grid-cols-2">
+        <PrincipalTeachingPlanReview />
+
+        <section className="mt-8 grid gap-3 sm:grid-cols-2">
           {reviewItems.map((item) => (
             <article
               className="rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60"

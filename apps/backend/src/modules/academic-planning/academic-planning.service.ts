@@ -6,6 +6,7 @@ import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/
 import { PERMISSIONS } from '../../common/constants/permissions';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { NotificationService } from '../notification/notification.service';
 import { CreateTeachingPlanDto } from './dto/create-teaching-plan.dto';
 import { ReviewTeachingPlanDto } from './dto/review-teaching-plan.dto';
 
@@ -16,6 +17,7 @@ export class AcademicPlanningService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly notification: NotificationService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
@@ -54,6 +56,7 @@ export class AcademicPlanningService {
       include: { subject: true, schoolYear: true, semester: true },
     });
     await this.audit.record({ action: 'teaching-plan.submitted', entityType: 'TeachingPlan', entityId: id, before: existing, after: plan, userId });
+    await this.notification.createPrincipalInbox({ entityId: id, teacherName: teacher.name, title: plan.title });
     return { data: plan, message: 'Perangkat ajar dikirim untuk review Kepala Sekolah.' };
   }
 
@@ -129,6 +132,16 @@ export class AcademicPlanningService {
       include: { teacher: true, subject: true, schoolYear: true, semester: true },
     });
     await this.audit.record({ action: dto.status === 'APPROVED' ? 'teaching-plan.approved' : 'teaching-plan.revision-requested', entityType: 'TeachingPlan', entityId: id, before: existing, after: plan, userId });
+    await Promise.all([
+      this.notification.markEntityAsRead(userId, 'TeachingPlan', id),
+      this.notification.createTeacherReviewInbox({
+        teacherId: plan.teacherId,
+        entityId: id,
+        title: plan.title,
+        approved: dto.status === TeachingPlanStatus.APPROVED,
+        reviewNote: dto.reviewNote?.trim(),
+      }),
+    ]);
     return { data: plan, message: dto.status === 'APPROVED' ? 'Perangkat ajar disetujui.' : 'Perangkat ajar dikembalikan untuk revisi.' };
   }
 

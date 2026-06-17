@@ -10,7 +10,7 @@ function applyTheme(theme: Theme) {
   localStorage.setItem('eduflow-theme', theme);
 }
 
-export function ThemeToggle({ compact = false }: { compact?: boolean }) {
+export function ThemeToggle({ compact = false, showLabel = true }: { compact?: boolean; showLabel?: boolean }) {
   const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
@@ -36,9 +36,9 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
       <span aria-hidden="true" className="theme-toggle__icon">
         {theme === 'dark' ? '☀' : '☾'}
       </span>
-      {!compact ? (
-        <span className="hidden text-xs font-extrabold sm:inline">
-          {theme === 'dark' ? 'Terang' : 'Gelap'}
+      {!compact && showLabel ? (
+        <span className="text-xs font-extrabold">
+          Tema {theme === 'dark' ? 'Terang' : 'Gelap'}
         </span>
       ) : null}
     </button>

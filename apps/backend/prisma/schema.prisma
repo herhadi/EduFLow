@@ -84,6 +84,7 @@ enum NotificationChannel {
   WHATSAPP
   TELEGRAM
   EMAIL
+  IN_APP
 }
 
 enum NotificationStatus {
@@ -155,6 +156,7 @@ model User {
   receivedPayments      Payment[]            @relation("PaymentReceivedBy")
   teacherProfile        Teacher?
   reviewedTeachingPlans TeachingPlan[]       @relation("TeachingPlanReviewedBy")
+  notifications         NotificationLog[]
 
   @@index([lockedUntil])
 }
@@ -628,27 +630,32 @@ model AuditLog {
 }
 
 model NotificationLog {
-  id            String              @id @default(uuid()) @db.Uuid
-  channel       NotificationChannel
-  status        NotificationStatus  @default(PENDING)
-  recipient     String
-  recipientName String?
-  subject       String?
-  message       String
-  templateKey   String?
-  dedupeKey     String?             @unique
-  entityType    String?
-  entityId      String?
-  attempts      Int                 @default(0)
-  lastError     String?
-  sentAt        DateTime?
-  failedAt      DateTime?
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  id              String              @id @default(uuid()) @db.Uuid
+  channel         NotificationChannel
+  status          NotificationStatus  @default(PENDING)
+  recipient       String
+  recipientUserId String?             @db.Uuid
+  recipientName   String?
+  subject         String?
+  message         String
+  templateKey     String?
+  dedupeKey       String?             @unique
+  entityType      String?
+  entityId        String?
+  attempts        Int                 @default(0)
+  lastError       String?
+  sentAt          DateTime?
+  failedAt        DateTime?
+  readAt          DateTime?
+  actionUrl       String?
+  recipientUser   User?               @relation(fields: [recipientUserId], references: [id])
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 
   @@index([status, createdAt])
   @@index([channel, status])
   @@index([entityType, entityId])
+  @@index([recipientUserId, readAt, createdAt])
 }
 
 model NotificationTemplate {

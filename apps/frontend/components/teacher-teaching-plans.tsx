@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { api, type SchoolYear, type Semester, type Subject, type TeachingPlan, type TeachingPlanType } from '../lib/api';
+import { openOfficeDocument } from '../lib/open-document';
 import { useToast } from './ui/toast';
 
 const planTypes: Array<{ value: TeachingPlanType; label: string }> = [
@@ -65,7 +66,7 @@ export function TeacherTeachingPlans() {
   async function openAttachment(plan: TeachingPlan) {
     try {
       const response = await api.getTeachingPlanAttachmentUrl(plan.id);
-      window.open(response.data.url, '_blank', 'noopener,noreferrer');
+      openOfficeDocument(response.data.url);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Dokumen gagal dibuka.');
     }
@@ -115,5 +116,15 @@ export function TeacherTeachingPlans() {
 
 function Select({ label, onChange, options, value }: { label: string; onChange: (value: string) => void; options: Array<{ label: string; value: string }>; value: string }) { return <label className="grid gap-2 text-sm font-bold">{label}<select className="rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600" onChange={(event) => onChange(event.target.value)} value={value}>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>; }
 function Field({ label, onChange, placeholder, required, type = 'text', value }: { label: string; onChange: (value: string) => void; placeholder?: string; required?: boolean; type?: string; value: string }) { return <label className="grid gap-2 text-sm font-bold">{label}<input className="rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600" onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={required} type={type} value={value} /></label>; }
-function Status({ status }: { status: TeachingPlan['status'] }) { const labels = { DRAFT: 'Draft', SUBMITTED: 'Menunggu Review', REVISION_REQUESTED: 'Perlu Revisi', APPROVED: 'Disetujui', ARCHIVED: 'Diarsipkan' }; return <span className="rounded-full bg-brand-50 px-3 py-2 text-xs font-black text-brand-700">{labels[status]}</span>; }
+function Status({ status }: { status: TeachingPlan['status'] }) {
+  const labels = { DRAFT: 'Draft', SUBMITTED: 'Menunggu Review', REVISION_REQUESTED: 'Perlu Revisi', APPROVED: 'Disetujui', ARCHIVED: 'Diarsipkan' };
+  const tones = {
+    DRAFT: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
+    SUBMITTED: 'bg-brand-50 text-brand-700 dark:bg-blue-950 dark:text-blue-300',
+    REVISION_REQUESTED: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+    APPROVED: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+    ARCHIVED: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
+  };
+  return <span className={`rounded-full px-3 py-2 text-xs font-black ${tones[status]}`}>{labels[status]}</span>;
+}
 function formatFileSize(size: number) { return size < 1024 * 1024 ? `${Math.ceil(size / 1024)} KB` : `${(size / 1024 / 1024).toFixed(1)} MB`; }
