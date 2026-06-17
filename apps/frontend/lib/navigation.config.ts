@@ -19,48 +19,48 @@ const rootNavigation: NavigationItem[] = [
   { href: '/admin', label: 'Admin', icon: '⚙' },
   { href: '/operations', label: 'Ops', icon: '●' },
   { href: '/audit', label: 'Audit', icon: '◇' },
-  { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
-  { href: '/profile', label: 'Profil', icon: '◎' },
+  { href: '/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
+  { href: '/profile', label: 'Profil', icon: '👤' },
 ];
 
 const operatorNavigation: NavigationItem[] = [
   { href: '/dashboard/admin', label: 'Beranda', icon: '⌂' },
   { href: '/admin', label: 'Data', icon: '☷' },
   { href: '/schedules', label: 'Jadwal', icon: '▦' },
-  { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
-  { href: '/profile', label: 'Profil', icon: '◎' },
+  { href: '/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
+  { href: '/profile', label: 'Profil', icon: '👤' },
 ];
 
 const principalNavigation: NavigationItem[] = [
   { href: '/dashboard/kepala-sekolah', label: 'Beranda', icon: '⌂' },
   { href: '/principal/review', label: 'Review', icon: '✓' },
   { href: '/teacher-performance', label: 'Performa', icon: '◈' },
-  { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
-  { href: '/profile', label: 'Profil', icon: '◎' },
+  { href: '/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
+  { href: '/profile', label: 'Profil', icon: '👤' },
 ];
 
 const teacherNavigation: NavigationItem[] = [
   { href: '/dashboard/guru', label: 'Hari Ini', icon: '⌂' },
   { href: '/teacher/schedules', label: 'Jadwal', icon: '▦' },
   { href: '/teacher/attendance', label: 'Presensi', icon: '✓' },
-  { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
-  { href: '/profile', label: 'Profil', icon: '◎' },
+  { href: '/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
+  { href: '/profile', label: 'Profil', icon: '👤' },
 ];
 
 const homeroomNavigation: NavigationItem[] = [
   { href: '/dashboard/wali-kelas', label: 'Hari Ini', icon: '⌂' },
   { href: '/teacher/schedules', label: 'Jadwal', icon: '▦' },
   { href: '/teacher/attendance', label: 'Presensi', icon: '✓' },
-  { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
-  { href: '/profile', label: 'Profil', icon: '◎' },
+  { href: '/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
+  { href: '/profile', label: 'Profil', icon: '👤' },
 ];
 
 const parentNavigation: NavigationItem[] = [
   { href: '/dashboard/orang-tua', label: 'Anak', icon: '⌂' },
-  { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
+  { href: '/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
   { href: '/reports', label: 'Riwayat', icon: '▣' },
   { href: '/parent-portal', label: 'Info', icon: '☷' },
-  { href: '/profile', label: 'Profil', icon: '◎' },
+  { href: '/profile', label: 'Profil', icon: '👤' },
 ];
 
 const roleNavigation: Record<UserRole, NavigationItem[]> = {
@@ -73,15 +73,15 @@ const roleNavigation: Record<UserRole, NavigationItem[]> = {
     { href: '/admin/akademik', label: 'Data', icon: '☷' },
     { href: '/import-data', label: 'Import', icon: '⇧' },
     { href: '/reports', label: 'Report', icon: '▣' },
-    { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
-    { href: '/profile', label: 'Profil', icon: '◎' },
+    { href: '/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
+    { href: '/profile', label: 'Profil', icon: '👤' },
   ],
   bk: [
     { href: '/dashboard/bk', label: 'Home', icon: '⌂' },
     { href: '/master-data', label: 'Siswa', icon: '☷' },
     { href: '/reports', label: 'Laporan', icon: '▣' },
-    { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
-    { href: '/profile', label: 'Profil', icon: '◎' },
+    { href: '/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
+    { href: '/profile', label: 'Profil', icon: '👤' },
   ],
   orang_tua: parentNavigation,
 };

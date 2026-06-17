@@ -77,6 +77,23 @@ Navigasi frontend memakai role-based mobile shell:
 - konfigurasi menu dipusatkan di `apps/frontend/lib/navigation.config.ts`,
 - root dianggap role teknis/setup, bukan menu operasional harian untuk semua user.
 
+Dashboard frontend dipisahkan per role agar beranda setiap actor dapat berkembang tanpa saling bertabrakan:
+
+```text
+/dashboard                  root
+/dashboard/admin            operator_sekolah
+/dashboard/kepala-sekolah   kepala_sekolah
+/dashboard/guru             guru
+/dashboard/wali-kelas       wali_kelas
+/dashboard/orang-tua        orang_tua
+/dashboard/tu               tu
+/dashboard/bk               bk
+```
+
+`/dashboard` tetap menjadi dashboard root. User non-root yang membuka `/dashboard` diarahkan ke dashboard sesuai role. Login juga mengarahkan user ke dashboard role masing-masing. Jika user memiliki role `wali_kelas` dan `guru`, prioritas dashboard adalah `wali_kelas`.
+
+Bottom navigation menggunakan label `Inbox` untuk pusat notifikasi dan `Profil` untuk area akun. Item `Inbox` menampilkan badge/dot saat ada notifikasi yang perlu dibaca atau ditindaklanjuti.
+
 ## Dokumen Operasional
 
 - `docs/database.md`: desain relasi akademik.

@@ -29,6 +29,30 @@ Content-Type: application/json
 
 `username` boleh berisi username atau email. Session aktif 24 jam.
 
+Response login membawa `user.mustChangePassword`. Nilai ini `true` jika password user masih sama dengan `DEFAULT_USER_PASSWORD`. Frontend wajib menahan redirect dashboard dan menampilkan form ganti password sebelum user melanjutkan.
+
+### Ganti Password Default
+
+```http
+POST /api/auth/change-initial-password
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "newPassword": "baru123",
+  "repeatPassword": "baru123"
+}
+```
+
+Aturan:
+
+- hanya dipakai setelah login berhasil ketika `user.mustChangePassword` bernilai `true`,
+- `newPassword` dan `repeatPassword` harus sama,
+- password baru tidak boleh sama dengan `DEFAULT_USER_PASSWORD`,
+- panjang password minimal 6 dan maksimal 10 karakter,
+- setelah berhasil, backend mengisi `passwordChangedAt` dan mengembalikan data user terbaru,
+- frontend menyimpan session terbaru dan mengarahkan user ke dashboard sesuai role.
+
 ### User Management
 
 ```http

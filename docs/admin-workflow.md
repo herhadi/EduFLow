@@ -58,17 +58,18 @@ Hero/card utama halaman memakai lebar penuh container dan token `page-hero` agar
 
 Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama sesuai actor yang sedang login:
 
-- `root`: `Admin`, `Ops`, `Audit`, `Notif`, `Profil`.
-- `operator_sekolah`: `Beranda`, `Data`, `Jadwal`, `Notif`, `Profil`.
-- `kepala_sekolah`: `Beranda`, `Review`, `Performa`, `Notif`, `Profil`.
-- `guru` dan `wali_kelas`: `Hari Ini`, `Jadwal`, `Presensi`, `Notif`, `Profil`.
-- `tu`: `Data`, `Import`, `Report`, `Notif`, `Profil`.
-- `bk`: `Home`, `Siswa`, `Laporan`, `Notif`, `Profil`.
-- `orang_tua`: `Anak`, `Notif`, `Riwayat`, `Info`, `Profil`.
+- `root`: `Admin`, `Ops`, `Audit`, `Inbox`, `Profil`.
+- `operator_sekolah`: `Beranda`, `Data`, `Jadwal`, `Inbox`, `Profil`.
+- `kepala_sekolah`: `Beranda`, `Review`, `Performa`, `Inbox`, `Profil`.
+- `guru`: `Hari Ini`, `Jadwal`, `Presensi`, `Inbox`, `Profil`.
+- `wali_kelas`: `Hari Ini`, `Jadwal`, `Presensi`, `Inbox`, `Profil`.
+- `tu`: `Data`, `Import`, `Report`, `Inbox`, `Profil`.
+- `bk`: `Home`, `Siswa`, `Laporan`, `Inbox`, `Profil`.
+- `orang_tua`: `Anak`, `Inbox`, `Riwayat`, `Info`, `Profil`.
 
 Item paling kanan selalu `Profil` untuk kebutuhan personal seperti ganti password, session management, dan preferensi akun.
 
-Item `Notif` memiliki badge/dot jika ada notifikasi `PENDING` atau `FAILED`.
+Item `Inbox` memakai icon pesan dan memiliki badge/dot jika ada notifikasi `PENDING` atau `FAILED`. Item `Profil` memakai icon orang.
 
 `Ops` hanya muncul untuk `root` karena berisi health check, queue monitoring, failed jobs, dan tindakan teknis operasional sistem.
 
@@ -78,9 +79,22 @@ Top submenu berbentuk deretan tombol dihapus karena menduplikasi bottom navigati
 
 Konfigurasi navigasi global berada di `apps/frontend/lib/navigation.config.ts`.
 
-Dashboard `/dashboard` wajib menampilkan information architecture sesuai actor:
+Dashboard dipisahkan per role:
 
-- Operator Sekolah melihat akses cepat penyusunan jadwal, pengelolaan guru, data akademik, import, akun, notifikasi, audit, dan laporan.
+- `root`: `/dashboard`.
+- `operator_sekolah`: `/dashboard/admin`.
+- `kepala_sekolah`: `/dashboard/kepala-sekolah`.
+- `guru`: `/dashboard/guru`.
+- `wali_kelas`: `/dashboard/wali-kelas`.
+- `orang_tua`: `/dashboard/orang-tua`.
+- `tu`: `/dashboard/tu`.
+- `bk`: `/dashboard/bk`.
+
+Login mengarahkan user langsung ke dashboard sesuai role. Jika user non-root membuka `/dashboard`, frontend mengarahkan ke dashboard role-nya.
+
+Dashboard wajib menampilkan information architecture sesuai actor:
+
+- Operator Sekolah melihat ruang kerja admin seperti kesiapan data akademik, validasi jadwal, kelengkapan guru, kesehatan operasional, dan checklist sebelum KBM. Jangan mengisi dashboard admin dengan daftar akses cepat yang menduplikasi bottom navigation.
 - Guru melihat agenda hari ini, jadwal pribadi, presensi, perangkat ajar, penilaian, notifikasi, serta kelas binaan jika menjadi wali kelas.
 - Kepala Sekolah melihat pusat review, inbox keputusan, performa guru, laporan sekolah, dan jejak aktivitas supervisi.
 
@@ -164,6 +178,9 @@ Aturan:
 - password default akun baru memakai `DEFAULT_USER_PASSWORD` di `apps/backend/.env`,
 - panjang password minimal 6 dan maksimal 10 karakter,
 - satu mata pelajaran dapat diampu banyak guru.
+- jika password user masih sama dengan `DEFAULT_USER_PASSWORD`, login wajib menampilkan form ganti password,
+- form ganti password meminta password baru dan ulangi password,
+- setelah password baru tersimpan, user langsung diarahkan ke dashboard sesuai role.
 
 Contoh konfigurasi:
 
