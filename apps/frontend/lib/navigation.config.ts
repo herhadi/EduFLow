@@ -24,15 +24,15 @@ const rootNavigation: NavigationItem[] = [
 ];
 
 const operatorNavigation: NavigationItem[] = [
-  { href: '/dashboard', label: 'Beranda', icon: '⌂' },
+  { href: '/dashboard/admin', label: 'Beranda', icon: '⌂' },
   { href: '/admin', label: 'Data', icon: '☷' },
-  { href: '/schedules', label: 'Jadwal', icon: '◷' },
+  { href: '/schedules', label: 'Jadwal', icon: '▦' },
   { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
   { href: '/profile', label: 'Profil', icon: '◎' },
 ];
 
 const principalNavigation: NavigationItem[] = [
-  { href: '/dashboard', label: 'Beranda', icon: '⌂' },
+  { href: '/dashboard/kepala-sekolah', label: 'Beranda', icon: '⌂' },
   { href: '/principal/review', label: 'Review', icon: '✓' },
   { href: '/teacher-performance', label: 'Performa', icon: '◈' },
   { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
@@ -40,18 +40,26 @@ const principalNavigation: NavigationItem[] = [
 ];
 
 const teacherNavigation: NavigationItem[] = [
-  { href: '/dashboard', label: 'Hari Ini', icon: '⌂' },
-  { href: '/teacher/schedules', label: 'Jadwal', icon: '◷' },
+  { href: '/dashboard/guru', label: 'Hari Ini', icon: '⌂' },
+  { href: '/teacher/schedules', label: 'Jadwal', icon: '▦' },
+  { href: '/teacher/attendance', label: 'Presensi', icon: '✓' },
+  { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
+  { href: '/profile', label: 'Profil', icon: '◎' },
+];
+
+const homeroomNavigation: NavigationItem[] = [
+  { href: '/dashboard/wali-kelas', label: 'Hari Ini', icon: '⌂' },
+  { href: '/teacher/schedules', label: 'Jadwal', icon: '▦' },
   { href: '/teacher/attendance', label: 'Presensi', icon: '✓' },
   { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
   { href: '/profile', label: 'Profil', icon: '◎' },
 ];
 
 const parentNavigation: NavigationItem[] = [
-  { href: '/parent-portal', label: 'Anak', icon: '⌂' },
+  { href: '/dashboard/orang-tua', label: 'Anak', icon: '⌂' },
   { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
   { href: '/reports', label: 'Riwayat', icon: '▣' },
-  { href: '/dashboard', label: 'Info', icon: '☷' },
+  { href: '/parent-portal', label: 'Info', icon: '☷' },
   { href: '/profile', label: 'Profil', icon: '◎' },
 ];
 
@@ -60,7 +68,7 @@ const roleNavigation: Record<UserRole, NavigationItem[]> = {
   operator_sekolah: operatorNavigation,
   kepala_sekolah: principalNavigation,
   guru: teacherNavigation,
-  wali_kelas: teacherNavigation,
+  wali_kelas: homeroomNavigation,
   tu: [
     { href: '/admin/akademik', label: 'Data', icon: '☷' },
     { href: '/import-data', label: 'Import', icon: '⇧' },
@@ -69,7 +77,7 @@ const roleNavigation: Record<UserRole, NavigationItem[]> = {
     { href: '/profile', label: 'Profil', icon: '◎' },
   ],
   bk: [
-    { href: '/dashboard', label: 'Home', icon: '⌂' },
+    { href: '/dashboard/bk', label: 'Home', icon: '⌂' },
     { href: '/master-data', label: 'Siswa', icon: '☷' },
     { href: '/reports', label: 'Laporan', icon: '▣' },
     { href: '/notifications', label: 'Notif', icon: '✦', badge: 'notifications' },
@@ -98,7 +106,7 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'teacher', href: '/teacher/schedules', label: 'Jadwal Saya' },
   { section: 'teacher', href: '/teacher/attendance', label: 'Presensi' },
   { section: 'teacher', href: '/teacher/teaching-plans', label: 'Perangkat Ajar' },
-  { section: 'teacher', href: '/dashboard', label: 'Hari Ini' },
+  { section: 'teacher', href: '/dashboard/guru', label: 'Hari Ini' },
   { section: 'teacher', href: '/notifications', label: 'Notifikasi' },
   { section: 'principal', href: '/principal/review', label: 'Persetujuan' },
   { section: 'principal', href: '/teacher-performance', label: 'Performa Guru' },
@@ -109,8 +117,8 @@ const rolePriority: UserRole[] = [
   'root',
   'operator_sekolah',
   'kepala_sekolah',
-  'guru',
   'wali_kelas',
+  'guru',
   'tu',
   'bk',
   'orang_tua',
@@ -122,6 +130,25 @@ export function getPrimaryRole(roles: string[] = []): UserRole {
 
 export function getPrimaryNavigation(roles: string[] = []) {
   return roleNavigation[getPrimaryRole(roles)];
+}
+
+export function getDashboardPathForRole(role: UserRole) {
+  const paths: Record<UserRole, string> = {
+    root: '/dashboard',
+    operator_sekolah: '/dashboard/admin',
+    kepala_sekolah: '/dashboard/kepala-sekolah',
+    wali_kelas: '/dashboard/wali-kelas',
+    guru: '/dashboard/guru',
+    tu: '/dashboard/tu',
+    bk: '/dashboard/bk',
+    orang_tua: '/dashboard/orang-tua',
+  };
+
+  return paths[role];
+}
+
+export function getDashboardPathForRoles(roles: string[] = []) {
+  return getDashboardPathForRole(getPrimaryRole(roles));
 }
 
 export function getSectionFromPath(pathname: string) {

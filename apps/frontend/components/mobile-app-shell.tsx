@@ -172,8 +172,12 @@ function AppTopBar({
     <header className="app-topbar sticky top-0 z-30 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur-xl sm:px-6">
       <div className="flex items-center justify-between gap-3">
         <Link className="flex items-center gap-3" href="/">
-          <span className="brand-mark grid size-10 place-items-center rounded-2xl text-lg font-black text-white">
-            <span>E</span>
+          <span className="grid size-10 place-items-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1">
+            <img
+              alt="Logo sekolah"
+              className="h-full w-full object-contain"
+              src="/logo_sekolah.webp"
+            />
           </span>
           <span>
             <span className="block text-base font-black leading-none text-ink">

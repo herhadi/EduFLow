@@ -1,9 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { api, type OperationalDashboardSummary } from '../lib/api';
-import { formatReadableDate } from '../lib/format';
+import { formatNumber, formatReadableDate } from '../lib/format';
 import { MetricCard } from './ui/metric-card';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
@@ -157,17 +156,27 @@ export function OperationalDashboard() {
 
       <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
         <div className="mb-4">
-          <h3 className="text-xl font-bold">Akses Cepat</h3>
+          <h3 className="text-xl font-bold">Tindak Lanjut Hari Ini</h3>
           <p className="mt-1 text-sm text-muted">
-            Menu tambahan untuk operator dan kepala sekolah.
+            Prioritas operasional yang perlu dipantau admin sekolah.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <QuickLink href="/master-data" label="Master Data" />
-        <QuickLink href="/audit" label="Audit Trail" />
-        <QuickLink href="/import-data" label="Import Data" />
-        <QuickLink href="/parent-portal" label="Parent Portal" />
-        <QuickLink href="/teacher-performance" label="Performa Guru" />
+        <div className="grid gap-3 sm:grid-cols-3">
+          <FollowUpCard
+            label="Kelas Belum Submit"
+            tone={summary.classes.notSubmitted > 0 ? 'warning' : 'good'}
+            value={summary.classes.notSubmitted}
+          />
+          <FollowUpCard
+            label="Kelas Kosong"
+            tone={summary.classes.empty > 0 ? 'danger' : 'good'}
+            value={summary.classes.empty}
+          />
+          <FollowUpCard
+            label="Notifikasi Gagal"
+            tone={summary.notifications.failed > 0 ? 'danger' : 'good'}
+            value={summary.notifications.failed}
+          />
         </div>
       </section>
     </section>
@@ -196,13 +205,29 @@ function MetricSection({
   );
 }
 
-function QuickLink({ href, label }: { href: string; label: string }) {
+function FollowUpCard({
+  label,
+  tone,
+  value,
+}: {
+  label: string;
+  tone: 'good' | 'warning' | 'danger';
+  value: number;
+}) {
+  const toneClass = {
+    good: 'border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-200',
+    warning: 'border-amber-100 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-200',
+    danger: 'border-red-100 bg-red-50 text-red-700 dark:border-red-400/20 dark:bg-red-500/15 dark:text-red-200',
+  }[tone];
+
   return (
-    <Link
-      className="rounded-2xl border border-blue-100 bg-brand-50 px-4 py-4 text-center text-sm font-bold text-brand-700 shadow-sm shadow-blue-100 transition hover:bg-blue-100"
-      href={href}
-    >
-      {label}
-    </Link>
+    <article className={`rounded-2xl border p-4 ${toneClass}`}>
+      <p className="text-xs font-bold uppercase tracking-[0.08em] opacity-80">
+        {label}
+      </p>
+      <strong className="mt-2 block text-2xl font-black">
+        {formatNumber(value)}
+      </strong>
+    </article>
   );
 }

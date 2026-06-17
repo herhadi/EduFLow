@@ -1,8 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { type ReactNode, useEffect, useState } from 'react';
-import { getPrimaryRole, type UserRole } from '../lib/navigation.config';
+import {
+  getDashboardPathForRole,
+  getPrimaryRole,
+  type UserRole,
+} from '../lib/navigation.config';
 import { OperationalDashboard } from './operational-dashboard';
 import { PageHeader } from './ui/page-header';
 import { UserAvatar } from './ui/user-avatar';
@@ -13,7 +18,12 @@ type CurrentUser = {
   username?: string | null;
 };
 
-export function RoleDashboard() {
+export function RoleDashboard({
+  dashboardRole,
+}: {
+  dashboardRole?: UserRole;
+}) {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [teacherPhotoUrl, setTeacherPhotoUrl] = useState<string | null>(null);
@@ -37,6 +47,18 @@ export function RoleDashboard() {
     }
   }, []);
 
+  useEffect(() => {
+    if (!role || dashboardRole) {
+      return;
+    }
+
+    const dashboardPath = getDashboardPathForRole(role);
+
+    if (dashboardPath !== '/dashboard') {
+      router.replace(dashboardPath);
+    }
+  }, [dashboardRole, role, router]);
+
   if (!role) {
     return (
       <div className="rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted shadow-sm shadow-blue-100/60">
@@ -45,35 +67,45 @@ export function RoleDashboard() {
     );
   }
 
-  if (role === 'guru' || role === 'wali_kelas') {
+  const activeRole = dashboardRole ?? role;
+
+  if (!dashboardRole && activeRole !== 'root') {
+    return (
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted shadow-sm shadow-blue-100/60">
+        Mengarahkan ke dashboard sesuai role...
+      </div>
+    );
+  }
+
+  if (activeRole === 'guru' || activeRole === 'wali_kelas') {
     return (
       <TeacherHome
         currentUser={currentUser}
-        isHomeroom={currentUser?.roles?.includes('wali_kelas') ?? false}
+        isHomeroom={activeRole === 'wali_kelas'}
         photoUrl={teacherPhotoUrl}
       />
     );
   }
 
-  if (role === 'operator_sekolah') {
+  if (activeRole === 'operator_sekolah') {
     return <OperatorHome currentUser={currentUser} />;
   }
 
-  if (role === 'kepala_sekolah') {
+  if (activeRole === 'kepala_sekolah') {
     return <PrincipalHome currentUser={currentUser} />;
   }
 
-  if (role === 'orang_tua') {
+  if (activeRole === 'orang_tua') {
     return <ParentHome currentUser={currentUser} />;
   }
 
   return (
     <>
       <PageHeader
-        description={getMonitoringDescription(role)}
+        description={getMonitoringDescription(activeRole)}
         eyebrow="EduFlow"
         showBackLink={false}
-        title={getMonitoringTitle(role)}
+        title={getMonitoringTitle(activeRole)}
       />
       <OperationalDashboard />
     </>

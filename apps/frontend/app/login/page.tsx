@@ -7,6 +7,7 @@ import { api } from '../../lib/api';
 import { saveSession } from '../../lib/session';
 import { PasswordToggleIcon } from '../../components/ui/password-toggle-icon';
 import { ThemeToggle } from '../../components/ui/theme-toggle';
+import { getDashboardPathForRoles } from '../../lib/navigation.config';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,7 +33,7 @@ export default function LoginPage() {
     try {
       const session = await api.login({ username, password });
       saveSession(session);
-      router.push('/dashboard');
+      router.push(getDashboardPathForRoles(session.user.roles ?? []));
       router.refresh();
     } catch {
       setErrorMessage('Username atau password salah. Periksa kembali data login Anda.');
