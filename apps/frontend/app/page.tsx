@@ -35,8 +35,12 @@ export default function LandingPage() {
       <div className="mx-auto flex min-h-[calc(100dvh-3rem)] max-w-5xl flex-col">
         <header className="flex items-center justify-between gap-4">
           <Link className="flex items-center gap-3" href="/">
-            <span className="grid size-11 place-items-center rounded-2xl bg-brand-600 text-xl font-black text-white shadow-lg shadow-blue-200">
-              E
+            <span className="grid size-11 place-items-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1">
+              <img
+                alt="Logo sekolah"
+                className="h-full w-full object-contain"
+                src="/logo_sekolah.webp"
+              />
             </span>
             <span>
               <span className="block text-lg font-black leading-none text-ink">

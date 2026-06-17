@@ -46,8 +46,12 @@ export default function LoginPage() {
       <div className="mx-auto flex min-h-[calc(100dvh-3rem)] max-w-md flex-col justify-center">
         <div className="mb-6 flex items-center justify-between gap-3 sm:mb-8">
           <Link className="flex items-center gap-3" href="/">
-            <span className="grid size-11 place-items-center rounded-2xl bg-brand-600 text-xl font-black text-white shadow-lg shadow-blue-200">
-              E
+            <span className="grid size-11 place-items-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1">
+              <img
+                alt="Logo sekolah"
+                className="h-full w-full object-contain"
+                src="/logo_sekolah.webp"
+              />
             </span>
             <span>
               <span className="block text-lg font-black leading-none text-ink">
@@ -132,7 +136,7 @@ export default function LoginPage() {
             ) : null}
 
             <button
-              className="mt-8 block w-full rounded-2xl bg-brand-600 px-5 py-4 text-center text-sm font-black text-white shadow-xl shadow-blue-200 transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="mt-8 block w-full rounded-2xl bg-brand-600 px-5 py-4 text-center text-sm font-black text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:text-slate-100 disabled:opacity-70 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
               disabled={isLoading || !username || !password}
               type="submit"
             >
