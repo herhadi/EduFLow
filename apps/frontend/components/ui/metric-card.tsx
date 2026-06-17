@@ -22,17 +22,17 @@ export function MetricCard({
   return (
     <article
       className={cn(
-        'group relative overflow-hidden rounded-3xl border p-4 shadow-sm shadow-slate-100 transition hover:-translate-y-0.5 hover:shadow-lg sm:p-5',
+        'group relative overflow-hidden rounded-2xl border p-3 shadow-sm shadow-slate-100 transition hover:-translate-y-0.5 hover:shadow-lg sm:p-4',
         toneClass[tone],
       )}
     >
-      <span className="absolute -top-8 -right-8 size-24 rounded-full bg-current opacity-[0.06] blur-xl transition group-hover:scale-125" />
-      <p className="relative text-sm font-semibold text-slate-600">{label}</p>
-      <strong className="relative mt-2 block text-3xl font-black tracking-[-0.04em] sm:text-4xl">
+      <span className="absolute -top-8 -right-8 size-20 rounded-full bg-current opacity-[0.06] blur-xl transition group-hover:scale-125" />
+      <p className="relative text-xs font-semibold leading-4 text-slate-600 sm:text-sm">{label}</p>
+      <strong className="relative mt-1.5 block text-2xl font-black sm:text-3xl">
         {formatNumber(value)}
       </strong>
       {description ? (
-        <span className="mt-2 block text-xs leading-5 text-slate-500">{description}</span>
+        <span className="mt-1.5 block text-xs leading-4 text-slate-500">{description}</span>
       ) : null}
     </article>
   );

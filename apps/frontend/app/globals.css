@@ -191,12 +191,72 @@
   .notification-dot {
     --tw-ring-color: var(--surface-solid);
   }
+
+  .date-picker-control {
+    min-height: 2.75rem;
+    border: 1px solid var(--border);
+    background: var(--surface-solid);
+    color: var(--text);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .date-picker-control input[type="date"] {
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 0;
+    background: transparent !important;
+    color: inherit !important;
+    font: inherit;
+    outline: none;
+  }
+
+  .date-picker-control input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    display: none;
+    height: 0;
+    opacity: 0;
+    width: 0;
+  }
+
+  .date-picker-control input[type="date"]::-webkit-inner-spin-button,
+  .date-picker-control input[type="date"]::-webkit-clear-button {
+    display: none;
+  }
+
+  .date-picker-control__button {
+    display: grid;
+    height: 2rem;
+    width: 2rem;
+    place-items: center;
+    border-radius: 0.65rem;
+    color: var(--primary-strong);
+    transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .date-picker-control__button:hover {
+    background: var(--primary-soft);
+    color: var(--primary);
+  }
+
+  .date-picker-control__button:focus-visible {
+    outline: 2px solid var(--primary-strong);
+    outline-offset: 2px;
+  }
+
+  .date-picker-control__button svg {
+    display: block;
+  }
+
+  .date-picker-control__icon {
+    color: var(--primary-strong);
+    pointer-events: none;
+  }
 }
 
 @layer utilities {
   .no-scrollbar { scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
-  .mobile-app-content main { @apply py-6 sm:py-8; }
+  .mobile-app-content main { @apply py-3; }
 }
 
 /* Compatibility layer: seluruh halaman lama ikut tema tanpa migrasi class sekaligus. */
@@ -249,6 +309,38 @@
   border-color: var(--border) !important;
   background: var(--surface-solid) !important;
   color: var(--text) !important;
+}
+
+.app-frame > div:has(.mobile-app-content) {
+  padding-top: 0.5rem !important;
+}
+
+.mobile-app-content :is(.mt-10, .mt-8) {
+  margin-top: 1rem !important;
+}
+
+.mobile-app-content :is(.space-y-6) > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1rem !important;
+}
+
+.mobile-app-content :is(.space-y-5) > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.875rem !important;
+}
+
+.mobile-app-content :is(.rounded-\[2rem\], .rounded-3xl, .rounded-\[1\.75rem\]) {
+  border-radius: 1rem !important;
+}
+
+.mobile-app-content :is(.p-6, .p-5) {
+  padding: 1rem !important;
+}
+
+.mobile-app-content :is(.gap-6) {
+  gap: 1rem !important;
+}
+
+.mobile-app-content :is(.mb-4) {
+  margin-bottom: 0.75rem !important;
 }
 
 @media (hover: hover) {

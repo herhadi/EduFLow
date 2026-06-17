@@ -61,7 +61,7 @@ export default function LandingPage() {
             <p className="inline-flex rounded-full bg-brand-50 px-4 py-2 text-xs font-black tracking-[0.12em] text-brand-700 uppercase">
               Portal Informasi Sekolah
             </p>
-            <h1 className="mt-5 text-4xl font-black tracking-tight text-ink sm:text-6xl">
+            <h1 className="mt-5 text-3xl font-black tracking-tight text-ink sm:text-5xl">
               Monitoring KBM sekolah dalam satu genggaman.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
