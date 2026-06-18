@@ -23,6 +23,13 @@ Konfigurasi service lokal berada di `infra/`.
 
 Deployment production wajib menyediakan environment variable secara aman dan menjalankan migration Prisma sebelum backend dimulai.
 
+## Asset Web Dan PWA
+
+- Logo sekolah utama berada di `apps/frontend/public/logo_sekolah.webp`.
+- Icon web dan icon aplikasi/PWA memakai turunan PNG `apps/frontend/public/logo_sekolah.png`.
+- Metadata Next.js (`apps/frontend/app/layout.tsx`) dan manifest PWA (`apps/frontend/app/manifest.ts`) wajib menunjuk ke logo sekolah agar favicon, apple icon, dan installable app icon konsisten.
+- Jika logo sekolah diganti, buat ulang `logo_sekolah.png` dari sumber logo terbaru dan pastikan ukurannya tetap persegi.
+
 ## Environment Variable
 
 - Backend NestJS memakai `apps/backend/.env`.

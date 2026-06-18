@@ -13,9 +13,16 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: 'portrait',
     icons: [
       {
-        src: '/icon.svg',
-        sizes: 'any',
-        type: 'image/svg+xml',
+        src: '/logo_sekolah.png',
+        sizes: '500x500',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/logo_sekolah.png',
+        sizes: '500x500',
+        type: 'image/png',
+        purpose: 'maskable',
       },
     ],
   };
