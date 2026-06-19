@@ -31,8 +31,8 @@ const highlights = [
 
 export default function LandingPage() {
   return (
-    <main className="app-backdrop min-h-dvh px-4 py-6">
-      <div className="mx-auto flex min-h-[calc(100dvh-3rem)] max-w-5xl flex-col">
+    <main className="app-backdrop min-h-dvh overflow-x-hidden">
+      <div className="app-frame mx-auto flex min-h-dvh max-w-md flex-col overflow-x-hidden px-4 py-6 md:my-3 md:min-h-[calc(100dvh-1.5rem)] md:w-[calc(100%-1.5rem)] md:max-w-none md:rounded-[2rem] md:px-6 xl:w-[calc(100%-2rem)]">
         <header className="flex items-center justify-between gap-4">
           <Link className="flex items-center gap-3" href="/">
             <span className="grid size-11 place-items-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1">
@@ -105,7 +105,7 @@ export default function LandingPage() {
               <p className="text-sm font-semibold text-blue-100">
                 Informasi Sekolah
               </p>
-              <h2 className="mt-2 text-2xl font-black">SMP EduFlow Demo</h2>
+              <h2 className="mt-2 text-2xl font-black">SMP Negeri 17 Surakarta</h2>
               <p className="mt-2 text-sm leading-6 text-blue-100">
                 Jl. Pendidikan No. 1 · Sekolah digital yang memprioritaskan
                 transparansi KBM dan komunikasi orang tua.

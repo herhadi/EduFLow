@@ -13,7 +13,7 @@ Jeda pertama selalu `Istirahat`. Khusus jeda kedua tersedia pilihan per kelas: `
 Urutan setup jadwal:
 
 1. Pilih tahun ajaran dan semester.
-2. Pilih guru pengampu. Nama mata pelajaran melekat pada opsi guru, misalnya `Guru A · PPKn`.
+2. Pilih guru pengampu. Nama mata pelajaran melekat pada opsi guru, misalnya `Guru PPKn · PPKn`.
 3. Pilih tingkat kelas (`VII`, `VIII`, atau `IX`).
 4. Pilih hari.
 5. Klik jam pelajaran yang digunakan agar pilihan rombel terbuka, lalu pilih kelas seperti `A`, `B`, `C`, atau `D`. Jam yang tidak digunakan tetap tertutup dan tidak disimpan.
@@ -122,6 +122,15 @@ Root login
   -> generate agenda harian
 ```
 
+Root awal dibuat oleh Prisma seed dari environment:
+
+- `ROOT_EMAIL`
+- `ROOT_USERNAME`
+- `ROOT_NAME`
+- `ROOT_PASSWORD`
+
+Jika tidak diisi, seed memakai nilai generik non-personal seperti `root@eduflow.local` dan `root`. Jangan menyimpan akun personal atau data contoh di seed. Jika `ROOT_PASSWORD` sama dengan `DEFAULT_USER_PASSWORD`, user root akan diminta mengganti password saat login.
+
 ## Manajemen Kelas
 
 Jumlah kelas tidak di-hardcode. Data awal `2026/2027`:
@@ -185,7 +194,7 @@ Aturan:
 Contoh konfigurasi:
 
 ```text
-Guru A
+Guru PPKn
   Role:
     - guru
     - wali_kelas
@@ -205,7 +214,7 @@ Catatan penting:
 - Mapel ampu menjawab pertanyaan "guru ini boleh mengajar mapel apa?"
 - Jadwal menjawab pertanyaan "guru ini mengajar mapel itu di kelas mana dan jam berapa?"
 - Wali kelas adalah tugas binaan kelas, bukan pembatas jadwal mengajar.
-- Guru A tetap bisa menjadi wali kelas IX B walaupun jadwal mengajarnya PPKn di VII A-D.
+- Guru PPKn tetap bisa menjadi wali kelas IX B walaupun jadwal mengajarnya PPKn di VII A-D.
 - Untuk mengosongkan wali kelas, klik ulang kelas yang sedang aktif atau tekan `Kosongkan wali kelas`, lalu simpan.
 - Untuk mengganti wali kelas, kosongkan pilihan lama atau langsung pilih kelas lain pada guru yang sama, lalu simpan.
 

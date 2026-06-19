@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   api,
-  type AttendanceDemoResult,
   type Schedule,
   type SchoolClass,
 } from '../lib/api';
@@ -13,11 +12,7 @@ type LoadState = 'idle' | 'loading' | 'success' | 'error';
 export function AcademicDashboard() {
   const [classes, setClasses] = useState<SchoolClass[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [demoResult, setDemoResult] = useState<AttendanceDemoResult | null>(
-    null,
-  );
   const [loadState, setLoadState] = useState<LoadState>('idle');
-  const [demoState, setDemoState] = useState<LoadState>('idle');
 
   useEffect(() => {
     let isMounted = true;
@@ -57,18 +52,6 @@ export function AcademicDashboard() {
     [schedules],
   );
 
-  async function runDemo() {
-    setDemoState('loading');
-
-    try {
-      const response = await api.runTeacherFlowDemo();
-      setDemoResult(response.data);
-      setDemoState('success');
-    } catch {
-      setDemoState('error');
-    }
-  }
-
   return (
     <section className="mt-12 space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
@@ -96,8 +79,7 @@ export function AcademicDashboard() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-xl font-semibold">Jadwal Aktif</h2>
@@ -129,52 +111,6 @@ export function AcademicDashboard() {
               <p className="py-4 text-sm text-muted">Belum ada jadwal.</p>
             ) : null}
           </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h2 className="text-xl font-semibold">Demo Flow Guru</h2>
-          <p className="mt-1 text-sm text-muted">
-            Menjalankan reminder → buka kelas → attendance → submit → summary.
-          </p>
-
-          <button
-            className="mt-5 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={demoState === 'loading'}
-            onClick={runDemo}
-            type="button"
-          >
-            {demoState === 'loading' ? 'Menjalankan...' : 'Jalankan Demo'}
-          </button>
-
-          {demoState === 'error' ? (
-            <p className="mt-4 text-sm text-red-600">
-              Demo gagal. Pastikan backend, PostgreSQL, dan Redis berjalan.
-            </p>
-          ) : null}
-
-          {demoResult ? (
-            <div className="mt-5 space-y-4">
-              <ol className="space-y-2">
-                {demoResult.steps.map((step) => (
-                  <li
-                    className="rounded-xl bg-slate-50 px-3 py-2 text-sm"
-                    key={step}
-                  >
-                    {step}
-                  </li>
-                ))}
-              </ol>
-
-              <div className="rounded-xl border border-slate-200 p-4 text-sm">
-                <p>
-                  Attendance: <strong>{demoResult.attendance.state}</strong>
-                </p>
-                <p>Item siswa: {demoResult.attendance.itemCount}</p>
-                <p>Summary queue: {demoResult.summaryJob.queue}</p>
-              </div>
-            </div>
-          ) : null}
-        </div>
       </div>
     </section>
   );
@@ -197,4 +133,3 @@ function SummaryCard({
     </article>
   );
 }
-

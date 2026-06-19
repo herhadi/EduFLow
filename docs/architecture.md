@@ -70,6 +70,8 @@ Komponen feedback aksi memakai `ToastProvider` global di root layout. Komponen f
 
 Frontend memakai Tailwind CSS v4 dengan theme global di `apps/frontend/app/globals.css`.
 
+Landing page publik memakai lebar frame yang sama dengan shell aplikasi setelah login: mobile tetap `max-w-md`, sedangkan desktop memakai lebar hampir penuh viewport melalui `md:w-[calc(100%-1.5rem)]` dan `xl:w-[calc(100%-2rem)]`. Tujuannya agar pengalaman desktop konsisten dengan menu aplikasi lain.
+
 Navigasi frontend memakai role-based mobile shell:
 
 - bottom navigation berisi menu utama sesuai role user login,

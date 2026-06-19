@@ -22,7 +22,7 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "username": "herhadi",
+  "username": "root",
   "password": "password"
 }
 ```
@@ -678,7 +678,7 @@ Response utama:
 
 Catatan:
 
-- Endpoint ini masih public untuk MVP/demo.
+- Endpoint ini masih public untuk MVP awal.
 - Saat authentication parent sudah dibuat, lookup sebaiknya memakai user session, bukan query `contact`.
 - Data yang ditampilkan hanya anak yang terhubung dengan wali tersebut.
 
@@ -731,7 +731,7 @@ Mengembalikan timeline aktivitas operasional dari:
 Contoh aktivitas:
 
 ```text
-08:01 Guru A submit presensi
+08:01 Guru mapel submit presensi
 08:15 Operator approve presensi
 08:20 Summary dikirim
 09:00 Jadwal diubah
@@ -784,7 +784,7 @@ Contoh request:
 
 ```http
 GET /health
-x-correlation-id: demo-correlation-id
+x-correlation-id: request-correlation-id
 ```
 
 Contoh response error:
@@ -793,7 +793,7 @@ Contoh response error:
 {
   "statusCode": 500,
   "message": "Internal server error",
-  "correlationId": "demo-correlation-id"
+  "correlationId": "request-correlation-id"
 }
 ```
 
@@ -851,22 +851,3 @@ Catatan:
 - Reminder guru memakai `Teacher.phone` atau `Teacher.telegramId`.
 - Notifikasi wali murid memakai `Guardian.phone` atau `Guardian.telegramId`.
 - Semua import menghasilkan ringkasan `created`, `updated`, `skipped`, dan `errors`.
-
-## Demo Flow
-
-```http
-POST /api/attendance/demo/teacher-flow
-```
-
-Endpoint demo menjalankan:
-
-```text
-Guru mendapat reminder
--> Guru buka kelas
--> Attendance terbuat
--> Guru submit
--> Summary terkirim
--> SELESAI
-```
-
-Endpoint ini sementara dan boleh dihapus setelah flow production stabil.

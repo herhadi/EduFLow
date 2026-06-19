@@ -390,25 +390,6 @@ export interface BulkSchedulePayload {
   assignments: Array<{ timeSlotId: string; classIds: string[] }>;
 }
 
-export interface AttendanceDemoResult {
-  steps: string[];
-  reminderJob: {
-    id?: string;
-    name: string;
-    queue: string;
-  };
-  attendance: {
-    id: string;
-    state: string;
-    itemCount: number;
-  };
-  summaryJob: {
-    id?: string;
-    name: string;
-    queue: string;
-  };
-}
-
 export interface LoginResult {
   accessToken: string;
   refreshToken: string;
@@ -791,8 +772,4 @@ export const api = {
     request<ApiResponse<ParentPortalSummary>>(
       `/parent-portal/summary?contact=${encodeURIComponent(contact)}`,
     ),
-  runTeacherFlowDemo: () =>
-    request<ApiResponse<AttendanceDemoResult>>('/attendance/demo/teacher-flow', {
-      method: 'POST',
-    }),
 };

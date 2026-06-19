@@ -19,7 +19,6 @@ export class NotificationService implements OnModuleInit {
 
   async onModuleInit() {
     await this.ensureDefaultTemplates();
-    await this.ensureDemoLogs();
   }
 
   async getSent() {
@@ -300,59 +299,6 @@ export class NotificationService implements OnModuleInit {
         }),
       ),
     );
-  }
-
-  private async ensureDemoLogs() {
-    const existingCount = await this.prisma.notificationLog.count();
-
-    if (existingCount > 0) {
-      return;
-    }
-
-    await this.prisma.notificationLog.createMany({
-      data: [
-        {
-          channel: 'TELEGRAM',
-          status: 'SENT',
-          recipient: '648351920',
-          recipientName: 'Wali Murid Demo',
-          message: 'Summary presensi harian berhasil dikirim.',
-          templateKey: 'attendance.summary.daily',
-          dedupeKey: 'demo.sent.attendance.summary.daily',
-          entityType: 'Attendance',
-          entityId: 'demo-attendance',
-          attempts: 1,
-          sentAt: new Date(),
-        },
-        {
-          channel: 'WHATSAPP',
-          status: 'FAILED',
-          recipient: '08561186917',
-          recipientName: 'Wali Murid Demo',
-          message: 'Kelas belum dibuka sesuai jadwal.',
-          templateKey: 'attendance.class.empty',
-          dedupeKey: 'demo.failed.attendance.class.empty',
-          entityType: 'DailyAgenda',
-          entityId: 'demo-agenda',
-          attempts: 3,
-          lastError: 'Provider WhatsApp timeout',
-          failedAt: new Date(),
-        },
-        {
-          channel: 'TELEGRAM',
-          status: 'PENDING',
-          recipient: '648351920',
-          recipientName: 'Guru Demo',
-          message: 'Reminder kelas akan dimulai.',
-          templateKey: 'teacher.reminder.before-class',
-          dedupeKey: 'demo.pending.teacher.reminder.before-class',
-          entityType: 'Schedule',
-          entityId: 'demo-schedule',
-          attempts: 0,
-        },
-      ],
-      skipDuplicates: true,
-    });
   }
 
   private async getLogsByStatus(status: NotificationStatus) {

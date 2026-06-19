@@ -11,8 +11,6 @@ import { MetricCard } from './ui/metric-card';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
-const fallbackContact = '08561186917';
-
 const statusLabels: Record<ParentAttendanceRecord['status'], string> = {
   PRESENT: 'Hadir',
   SICK: 'Sakit',
@@ -28,7 +26,7 @@ const statusTone: Record<ParentAttendanceRecord['status'], string> = {
 };
 
 export function ParentPortal() {
-  const [contact, setContact] = useState(fallbackContact);
+  const [contact, setContact] = useState('');
   const [summary, setSummary] = useState<ParentPortalSummary | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('idle');
 
@@ -174,8 +172,8 @@ export function ParentPortal() {
         </>
       ) : (
         <div className="rounded-[2rem] border border-blue-100 bg-white p-5 text-sm leading-6 text-muted shadow-sm shadow-blue-100/60">
-          Gunakan kontak wali murid untuk membuka data. Untuk demo awal, nomor
-          sudah diisi dengan kontak yang kamu berikan.
+          Gunakan kontak wali murid yang terdaftar untuk membuka data presensi
+          dan riwayat anak.
         </div>
       )}
     </section>

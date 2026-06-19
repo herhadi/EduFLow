@@ -4,6 +4,11 @@ import { hash } from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  const defaultUserPassword = process.env.DEFAULT_USER_PASSWORD ?? '123456';
+  const rootEmail = process.env.ROOT_EMAIL ?? 'root@eduflow.local';
+  const rootUsername = process.env.ROOT_USERNAME ?? 'root';
+  const rootName = process.env.ROOT_NAME ?? 'Root Administrator';
+  const rootPassword = process.env.ROOT_PASSWORD ?? defaultUserPassword;
   const rolePermissions: Record<string, string[]> = {
     root: [
       'auth.session.manage',
@@ -175,20 +180,20 @@ async function main() {
   }
 
   const rootUser = await prisma.user.upsert({
-    where: { email: 'herhadi@eduflow.local' },
+    where: { email: rootEmail },
     update: {
-      username: 'herhadi',
-      name: 'Herhadi',
-      password: await hash('xSalakRt02', 12),
+      username: rootUsername,
+      name: rootName,
+      password: await hash(rootPassword, 12),
       deletedAt: null,
       failedLoginCount: 0,
       lockedUntil: null,
     },
     create: {
-      email: 'herhadi@eduflow.local',
-      username: 'herhadi',
-      name: 'Herhadi',
-      password: await hash('xSalakRt02', 12),
+      email: rootEmail,
+      username: rootUsername,
+      name: rootName,
+      password: await hash(rootPassword, 12),
     },
   });
 

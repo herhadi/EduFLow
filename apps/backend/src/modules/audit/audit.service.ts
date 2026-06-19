@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 export interface ActivityItem {
@@ -14,12 +14,8 @@ export interface ActivityItem {
 }
 
 @Injectable()
-export class AuditService implements OnModuleInit {
+export class AuditService {
   constructor(private readonly prisma: PrismaService) {}
-
-  async onModuleInit() {
-    await this.ensureDemoActivities();
-  }
 
   async getActivityTrail() {
     const [auditLogs, notifications] = await Promise.all([
@@ -126,52 +122,4 @@ export class AuditService implements OnModuleInit {
     return descriptions[action] ?? `${entityType} mengalami aktivitas ${action}`;
   }
 
-  private async ensureDemoActivities() {
-    const existingCount = await this.prisma.auditLog.count();
-
-    if (existingCount > 0) {
-      return;
-    }
-
-    const today = new Date();
-    today.setHours(8, 1, 0, 0);
-
-    const activities = [
-      {
-        action: 'attendance.submitted',
-        entityType: 'Attendance',
-        entityId: 'demo-attendance-0801',
-        after: { description: 'Guru A submit presensi' },
-        createdAt: new Date(today),
-      },
-      {
-        action: 'attendance.approved',
-        entityType: 'Attendance',
-        entityId: 'demo-attendance-0815',
-        after: { description: 'Operator approve presensi' },
-        createdAt: addMinutes(today, 14),
-      },
-      {
-        action: 'schedule.updated',
-        entityType: 'Schedule',
-        entityId: 'demo-schedule-0900',
-        after: { description: 'Jadwal diubah' },
-        createdAt: addMinutes(today, 59),
-      },
-    ];
-
-    await Promise.all(
-      activities.map((activity) =>
-        this.prisma.auditLog.create({
-          data: activity,
-        }),
-      ),
-    );
-  }
-}
-
-function addMinutes(date: Date, minutes: number) {
-  const nextDate = new Date(date);
-  nextDate.setMinutes(nextDate.getMinutes() + minutes);
-  return nextDate;
 }

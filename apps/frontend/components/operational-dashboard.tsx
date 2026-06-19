@@ -7,36 +7,36 @@ import { MetricCard } from './ui/metric-card';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
-const fallbackSummary: OperationalDashboardSummary = {
+const emptySummary: OperationalDashboardSummary = {
   date: new Date().toISOString().slice(0, 10),
   classes: {
-    totalToday: 42,
-    inProgress: 12,
-    completed: 25,
-    empty: 1,
-    notSubmitted: 4,
+    totalToday: 0,
+    inProgress: 0,
+    completed: 0,
+    empty: 0,
+    notSubmitted: 0,
   },
   teachers: {
-    totalTeaching: 35,
-    submitted: 31,
-    notSubmitted: 4,
+    totalTeaching: 0,
+    submitted: 0,
+    notSubmitted: 0,
   },
   students: {
-    present: 820,
-    sick: 12,
-    excused: 8,
-    absent: 4,
+    present: 0,
+    sick: 0,
+    excused: 0,
+    absent: 0,
   },
   notifications: {
-    reminderSent: 35,
-    summarySent: 820,
-    failed: 3,
+    reminderSent: 0,
+    summarySent: 0,
+    failed: 0,
   },
 };
 
 export function OperationalDashboard() {
   const [summary, setSummary] =
-    useState<OperationalDashboardSummary>(fallbackSummary);
+    useState<OperationalDashboardSummary>(emptySummary);
   const [loadState, setLoadState] = useState<LoadState>('idle');
 
   async function loadDashboard() {
@@ -79,7 +79,7 @@ export function OperationalDashboard() {
 
         {loadState === 'error' ? (
           <p className="mt-4 rounded-2xl bg-white/15 p-3 text-sm text-blue-50">
-            Backend belum bisa diakses. Angka fallback ditampilkan sementara.
+            Backend belum bisa diakses. Data operasional belum dapat dimuat.
           </p>
         ) : null}
       </div>

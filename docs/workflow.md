@@ -8,7 +8,6 @@
 - Attendance state: `docs/attendance-state.md`
 - Queue strategy: `docs/queues.md`
 - Permission matrix: `docs/permission-matrix.md`
-- Demo flow: `docs/demo-flow.md`
 - Scenarios: `docs/scenarios.md`
 - API MVP: `docs/api-mvp.md`
 
@@ -26,3 +25,7 @@ Schedule
 ```
 
 Scheduler hanya membuat job. Worker menangani proses asynchronous.
+
+## Kebijakan Data Operasional
+
+EduFlow tidak mempertahankan mode data contoh di runtime production. Endpoint, service, UI, seed otomatis, dan fallback angka yang membuat data contoh tidak boleh ditambahkan ke alur utama. Data yang tampil di dashboard harus berasal dari PostgreSQL atau bernilai kosong ketika backend belum dapat memuat data.
