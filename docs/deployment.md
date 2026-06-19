@@ -12,6 +12,16 @@ npm run dev:backend
 npm run dev:frontend
 ```
 
+Setelah reset volume atau deploy database baru, tunggu PostgreSQL siap sebelum menjalankan migration. Status `Started` pada Docker belum berarti database sudah menerima koneksi.
+
+```bash
+docker compose up -d postgres redis
+until docker compose exec -T postgres pg_isready -U eduflow -d eduflow; do sleep 2; done
+docker compose run --rm backend npx prisma migrate deploy
+```
+
+Jika service `backend` dijalankan melalui Compose, pastikan backend baru dimulai setelah migration selesai atau setelah PostgreSQL berstatus healthy.
+
 ## Service
 
 - Frontend: aplikasi Next.js.

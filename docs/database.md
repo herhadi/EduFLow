@@ -179,6 +179,10 @@ Pemisahan ini membuat rekap, audit, koreksi, pindah kelas, dan reporting lebih b
 - `DailyAgenda` di-index berdasarkan tanggal, status, kelas, guru, tahun ajaran, dan semester.
 - `Schedule` di-index berdasarkan kelas dan guru per hari.
 
+## Catatan Migration PostgreSQL Enum
+
+PostgreSQL tidak mengizinkan nilai enum yang baru ditambahkan langsung dipakai dalam transaksi migration yang sama. Migration `20260615150000_add_in_app_notifications` hanya menambahkan enum `NotificationChannel.IN_APP` dan struktur kolom/index/FK. Backfill notification yang memakai nilai `IN_APP` dipindahkan ke migration berikutnya `20260615160000_backfill_in_app_teaching_plan_notifications` agar enum value sudah committed sebelum digunakan.
+
 ## Catatan Relasi Yang Sengaja Dibuat Sederhana
 
 - `Student` tidak menyimpan `classId` agar aman untuk naik kelas, pindah kelas, dan histori akademik.

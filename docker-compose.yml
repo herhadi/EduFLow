@@ -5,6 +5,11 @@ services:
       POSTGRES_DB: eduflow
       POSTGRES_USER: eduflow
       POSTGRES_PASSWORD: eduflow
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eduflow -d eduflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
     ports:
       - "5432:5432"
     volumes:
