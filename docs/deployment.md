@@ -46,3 +46,6 @@ Deployment production wajib menyediakan environment variable secara aman dan men
 - Frontend Next.js memakai `apps/frontend/.env.local`.
 - Root `.env` tidak dipakai untuk runtime aplikasi agar konfigurasi backend dan frontend tidak tercampur.
 - Frontend wajib mengisi `NEXT_PUBLIC_API_URL`; runtime frontend tidak menyediakan fallback ke `localhost:3001` agar production tidak salah target backend.
+- Jika frontend memakai proxy `/api/backend`, `BACKEND_INTERNAL_API_URL` juga wajib diisi dan tidak memiliki fallback localhost.
+- Pola Docker/VPS satu stack: `NEXT_PUBLIC_API_URL=/api/backend` dan `BACKEND_INTERNAL_API_URL=http://backend:3001/api`.
+- Pola frontend dan backend terpisah: `NEXT_PUBLIC_API_URL=https://domain-backend/api`; `BACKEND_INTERNAL_API_URL` tidak diperlukan selama proxy `/api/backend` tidak dipakai.

@@ -131,6 +131,10 @@ Root awal dibuat oleh Prisma seed dari environment:
 
 Jika tidak diisi, seed memakai nilai generik non-personal seperti `root@eduflow.local` dan `root`. Jangan menyimpan akun personal atau data contoh di seed. Jika `ROOT_PASSWORD` sama dengan `DEFAULT_USER_PASSWORD`, user root akan diminta mengganti password saat login.
 
+Script seed membaca `apps/backend/.env` saat dijalankan melalui `npm run prisma:seed --workspace backend`, sehingga perubahan `ROOT_*` lokal akan mereset akun root sesuai konfigurasi tersebut.
+
+Form login frontend membaca nilai langsung dari form submit, bukan hanya dari state React, agar password manager atau browser autofill tetap mengirim request login.
+
 ## Manajemen Kelas
 
 Jumlah kelas tidak di-hardcode. Data awal `2026/2027`:

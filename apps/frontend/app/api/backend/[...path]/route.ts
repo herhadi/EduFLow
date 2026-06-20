@@ -1,6 +1,14 @@
 import { NextRequest } from 'next/server';
 
-const BACKEND_API_URL = process.env.BACKEND_INTERNAL_API_URL ?? 'http://localhost:3001/api';
+const BACKEND_API_URL = process.env.BACKEND_INTERNAL_API_URL;
+
+function getBackendApiUrl() {
+  if (!BACKEND_API_URL) {
+    throw new Error('BACKEND_INTERNAL_API_URL belum dikonfigurasi.');
+  }
+
+  return BACKEND_API_URL;
+}
 
 type RouteContext = {
   params: Promise<{ path: string[] }>;
@@ -8,7 +16,7 @@ type RouteContext = {
 
 async function proxy(request: NextRequest, context: RouteContext) {
   const { path } = await context.params;
-  const targetUrl = new URL(`${BACKEND_API_URL}/${path.join('/')}`);
+  const targetUrl = new URL(`${getBackendApiUrl()}/${path.join('/')}`);
 
   request.nextUrl.searchParams.forEach((value, key) => {
     targetUrl.searchParams.set(key, value);

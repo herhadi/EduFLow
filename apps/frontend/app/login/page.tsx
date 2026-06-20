@@ -34,7 +34,20 @@ export default function LoginPage() {
     setErrorMessage('');
 
     try {
-      const session = await api.login({ username, password });
+      const formData = new FormData(event.currentTarget);
+      const submittedUsername = String(formData.get('username') ?? '').trim();
+      const submittedPassword = String(formData.get('password') ?? '');
+
+      if (!submittedUsername || !submittedPassword) {
+        setErrorMessage('Username dan password wajib diisi.');
+        return;
+      }
+
+      const session = await api.login({
+        username: submittedUsername,
+        password: submittedPassword,
+      });
+      setUsername(submittedUsername);
       saveSession(session);
 
       if (session.user.mustChangePassword) {
@@ -63,7 +76,17 @@ export default function LoginPage() {
     setIsLoading(true);
     setErrorMessage('');
 
-    if (newPassword !== repeatPassword) {
+    const formData = new FormData(event.currentTarget);
+    const submittedNewPassword = String(formData.get('newPassword') ?? '');
+    const submittedRepeatPassword = String(formData.get('repeatPassword') ?? '');
+
+    if (!submittedNewPassword || !submittedRepeatPassword) {
+      setIsLoading(false);
+      setErrorMessage('Password baru dan konfirmasi wajib diisi.');
+      return;
+    }
+
+    if (submittedNewPassword !== submittedRepeatPassword) {
       setIsLoading(false);
       setErrorMessage('Konfirmasi password tidak sama.');
       return;
@@ -71,8 +94,8 @@ export default function LoginPage() {
 
     try {
       const response = await api.changeInitialPassword({
-        newPassword,
-        repeatPassword,
+        newPassword: submittedNewPassword,
+        repeatPassword: submittedRepeatPassword,
       });
       const nextSession = {
         ...pendingSession,
@@ -138,6 +161,7 @@ export default function LoginPage() {
 
           <form
             className="mt-6 space-y-4"
+            noValidate
             onSubmit={pendingSession ? handleChangeInitialPassword : handleSubmit}
           >
             {pendingSession ? null : (
@@ -147,6 +171,7 @@ export default function LoginPage() {
                   <input
                     autoComplete="username"
                     className="rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600 focus:bg-white"
+                    name="username"
                     onChange={(event) => setUsername(event.target.value)}
                     placeholder=""
                     type="text"
@@ -162,6 +187,7 @@ export default function LoginPage() {
                       className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm font-normal outline-none"
                       maxLength={10}
                       minLength={6}
+                      name="password"
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder=""
                       type={showPassword ? 'text' : 'password'}
@@ -194,11 +220,13 @@ export default function LoginPage() {
               <>
                 <PasswordField
                   label="Password Baru"
+                  name="newPassword"
                   onChange={setNewPassword}
                   value={newPassword}
                 />
                 <PasswordField
                   label="Ulangi Password Baru"
+                  name="repeatPassword"
                   onChange={setRepeatPassword}
                   value={repeatPassword}
                 />
@@ -213,11 +241,7 @@ export default function LoginPage() {
 
             <button
               className="mt-8 block w-full rounded-2xl bg-brand-600 px-5 py-4 text-center text-sm font-black text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:text-slate-100 disabled:opacity-70 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
-              disabled={
-                isLoading ||
-                (!pendingSession && (!username || !password)) ||
-                (!!pendingSession && (!newPassword || !repeatPassword))
-              }
+              disabled={isLoading}
               type="submit"
             >
               {isLoading
@@ -241,10 +265,12 @@ export default function LoginPage() {
 
 function PasswordField({
   label,
+  name,
   onChange,
   value,
 }: {
   label: string;
+  name: string;
   onChange: (value: string) => void;
   value: string;
 }) {
@@ -259,6 +285,7 @@ function PasswordField({
           className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm font-normal outline-none"
           maxLength={10}
           minLength={6}
+          name={name}
           onChange={(event) => onChange(event.target.value)}
           type={visible ? 'text' : 'password'}
           value={value}
