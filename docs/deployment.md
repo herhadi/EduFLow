@@ -49,3 +49,37 @@ Deployment production wajib menyediakan environment variable secara aman dan men
 - Jika frontend memakai proxy `/api/backend`, `BACKEND_INTERNAL_API_URL` juga wajib diisi dan tidak memiliki fallback localhost.
 - Pola Docker/VPS satu stack: `NEXT_PUBLIC_API_URL=/api/backend` dan `BACKEND_INTERNAL_API_URL=http://backend:3001/api`.
 - Pola frontend dan backend terpisah: `NEXT_PUBLIC_API_URL=https://domain-backend/api`; `BACKEND_INTERNAL_API_URL` tidak diperlukan selama proxy `/api/backend` tidak dipakai.
+
+## Docker Compose Pola 1
+
+Pola satu stack Docker/VPS menggunakan service `frontend` sebagai pintu masuk browser dan route proxy Next.js `/api/backend` untuk meneruskan request ke service `backend` di network Docker.
+
+Environment minimal:
+
+```env
+NEXT_PUBLIC_API_URL=/api/backend
+BACKEND_INTERNAL_API_URL=http://backend:3001/api
+DATABASE_URL=postgresql://eduflow:eduflow@postgres:5432/eduflow?schema=public
+REDIS_HOST=redis
+REDIS_PORT=6379
+JWT_SECRET=ganti-dengan-secret-production
+FRONTEND_URL=https://domain-frontend-atau-ip-server
+FRONTEND_ALLOWED_ORIGINS=https://domain-frontend-atau-ip-server
+```
+
+`NEXT_PUBLIC_API_URL` masuk ke bundle frontend saat image dibuild. Jika nilainya berubah, rebuild image frontend:
+
+```bash
+docker compose build frontend
+docker compose up -d
+```
+
+Urutan deploy database baru:
+
+```bash
+docker compose up -d postgres redis
+until docker compose exec -T postgres pg_isready -U eduflow -d eduflow; do sleep 2; done
+docker compose run --rm backend npx prisma migrate deploy
+docker compose run --rm backend npm run prisma:seed --workspace backend
+docker compose up -d backend frontend
+```

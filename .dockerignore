@@ -1,0 +1,11 @@
+node_modules
+apps/backend/dist
+apps/frontend/.next
+coverage
+backups
+.git
+.DS_Store
+*.log
+.env
+.env.*
+!*.env.example

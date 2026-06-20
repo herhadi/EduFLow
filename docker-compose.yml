@@ -1,4 +1,44 @@
 services:
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://eduflow:eduflow@postgres:5432/eduflow?schema=public}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      JWT_SECRET: ${JWT_SECRET:-replace-this-in-development}
+      DEFAULT_USER_PASSWORD: ${DEFAULT_USER_PASSWORD:-123456}
+      ROOT_EMAIL: ${ROOT_EMAIL:-root@eduflow.local}
+      ROOT_USERNAME: ${ROOT_USERNAME:-root}
+      ROOT_NAME: ${ROOT_NAME:-Root Administrator}
+      ROOT_PASSWORD: ${ROOT_PASSWORD:-123456}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      FRONTEND_ALLOWED_ORIGINS: ${FRONTEND_ALLOWED_ORIGINS:-http://localhost:3000}
+      PORT: 3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "3001:3001"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api/backend}
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api/backend}
+      BACKEND_INTERNAL_API_URL: ${BACKEND_INTERNAL_API_URL:-http://backend:3001/api}
+      PORT: 3000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
   postgres:
     image: postgres:16-alpine
     environment:
