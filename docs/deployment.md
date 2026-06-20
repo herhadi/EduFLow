@@ -45,3 +45,4 @@ Deployment production wajib menyediakan environment variable secara aman dan men
 - Backend NestJS memakai `apps/backend/.env`.
 - Frontend Next.js memakai `apps/frontend/.env.local`.
 - Root `.env` tidak dipakai untuk runtime aplikasi agar konfigurasi backend dan frontend tidak tercampur.
+- Frontend wajib mengisi `NEXT_PUBLIC_API_URL`; runtime frontend tidak menyediakan fallback ke `localhost:3001` agar production tidak salah target backend.

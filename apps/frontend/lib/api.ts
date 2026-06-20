@@ -1,4 +1,12 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+function getApiUrl() {
+  if (!API_URL) {
+    throw new Error('NEXT_PUBLIC_API_URL belum dikonfigurasi.');
+  }
+
+  return API_URL;
+}
 
 export interface ApiResponse<T> {
   data: T;
@@ -443,7 +451,7 @@ export interface AppUser {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const accessToken =
     typeof window === 'undefined' ? undefined : localStorage.getItem('accessToken');
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(`${getApiUrl()}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -485,7 +493,7 @@ async function upload<T>(path: string, file: File): Promise<T> {
   const accessToken =
     typeof window === 'undefined' ? undefined : localStorage.getItem('accessToken');
 
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(`${getApiUrl()}${path}`, {
     method: 'POST',
     body: formData,
     headers: {
@@ -767,7 +775,7 @@ export const api = {
   importAcademicData: (type: ImportType, file: File) =>
     upload<ApiResponse<ImportSummary>>(`/academic/import/${type}`, file),
   getReportExportUrl: (type: ReportType, format: ReportFormat, date: string) =>
-    `${API_URL}/reporting/exports/${type}?format=${format}&date=${date}`,
+    `${getApiUrl()}/reporting/exports/${type}?format=${format}&date=${date}`,
   getParentPortalSummary: (contact: string) =>
     request<ApiResponse<ParentPortalSummary>>(
       `/parent-portal/summary?contact=${encodeURIComponent(contact)}`,
