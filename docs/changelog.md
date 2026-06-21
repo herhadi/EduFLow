@@ -10,4 +10,4 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan Dockerfile frontend dan backend untuk pola Docker/VPS satu stack.
 - Mendokumentasikan pola deployment `/api/backend` dan `BACKEND_INTERNAL_API_URL`.
 - Memisahkan dokumentasi VPS ke dokumen operasional yang lebih spesifik.
-- Memperbarui workflow deploy agar memakai `actions/checkout@v5`, menjalankan deploy via `bash`, dan mengunggah log deployment sebagai artifact.
+- Memperbarui workflow deploy agar memakai `actions/checkout@v5`, menjalankan deploy via `bash`, dan menampilkan tail log saat gagal tanpa upload artifact.

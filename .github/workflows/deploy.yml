@@ -60,10 +60,15 @@ jobs:
           DEPLOY_RUN_SEED: ${{ github.event.inputs.run_seed == 'true' && '1' || '0' }}
         run: bash ./scripts/deploy.sh
 
-      - name: Upload deploy logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: deploy-logs
-          path: logs/deploy/*.log
-          if-no-files-found: ignore
+      - name: Show deploy logs on failure
+        if: failure()
+        run: |
+          set +e
+          latest_log="$(ls -t logs/deploy/*.log 2>/dev/null | head -n 1)"
+          if [ -z "$latest_log" ]; then
+            echo "Tidak ada log deployment di logs/deploy/."
+            exit 0
+          fi
+
+          echo "Menampilkan 200 baris terakhir dari ${latest_log}"
+          tail -n 200 "$latest_log"

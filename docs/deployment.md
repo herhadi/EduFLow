@@ -115,7 +115,7 @@ Script deployment melakukan:
 - health check container dan HTTP,
 - cleanup image Docker tidak terpakai,
 - logging ke `logs/deploy/`.
-- upload artifact `deploy-logs` setiap run agar error self-hosted runner bisa dibaca dari GitHub Actions.
+- menampilkan 200 baris terakhir log deployment di GitHub Actions jika deploy gagal.
 
 Variabel opsional:
 
