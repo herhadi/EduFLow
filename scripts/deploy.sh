@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-ROOT_DIR="${EDUFLOW_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="${EDUFLOW_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 LOG_DIR="${DEPLOY_LOG_DIR:-${ROOT_DIR}/logs/deploy}"
 LOG_FILE="${LOG_DIR}/deploy-$(date +%Y%m%d-%H%M%S).log"
 LOCK_FILE="${DEPLOY_LOCK_FILE:-/tmp/eduflow-deploy.lock}"
@@ -10,9 +11,9 @@ BRANCH="${DEPLOY_BRANCH:-main}"
 mkdir -p "$LOG_DIR"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-source "${ROOT_DIR}/scripts/lib/log.sh"
-source "${ROOT_DIR}/scripts/lib/common.sh"
-source "${ROOT_DIR}/scripts/lib/docker.sh"
+source "${SCRIPT_DIR}/lib/log.sh"
+source "${SCRIPT_DIR}/lib/common.sh"
+source "${SCRIPT_DIR}/lib/docker.sh"
 
 trap 'log_error "Deployment gagal di line ${LINENO}."' ERR
 
@@ -175,7 +176,7 @@ log_section "Health check"
 if [ "${#HEALTHCHECK_SERVICES[@]}" -eq 0 ]; then
   log_info "Health check dilewati karena tidak ada service aplikasi yang berubah."
 else
-  HEALTHCHECK_SERVICES="${HEALTHCHECK_SERVICES[*]}" "${ROOT_DIR}/scripts/healthcheck.sh"
+  HEALTHCHECK_SERVICES="${HEALTHCHECK_SERVICES[*]}" EDUFLOW_ROOT="$ROOT_DIR" bash "${SCRIPT_DIR}/healthcheck.sh"
 fi
 
 log_section "Cleanup Docker"

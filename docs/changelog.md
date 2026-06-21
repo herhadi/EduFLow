@@ -14,3 +14,4 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memisahkan port publishing PostgreSQL/Redis ke `docker-compose.local.yml` agar deployment VPS tidak bentrok dengan port host `5432` atau `6379`.
 - Memperbaiki smart deploy agar perubahan frontend-only tidak menyalakan ulang backend, PostgreSQL, atau Redis.
 - Memperbaiki workflow deploy agar menjalankan script dari direktori production server (`/srv/eduflow/app`) dan melakukan `git pull` sebelum build image.
+- Memperbaiki bootstrap CI/CD agar workflow dapat menjalankan script deploy dari checkout GitHub walaupun direktori production belum memiliki folder `scripts/`.

@@ -101,14 +101,16 @@ Deployment production dijalankan oleh GitHub Actions self-hosted runner melalui:
 .github/workflows/deploy.yml
 ```
 
-Workflow melakukan checkout untuk membaca workflow terbaru, lalu masuk ke direktori production server dan memanggil:
+Workflow melakukan checkout untuk membaca workflow dan script terbaru, lalu menjalankan script dari checkout tersebut dengan target direktori production:
 
 ```bash
-cd "${EDUFLOW_DEPLOY_PATH:-/srv/eduflow/app}"
-bash ./scripts/deploy.sh
+EDUFLOW_ROOT="${EDUFLOW_DEPLOY_PATH:-/srv/eduflow/app}" \
+bash "$GITHUB_WORKSPACE/scripts/deploy.sh"
 ```
 
 Direktori production default adalah `/srv/eduflow/app`. Jika path server berbeda, set GitHub Actions repository variable `EDUFLOW_DEPLOY_PATH`.
+
+Mode ini membuat bootstrap CI/CD aman: meskipun direktori production belum memiliki folder `scripts/`, workflow tetap memakai script dari checkout GitHub lalu script tersebut melakukan `git pull` di direktori production.
 
 Script deployment melakukan:
 
