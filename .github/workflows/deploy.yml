@@ -35,6 +35,9 @@ concurrency:
   group: eduflow-production-deploy
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Deploy production
@@ -43,7 +46,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -55,4 +58,12 @@ jobs:
           DEPLOY_BUILD_ALL: ${{ github.event.inputs.build_all == 'true' && '1' || '0' }}
           DEPLOY_RUN_MIGRATION: ${{ github.event.inputs.run_migration == 'true' && '1' || '0' }}
           DEPLOY_RUN_SEED: ${{ github.event.inputs.run_seed == 'true' && '1' || '0' }}
-        run: ./scripts/deploy.sh
+        run: bash ./scripts/deploy.sh
+
+      - name: Upload deploy logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-logs
+          path: logs/deploy/*.log
+          if-no-files-found: ignore

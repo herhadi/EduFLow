@@ -102,7 +102,7 @@ Deployment production dijalankan oleh GitHub Actions self-hosted runner melalui:
 Workflow hanya melakukan checkout dan memanggil:
 
 ```bash
-./scripts/deploy.sh
+bash ./scripts/deploy.sh
 ```
 
 Script deployment melakukan:
@@ -115,6 +115,7 @@ Script deployment melakukan:
 - health check container dan HTTP,
 - cleanup image Docker tidak terpakai,
 - logging ke `logs/deploy/`.
+- upload artifact `deploy-logs` setiap run agar error self-hosted runner bisa dibaca dari GitHub Actions.
 
 Variabel opsional:
 
