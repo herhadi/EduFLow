@@ -46,6 +46,14 @@ Domain dapat diganti sesuai server sekolah. Jika domain berubah, sesuaikan `FRON
 
 ## Struktur Operasional Repository
 
+Repository production default berada di:
+
+```text
+/srv/eduflow/app
+```
+
+Jika path berbeda, set GitHub Actions repository variable `EDUFLOW_DEPLOY_PATH`.
+
 ```text
 .github/workflows/deploy.yml
 scripts/deploy.sh

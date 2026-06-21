@@ -101,15 +101,19 @@ Deployment production dijalankan oleh GitHub Actions self-hosted runner melalui:
 .github/workflows/deploy.yml
 ```
 
-Workflow hanya melakukan checkout dan memanggil:
+Workflow melakukan checkout untuk membaca workflow terbaru, lalu masuk ke direktori production server dan memanggil:
 
 ```bash
+cd "${EDUFLOW_DEPLOY_PATH:-/srv/eduflow/app}"
 bash ./scripts/deploy.sh
 ```
+
+Direktori production default adalah `/srv/eduflow/app`. Jika path server berbeda, set GitHub Actions repository variable `EDUFLOW_DEPLOY_PATH`.
 
 Script deployment melakukan:
 
 - lock deployment agar tidak ada dua proses bersamaan,
+- `git fetch` dan `git pull --ff-only` di direktori production,
 - deteksi perubahan berbasis Git diff,
 - build image `frontend` dan/atau `backend` sesuai perubahan,
 - restart hanya service aplikasi yang berubah dengan `docker compose up -d --no-deps`,

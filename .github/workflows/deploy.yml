@@ -52,18 +52,22 @@ jobs:
 
       - name: Deploy
         env:
+          EDUFLOW_DEPLOY_PATH: ${{ vars.EDUFLOW_DEPLOY_PATH || '/srv/eduflow/app' }}
           DEPLOY_BRANCH: main
           DEPLOY_BASE_SHA: ${{ github.event.before }}
           DEPLOY_HEAD_SHA: ${{ github.sha }}
           DEPLOY_BUILD_ALL: ${{ github.event.inputs.build_all == 'true' && '1' || '0' }}
           DEPLOY_RUN_MIGRATION: ${{ github.event.inputs.run_migration == 'true' && '1' || '0' }}
           DEPLOY_RUN_SEED: ${{ github.event.inputs.run_seed == 'true' && '1' || '0' }}
-        run: bash ./scripts/deploy.sh
+        run: |
+          cd "$EDUFLOW_DEPLOY_PATH"
+          bash ./scripts/deploy.sh
 
       - name: Show deploy logs on failure
         if: failure()
         run: |
           set +e
+          cd "${{ vars.EDUFLOW_DEPLOY_PATH || '/srv/eduflow/app' }}" || exit 0
           latest_log="$(ls -t logs/deploy/*.log 2>/dev/null | head -n 1)"
           if [ -z "$latest_log" ]; then
             echo "Tidak ada log deployment di logs/deploy/."

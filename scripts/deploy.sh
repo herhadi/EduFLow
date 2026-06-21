@@ -35,16 +35,12 @@ log_info "Log file: ${LOG_FILE}"
 
 log_section "Update source code"
 
-if [ "${GITHUB_ACTIONS:-false}" = "true" ]; then
-  log_info "GitHub Actions checkout terdeteksi. Git pull dilewati."
-else
-  if git rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
-    git checkout "$BRANCH"
-  fi
-
-  git fetch origin "$BRANCH"
-  git pull --ff-only origin "$BRANCH"
+if git rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
+  git checkout "$BRANCH"
 fi
+
+git fetch origin "$BRANCH"
+git pull --ff-only origin "$BRANCH"
 
 HEAD_SHA="${DEPLOY_HEAD_SHA:-$(git rev-parse HEAD)}"
 
@@ -78,28 +74,28 @@ while IFS= read -r changed_file; do
       START_INFRA=1
       RUN_DEPLOY=1
       ;;
-    apps/frontend/*|apps/frontend/Dockerfile)
+    apps/frontend/**|apps/frontend/Dockerfile)
       BUILD_FRONTEND=1
       RUN_DEPLOY=1
       ;;
-    apps/backend/prisma/migrations/*|apps/backend/prisma/schema.prisma)
+    apps/backend/prisma/migrations/**|apps/backend/prisma/schema.prisma)
       BUILD_BACKEND=1
       RUN_MIGRATION=1
       START_INFRA=1
       RUN_DEPLOY=1
       ;;
-    apps/backend/*|apps/backend/Dockerfile)
+    apps/backend/**|apps/backend/Dockerfile)
       BUILD_BACKEND=1
       START_INFRA=1
       RUN_DEPLOY=1
       ;;
-    packages/shared/*)
+    packages/shared/**)
       BUILD_FRONTEND=1
       BUILD_BACKEND=1
       START_INFRA=1
       RUN_DEPLOY=1
       ;;
-    scripts/*|.github/workflows/deploy.yml)
+    scripts/**|.github/workflows/deploy.yml)
       RUN_DEPLOY=1
       ;;
   esac
