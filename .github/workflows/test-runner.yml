@@ -1,0 +1,24 @@
+name: Test Self Hosted Runner
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: self-hosted
+
+    steps:
+      - name: Show hostname
+        run: hostname
+
+      - name: Show current user
+        run: whoami
+
+      - name: Show working directory
+        run: pwd
+
+      - name: Docker Version
+        run: docker --version
+
+      - name: Docker Compose Version
+        run: docker compose version
