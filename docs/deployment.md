@@ -12,7 +12,7 @@ Dokumen terkait:
 ```bash
 cp apps/backend/.env.example apps/backend/.env
 cp apps/frontend/.env.example apps/frontend/.env.local
-docker compose up -d
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d postgres redis
 npm install
 XDG_CACHE_HOME=/tmp/eduflow-cache npm run prisma:generate --workspace backend
 npm run dev:backend
@@ -22,7 +22,7 @@ npm run dev:frontend
 Setelah reset volume atau deploy database baru, tunggu PostgreSQL siap sebelum menjalankan migration. Status `Started` pada Docker belum berarti database sudah menerima koneksi.
 
 ```bash
-docker compose up -d postgres redis
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d postgres redis
 until docker compose exec -T postgres pg_isready -U eduflow -d eduflow; do sleep 2; done
 docker compose run --rm backend npx prisma migrate deploy
 ```
@@ -60,6 +60,8 @@ Deployment production wajib menyediakan environment variable secara aman dan men
 ## Docker Compose Pola 1
 
 Pola satu stack Docker/VPS menggunakan service `frontend` sebagai pintu masuk browser dan route proxy Next.js `/api/backend` untuk meneruskan request ke service `backend` di network Docker.
+
+Compose utama tidak mengekspos port PostgreSQL dan Redis ke host agar aman untuk VPS dan tidak bentrok dengan service host. Untuk development lokal yang menjalankan backend di luar container, gunakan `docker-compose.local.yml`.
 
 Environment minimal:
 

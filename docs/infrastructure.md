@@ -32,6 +32,8 @@ redis
   -> queue, cache, temporary state
 ```
 
+`postgres` dan `redis` tidak publish port ke host pada compose utama. Akses antar service memakai Docker network internal. Development lokal yang perlu port `5432` dan `6379` memakai `docker-compose.local.yml`.
+
 ## Domain
 
 | Service | Contoh URL |

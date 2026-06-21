@@ -11,3 +11,4 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Mendokumentasikan pola deployment `/api/backend` dan `BACKEND_INTERNAL_API_URL`.
 - Memisahkan dokumentasi VPS ke dokumen operasional yang lebih spesifik.
 - Memperbarui workflow deploy agar memakai `actions/checkout@v5`, menjalankan deploy via `bash`, dan menampilkan tail log saat gagal tanpa upload artifact.
+- Memisahkan port publishing PostgreSQL/Redis ke `docker-compose.local.yml` agar deployment VPS tidak bentrok dengan port host `5432` atau `6379`.

@@ -19,7 +19,7 @@ EduFlow mengelola jadwal akademik, agenda harian, presensi, monitoring guru, not
 ```bash
 cp apps/backend/.env.example apps/backend/.env
 cp apps/frontend/.env.example apps/frontend/.env.local
-docker compose up -d postgres redis
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d postgres redis
 npm install
 XDG_CACHE_HOME=/tmp/eduflow-cache npm run prisma:generate --workspace backend
 npm run dev:backend
