@@ -10,6 +10,10 @@
 - Permission matrix: `docs/permission-matrix.md`
 - Scenarios: `docs/scenarios.md`
 - API MVP: `docs/api-mvp.md`
+- Deployment dan CI/CD: `docs/deployment.md`
+- Infrastruktur production: `docs/infrastructure.md`
+- Security: `docs/security.md`
+- Changelog: `docs/changelog.md`
 
 ## Alur Akademik Harian
 

@@ -1,5 +1,12 @@
 # Deployment
 
+Dokumen terkait:
+
+- Infrastruktur production: `docs/infrastructure.md`
+- Security production: `docs/security.md`
+- Backup dan restore: `docs/backup-recovery.md`
+- Changelog operasional: `docs/changelog.md`
+
 ## Pengembangan Lokal
 
 ```bash
@@ -83,3 +90,40 @@ docker compose run --rm backend npx prisma migrate deploy
 docker compose run --rm backend npm run prisma:seed --workspace backend
 docker compose up -d backend frontend
 ```
+
+## CI/CD V1
+
+Deployment production dijalankan oleh GitHub Actions self-hosted runner melalui:
+
+```text
+.github/workflows/deploy.yml
+```
+
+Workflow hanya melakukan checkout dan memanggil:
+
+```bash
+./scripts/deploy.sh
+```
+
+Script deployment melakukan:
+
+- lock deployment agar tidak ada dua proses bersamaan,
+- deteksi perubahan berbasis Git diff,
+- build image `frontend` dan/atau `backend` sesuai perubahan,
+- menjalankan `npx prisma migrate deploy` ketika schema atau migration berubah,
+- restart service aplikasi,
+- health check container dan HTTP,
+- cleanup image Docker tidak terpakai,
+- logging ke `logs/deploy/`.
+
+Variabel opsional:
+
+```env
+DEPLOY_BUILD_ALL=1
+DEPLOY_RUN_MIGRATION=1
+DEPLOY_RUN_SEED=1
+FRONTEND_HEALTH_URL=http://localhost:3000/login
+BACKEND_HEALTH_URL=http://localhost:3001/health
+```
+
+Untuk server Debian dengan Cloudflare Tunnel, `FRONTEND_HEALTH_URL` dapat diarahkan ke domain public jika tunnel sudah stabil. Untuk validasi internal server, gunakan default localhost.

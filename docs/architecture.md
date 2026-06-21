@@ -10,6 +10,24 @@ EduFlow menggunakan monorepo dan modular monolith:
 
 PostgreSQL adalah sumber data utama. Redis hanya digunakan untuk queue, cache, rate limiting, scheduler, dan state sementara.
 
+## Arsitektur Deployment Production
+
+Production berjalan sebagai satu stack Docker Compose pada server Debian. GitHub tetap menjadi source of truth dan deployment normal dilakukan oleh GitHub Actions self-hosted runner.
+
+```text
+Developer
+  -> Git push ke main
+  -> GitHub Actions
+  -> Self-hosted runner di server Debian
+  -> scripts/deploy.sh
+  -> Docker Compose
+  -> Frontend, Backend, PostgreSQL, Redis
+  -> Cloudflare Tunnel
+  -> Domain sekolah
+```
+
+Frontend menjadi pintu masuk browser. Untuk pola satu stack, browser memanggil `/api/backend`, lalu route proxy Next.js meneruskan request ke backend internal `http://backend:3001/api`.
+
 ## Lapisan Backend
 
 - `common`: runtime concern lintas modul seperti guard, decorator, interceptor, dan exception.
@@ -106,6 +124,10 @@ Bottom navigation menggunakan label `Inbox` untuk pusat notifikasi dan `Profil` 
 - `docs/permission-matrix.md`: role, capability, dan scope data.
 - `docs/academic-planning.md`: pembagian admin dan guru untuk kalender pendidikan, perangkat ajar, dan nilai siswa.
 - `docs/admin-workflow.md`: route admin dan urutan konfigurasi awal sekolah.
+- `docs/deployment.md`: deployment lokal, Docker Compose, dan CI/CD.
+- `docs/infrastructure.md`: server production, domain, runner, tunnel, dan struktur operasional.
+- `docs/security.md`: prinsip keamanan environment, akses server, CORS, backup, dan secret.
+- `docs/backup-recovery.md`: prosedur backup dan restore PostgreSQL/Redis.
 
 ## Batas Infra
 

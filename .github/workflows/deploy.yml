@@ -1,0 +1,58 @@
+name: Deploy EduFlow
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      build_all:
+        description: Build frontend dan backend tanpa smart diff
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      run_migration:
+        description: Paksa Prisma migrate deploy
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      run_seed:
+        description: Jalankan Prisma seed setelah migration
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+concurrency:
+  group: eduflow-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy production
+    runs-on: self-hosted
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Deploy
+        env:
+          DEPLOY_BRANCH: main
+          DEPLOY_BASE_SHA: ${{ github.event.before }}
+          DEPLOY_HEAD_SHA: ${{ github.sha }}
+          DEPLOY_BUILD_ALL: ${{ github.event.inputs.build_all == 'true' && '1' || '0' }}
+          DEPLOY_RUN_MIGRATION: ${{ github.event.inputs.run_migration == 'true' && '1' || '0' }}
+          DEPLOY_RUN_SEED: ${{ github.event.inputs.run_seed == 'true' && '1' || '0' }}
+        run: ./scripts/deploy.sh
