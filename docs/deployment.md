@@ -112,8 +112,9 @@ Script deployment melakukan:
 - lock deployment agar tidak ada dua proses bersamaan,
 - deteksi perubahan berbasis Git diff,
 - build image `frontend` dan/atau `backend` sesuai perubahan,
+- restart hanya service aplikasi yang berubah dengan `docker compose up -d --no-deps`,
+- melewati persiapan PostgreSQL/Redis untuk perubahan frontend-only,
 - menjalankan `npx prisma migrate deploy` ketika schema atau migration berubah,
-- restart service aplikasi,
 - health check container dan HTTP,
 - cleanup image Docker tidak terpakai,
 - logging ke `logs/deploy/`.

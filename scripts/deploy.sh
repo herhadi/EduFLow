@@ -67,6 +67,7 @@ BUILD_FRONTEND=0
 BUILD_BACKEND=0
 RUN_MIGRATION=0
 RUN_DEPLOY=0
+START_INFRA=0
 
 while IFS= read -r changed_file; do
   case "$changed_file" in
@@ -74,6 +75,7 @@ while IFS= read -r changed_file; do
       BUILD_FRONTEND=1
       BUILD_BACKEND=1
       RUN_MIGRATION=1
+      START_INFRA=1
       RUN_DEPLOY=1
       ;;
     apps/frontend/*|apps/frontend/Dockerfile)
@@ -83,15 +85,18 @@ while IFS= read -r changed_file; do
     apps/backend/prisma/migrations/*|apps/backend/prisma/schema.prisma)
       BUILD_BACKEND=1
       RUN_MIGRATION=1
+      START_INFRA=1
       RUN_DEPLOY=1
       ;;
     apps/backend/*|apps/backend/Dockerfile)
       BUILD_BACKEND=1
+      START_INFRA=1
       RUN_DEPLOY=1
       ;;
     packages/shared/*)
       BUILD_FRONTEND=1
       BUILD_BACKEND=1
+      START_INFRA=1
       RUN_DEPLOY=1
       ;;
     scripts/*|.github/workflows/deploy.yml)
@@ -103,7 +108,12 @@ done <<< "$CHANGED_FILES"
 if [ "${DEPLOY_BUILD_ALL:-0}" = "1" ]; then
   BUILD_FRONTEND=1
   BUILD_BACKEND=1
+  START_INFRA=1
   RUN_DEPLOY=1
+fi
+
+if [ "${DEPLOY_RUN_MIGRATION:-0}" = "1" ] || [ "${DEPLOY_RUN_SEED:-0}" = "1" ]; then
+  START_INFRA=1
 fi
 
 if [ "$RUN_DEPLOY" = "0" ]; then
@@ -111,9 +121,13 @@ if [ "$RUN_DEPLOY" = "0" ]; then
   exit 0
 fi
 
-log_section "Persiapan service dasar"
-compose up -d postgres redis
-wait_for_postgres
+if [ "$START_INFRA" = "1" ]; then
+  log_section "Persiapan service dasar"
+  compose up -d postgres redis
+  wait_for_postgres
+else
+  log_info "Persiapan service dasar dilewati."
+fi
 
 if [ "$BUILD_BACKEND" = "1" ]; then
   log_section "Build backend image"
@@ -141,11 +155,32 @@ if [ "${DEPLOY_RUN_SEED:-0}" = "1" ]; then
   compose run --rm backend npm run prisma:seed --workspace backend
 fi
 
-log_section "Restart aplikasi"
-compose up -d backend frontend
+RESTART_SERVICES=()
+HEALTHCHECK_SERVICES=()
+
+if [ "$BUILD_BACKEND" = "1" ]; then
+  RESTART_SERVICES+=("backend")
+  HEALTHCHECK_SERVICES+=("backend")
+fi
+
+if [ "$BUILD_FRONTEND" = "1" ]; then
+  RESTART_SERVICES+=("frontend")
+  HEALTHCHECK_SERVICES+=("frontend")
+fi
+
+if [ "${#RESTART_SERVICES[@]}" -eq 0 ]; then
+  log_info "Tidak ada service aplikasi yang perlu direstart."
+else
+  log_section "Restart aplikasi"
+  compose up -d --no-deps "${RESTART_SERVICES[@]}"
+fi
 
 log_section "Health check"
-"${ROOT_DIR}/scripts/healthcheck.sh"
+if [ "${#HEALTHCHECK_SERVICES[@]}" -eq 0 ]; then
+  log_info "Health check dilewati karena tidak ada service aplikasi yang berubah."
+else
+  HEALTHCHECK_SERVICES="${HEALTHCHECK_SERVICES[*]}" "${ROOT_DIR}/scripts/healthcheck.sh"
+fi
 
 log_section "Cleanup Docker"
 docker image prune -f
