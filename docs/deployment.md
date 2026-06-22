@@ -142,6 +142,8 @@ DEPLOY_RUN_SEED=1
 DEPLOY_LOG_DIR=/srv/eduflow/logs/deploy
 FRONTEND_HEALTH_URL=http://localhost:3000/api/health
 BACKEND_HEALTH_URL=http://localhost:3001/health
+HTTP_HEALTH_RETRIES=12
+HTTP_HEALTH_SLEEP_SECONDS=5
 ```
 
 Untuk server Debian dengan Cloudflare Tunnel, `FRONTEND_HEALTH_URL` dapat diarahkan ke domain public jika tunnel sudah stabil. Untuk validasi internal server, gunakan default localhost.
