@@ -11,6 +11,7 @@ import { UpdateClassTimeSlotActivityDto } from './dto/update-class-time-slot-act
 import { UpdateMyTeacherProfileDto } from './dto/update-my-teacher-profile.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateClassDto } from './dto/create-class.dto';
+import { CreateSchoolYearDto } from './dto/create-school-year.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
@@ -27,6 +28,12 @@ export class AcademicController {
   @Get('school-years')
   getSchoolYears() {
     return this.academicService.getSchoolYears();
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Post('school-years')
+  createSchoolYear(@Body() dto: CreateSchoolYearDto) {
+    return this.academicService.createSchoolYear(dto);
   }
 
   @Public()

@@ -12,6 +12,7 @@ import { UpdateMyTeacherProfileDto } from './dto/update-my-teacher-profile.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateBulkScheduleDto } from './dto/create-bulk-schedule.dto';
 import { CreateClassDto } from './dto/create-class.dto';
+import { CreateSchoolYearDto } from './dto/create-school-year.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
@@ -35,6 +36,42 @@ export class AcademicService {
         orderBy: { startsAt: 'desc' },
       }),
     };
+  }
+
+  async createSchoolYear(dto: CreateSchoolYearDto) {
+    const name = dto.name.trim();
+    const [startYearText, endYearText] = name.split('/');
+    const startYear = Number(startYearText);
+    const endYear = Number(endYearText);
+
+    if (endYear !== startYear + 1) {
+      throw new BadRequestException('Tahun ajaran harus berurutan, misalnya 2026/2027');
+    }
+
+    const existingSchoolYear = await this.prisma.schoolYear.findUnique({
+      where: { name },
+    });
+
+    if (existingSchoolYear) {
+      throw new BadRequestException('Tahun ajaran sudah tersedia');
+    }
+
+    const schoolYear = await this.prisma.schoolYear.create({
+      data: {
+        name,
+        startsAt: new Date(Date.UTC(startYear, 6, 1)),
+        endsAt: new Date(Date.UTC(endYear, 5, 30, 23, 59, 59, 999)),
+      },
+    });
+
+    await this.auditService.record({
+      action: 'school-year.created',
+      entityType: 'SchoolYear',
+      entityId: schoolYear.id,
+      after: schoolYear,
+    });
+
+    return { data: schoolYear, message: 'Tahun ajaran berhasil ditambahkan.' };
   }
 
   async getSemesters(schoolYearId?: string) {

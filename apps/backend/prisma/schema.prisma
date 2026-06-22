@@ -577,6 +577,11 @@ model Attendance {
   lockedById     String?          @db.Uuid
   endedAt        DateTime?
   notes          String?
+  classPhotoKey  String?
+  classPhotoName String?
+  classPhotoMimeType String?
+  classPhotoSize Int?
+  classPhotoUploadedAt DateTime?
   correctionNote String?
   agenda         DailyAgenda      @relation(fields: [agendaId], references: [id])
   class          Class            @relation(fields: [classId], references: [id])

@@ -14,6 +14,7 @@ import {
 import {
   getPrimaryNavigation,
   getPrimaryRole,
+  getNotificationAccess,
   getSectionFromPath,
 } from '../lib/navigation.config';
 
@@ -51,15 +52,11 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
       return;
     }
 
-    const primaryRole = getPrimaryRole(user.roles ?? []);
+    const notificationAccess = getNotificationAccess(user.roles ?? []);
 
     async function loadNotificationBadge() {
       try {
-        if (
-          primaryRole === 'guru' ||
-          primaryRole === 'wali_kelas' ||
-          primaryRole === 'kepala_sekolah'
-        ) {
+        if (notificationAccess.mode === 'personal') {
           const response = await api.getMyNotifications();
           setNotificationBadgeCount(
             response.data.filter((notification) => !notification.readAt)
@@ -258,7 +255,6 @@ function BottomNavigation({
           const active =
             pathname.startsWith(item.href) ||
             (item.href === '/admin' && section === 'admin') ||
-            (item.href === '/operations' && section === 'operations') ||
             (item.href === '/reports' && section === 'reports');
 
           return (

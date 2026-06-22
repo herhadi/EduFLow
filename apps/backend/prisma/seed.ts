@@ -120,6 +120,7 @@ async function main() {
       'student-grade.read',
       'attendance.read',
       'class-status.read',
+      'notification.read',
       'reporting.read',
     ],
     orang_tua: [

@@ -7,6 +7,9 @@ import { AcademicPlanningService } from './academic-planning.service';
 import { CreateTeachingPlanDto } from './dto/create-teaching-plan.dto';
 import { ReviewTeachingPlanDto } from './dto/review-teaching-plan.dto';
 
+const DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 @Controller('academic-planning')
 export class AcademicPlanningController {
   constructor(private readonly service: AcademicPlanningService) {}
@@ -24,8 +27,10 @@ export class AcademicPlanningController {
   @UseInterceptors(FileInterceptor('file', {
     limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (_request, file, callback) => {
-      const isDocx = file.originalname.toLowerCase().endsWith('.docx') && file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-      callback(isDocx ? null : new BadRequestException('File harus berformat DOCX'), isDocx);
+      const isDocx = file.originalname.toLowerCase().endsWith('.docx') && file.mimetype === DOCX_MIME_TYPE;
+      const isBookPhoto = IMAGE_MIME_TYPES.includes(file.mimetype);
+      const isSupported = isDocx || isBookPhoto;
+      callback(isSupported ? null : new BadRequestException('File harus DOCX, JPEG, PNG, atau WebP'), isSupported);
     },
   }))
   uploadAttachment(
@@ -33,7 +38,7 @@ export class AcademicPlanningController {
     @Param('id') id: string,
     @UploadedFile() file?: { buffer: Buffer; originalname: string; mimetype: string; size: number },
   ) {
-    if (!file) throw new BadRequestException('File DOCX wajib dipilih');
+    if (!file) throw new BadRequestException('Lampiran wajib dipilih');
     return this.service.uploadAttachment(request.user.id, id, file);
   }
 

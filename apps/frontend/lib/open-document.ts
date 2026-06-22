@@ -12,3 +12,12 @@ export function openOfficeDocument(url: string) {
     'noopener,noreferrer',
   );
 }
+
+export function openTeachingPlanAttachment(url: string, mimeType?: string | null) {
+  if (mimeType?.startsWith('image/')) {
+    window.open(url, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  openOfficeDocument(url);
+}

@@ -80,6 +80,7 @@ Aturan penghapusan:
 
 ```http
 GET /api/academic/school-years
+POST /api/academic/school-years
 GET /api/academic/semesters
 GET /api/academic/semesters?schoolYearId=:schoolYearId
 GET /api/academic/classes

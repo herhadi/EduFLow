@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SchoolActivityCarousel } from '../components/school-activity-carousel';
+import { SchoolQuickActions } from '../components/school-quick-actions';
 import { ThemeToggle } from '../components/ui/theme-toggle';
 
 const navigationItems = [
@@ -129,8 +130,8 @@ const quickActions = [
 
 export default function LandingPage() {
   return (
-    <main className="school-backdrop min-h-dvh overflow-x-hidden">
-      <div className="school-landing-frame mx-auto min-h-dvh max-w-md overflow-x-hidden min-[600px]:my-3 min-[600px]:min-h-[calc(100dvh-1.5rem)] min-[600px]:w-[calc(100%-1rem)] min-[600px]:max-w-none min-[600px]:rounded-[1.25rem] md:w-[calc(100%-1.5rem)] xl:w-[calc(100%-2rem)]">
+    <main className="school-backdrop min-h-dvh overflow-x-clip">
+      <div className="school-landing-frame mx-auto min-h-dvh max-w-md overflow-x-clip min-[600px]:my-3 min-[600px]:min-h-[calc(100dvh-1.5rem)] min-[600px]:w-[calc(100%-1rem)] min-[600px]:max-w-none min-[600px]:rounded-[1.25rem] md:w-[calc(100%-1.5rem)] xl:w-[calc(100%-2rem)]">
         <div className="school-top-strip px-4 py-2 text-xs font-semibold min-[600px]:px-6">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <p>SMP Negeri 1 Pecalungan</p>
@@ -138,7 +139,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <header className="school-header sticky top-0 z-30 px-4 py-4 min-[600px]:px-6">
+        <header className="school-header px-4 py-4 min-[600px]:px-6">
           <div className="flex items-center justify-between gap-4">
             <Link className="flex min-w-0 items-center gap-3" href="/">
               <span className="school-brand-mark grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl p-1">
@@ -473,13 +474,7 @@ export default function LandingPage() {
           </div>
         </footer>
 
-        <div aria-label="Akses cepat" className="school-floating-actions">
-          {quickActions.map((item) => (
-            <Link className="school-floating-action" href={item.href} key={item.label}>
-              {item.label}
-            </Link>
-          ))}
-        </div>
+        <SchoolQuickActions actions={quickActions} />
       </div>
     </main>
   );

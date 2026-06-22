@@ -15,6 +15,10 @@ export interface NavigationItem {
   badge?: 'notifications';
 }
 
+export type NotificationAccess =
+  | { mode: 'personal'; audience: 'teacher' | 'principal' | 'parent' }
+  | { mode: 'operational'; canRetry: boolean };
+
 const rootNavigation: NavigationItem[] = [
   { href: '/admin', label: 'Admin', icon: '⚙' },
   { href: '/operations', label: 'Ops', icon: '●' },
@@ -130,6 +134,24 @@ export function getPrimaryRole(roles: string[] = []): UserRole {
 
 export function getPrimaryNavigation(roles: string[] = []) {
   return roleNavigation[getPrimaryRole(roles)];
+}
+
+export function getNotificationAccess(roles: string[] = []): NotificationAccess {
+  switch (getPrimaryRole(roles)) {
+    case 'guru':
+    case 'wali_kelas':
+      return { mode: 'personal', audience: 'teacher' };
+    case 'kepala_sekolah':
+      return { mode: 'personal', audience: 'principal' };
+    case 'orang_tua':
+      return { mode: 'personal', audience: 'parent' };
+    case 'root':
+    case 'operator_sekolah':
+      return { mode: 'operational', canRetry: true };
+    case 'tu':
+    case 'bk':
+      return { mode: 'operational', canRetry: false };
+  }
 }
 
 export function getDashboardPathForRole(role: UserRole) {

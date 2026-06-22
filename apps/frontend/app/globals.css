@@ -192,14 +192,19 @@
     background:
       linear-gradient(90deg, var(--primary-strong), var(--primary));
     color: #ffffff;
+    border-radius: 1rem 1rem 0 0;
   }
 
   .school-header {
+    position: sticky;
+    top: 0;
+    z-index: 70;
     border-bottom: 1px solid var(--border-strong);
     background:
       linear-gradient(270deg, color-mix(in srgb, var(--primary) 24%, var(--surface-solid)), color-mix(in srgb, var(--primary-soft) 78%, var(--surface-solid)) 46%, var(--surface-solid));
     box-shadow: 0 12px 34px rgba(15, 23, 42, 0.08);
     backdrop-filter: blur(18px);
+    
   }
 
   .school-brand-mark {
@@ -289,6 +294,7 @@
       linear-gradient(135deg, color-mix(in srgb, var(--primary-strong) 22%, var(--surface-solid)), color-mix(in srgb, var(--text) 9%, var(--primary-soft))),
       var(--surface-muted);
     color: var(--text);
+    border-radius: 0 0 1.25rem 1.25rem;
   }
 
   .school-footer .school-nav-link {
@@ -512,6 +518,22 @@
     z-index: 60;
     display: grid;
     gap: 0.5rem;
+    justify-items: end;
+  }
+
+  .school-floating-menu {
+    display: grid;
+    gap: 0.5rem;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(0.5rem) scale(0.96);
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+
+  .school-floating-menu-open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
   }
 
   .school-floating-action {
@@ -522,16 +544,39 @@
     justify-content: center;
     border-radius: 999px;
     border: 1px solid var(--border);
-    background: var(--surface-solid);
+    background: color-mix(in srgb, var(--surface-solid) 72%, transparent);
     color: var(--primary-strong);
     font-size: 0.75rem;
     font-weight: 900;
     box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(14px);
     transition: background-color 160ms ease, transform 160ms ease;
   }
 
   .school-floating-action:hover {
-    background: var(--primary-soft);
+    background: color-mix(in srgb, var(--primary-soft) 82%, transparent);
+    transform: translateY(-2px);
+  }
+
+  .school-floating-trigger {
+    display: grid;
+    height: 3.25rem;
+    width: 3.25rem;
+    place-items: center;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    background: color-mix(in srgb, var(--primary) 82%, transparent);
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+    transition: background-color 160ms ease, transform 160ms ease;
+  }
+
+  .school-floating-trigger:hover {
+    background: color-mix(in srgb, var(--primary-strong) 88%, transparent);
     transform: translateY(-2px);
   }
 

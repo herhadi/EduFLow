@@ -34,6 +34,48 @@ export class NotificationService implements OnModuleInit {
   }
 
   async getMine(userId: string, roles: string[]) {
+    const scope = await this.getPersonalInboxScope(userId, roles);
+
+    if (!scope) {
+      return { data: [] };
+    }
+
+    return {
+      data: await this.prisma.notificationLog.findMany({
+        where: {
+          OR: [
+            { recipientUserId: userId },
+            ...(scope.recipients.length && scope.allowedTemplates.length ? [{
+              recipient: { in: scope.recipients },
+              OR: scope.allowedTemplates.map((templateKey) => ({
+                templateKey: { startsWith: templateKey },
+              })),
+            }] : []),
+          ],
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+    };
+  }
+
+  async markAsRead(userId: string, roles: string[], id: string) {
+    const scope = await this.getPersonalInboxScope(userId, roles);
+    const notification = await this.prisma.notificationLog.findUnique({ where: { id } });
+
+    if (!scope || !notification || !this.isPersonalNotification(scope, userId, notification)) {
+      throw new NotFoundException('Notifikasi tidak ditemukan');
+    }
+
+    return {
+      data: await this.prisma.notificationLog.update({
+        where: { id },
+        data: { readAt: new Date() },
+      }),
+    };
+  }
+
+  private async getPersonalInboxScope(userId: string, roles: string[]) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -45,7 +87,7 @@ export class NotificationService implements OnModuleInit {
     });
 
     if (!user) {
-      return { data: [] };
+      return null;
     }
 
     const recipients = [
@@ -53,8 +95,7 @@ export class NotificationService implements OnModuleInit {
       user.teacherProfile?.email,
       user.teacherProfile?.phone,
       user.teacherProfile?.telegramId,
-    ].filter((recipient): recipient is string => Boolean(recipient));
-
+    ];
     const allowedTemplates = roles.includes('kepala_sekolah')
       ? [
           'principal.',
@@ -67,30 +108,33 @@ export class NotificationService implements OnModuleInit {
           'school.summary.',
           'academic.announcement.',
         ]
-      : [
+      : roles.includes('guru') || roles.includes('wali_kelas')
+        ? [
           'teacher.',
           'attendance.correction.',
           'teaching-plan.',
           'student-grade.',
           'academic.announcement.',
-        ];
+        ]
+        : roles.includes('orang_tua')
+          ? ['attendance.summary.', 'academic.announcement.']
+          : [];
+
+    if (roles.includes('orang_tua')) {
+      const guardians = await this.prisma.guardian.findMany({
+        where: { email: user.email, deletedAt: null, isActive: true },
+        select: { email: true, phone: true, telegramId: true },
+      });
+      recipients.push(...guardians.flatMap((guardian) => [
+        guardian.email,
+        guardian.phone,
+        guardian.telegramId,
+      ]));
+    }
 
     return {
-      data: await this.prisma.notificationLog.findMany({
-        where: {
-          OR: [
-            { recipientUserId: userId },
-            ...(recipients.length ? [{
-              recipient: { in: recipients },
-              OR: allowedTemplates.map((templateKey) => ({
-                templateKey: { startsWith: templateKey },
-              })),
-            }] : []),
-          ],
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 100,
-      }),
+      recipients: [...new Set(recipients.filter((recipient): recipient is string => Boolean(recipient)))],
+      allowedTemplates,
     };
   }
 
@@ -165,10 +209,15 @@ export class NotificationService implements OnModuleInit {
     });
   }
 
-  async markAsRead(userId: string, id: string) {
-    const notification = await this.prisma.notificationLog.findFirst({ where: { id, recipientUserId: userId } });
-    if (!notification) throw new NotFoundException('Notifikasi tidak ditemukan');
-    return { data: await this.prisma.notificationLog.update({ where: { id }, data: { readAt: new Date() } }) };
+  private isPersonalNotification(
+    scope: { recipients: string[]; allowedTemplates: string[] },
+    userId: string,
+    notification: { recipientUserId: string | null; recipient: string; templateKey: string | null },
+  ) {
+    return notification.recipientUserId === userId || (
+      scope.recipients.includes(notification.recipient) &&
+      scope.allowedTemplates.some((templateKey) => notification.templateKey?.startsWith(templateKey))
+    );
   }
 
   async getTemplates() {

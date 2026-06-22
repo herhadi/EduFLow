@@ -3,7 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 import { AgendaStatus, AttendanceState, AttendanceStatus } from '@prisma/client';
+import { randomUUID } from 'node:crypto';
+import { extname } from 'node:path';
+import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueueProducerService } from '../../queue/queue-producer.service';
 import { AuditService } from '../audit/audit.service';
@@ -16,6 +20,7 @@ export class AttendanceService {
     private readonly prisma: PrismaService,
     private readonly queueProducer: QueueProducerService,
     private readonly auditService: AuditService,
+    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
   async getAttendance(id: string, userId: string) {
@@ -201,6 +206,36 @@ export class AttendanceService {
       },
       message: 'Attendance disubmit dan summary job terkirim.',
     };
+  }
+
+  async uploadClassPhoto(
+    attendanceId: string,
+    userId: string,
+    file: { buffer: Buffer; originalname: string; mimetype: string; size: number },
+  ) {
+    const attendance = await this.prisma.attendance.findUnique({
+      where: { id: attendanceId },
+      include: { agenda: true },
+    });
+    if (!attendance) throw new NotFoundException('Attendance tidak ditemukan');
+    await this.ensureTeacherOwnsAgenda(userId, attendance.agenda.teacherId);
+    if (attendance.state !== AttendanceState.DRAFT) throw new BadRequestException('Foto kelas hanya dapat diunggah saat presensi dibuka');
+
+    const key = `attendance/${attendance.agendaId}/${randomUUID()}${extname(file.originalname).toLowerCase()}`;
+    const stored = await this.storage.upload({ buffer: file.buffer, key, name: file.originalname, mimeType: file.mimetype });
+    const updated = await this.prisma.attendance.update({
+      where: { id: attendance.id },
+      data: {
+        classPhotoKey: stored.key,
+        classPhotoName: stored.name,
+        classPhotoMimeType: stored.mimeType,
+        classPhotoSize: stored.size,
+        classPhotoUploadedAt: new Date(),
+      },
+    });
+    if (attendance.classPhotoKey) await this.storage.delete(attendance.classPhotoKey).catch(() => undefined);
+    await this.auditService.record({ action: 'attendance.class-photo-uploaded', entityType: 'Attendance', entityId: attendance.id, before: attendance, after: updated, userId });
+    return { data: updated, message: 'Foto kelas berhasil diunggah.' };
   }
 
   private async ensureTeacherOwnsAgenda(userId: string, teacherId: string) {

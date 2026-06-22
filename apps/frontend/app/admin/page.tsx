@@ -3,18 +3,18 @@ import { Container } from '../../components/ui/container';
 import { PageHeader } from '../../components/ui/page-header';
 
 const adminMenus = [
-  {
-    href: '/admin/guru',
-    title: 'Manajemen Guru',
-    description: 'Akun login, role, mapel ampu, dan wali kelas.',
-    icon: 'G',
-  },
-  {
+   {
     href: '/admin/akademik',
     title: 'Kelas & Mata Pelajaran',
     description: 'Tambah/hapus rombel dan mapel secara fleksibel.',
     icon: 'A',
   },
+  {
+    href: '/admin/guru',
+    title: 'Manajemen Guru',
+    description: 'Akun login, role, mapel ampu, dan wali kelas.',
+    icon: 'G',
+  }, 
   {
     href: '/admin/akses',
     title: 'User & Hak Akses',

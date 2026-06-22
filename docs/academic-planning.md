@@ -42,6 +42,14 @@ Dalam navigasi frontend, `operator_sekolah` diperlakukan sebagai admin operasion
 
 Menu teknis seperti health check, queue monitoring, worker status, dan failed jobs berada di area `Ops` dan hanya ditampilkan untuk `root`.
 
+## Tahun Ajaran
+
+Tahun ajaran dikelola dari `/admin/akademik` oleh pengguna dengan permission `academic.manage`. Operator memasukkan format `YYYY/YYYY`, misalnya `2025/2026`; nilai harus berurutan. Sistem menyimpan periode akademik otomatis dari 1 Juli pada tahun pertama hingga 30 Juni pada tahun kedua.
+
+Pembuatan memakai `POST /api/academic/school-years`, menyimpan data pada `SchoolYear`, dan mencatat audit action `school-year.created`. Tahun ajaran yang berhasil dibuat langsung tersedia sebagai pilihan saat membuat rombongan belajar.
+
+Form rombongan belajar menampilkan label untuk Tahun Ajaran Baru, Tahun Ajaran, Tingkat, dan Rombel agar konteks setiap nilai jelas.
+
 ## Hak Guru
 
 Guru tidak mengelola kalender pendidikan dan jadwal sekolah secara umum. Guru mengelola pekerjaan akademik untuk mapel dan kelas yang diampu:
@@ -82,6 +90,12 @@ Guru tidak melihat:
 - pengelolaan template notifikasi.
 
 Endpoint inbox personal guru adalah `GET /api/notifications/mine`. Notification Center global tetap membutuhkan permission `notification.read` atau `notification.manage`.
+
+## Akses Inbox Berdasarkan Role
+
+`guru`, `wali_kelas`, `kepala_sekolah`, dan `orang_tua` menggunakan inbox personal melalui `GET /api/notifications/mine`. Inbox Orang Tua hanya memuat ringkasan presensi dan pengumuman akademik yang dialamatkan ke kontak wali dengan email sama seperti akun login.
+
+`root` dan `operator_sekolah` mengelola Notification Center operasional termasuk retry. `tu` dan `bk` dapat membaca status pengiriman, tetapi tidak dapat melakukan retry. Akses ini dikendalikan oleh permission, bukan tampilan frontend saja.
 
 Perangkat ajar sebaiknya tidak hanya berupa upload dokumen mentah. Sistem perlu menyimpan status review, catatan revisi, dan approval supaya kepala sekolah bisa memonitor kelengkapan dan kualitas administrasi guru.
 
@@ -217,7 +231,7 @@ Domain `academic-planning` sudah menyediakan workflow awal:
 - `GET /api/academic-planning/review-queue` untuk antrean review Kepala Sekolah.
 - `PATCH /api/academic-planning/:id/review` untuk approve atau meminta revisi.
 
-Halaman guru berada di `/teacher/teaching-plans`. Dokumen DOCX disimpan pada bucket privat Cloudflare R2 melalui `StorageProvider` di infrastructure layer. Domain menyimpan object key, nama asli, MIME type, ukuran, dan waktu upload; URL unduhan dibuat sementara saat pengguna berhak membuka dokumen.
+Halaman guru berada di `/teacher/teaching-plans`. Lampiran DOCX maupun foto Buku KBM disimpan pada bucket privat Cloudflare R2 melalui `StorageProvider` di infrastructure layer. Domain menyimpan object key, nama asli, MIME type, ukuran, dan waktu upload; URL unduhan dibuat sementara saat pengguna berhak membuka lampiran.
 
 Konfigurasi backend yang wajib tersedia:
 
@@ -227,7 +241,7 @@ Konfigurasi backend yang wajib tersedia:
 - `R2_BUCKET_NAME`
 - `R2_DOWNLOAD_URL_EXPIRES_IN` (default 900 detik)
 
-File dibatasi pada DOCX maksimal 10 MB. Guru hanya dapat mengganti file ketika status masih `DRAFT` atau `REVISION_REQUESTED`.
+File dibatasi maksimal 10 MB. Untuk `Program Tahunan`, `Program Semester`, `KKTP`, dan `Perencanaan Pembelajaran`, lampiran wajib berformat DOCX. Untuk `Buku KBM`, form menyediakan aksi `Buka Kamera` dan `Pilih Galeri` untuk foto JPEG, PNG, atau WebP; aksi kamera meminta kamera belakang pada perangkat yang mendukungnya. Foto buku wajib tersedia sebelum pengajuan dapat dikirim kepada Kepala Sekolah. Guru hanya dapat mengganti lampiran ketika status masih `DRAFT` atau `REVISION_REQUESTED`.
 
 Kepala Sekolah membuka `/principal/review` untuk melihat antrean `SUBMITTED`, membuka dokumen melalui signed URL R2, menyetujui perangkat ajar, atau meminta revisi dengan catatan wajib.
 

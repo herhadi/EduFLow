@@ -10,6 +10,9 @@ import { NotificationService } from '../notification/notification.service';
 import { CreateTeachingPlanDto } from './dto/create-teaching-plan.dto';
 import { ReviewTeachingPlanDto } from './dto/review-teaching-plan.dto';
 
+const DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const BOOK_PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 @Injectable()
 export class AcademicPlanningService {
   private readonly logger = new Logger(AcademicPlanningService.name);
@@ -50,6 +53,9 @@ export class AcademicPlanningService {
     const existing = await this.prisma.teachingPlan.findFirst({ where: { id, teacherId: teacher.id, deletedAt: null } });
     if (!existing) throw new NotFoundException('Perangkat ajar tidak ditemukan');
     if (!['DRAFT', 'REVISION_REQUESTED'].includes(existing.status)) throw new BadRequestException('Perangkat ajar tidak dapat disubmit pada status ini');
+    if (existing.type === 'TEACHING_BOOK' && !this.isBookPhoto(existing.attachmentMimeType)) {
+      throw new BadRequestException('Foto buku KBM wajib diunggah sebelum perangkat ajar dikirim');
+    }
 
     const plan = await this.prisma.teachingPlan.update({
       where: { id }, data: { status: TeachingPlanStatus.SUBMITTED, submittedAt: new Date(), reviewNote: null },
@@ -65,6 +71,12 @@ export class AcademicPlanningService {
     const existing = await this.prisma.teachingPlan.findFirst({ where: { id, teacherId: teacher.id, deletedAt: null } });
     if (!existing) throw new NotFoundException('Perangkat ajar tidak ditemukan');
     if (!['DRAFT', 'REVISION_REQUESTED'].includes(existing.status)) throw new BadRequestException('Dokumen hanya dapat diganti saat draft atau revisi');
+    if (existing.type === 'TEACHING_BOOK' && !this.isBookPhoto(file.mimetype)) {
+      throw new BadRequestException('Buku KBM harus menggunakan foto JPEG, PNG, atau WebP');
+    }
+    if (existing.type !== 'TEACHING_BOOK' && file.mimetype !== DOCX_MIME_TYPE) {
+      throw new BadRequestException('Perangkat ajar selain Buku KBM harus menggunakan dokumen DOCX');
+    }
 
     const extension = extname(file.originalname).toLowerCase();
     const key = `teaching-plans/${teacher.id}/${id}/${randomUUID()}${extension}`;
@@ -91,7 +103,12 @@ export class AcademicPlanningService {
       }
     }
     await this.audit.record({ action: 'teaching-plan.attachment-uploaded', entityType: 'TeachingPlan', entityId: id, before: existing, after: plan, userId });
-    return { data: plan, message: 'Dokumen DOCX berhasil diunggah.' };
+    return {
+      data: plan,
+      message: existing.type === 'TEACHING_BOOK'
+        ? 'Foto buku KBM berhasil diunggah.'
+        : 'Dokumen DOCX berhasil diunggah.',
+    };
   }
 
   async getAttachmentUrl(userId: string, id: string, permissions: string[]) {
@@ -149,5 +166,9 @@ export class AcademicPlanningService {
     const teacher = await this.prisma.teacher.findFirst({ where: { userId, deletedAt: null, isActive: true } });
     if (!teacher) throw new NotFoundException('Akun belum terhubung dengan data guru');
     return teacher;
+  }
+
+  private isBookPhoto(mimeType?: string | null) {
+    return Boolean(mimeType && BOOK_PHOTO_MIME_TYPES.includes(mimeType));
   }
 }

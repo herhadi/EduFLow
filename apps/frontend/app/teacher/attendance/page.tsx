@@ -1,5 +1,6 @@
 import { Container } from '../../../components/ui/container';
 import { PageHeader } from '../../../components/ui/page-header';
+import { TeacherAttendance } from '../../../components/teacher-attendance';
 
 export default function TeacherAttendancePage() {
   return (
@@ -11,13 +12,7 @@ export default function TeacherAttendancePage() {
           title="Presensi Kelas"
         />
 
-        <section className="mt-6 rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
-          <p className="text-sm font-semibold leading-6 text-muted">
-            Berikutnya halaman ini akan menampilkan agenda mengajar guru yang
-            sedang login, daftar siswa dari enrollment aktif, dan tombol submit
-            presensi.
-          </p>
-        </section>
+        <TeacherAttendance />
       </Container>
     </main>
   );

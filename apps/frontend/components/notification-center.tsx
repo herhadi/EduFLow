@@ -6,7 +6,8 @@ import {
   api,
   type NotificationLog,
 } from '../lib/api';
-import { getPrimaryRole } from '../lib/navigation.config';
+import { getNotificationAccess, type NotificationAccess } from '../lib/navigation.config';
+import { getCurrentSessionUser } from '../lib/session';
 import { NOTIFICATION_CHANGED_EVENT } from './mobile-app-shell';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
@@ -37,8 +38,9 @@ const tabs: Array<{ id: NotificationTab; label: string; description: string }> =
 
 export function NotificationCenter() {
   const [personalInboxRole, setPersonalInboxRole] = useState<
-    'teacher' | 'principal' | null
+    'teacher' | 'principal' | 'parent' | null
   >(null);
+  const [notificationAccess, setNotificationAccess] = useState<NotificationAccess | null>(null);
   const [myNotifications, setMyNotifications] = useState<NotificationLog[]>([]);
   const [activeTab, setActiveTab] = useState<NotificationTab>('sent');
   const [loadState, setLoadState] = useState<LoadState>('idle');
@@ -53,19 +55,11 @@ export function NotificationCenter() {
     setLoadState('loading');
 
     try {
-      const storedUser = localStorage.getItem('currentUser');
-      const roles = storedUser
-        ? ((JSON.parse(storedUser) as { roles?: string[] }).roles ?? [])
-        : [];
-      const primaryRole = getPrimaryRole(roles);
-      const teacherInbox = primaryRole === 'guru' || primaryRole === 'wali_kelas';
-      const principalInbox = primaryRole === 'kepala_sekolah';
+      const access = getNotificationAccess(getCurrentSessionUser()?.roles ?? []);
+      setNotificationAccess(access);
+      setPersonalInboxRole(access.mode === 'personal' ? access.audience : null);
 
-      setPersonalInboxRole(
-        teacherInbox ? 'teacher' : principalInbox ? 'principal' : null,
-      );
-
-      if (teacherInbox || principalInbox) {
+      if (access.mode === 'personal') {
         const response = await api.getMyNotifications();
         setMyNotifications(response.data);
         setLoadState('success');
@@ -77,7 +71,7 @@ export function NotificationCenter() {
           api.getSentNotifications(),
           api.getPendingNotifications(),
           api.getFailedNotifications(),
-          api.getRetryNotifications(),
+          access.canRetry ? api.getRetryNotifications() : Promise.resolve({ data: [] }),
         ]);
 
       setSent(sentResponse.data);
@@ -110,6 +104,10 @@ export function NotificationCenter() {
     );
   }
 
+  const visibleTabs = notificationAccess?.mode === 'operational' && !notificationAccess.canRetry
+    ? tabs.filter((tab) => tab.id !== 'retry')
+    : tabs;
+
   async function handleRetry(notification: NotificationLog) {
     setActionState('loading');
     setMessage(null);
@@ -133,7 +131,7 @@ export function NotificationCenter() {
           Notifikasi
         </p>
         <nav className="no-scrollbar mt-4 flex gap-2 overflow-x-auto lg:block lg:space-y-2 lg:overflow-visible">
-          {tabs.map((tab) => (
+          {visibleTabs.map((tab) => (
             <button
               className={[
                 'flex shrink-0 items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left text-sm font-semibold transition lg:w-full',
@@ -156,7 +154,7 @@ export function NotificationCenter() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">
-              {tabs.find((tab) => tab.id === activeTab)?.label}
+              {visibleTabs.find((tab) => tab.id === activeTab)?.label}
             </h2>
             <p className="mt-1 text-sm text-muted">{activeDescription}</p>
           </div>
@@ -187,7 +185,7 @@ export function NotificationCenter() {
           {activeTab === 'failed' ? (
             <NotificationTable items={failed} />
           ) : null}
-          {activeTab === 'retry' ? (
+          {activeTab === 'retry' && notificationAccess?.mode === 'operational' && notificationAccess.canRetry ? (
             <NotificationTable
               actionState={actionState}
               items={retry}
@@ -225,10 +223,11 @@ function PersonalNotificationInbox({
   items: NotificationLog[];
   loadState: LoadState;
   onRefresh: () => Promise<void>;
-  role: 'teacher' | 'principal';
+  role: 'teacher' | 'principal' | 'parent';
 }) {
   const router = useRouter();
   const isPrincipal = role === 'principal';
+  const isParent = role === 'parent';
 
   async function openNotification(item: NotificationLog) {
     if (!item.readAt) {
@@ -245,7 +244,7 @@ function PersonalNotificationInbox({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
-              {isPrincipal ? 'Inbox Kepala Sekolah' : 'Inbox Guru'}
+              {isPrincipal ? 'Inbox Kepala Sekolah' : isParent ? 'Inbox Orang Tua' : 'Inbox Guru'}
             </p>
             <h2 className="mt-2 text-2xl font-black text-slate-900">
               Pemberitahuan Saya
@@ -253,6 +252,8 @@ function PersonalNotificationInbox({
             <p className="mt-2 text-sm leading-6 text-muted">
               {isPrincipal
                 ? 'Approval perangkat ajar dan nilai, kelas kosong, keterlambatan submit, serta ringkasan sekolah.'
+                : isParent
+                  ? 'Ringkasan presensi dan pengumuman akademik untuk anak Anda.'
                 : 'Reminder kelas, koreksi presensi, revisi perangkat ajar, dan status penilaian.'}
             </p>
           </div>
@@ -282,6 +283,8 @@ function PersonalNotificationInbox({
         <div className="rounded-[2rem] border border-blue-100 bg-white p-5 text-sm leading-6 text-muted shadow-sm shadow-blue-100/60">
           {isPrincipal
             ? 'Belum ada notifikasi yang membutuhkan perhatian Kepala Sekolah.'
+            : isParent
+              ? 'Belum ada notifikasi untuk akun orang tua ini.'
             : 'Belum ada notifikasi untuk akun guru ini. Reminder hanya muncul jika kontak guru sudah lengkap dan job terkait sudah dibuat.'}
         </div>
       ) : null}
@@ -308,7 +311,7 @@ function PersonalNotificationInbox({
             <p className="mt-3 text-xs font-semibold text-muted">
               {formatDateTime(item.sentAt ?? item.failedAt ?? item.createdAt)}
             </p>
-            {item.actionUrl ? <p className={`mt-3 text-xs font-black ${getInboxLabelTone(item.templateKey)}`}>{isPrincipal ? 'Buka Review' : 'Buka Perangkat Ajar'} →</p> : null}
+            {item.actionUrl ? <p className={`mt-3 text-xs font-black ${getInboxLabelTone(item.templateKey)}`}>{isPrincipal ? 'Buka Review' : 'Buka Detail'} →</p> : null}
           </button>
         ))}
       </div>
@@ -330,7 +333,7 @@ function getInboxLabelTone(templateKey?: string | null) {
 
 function getPersonalNotificationLabel(
   templateKey: string | null | undefined,
-  role: 'teacher' | 'principal',
+  role: 'teacher' | 'principal' | 'parent',
 ) {
   if (role === 'principal') {
     if (templateKey?.startsWith('teaching-plan.')) return 'Review Perangkat Ajar';
@@ -342,6 +345,12 @@ function getPersonalNotificationLabel(
     if (templateKey?.startsWith('school.summary.')) return 'Ringkasan Sekolah';
     if (templateKey?.startsWith('academic.announcement.')) return 'Pengumuman Akademik';
     return 'Informasi Kepala Sekolah';
+  }
+
+  if (role === 'parent') {
+    if (templateKey?.startsWith('attendance.summary.')) return 'Ringkasan Presensi';
+    if (templateKey?.startsWith('academic.announcement.')) return 'Pengumuman Sekolah';
+    return 'Informasi Anak';
   }
 
   if (templateKey?.startsWith('teacher.reminder.')) {

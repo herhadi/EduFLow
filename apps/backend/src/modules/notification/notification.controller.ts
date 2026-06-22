@@ -18,7 +18,11 @@ export class NotificationController {
 
   @Patch('mine/:id/read')
   markMineAsRead(@Req() request: RequestWithUser, @Param('id') id: string) {
-    return this.notificationService.markAsRead(request.user.id, id);
+    return this.notificationService.markAsRead(
+      request.user.id,
+      request.user.roles ?? [],
+      id,
+    );
   }
 
   @RequirePermissions(PERMISSIONS.NOTIFICATION_READ)

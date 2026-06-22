@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api, type TeachingPlan } from '../lib/api';
-import { openOfficeDocument } from '../lib/open-document';
+import { openTeachingPlanAttachment } from '../lib/open-document';
 import { useToast } from './ui/toast';
 import { NOTIFICATION_CHANGED_EVENT } from './mobile-app-shell';
 
@@ -40,7 +40,7 @@ export function PrincipalTeachingPlanReview() {
   async function openAttachment(plan: TeachingPlan) {
     try {
       const response = await api.getTeachingPlanAttachmentUrl(plan.id);
-      openOfficeDocument(response.data.url);
+      openTeachingPlanAttachment(response.data.url, plan.attachmentMimeType);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Dokumen gagal dibuka.');
     }
@@ -71,7 +71,7 @@ export function PrincipalTeachingPlanReview() {
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
           <h2 className="text-xl font-black">Perangkat Ajar Menunggu Review</h2>
-          <p className="mt-1 text-sm text-muted">Periksa dokumen guru sebelum menyetujui atau meminta revisi.</p>
+          <p className="mt-1 text-sm text-muted">Periksa dokumen atau foto Buku KBM guru sebelum menyetujui atau meminta revisi.</p>
         </div>
         <span className="rounded-full bg-brand-50 px-3 py-2 text-xs font-black text-brand-700">{plans.length} pengajuan</span>
       </div>
@@ -92,7 +92,7 @@ export function PrincipalTeachingPlanReview() {
 
             {plan.description ? <p className="mt-4 rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-700 dark:bg-slate-900 dark:text-slate-200">{plan.description}</p> : null}
             <div className="mt-4 flex flex-wrap gap-2">
-              {plan.attachmentKey || plan.attachmentUrl ? <button className="secondary-button rounded-xl px-3 py-2 text-xs font-black" onClick={() => void openAttachment(plan)} type="button">Buka Dokumen{plan.attachmentName ? ` · ${plan.attachmentName}` : ''}</button> : <span className="text-xs font-bold text-amber-700">Dokumen belum dilampirkan</span>}
+              {plan.attachmentKey || plan.attachmentUrl ? <button className="secondary-button rounded-xl px-3 py-2 text-xs font-black" onClick={() => void openAttachment(plan)} type="button">{plan.type === 'TEACHING_BOOK' ? 'Lihat Foto Buku' : 'Buka Dokumen'}{plan.attachmentName ? ` · ${plan.attachmentName}` : ''}</button> : <span className="text-xs font-bold text-amber-700">Lampiran belum tersedia</span>}
             </div>
 
             <label className="mt-4 grid gap-2 text-sm font-bold">Catatan untuk Guru<textarea className="min-h-24 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:bg-slate-950" onChange={(event) => setNotes((current) => ({ ...current, [plan.id]: event.target.value }))} placeholder="Wajib diisi jika meminta revisi" value={notes[plan.id] ?? ''} /></label>

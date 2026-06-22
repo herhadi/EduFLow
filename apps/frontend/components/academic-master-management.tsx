@@ -13,6 +13,8 @@ import { useToast } from './ui/toast';
 type LoadState = 'loading' | 'success' | 'error';
 
 const grades = ['VII', 'VIII', 'IX'];
+const schoolYearNamePattern = '[0-9]{4}/[0-9]{4}';
+const schoolYearNameRegex = new RegExp(`^${schoolYearNamePattern}$`);
 
 export function AcademicMasterManagement() {
   const toast = useToast();
@@ -21,12 +23,14 @@ export function AcademicMasterManagement() {
   const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [isSaving, setIsSaving] = useState(false);
+  const [isCreatingSchoolYear, setIsCreatingSchoolYear] = useState(false);
   const [classForm, setClassForm] = useState({
     schoolYearId: '',
     grade: 'VII',
     suffix: '',
   });
   const [subjectForm, setSubjectForm] = useState({ name: '', code: '' });
+  const [schoolYearName, setSchoolYearName] = useState('');
 
   async function loadData() {
     setLoadState('loading');
@@ -95,6 +99,33 @@ export function AcademicMasterManagement() {
       );
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleCreateSchoolYear(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const name = schoolYearName.trim();
+
+    if (!schoolYearNameRegex.test(name)) {
+      toast.warning('Gunakan format tahun ajaran, misalnya 2026/2027.', 'Format Belum Sesuai');
+      return;
+    }
+
+    setIsCreatingSchoolYear(true);
+
+    try {
+      const response = await api.createSchoolYear({ name });
+      setSchoolYears((current) => [response.data, ...current]);
+      setClassForm((current) => ({ ...current, schoolYearId: response.data.id }));
+      setSchoolYearName('');
+      toast.success(response.message ?? 'Tahun ajaran berhasil ditambahkan.', 'Tahun Ajaran Ditambahkan');
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Gagal menambahkan tahun ajaran.',
+        'Aksi Gagal',
+      );
+    } finally {
+      setIsCreatingSchoolYear(false);
     }
   }
 
@@ -177,33 +208,66 @@ export function AcademicMasterManagement() {
           Jumlah kelas bebas menyesuaikan jumlah siswa. Tambah atau hapus rombel tanpa mengubah kode aplikasi.
         </p>
 
-        <form className="mt-5 grid gap-3" onSubmit={handleCreateClass}>
-          <select
-            className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
-            onChange={(event) => setClassForm((current) => ({ ...current, schoolYearId: event.target.value }))}
-            value={classForm.schoolYearId}
-          >
-            {schoolYears.map((year) => (
-              <option key={year.id} value={year.id}>{year.name}</option>
-            ))}
-          </select>
-          <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
-            <select
-              className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/60 px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
-              onChange={(event) => setClassForm((current) => ({ ...current, grade: event.target.value }))}
-              value={classForm.grade}
-            >
-              {grades.map((grade) => <option key={grade}>{grade}</option>)}
-            </select>
+        <form className="mt-5 grid gap-2 sm:grid-cols-[1fr_auto]" onSubmit={handleCreateSchoolYear}>
+          <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="new-school-year">
+            Tahun Ajaran Baru
             <input
-              className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm uppercase outline-none focus:border-brand-600"
-              maxLength={3}
-              onChange={(event) => setClassForm((current) => ({ ...current, suffix: event.target.value }))}
-              placeholder="A"
-              value={classForm.suffix}
+              className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
+              id="new-school-year"
+              onChange={(event) => setSchoolYearName(event.target.value)}
+              pattern={schoolYearNamePattern}
+              placeholder="Contoh 2026/2027"
+              value={schoolYearName}
             />
+          </label>
+          <button
+            className="self-end rounded-2xl border border-brand-200 bg-white px-4 py-3 text-sm font-black text-brand-700 disabled:text-slate-400"
+            disabled={isCreatingSchoolYear}
+            type="submit"
+          >
+            Tambah Tahun
+          </button>
+        </form>
+
+        <form className="mt-3 grid gap-3" onSubmit={handleCreateClass}>
+          <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="class-school-year">
+            Tahun Ajaran
+            <select
+              className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
+              id="class-school-year"
+              onChange={(event) => setClassForm((current) => ({ ...current, schoolYearId: event.target.value }))}
+              value={classForm.schoolYearId}
+            >
+              {schoolYears.map((year) => (
+                <option key={year.id} value={year.id}>{year.name}</option>
+              ))}
+            </select>
+          </label>
+          <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
+            <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="class-grade">
+              Tingkat
+              <select
+                className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/60 px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
+                id="class-grade"
+                onChange={(event) => setClassForm((current) => ({ ...current, grade: event.target.value }))}
+                value={classForm.grade}
+              >
+                {grades.map((grade) => <option key={grade}>{grade}</option>)}
+              </select>
+            </label>
+            <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="class-rombel">
+              Rombel
+              <input
+                className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm uppercase outline-none focus:border-brand-600"
+                id="class-rombel"
+                maxLength={3}
+                onChange={(event) => setClassForm((current) => ({ ...current, suffix: event.target.value }))}
+                placeholder="A"
+                value={classForm.suffix}
+              />
+            </label>
             <button
-              className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300"
+              className="self-end rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300"
               disabled={isSaving}
               type="submit"
             >
