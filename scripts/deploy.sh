@@ -31,6 +31,7 @@ BASE_SHA="${DEPLOY_BASE_SHA:-$PREVIOUS_HEAD}"
 
 log_section "Mulai deployment EduFlow"
 log_info "Root: ${ROOT_DIR}"
+log_info "Docker build context: ${ROOT_DIR}"
 log_info "Branch target: ${BRANCH}"
 log_info "Log file: ${LOG_FILE}"
 
@@ -41,7 +42,29 @@ if git rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
 fi
 
 git fetch origin "$BRANCH"
-git pull --ff-only origin "$BRANCH"
+
+REMOTE_REF="origin/${BRANCH}"
+
+if [ -n "$(git status --porcelain)" ]; then
+  STASH_NAME="deploy-autostash-${BRANCH}-$(date +%Y%m%d-%H%M%S)"
+  log_warn "Worktree production memiliki perubahan lokal. Menyimpan ke stash: ${STASH_NAME}"
+  git stash push -u -m "$STASH_NAME"
+fi
+
+LOCAL_HEAD="$(git rev-parse HEAD)"
+REMOTE_HEAD="$(git rev-parse "$REMOTE_REF")"
+
+if [ "$LOCAL_HEAD" != "$REMOTE_HEAD" ]; then
+  MERGE_BASE="$(git merge-base HEAD "$REMOTE_REF")"
+
+  if [ "$MERGE_BASE" != "$LOCAL_HEAD" ]; then
+    BACKUP_BRANCH="deploy-backup/${BRANCH}-$(date +%Y%m%d-%H%M%S)"
+    git branch "$BACKUP_BRANCH" "$LOCAL_HEAD"
+    log_warn "Branch production diverge dari ${REMOTE_REF}. Commit lokal diamankan di ${BACKUP_BRANCH}."
+  fi
+
+  git reset --hard "$REMOTE_REF"
+fi
 
 HEAD_SHA="${DEPLOY_HEAD_SHA:-$(git rev-parse HEAD)}"
 

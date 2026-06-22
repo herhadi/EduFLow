@@ -110,12 +110,21 @@ bash "$GITHUB_WORKSPACE/scripts/deploy.sh"
 
 Direktori production default adalah `/srv/eduflow/app`. Jika path server berbeda, set GitHub Actions repository variable `EDUFLOW_DEPLOY_PATH`.
 
-Mode ini membuat bootstrap CI/CD aman: meskipun direktori production belum memiliki folder `scripts/`, workflow tetap memakai script dari checkout GitHub lalu script tersebut melakukan `git pull` di direktori production.
+Mode ini membuat bootstrap CI/CD aman: meskipun direktori production belum memiliki folder `scripts/`, workflow tetap memakai script dari checkout GitHub. Namun semua operasi source production dan Docker tetap berjalan dari `EDUFLOW_ROOT`.
+
+Docker wajib selalu build dari:
+
+```text
+/srv/eduflow/app
+```
+
+atau dari path yang diset melalui `EDUFLOW_DEPLOY_PATH`. Docker tidak boleh build dari `$GITHUB_WORKSPACE`, karena folder itu hanya checkout sementara milik runner.
 
 Script deployment melakukan:
 
 - lock deployment agar tidak ada dua proses bersamaan,
-- `git fetch` dan `git pull --ff-only` di direktori production,
+- `git fetch` dan sinkronisasi worktree production ke `origin/main`,
+- menyimpan perubahan lokal server ke stash dan commit lokal ke branch `deploy-backup/...` sebelum reset ke GitHub,
 - deteksi perubahan berbasis Git diff,
 - build image `frontend` dan/atau `backend` sesuai perubahan,
 - restart hanya service aplikasi yang berubah dengan `docker compose up -d --no-deps`,
