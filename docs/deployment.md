@@ -101,16 +101,14 @@ Deployment production dijalankan oleh GitHub Actions self-hosted runner melalui:
 .github/workflows/deploy.yml
 ```
 
-Workflow melakukan checkout untuk membaca workflow dan script terbaru, lalu menjalankan script dari checkout tersebut dengan target direktori production:
+Workflow melakukan checkout untuk membaca workflow terbaru, lalu menjalankan deploy dari repository production:
 
 ```bash
-EDUFLOW_ROOT="${EDUFLOW_DEPLOY_PATH:-/srv/eduflow/app}" \
-bash "$GITHUB_WORKSPACE/scripts/deploy.sh"
+cd "${EDUFLOW_DEPLOY_PATH:-/srv/eduflow/app}"
+bash ./scripts/deploy.sh
 ```
 
-Direktori production default adalah `/srv/eduflow/app`. Jika path server berbeda, set GitHub Actions repository variable `EDUFLOW_DEPLOY_PATH`.
-
-Mode ini membuat bootstrap CI/CD aman: meskipun direktori production belum memiliki folder `scripts/`, workflow tetap memakai script dari checkout GitHub. Namun semua operasi source production dan Docker tetap berjalan dari `EDUFLOW_ROOT`.
+Direktori production default adalah `/srv/eduflow/app`. Jika path server berbeda, ubah `EDUFLOW_DEPLOY_PATH` di `.github/workflows/deploy.yml`.
 
 Docker wajib selalu build dari:
 
@@ -124,14 +122,14 @@ Script deployment melakukan:
 
 - lock deployment agar tidak ada dua proses bersamaan,
 - `git fetch` dan sinkronisasi worktree production ke `origin/main`,
-- menyimpan perubahan lokal server ke stash dan commit lokal ke branch `deploy-backup/...` sebelum reset ke GitHub,
+- gagal jika repository production memiliki perubahan lokal,
 - deteksi perubahan berbasis Git diff,
 - build image `frontend` dan/atau `backend` sesuai perubahan,
 - restart hanya service aplikasi yang berubah dengan `docker compose up -d --no-deps`,
 - melewati persiapan PostgreSQL/Redis untuk perubahan frontend-only,
 - menjalankan `npx prisma migrate deploy` ketika schema atau migration berubah,
 - health check container dan HTTP,
-- cleanup image Docker tidak terpakai,
+- cleanup image Docker tidak terpakai yang berumur lebih dari 72 jam,
 - logging ke `/srv/eduflow/logs/deploy/`.
 - menampilkan 200 baris terakhir log deployment di GitHub Actions jika deploy gagal.
 

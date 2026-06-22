@@ -8,6 +8,13 @@ LOG_DIR="${DEPLOY_LOG_DIR:-${ROOT_PARENT_DIR}/logs/deploy}"
 LOG_FILE="${LOG_DIR}/deploy-$(date +%Y%m%d-%H%M%S).log"
 LOCK_FILE="${DEPLOY_LOCK_FILE:-/tmp/eduflow-deploy.lock}"
 BRANCH="${DEPLOY_BRANCH:-main}"
+STARTED_AT="$(date +%s)"
+FRONTEND_STATUS="Skip"
+BACKEND_STATUS="Skip"
+MIGRATION_STATUS="No"
+SEED_STATUS="No"
+DEPLOY_STATUS="FAILED"
+HEAD_SHA=""
 
 mkdir -p "$LOG_DIR"
 exec > >(tee -a "$LOG_FILE") 2>&1
@@ -16,7 +23,49 @@ source "${SCRIPT_DIR}/lib/log.sh"
 source "${SCRIPT_DIR}/lib/common.sh"
 source "${SCRIPT_DIR}/lib/docker.sh"
 
-trap 'log_error "Deployment gagal di line ${LINENO}."' ERR
+print_summary() {
+  local finished_at duration commit
+
+  finished_at="$(date +%s)"
+  duration="$((finished_at - STARTED_AT))"
+  commit="${HEAD_SHA:-unknown}"
+
+  if [ "$commit" != "unknown" ]; then
+    commit="$(printf '%s' "$commit" | cut -c1-7)"
+  fi
+
+  cat <<SUMMARY
+
+====================================
+EduFlow Deployment
+
+Branch      : ${BRANCH}
+Commit      : ${commit}
+Frontend    : ${FRONTEND_STATUS}
+Backend     : ${BACKEND_STATUS}
+Migration   : ${MIGRATION_STATUS}
+Seed        : ${SEED_STATUS}
+Duration    : ${duration}s
+
+Status      : ${DEPLOY_STATUS}
+====================================
+SUMMARY
+}
+
+on_error() {
+  local exit_code="$1"
+  local line_no="$2"
+  local failed_command="$3"
+
+  set +e
+  log_error "Deployment gagal di line ${line_no}."
+  log_error "Command: ${failed_command}"
+  log_error "Exit code: ${exit_code}"
+  print_summary
+  exit "$exit_code"
+}
+
+trap 'on_error "$?" "$LINENO" "$BASH_COMMAND"' ERR
 
 require_command git
 require_command docker
@@ -26,7 +75,6 @@ require_file "${ROOT_DIR}/docker-compose.yml"
 cd "$ROOT_DIR"
 acquire_lock "$LOCK_FILE"
 
-STARTED_AT="$(date +%s)"
 PREVIOUS_HEAD="$(git rev-parse HEAD)"
 BASE_SHA="${DEPLOY_BASE_SHA:-$PREVIOUS_HEAD}"
 
@@ -38,34 +86,17 @@ log_info "Log file: ${LOG_FILE}"
 
 log_section "Update source code"
 
-if git rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
-  git checkout "$BRANCH"
+if [ -n "$(git status --porcelain)" ]; then
+  log_error "Repository production tidak bersih. Bersihkan perubahan lokal sebelum deploy."
+  git status --short
+  print_summary
+  exit 1
 fi
 
 git fetch origin "$BRANCH"
 
 REMOTE_REF="origin/${BRANCH}"
-
-if [ -n "$(git status --porcelain)" ]; then
-  STASH_NAME="deploy-autostash-${BRANCH}-$(date +%Y%m%d-%H%M%S)"
-  log_warn "Worktree production memiliki perubahan lokal. Menyimpan ke stash: ${STASH_NAME}"
-  git stash push -u -m "$STASH_NAME"
-fi
-
-LOCAL_HEAD="$(git rev-parse HEAD)"
-REMOTE_HEAD="$(git rev-parse "$REMOTE_REF")"
-
-if [ "$LOCAL_HEAD" != "$REMOTE_HEAD" ]; then
-  MERGE_BASE="$(git merge-base HEAD "$REMOTE_REF")"
-
-  if [ "$MERGE_BASE" != "$LOCAL_HEAD" ]; then
-    BACKUP_BRANCH="deploy-backup/${BRANCH}-$(date +%Y%m%d-%H%M%S)"
-    git branch "$BACKUP_BRANCH" "$LOCAL_HEAD"
-    log_warn "Branch production diverge dari ${REMOTE_REF}. Commit lokal diamankan di ${BACKUP_BRANCH}."
-  fi
-
-  git reset --hard "$REMOTE_REF"
-fi
+git reset --hard "$REMOTE_REF"
 
 HEAD_SHA="${DEPLOY_HEAD_SHA:-$(git rev-parse HEAD)}"
 
@@ -78,6 +109,8 @@ fi
 
 if [ -z "$CHANGED_FILES" ]; then
   log_info "Tidak ada perubahan terdeteksi. Deployment dilewati."
+  DEPLOY_STATUS="SUCCESS"
+  print_summary
   exit 0
 fi
 
@@ -99,28 +132,28 @@ while IFS= read -r changed_file; do
       START_INFRA=1
       RUN_DEPLOY=1
       ;;
-    apps/frontend/**|apps/frontend/Dockerfile)
+    apps/frontend/*)
       BUILD_FRONTEND=1
       RUN_DEPLOY=1
       ;;
-    apps/backend/prisma/migrations/**|apps/backend/prisma/schema.prisma)
+    apps/backend/prisma/migrations/*|apps/backend/prisma/schema.prisma)
       BUILD_BACKEND=1
       RUN_MIGRATION=1
       START_INFRA=1
       RUN_DEPLOY=1
       ;;
-    apps/backend/**|apps/backend/Dockerfile)
+    apps/backend/*)
       BUILD_BACKEND=1
       START_INFRA=1
       RUN_DEPLOY=1
       ;;
-    packages/shared/**)
+    packages/shared/*)
       BUILD_FRONTEND=1
       BUILD_BACKEND=1
       START_INFRA=1
       RUN_DEPLOY=1
       ;;
-    scripts/**|.github/workflows/deploy.yml)
+    scripts/*|.github/workflows/deploy.yml)
       RUN_DEPLOY=1
       ;;
   esac
@@ -139,6 +172,8 @@ fi
 
 if [ "$RUN_DEPLOY" = "0" ]; then
   log_info "Perubahan tidak membutuhkan deployment container."
+  DEPLOY_STATUS="SUCCESS"
+  print_summary
   exit 0
 fi
 
@@ -153,6 +188,7 @@ fi
 if [ "$BUILD_BACKEND" = "1" ]; then
   log_section "Build backend image"
   compose build backend
+  BACKEND_STATUS="Built"
 else
   log_info "Backend build dilewati."
 fi
@@ -160,6 +196,7 @@ fi
 if [ "$BUILD_FRONTEND" = "1" ]; then
   log_section "Build frontend image"
   compose build frontend
+  FRONTEND_STATUS="Built"
 else
   log_info "Frontend build dilewati."
 fi
@@ -167,6 +204,7 @@ fi
 if [ "$RUN_MIGRATION" = "1" ] || [ "${DEPLOY_RUN_MIGRATION:-0}" = "1" ]; then
   log_section "Prisma migrate deploy"
   compose run --rm backend npx prisma migrate deploy
+  MIGRATION_STATUS="Yes"
 else
   log_info "Migration dilewati."
 fi
@@ -174,6 +212,7 @@ fi
 if [ "${DEPLOY_RUN_SEED:-0}" = "1" ]; then
   log_section "Prisma seed"
   compose run --rm backend npm run prisma:seed --workspace backend
+  SEED_STATUS="Yes"
 fi
 
 RESTART_SERVICES=()
@@ -204,9 +243,11 @@ else
 fi
 
 log_section "Cleanup Docker"
-docker image prune -f
+docker image prune -af --filter "until=72h"
 
 FINISHED_AT="$(date +%s)"
 DURATION="$((FINISHED_AT - STARTED_AT))"
+DEPLOY_STATUS="SUCCESS"
 
 log_info "Deployment selesai dalam ${DURATION}s."
+print_summary

@@ -38,6 +38,10 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  EDUFLOW_DEPLOY_PATH: /srv/eduflow/app
+  EDUFLOW_LOG_DIR: /srv/eduflow/logs/deploy
+
 jobs:
   deploy:
     name: Deploy production
@@ -52,10 +56,7 @@ jobs:
 
       - name: Deploy
         env:
-          EDUFLOW_DEPLOY_PATH: ${{ vars.EDUFLOW_DEPLOY_PATH || '/srv/eduflow/app' }}
-          EDUFLOW_LOG_DIR: ${{ vars.EDUFLOW_LOG_DIR || '/srv/eduflow/logs/deploy' }}
-          EDUFLOW_ROOT: ${{ vars.EDUFLOW_DEPLOY_PATH || '/srv/eduflow/app' }}
-          DEPLOY_LOG_DIR: ${{ vars.EDUFLOW_LOG_DIR || '/srv/eduflow/logs/deploy' }}
+          DEPLOY_LOG_DIR: ${{ env.EDUFLOW_LOG_DIR }}
           DEPLOY_BRANCH: main
           DEPLOY_BASE_SHA: ${{ github.event.before }}
           DEPLOY_HEAD_SHA: ${{ github.sha }}
@@ -63,14 +64,14 @@ jobs:
           DEPLOY_RUN_MIGRATION: ${{ github.event.inputs.run_migration == 'true' && '1' || '0' }}
           DEPLOY_RUN_SEED: ${{ github.event.inputs.run_seed == 'true' && '1' || '0' }}
         run: |
-          test -d "$EDUFLOW_DEPLOY_PATH"
-          bash "$GITHUB_WORKSPACE/scripts/deploy.sh"
+          cd "$EDUFLOW_DEPLOY_PATH"
+          bash ./scripts/deploy.sh
 
       - name: Show deploy logs on failure
         if: failure()
         run: |
           set +e
-          log_dir="${{ vars.EDUFLOW_LOG_DIR || '/srv/eduflow/logs/deploy' }}"
+          log_dir="$EDUFLOW_LOG_DIR"
           latest_log="$(ls -t "$log_dir"/*.log 2>/dev/null | head -n 1)"
           if [ -z "$latest_log" ]; then
             echo "Tidak ada log deployment di ${log_dir}."

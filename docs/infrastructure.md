@@ -52,9 +52,9 @@ Repository production default berada di:
 /srv/eduflow/app
 ```
 
-Jika path berbeda, set GitHub Actions repository variable `EDUFLOW_DEPLOY_PATH`.
+Jika path berbeda, ubah `EDUFLOW_DEPLOY_PATH` di `.github/workflows/deploy.yml`.
 
-Docker build context production wajib memakai repository production tersebut. Checkout sementara GitHub runner (`$GITHUB_WORKSPACE`) hanya dipakai untuk mengambil workflow/script terbaru, bukan sebagai sumber image Docker.
+Docker build context production wajib memakai repository production tersebut. Checkout sementara GitHub runner (`$GITHUB_WORKSPACE`) hanya dipakai oleh GitHub Actions untuk membaca workflow, bukan sebagai sumber image Docker.
 
 ```text
 .github/workflows/deploy.yml
