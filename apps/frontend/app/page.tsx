@@ -105,7 +105,7 @@ export default function LandingPage() {
               <p className="text-sm font-semibold text-blue-100">
                 Informasi Sekolah
               </p>
-              <h2 className="mt-2 text-2xl font-black">SMP Negeri 1 Pecalungan TES</h2>
+              <h2 className="mt-2 text-2xl font-black">SMP Negeri 1 Pecalungan</h2>
               <p className="mt-2 text-sm leading-6 text-blue-100">
                 Jl. Pendidikan No. 1 · Sekolah digital yang memprioritaskan
                 transparansi KBM dan komunikasi orang tua.

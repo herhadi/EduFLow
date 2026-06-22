@@ -7,7 +7,7 @@ source "${ROOT_DIR}/scripts/lib/log.sh"
 source "${ROOT_DIR}/scripts/lib/common.sh"
 source "${ROOT_DIR}/scripts/lib/docker.sh"
 
-FRONTEND_HEALTH_URL="${FRONTEND_HEALTH_URL:-http://localhost:3000/login}"
+FRONTEND_HEALTH_URL="${FRONTEND_HEALTH_URL:-http://localhost:3000/api/health}"
 BACKEND_HEALTH_URL="${BACKEND_HEALTH_URL:-http://localhost:3001/health}"
 HEALTHCHECK_SERVICES="${HEALTHCHECK_SERVICES:-postgres redis backend frontend}"
 

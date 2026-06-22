@@ -128,7 +128,7 @@ Script deployment melakukan:
 - restart hanya service aplikasi yang berubah dengan `docker compose up -d --no-deps`,
 - melewati persiapan PostgreSQL/Redis untuk perubahan frontend-only,
 - menjalankan `npx prisma migrate deploy` ketika schema atau migration berubah,
-- health check container dan HTTP,
+ - health check container dan HTTP ringan,
 - cleanup image Docker tidak terpakai yang berumur lebih dari 72 jam,
 - logging ke `/srv/eduflow/logs/deploy/`.
 - menampilkan 200 baris terakhir log deployment di GitHub Actions jika deploy gagal.
@@ -140,8 +140,20 @@ DEPLOY_BUILD_ALL=1
 DEPLOY_RUN_MIGRATION=1
 DEPLOY_RUN_SEED=1
 DEPLOY_LOG_DIR=/srv/eduflow/logs/deploy
-FRONTEND_HEALTH_URL=http://localhost:3000/login
+FRONTEND_HEALTH_URL=http://localhost:3000/api/health
 BACKEND_HEALTH_URL=http://localhost:3001/health
 ```
 
 Untuk server Debian dengan Cloudflare Tunnel, `FRONTEND_HEALTH_URL` dapat diarahkan ke domain public jika tunnel sudah stabil. Untuk validasi internal server, gunakan default localhost.
+
+Frontend menyediakan endpoint health ringan:
+
+```http
+GET /api/health
+```
+
+Response:
+
+```json
+{ "status": "ok" }
+```
