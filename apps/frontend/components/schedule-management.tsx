@@ -3,6 +3,7 @@
 import { sortSchoolClasses } from '@eduflow/shared';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { getCurrentSessionUser } from '../lib/session';
+import { useToast } from './ui/toast';
 import {
   api,
   type AcademicTimeSlot,
@@ -41,6 +42,7 @@ const emptyForm: SchedulePayload = {
 };
 
 export function ScheduleManagement() {
+  const toast = useToast();
   const [, setLoadState] = useState<LoadState>('idle');
   const [submitState, setSubmitState] = useState<LoadState>('idle');
   const [message, setMessage] = useState<string | null>(null);
@@ -281,8 +283,16 @@ export function ScheduleManagement() {
       const response = await api.generateAgenda(schedule.id, generateDate);
       setGeneratedAgenda(response.data);
       setMessage(response.message ?? 'Agenda berhasil digenerate.');
-    } catch {
-      setMessage('Generate agenda gagal. Periksa tanggal dan backend.');
+      toast.success(
+        response.message ?? 'Agenda berhasil digenerate.',
+        'Agenda Harian',
+      );
+    } catch (error) {
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Generate agenda gagal. Periksa tanggal dan backend.';
+      setMessage(errorMessage);
+      toast.error(errorMessage, 'Generate Agenda Gagal');
     }
   }
 

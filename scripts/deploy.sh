@@ -203,7 +203,7 @@ fi
 
 if [ "$RUN_MIGRATION" = "1" ] || [ "${DEPLOY_RUN_MIGRATION:-0}" = "1" ]; then
   log_section "Prisma migrate deploy"
-  compose run --rm backend npx prisma migrate deploy
+  compose run --rm backend npx prisma migrate deploy --schema apps/backend/prisma/schema.prisma
   MIGRATION_STATUS="Yes"
 else
   log_info "Migration dilewati."

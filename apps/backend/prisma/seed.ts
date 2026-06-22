@@ -50,6 +50,7 @@ async function main() {
       'schedule.read',
       'schedule.manage',
       'agenda.read',
+      'agenda.generate',
       'attendance.read',
       'attendance.manage',
       'class-status.read',

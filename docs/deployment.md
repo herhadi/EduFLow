@@ -24,7 +24,7 @@ Setelah reset volume atau deploy database baru, tunggu PostgreSQL siap sebelum m
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d postgres redis
 until docker compose exec -T postgres pg_isready -U eduflow -d eduflow; do sleep 2; done
-docker compose run --rm backend npx prisma migrate deploy
+docker compose run --rm backend npx prisma migrate deploy --schema apps/backend/prisma/schema.prisma
 ```
 
 Jika service `backend` dijalankan melalui Compose, pastikan backend baru dimulai setelah migration selesai atau setelah PostgreSQL berstatus healthy.
@@ -88,7 +88,7 @@ Urutan deploy database baru:
 ```bash
 docker compose up -d postgres redis
 until docker compose exec -T postgres pg_isready -U eduflow -d eduflow; do sleep 2; done
-docker compose run --rm backend npx prisma migrate deploy
+docker compose run --rm backend npx prisma migrate deploy --schema apps/backend/prisma/schema.prisma
 docker compose run --rm backend npm run prisma:seed --workspace backend
 docker compose up -d backend frontend
 ```
@@ -127,7 +127,7 @@ Script deployment melakukan:
 - build image `frontend` dan/atau `backend` sesuai perubahan,
 - restart hanya service aplikasi yang berubah dengan `docker compose up -d --no-deps`,
 - melewati persiapan PostgreSQL/Redis untuk perubahan frontend-only,
-- menjalankan `npx prisma migrate deploy` ketika schema atau migration berubah,
+- menjalankan `npx prisma migrate deploy --schema apps/backend/prisma/schema.prisma` ketika schema atau migration berubah,
  - health check container dan HTTP ringan,
 - cleanup image Docker tidak terpakai yang berumur lebih dari 72 jam,
 - logging ke `/srv/eduflow/logs/deploy/`.

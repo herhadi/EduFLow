@@ -2,6 +2,10 @@
 
 Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
+## 2026-06-22
+
+- Memperbaiki perintah migration deployment agar Prisma selalu menggunakan schema monorepo `apps/backend/prisma/schema.prisma` dari workdir container `/app`.
+
 ## 2026-06-21
 
 - Menambahkan CI/CD v1 dengan GitHub Actions self-hosted runner.

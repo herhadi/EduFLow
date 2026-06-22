@@ -6,7 +6,7 @@ Dokumen ini menjelaskan urutan konfigurasi awal EduFlow setelah root pertama ber
 
 Slot jam pada form pembuatan jadwal ditampilkan sebagai susunan hari yang dapat diklik, bukan dropdown. Operator dapat memilih beberapa slot sekaligus untuk kelas, guru, dan mata pelajaran yang sama. Seluruh sesi disimpan dalam satu transaksi agar tidak ada jadwal yang tersimpan sebagian ketika ditemukan bentrok.
 
-Operator Sekolah mengelola template jadwal, tetapi tidak melakukan generate agenda manual. Permission `agenda.generate` hanya diberikan kepada root untuk kebutuhan koreksi operasional dan pengujian; alur normal agenda dijalankan otomatis oleh scheduler.
+Operator Sekolah mengelola template jadwal dan dapat melakukan generate agenda manual bila diperlukan untuk operasional harian. Permission `agenda.generate` diberikan kepada `root` dan `operator_sekolah`; alur normal agenda tetap dapat dijalankan otomatis oleh scheduler.
 
 Jeda pertama selalu `Istirahat`. Khusus jeda kedua tersedia pilihan per kelas: `Istirahat` sebagai nilai default atau `Istirahat/Sholat Berjamaah`. Pilihan disimpan sebagai override kelas sehingga kegiatan sholat berjamaah tidak otomatis diterapkan ke seluruh kelas.
 
