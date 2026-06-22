@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SchoolActivityCarousel } from '../components/school-activity-carousel';
 import { ThemeToggle } from '../components/ui/theme-toggle';
 
 const navigationItems = [
@@ -126,13 +127,6 @@ const quickActions = [
   { href: '/login', label: 'Login' },
 ];
 
-function getThumbnailToneClass(tone: string) {
-  if (tone === 'green') return 'school-thumbnail-media school-thumbnail-media--green';
-  if (tone === 'amber') return 'school-thumbnail-media school-thumbnail-media--amber';
-  if (tone === 'rose') return 'school-thumbnail-media school-thumbnail-media--rose';
-  return 'school-thumbnail-media';
-}
-
 export default function LandingPage() {
   return (
     <main className="school-backdrop min-h-dvh overflow-x-hidden">
@@ -165,7 +159,7 @@ export default function LandingPage() {
             </Link>
 
             <div className="flex shrink-0 items-center gap-2">
-              <nav className="hidden items-center gap-1 lg:flex">
+              <nav className="school-nav-strip hidden items-center gap-1 lg:flex">
                 {navigationItems.map((item) => (
                   <a
                     className="school-nav-link px-3 py-2"
@@ -186,7 +180,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <nav className="no-scrollbar mt-4 flex gap-2 overflow-x-auto lg:hidden">
+          <nav className="school-nav-strip no-scrollbar mt-4 flex gap-2 overflow-x-auto lg:hidden">
             {navigationItems.map((item) => (
               <a
                 className="school-nav-link shrink-0 px-3 py-2"
@@ -314,18 +308,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 px-4 pb-5 min-[600px]:px-6 lg:grid-cols-4">
-          {cmsFeatures.map((item) => (
-            <article className="school-feature-card rounded-[1.25rem] p-5" key={item.title}>
-              <div className="school-icon-tile">{item.icon}</div>
-              <h2 className="mt-4 text-lg font-black text-ink">{item.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-muted">
-                {item.description}
-              </p>
-            </article>
-          ))}
-        </section>
-
         <section className="grid gap-4 px-4 pb-5 min-[600px]:px-6 lg:grid-cols-[0.85fr_1.15fr]">
           <div className="school-cover-visual p-5 sm:p-6">
             <div className="school-cover-content flex h-full min-h-56 flex-col justify-end">
@@ -385,36 +367,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="school-marquee">
-            <div className="school-marquee-track">
-              {[...thumbnailItems, ...thumbnailItems].map((item, index) => (
-                <Link
-                  aria-label={`Buka detail ${item.title}`}
-                  className="school-thumbnail-card"
-                  href={item.href}
-                  key={`${item.title}-${index}`}
-                >
-                  <div className={getThumbnailToneClass(item.tone)}>
-                    <img
-                      alt=""
-                      aria-hidden="true"
-                      className="h-20 w-20 object-contain opacity-80"
-                      src="/logo_sekolah.webp"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <p className="school-news-date">{item.category}</p>
-                    <h3 className="mt-1 text-base font-black leading-6 text-ink">
-                      {item.title}
-                    </h3>
-                    <p className="mt-2 text-sm font-bold text-brand-700">
-                      Lihat detail
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
+          <SchoolActivityCarousel items={thumbnailItems} />
         </section>
 
         <section className="grid gap-4 px-4 pb-5 min-[600px]:px-6 lg:grid-cols-[0.9fr_1.1fr]">
@@ -477,6 +430,18 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="grid gap-4 px-4 pb-5 min-[600px]:px-6 lg:grid-cols-4">
+          {cmsFeatures.map((item) => (
+            <article className="school-feature-card rounded-[1.25rem] p-5" key={item.title}>
+              <div className="school-icon-tile">{item.icon}</div>
+              <h2 className="mt-4 text-lg font-black text-ink">{item.title}</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                {item.description}
+              </p>
+            </article>
+          ))}
         </section>
 
         <footer className="school-footer px-4 py-6 min-[600px]:px-6">

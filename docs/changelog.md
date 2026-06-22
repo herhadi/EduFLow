@@ -21,3 +21,4 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Mengubah Docker cleanup menjadi `docker image prune -af --filter "until=72h"`.
 - Menambahkan endpoint frontend `GET /api/health` dan mengubah healthcheck frontend agar tidak memakai halaman `/login`.
 - Menambahkan retry HTTP healthcheck agar deploy menunggu frontend/backend siap setelah restart container.
+- Memperbaiki retry healthcheck agar error `curl` seperti exit code 56 tidak mematikan script sebelum retry berjalan.

@@ -25,16 +25,26 @@ check_http() {
   local url="$2"
   local attempt
   local status
+  local curl_exit
 
   for attempt in $(seq 1 "$HTTP_HEALTH_RETRIES"); do
-    status="$(curl --silent --show-error --output /dev/null --write-out "%{http_code}" --max-time 20 "$url" 2>&1)"
+    curl_exit=0
+    status="$(
+      curl \
+        --silent \
+        --show-error \
+        --output /dev/null \
+        --write-out "%{http_code}" \
+        --max-time 20 \
+        "$url" 2>&1
+    )" || curl_exit="$?"
 
-    if [ "$status" = "200" ]; then
+    if [ "$curl_exit" = "0" ] && [ "$status" = "200" ]; then
       log_info "${name} OK: ${url}"
       return 0
     fi
 
-    log_warn "${name} belum siap (${attempt}/${HTTP_HEALTH_RETRIES}): ${url} -> ${status}"
+    log_warn "${name} belum siap (${attempt}/${HTTP_HEALTH_RETRIES}): ${url} -> status=${status}, curl_exit=${curl_exit}"
     sleep "$HTTP_HEALTH_SLEEP_SECONDS"
   done
 
