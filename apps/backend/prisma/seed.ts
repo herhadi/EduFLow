@@ -40,6 +40,7 @@ async function main() {
       'reporting.manage',
       'audit.read',
       'user.manage',
+      'system.recovery.manage',
     ],
     operator_sekolah: [
       'auth.session.manage',
@@ -254,7 +255,7 @@ async function main() {
   );
 
   const schoolYears = await prisma.schoolYear.findMany({
-    where: { deletedAt: null },
+    where: { name: '2025/2026', deletedAt: null },
     select: { id: true },
   });
 

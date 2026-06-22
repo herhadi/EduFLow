@@ -51,6 +51,7 @@ EduFlow memakai permission-based RBAC. Role hanya kumpulan permission, bukan log
 | `reporting.manage` | Mengelola job atau konfigurasi laporan |
 | `audit.read` | Membaca audit trail |
 | `user.manage` | Mengelola user, role, dan permission |
+| `system.recovery.manage` | Mengelola backup, restore, dan recovery sistem |
 
 ## Matrix Role Ke Permission
 
@@ -81,6 +82,7 @@ EduFlow memakai permission-based RBAC. Role hanya kumpulan permission, bukan log
 | `reporting.manage` | ✓ | ✓ |  |  |  |  |  |  |
 | `audit.read` | ✓ | ✓ |  |  | ✓ |  |  |  |
 | `user.manage` | ✓ |  |  |  |  |  |  |  |
+| `system.recovery.manage` | ✓ |  |  |  |  |  |  |  |
 
 ## Scope Data
 

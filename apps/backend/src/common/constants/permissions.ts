@@ -24,6 +24,7 @@ export const PERMISSIONS = {
   REPORTING_MANAGE: 'reporting.manage',
   AUDIT_READ: 'audit.read',
   USER_MANAGE: 'user.manage',
+  SYSTEM_RECOVERY_MANAGE: 'system.recovery.manage',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

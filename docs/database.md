@@ -200,13 +200,13 @@ PostgreSQL tidak mengizinkan nilai enum yang baru ditambahkan langsung dipakai d
 
 ## Data Awal Kelas
 
-Tahun ajaran `2026/2027` saat ini memiliki data awal:
+Data akademik yang sudah ada berada pada tahun ajaran `2025/2026`:
 
 - VII A sampai VII H: 8 rombel.
 - VIII A sampai VIII G: 7 rombel.
 - IX A sampai IX G: 7 rombel.
 
-Data tersebut hanya konfigurasi awal. Jumlah rombel tetap fleksibel dan dapat disesuaikan melalui `/admin/akademik`.
+Tahun ajaran `2026/2027` dibuat kosong agar dapat dikonfigurasi secara mandiri. Jumlah rombel tetap fleksibel dan dapat disesuaikan melalui `/admin/akademik`.
 
 Tambahan tersebut dilakukan setelah workflow jadwal, agenda, dan presensi stabil.
 

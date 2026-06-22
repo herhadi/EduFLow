@@ -137,13 +137,15 @@ Form login frontend membaca nilai langsung dari form submit, bukan hanya dari st
 
 ## Manajemen Kelas
 
-Jumlah kelas tidak di-hardcode. Data awal `2026/2027`:
+Jumlah kelas tidak di-hardcode. Data akademik yang sudah ada berada pada tahun ajaran `2025/2026`:
 
 - VII A-H,
 - VIII A-G,
 - IX A-G.
 
 Admin dapat menambah rombel baru seperti `VII-I` atau menghapus rombel kosong melalui `/admin/akademik`.
+
+Tahun ajaran `2026/2027` disediakan kosong untuk konfigurasi baru. Semester, kelas, siswa terdaftar, jadwal, agenda, slot waktu, dan perangkat ajar tidak disalin otomatis dari tahun sebelumnya.
 
 Kelas tidak dapat dihapus jika sudah memiliki:
 

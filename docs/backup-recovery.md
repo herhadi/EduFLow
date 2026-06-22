@@ -86,6 +86,30 @@ Checklist sebelum restore:
 - simpan backup terakhir sebelum restore,
 - setelah restore, jalankan health check.
 
+## Transfer Data Demo Tanpa Root
+
+Untuk memindahkan data demo lokal ke Debian tanpa membawa akun pengguna ber-role `root`, gunakan export dan import khusus berikut. Export membuat clone database sementara, menghapus akun root beserta token, audit, dan referensi akunnya dari clone tersebut, lalu menghasilkan dump PostgreSQL. Database lokal asli tidak diubah.
+
+Di komputer sumber, pastikan PostgreSQL Compose sudah berjalan, lalu jalankan dari root repository:
+
+```bash
+./infra/backup/export-postgres-without-root.sh
+```
+
+Output default berada di `backups/transfer/` bersama checksum `.sha256`. Pindahkan file `.dump` dan checksum-nya ke server Debian melalui kanal yang aman. Jangan commit atau mengunggah dump ke repository.
+
+Di server Debian, jalankan dari `/srv/eduflow/app`:
+
+```bash
+CONFIRM_IMPORT=eduflow \
+./infra/backup/import-postgres-without-root.sh \
+  /path/ke/eduflow-without-root-YYYYMMDD-HHMMSS.dump
+```
+
+Import ini bersifat destruktif: database target dibackup ke `backups/pre-import/`, backend dan frontend dihentikan, database ditimpa, lalu Prisma migration dijalankan. Setelah itu Prisma seed membuat kembali akun `root` memakai `ROOT_EMAIL`, `ROOT_USERNAME`, `ROOT_NAME`, dan `ROOT_PASSWORD` milik environment Debian. Akun root dari komputer sumber tidak pernah masuk ke dump transfer.
+
+Setelah import, data akademik lama berada pada `2025/2026`; `2026/2027` tersedia kosong untuk konfigurasi baru.
+
 ## Backup Redis
 
 Jalankan:

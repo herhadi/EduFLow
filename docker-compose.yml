@@ -23,6 +23,8 @@ services:
         condition: service_started
     ports:
       - "3001:3001"
+    volumes:
+      - ./backups:/app/backups
 
   frontend:
     build:

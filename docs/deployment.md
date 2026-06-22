@@ -128,10 +128,12 @@ Script deployment melakukan:
 - restart hanya service aplikasi yang berubah dengan `docker compose up -d --no-deps`,
 - melewati persiapan PostgreSQL/Redis untuk perubahan frontend-only,
 - menjalankan `npx prisma migrate deploy --schema apps/backend/prisma/schema.prisma` ketika schema atau migration berubah,
- - health check container dan HTTP ringan,
+- health check container dan HTTP ringan,
 - cleanup image Docker tidak terpakai yang berumur lebih dari 72 jam,
 - logging ke `/srv/eduflow/logs/deploy/`.
 - menampilkan 200 baris terakhir log deployment di GitHub Actions jika deploy gagal.
+
+Untuk memindahkan data demo dari lokal ke Debian tanpa akun root lokal, gunakan prosedur `Transfer Data Demo Tanpa Root` pada `docs/backup-recovery.md`. Proses ini dilakukan manual dan terpisah dari workflow deploy karena menimpa database target.
 
 Variabel opsional:
 

@@ -30,6 +30,8 @@ Dokumen ini merangkum prinsip keamanan awal EduFlow untuk development dan produc
 - Simpan backup di lokasi terenkripsi dan batasi aksesnya.
 - Jangan kirim backup lewat chat publik.
 - Prosedur backup dan restore ada di `docs/backup-recovery.md`.
+- Endpoint operasional untuk dashboard health memakai permission laporan, sedangkan backup, restore, dan recovery hanya dapat diakses melalui permission `system.recovery.manage`, yang diberikan khusus kepada role `root`.
+- Permission recovery diberikan melalui migration dan seed. Setelah deploy yang menambah permission baru, user harus logout-login agar session browser membawa daftar permission terbaru.
 
 ## CI/CD
 

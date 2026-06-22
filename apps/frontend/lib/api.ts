@@ -281,6 +281,8 @@ export interface OperationsDashboard {
   queues: QueueSummary[];
   failedJobs: FailedJob[];
 }
+export interface BackupFile { filename: string; size: number; createdAt: string; }
+export interface OperationsBackups { daily: BackupFile[]; academicYears: SchoolYear[]; }
 
 export type ImportType = 'teachers' | 'students';
 
@@ -517,6 +519,23 @@ async function upload<T>(path: string, file: File): Promise<T> {
   }
 
   return response.json() as Promise<T>;
+}
+
+async function download(path: string) {
+  const token = localStorage.getItem('accessToken');
+  const response = await fetch(`${getApiUrl()}${path}`, { method: 'POST', headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  if (!response.ok) throw new Error('Backup gagal dibuat.');
+  const blob = await response.blob();
+  const filename = response.headers.get('content-disposition')?.match(/filename="?([^";]+)"?/)?.[1] ?? 'eduflow-backup.dump';
+  const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
+}
+
+async function restoreBackup(file: File) {
+  const formData = new FormData(); formData.append('file', file); formData.append('confirmation', 'RESTORE');
+  const token = localStorage.getItem('accessToken');
+  const response = await fetch(`${getApiUrl()}/operations/backups/daily/restore`, { method: 'POST', body: formData, headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  if (!response.ok) throw new Error('Restore gagal.');
+  return response.json() as Promise<ApiResponse<{ filename: string }>>;
 }
 
 function clearSessionAndRedirect() {
@@ -772,6 +791,10 @@ export const api = {
   getActivityTrail: () => request<ApiResponse<ActivityTrailItem[]>>('/audit/activity'),
   getOperationsDashboard: () =>
     request<ApiResponse<OperationsDashboard>>('/operations/dashboard'),
+  getOperationsBackups: () => request<ApiResponse<OperationsBackups>>('/operations/backups'),
+  createDailyBackup: () => download('/operations/backups/daily'),
+  restoreDailyBackup: (file: File) => restoreBackup(file),
+  createAcademicYearBackup: (schoolYearId: string) => request<ApiResponse<{ filename: string }>>('/operations/backups/academic-year', { method: 'POST', body: JSON.stringify({ schoolYearId }) }),
   retryJob: (queueName: string, jobId: string) =>
     request<ApiResponse<{ queueName: string; jobId: string }>>(
       '/operations/jobs/retry',

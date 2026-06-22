@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   api,
   type FailedJob,
   type HealthStatus,
   type OperationsDashboard,
+  type OperationsBackups,
+  type SchoolYear,
 } from '../lib/api';
 import { formatNumber } from '../lib/format';
 
@@ -22,6 +24,7 @@ const emptyDashboard: OperationsDashboard = {
   queues: [],
   failedJobs: [],
 };
+const emptyBackups: OperationsBackups = { daily: [], academicYears: [] };
 
 export function OperationsCenter() {
   const [dashboard, setDashboard] =
@@ -29,6 +32,10 @@ export function OperationsCenter() {
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [message, setMessage] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<FailedJob | null>(null);
+  const [backups, setBackups] = useState<OperationsBackups>(emptyBackups);
+  const [backupState, setBackupState] = useState<'idle' | 'loading'>('idle');
+  const [schoolYearId, setSchoolYearId] = useState('');
+  const restoreInputRef = useRef<HTMLInputElement>(null);
 
   async function loadDashboard() {
     setLoadState('loading');
@@ -44,7 +51,18 @@ export function OperationsCenter() {
 
   useEffect(() => {
     void loadDashboard();
+    void loadBackups();
   }, []);
+
+  async function loadBackups() {
+    const schoolYearResponse = await api.getSchoolYears();
+    const academicYears: SchoolYear[] = schoolYearResponse.data;
+    setBackups((current) => ({ ...current, academicYears }));
+    setSchoolYearId((current) => current || academicYears[0]?.id || '');
+  }
+  async function createDailyBackup() { setBackupState('loading'); try { await api.createDailyBackup(); setMessage('Backup harian sedang diunduh ke perangkat ini.'); } catch { setMessage('Backup harian gagal dibuat.'); } finally { setBackupState('idle'); } }
+  async function createAcademicBackup() { if (!schoolYearId) return; setBackupState('loading'); try { const response = await api.createAcademicYearBackup(schoolYearId); setMessage(response.message ?? 'Arsip tahun ajaran berhasil dibuat.'); } catch { setMessage('Arsip tahun ajaran gagal dibuat.'); } finally { setBackupState('idle'); } }
+  async function restoreBackup(file?: File) { if (!file || !window.confirm('Restore akan menimpa seluruh database. Lanjutkan?')) return; setBackupState('loading'); try { const response = await api.restoreDailyBackup(file); setMessage(response.message ?? 'Restore selesai.'); } catch { setMessage('Restore gagal.'); } finally { setBackupState('idle'); } }
 
   async function handleRetry(job: FailedJob) {
     setMessage(null);
@@ -72,6 +90,13 @@ export function OperationsCenter() {
 
   return (
     <section className="mt-10 space-y-6">
+      <div className="surface-card rounded-lg p-4 sm:p-6">
+        <div><h2 className="text-lg font-bold">Backup & Arsip</h2><p className="mt-1 text-sm text-muted">Backup harian langsung diunduh ke perangkat admin. Arsip tahun ajaran disimpan di server.</p></div>
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-4"><p className="font-bold">Backup Harian</p><p className="mt-1 text-sm text-muted">Snapshot seluruh database untuk disimpan di perangkat ini.</p><div className="mt-4 grid gap-2 sm:grid-cols-2"><button className="school-primary-button rounded-xl px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60" disabled={backupState === 'loading'} onClick={() => void createDailyBackup()} type="button">{backupState === 'loading' ? 'Menyiapkan...' : 'Download Backup'}</button><button className="secondary-button rounded-xl px-4 py-2 text-sm font-black" onClick={() => restoreInputRef.current?.click()} type="button">Restore Backup</button><input accept=".dump" className="hidden" onChange={(event) => void restoreBackup(event.target.files?.[0])} ref={restoreInputRef} type="file" /></div></section>
+          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-4"><p className="font-bold">Arsip Tahun Ajaran</p><p className="mt-1 text-sm text-muted">Simpan snapshot relasional untuk tahun ajaran terpilih.</p><div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]"><select className="min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 text-sm" onChange={(event) => setSchoolYearId(event.target.value)} value={schoolYearId}><option value="">Pilih tahun ajaran</option>{backups.academicYears.map((year) => <option key={year.id} value={year.id}>{year.name}</option>)}</select><button className="secondary-button rounded-xl px-4 py-2 text-sm font-black disabled:cursor-not-allowed disabled:opacity-60" disabled={!schoolYearId || backupState === 'loading'} onClick={() => void createAcademicBackup()} type="button">Arsipkan</button></div></section>
+        </div>
+      </div>
       <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
