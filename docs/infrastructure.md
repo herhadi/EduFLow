@@ -90,10 +90,10 @@ FRONTEND_ALLOWED_ORIGINS=https://domain-production
 Script deployment menulis log ke:
 
 ```text
-logs/deploy/
+/srv/eduflow/logs/deploy/
 ```
 
-Folder `logs/` tidak dicommit ke Git.
+Path ini berada di luar repository production `/srv/eduflow/app`. Jika path server berbeda, set GitHub Actions repository variable `EDUFLOW_LOG_DIR` atau environment `DEPLOY_LOG_DIR`.
 
 ## Batas Tanggung Jawab
 

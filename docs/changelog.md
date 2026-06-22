@@ -16,3 +16,4 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memperbaiki workflow deploy agar menjalankan script dari direktori production server (`/srv/eduflow/app`) dan melakukan `git pull` sebelum build image.
 - Memperbaiki bootstrap CI/CD agar workflow dapat menjalankan script deploy dari checkout GitHub walaupun direktori production belum memiliki folder `scripts/`.
 - Menegaskan Docker build context production selalu `/srv/eduflow/app` atau `EDUFLOW_DEPLOY_PATH`, bukan checkout sementara GitHub runner.
+- Memindahkan default log deployment production dari `/srv/eduflow/app/logs/deploy` ke `/srv/eduflow/logs/deploy`.

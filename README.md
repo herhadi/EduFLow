@@ -70,7 +70,7 @@ CI/CD v1 memakai GitHub Actions self-hosted runner:
 - workflow: `.github/workflows/deploy.yml`
 - script utama: `scripts/deploy.sh`
 - health check: `scripts/healthcheck.sh`
-- log deployment: `logs/deploy/`
+- log deployment production: `/srv/eduflow/logs/deploy/`
 
 Manual deployment di server:
 

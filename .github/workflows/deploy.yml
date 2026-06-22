@@ -53,7 +53,9 @@ jobs:
       - name: Deploy
         env:
           EDUFLOW_DEPLOY_PATH: ${{ vars.EDUFLOW_DEPLOY_PATH || '/srv/eduflow/app' }}
+          EDUFLOW_LOG_DIR: ${{ vars.EDUFLOW_LOG_DIR || '/srv/eduflow/logs/deploy' }}
           EDUFLOW_ROOT: ${{ vars.EDUFLOW_DEPLOY_PATH || '/srv/eduflow/app' }}
+          DEPLOY_LOG_DIR: ${{ vars.EDUFLOW_LOG_DIR || '/srv/eduflow/logs/deploy' }}
           DEPLOY_BRANCH: main
           DEPLOY_BASE_SHA: ${{ github.event.before }}
           DEPLOY_HEAD_SHA: ${{ github.sha }}
@@ -68,10 +70,10 @@ jobs:
         if: failure()
         run: |
           set +e
-          cd "${{ vars.EDUFLOW_DEPLOY_PATH || '/srv/eduflow/app' }}" || exit 0
-          latest_log="$(ls -t logs/deploy/*.log 2>/dev/null | head -n 1)"
+          log_dir="${{ vars.EDUFLOW_LOG_DIR || '/srv/eduflow/logs/deploy' }}"
+          latest_log="$(ls -t "$log_dir"/*.log 2>/dev/null | head -n 1)"
           if [ -z "$latest_log" ]; then
-            echo "Tidak ada log deployment di logs/deploy/."
+            echo "Tidak ada log deployment di ${log_dir}."
             exit 0
           fi
 

@@ -3,7 +3,8 @@ set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="${EDUFLOW_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
-LOG_DIR="${DEPLOY_LOG_DIR:-${ROOT_DIR}/logs/deploy}"
+ROOT_PARENT_DIR="$(cd "${ROOT_DIR}/.." && pwd)"
+LOG_DIR="${DEPLOY_LOG_DIR:-${ROOT_PARENT_DIR}/logs/deploy}"
 LOG_FILE="${LOG_DIR}/deploy-$(date +%Y%m%d-%H%M%S).log"
 LOCK_FILE="${DEPLOY_LOCK_FILE:-/tmp/eduflow-deploy.lock}"
 BRANCH="${DEPLOY_BRANCH:-main}"

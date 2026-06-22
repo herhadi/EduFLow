@@ -132,7 +132,7 @@ Script deployment melakukan:
 - menjalankan `npx prisma migrate deploy` ketika schema atau migration berubah,
 - health check container dan HTTP,
 - cleanup image Docker tidak terpakai,
-- logging ke `logs/deploy/`.
+- logging ke `/srv/eduflow/logs/deploy/`.
 - menampilkan 200 baris terakhir log deployment di GitHub Actions jika deploy gagal.
 
 Variabel opsional:
@@ -141,6 +141,7 @@ Variabel opsional:
 DEPLOY_BUILD_ALL=1
 DEPLOY_RUN_MIGRATION=1
 DEPLOY_RUN_SEED=1
+DEPLOY_LOG_DIR=/srv/eduflow/logs/deploy
 FRONTEND_HEALTH_URL=http://localhost:3000/login
 BACKEND_HEALTH_URL=http://localhost:3001/health
 ```
