@@ -3,6 +3,7 @@
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react';
 import { api, type SchoolYear, type Semester, type Subject, type TeachingPlan, type TeachingPlanType } from '../lib/api';
 import { openTeachingPlanAttachment } from '../lib/open-document';
+import { CameraCaptureButton } from './ui/camera-capture-button';
 import { useToast } from './ui/toast';
 
 const planTypes: Array<{ value: TeachingPlanType; label: string }> = [
@@ -98,13 +99,9 @@ export function TeacherTeachingPlans() {
             <div className="grid gap-2">
               <p className="text-sm font-bold">Foto Buku KBM</p>
               <div className="grid grid-cols-2 gap-2">
-                <button
-                  className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white"
-                  onClick={() => cameraInputRef.current?.click()}
-                  type="button"
-                >
+                <CameraCaptureButton onClick={() => cameraInputRef.current?.click()}>
                   Buka Kamera
-                </button>
+                </CameraCaptureButton>
                 <button
                   className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-black text-brand-700"
                   onClick={() => galleryInputRef.current?.click()}
