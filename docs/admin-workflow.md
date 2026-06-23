@@ -250,6 +250,18 @@ Aturan:
 - Event tanpa blokir tetap menjadi catatan operasional sekolah dan tidak menghentikan generate agenda.
 - Kaldik tidak menghapus agenda yang sudah terlanjur dibuat; operator perlu meninjau agenda tersebut bila kalender diubah setelah generate.
 
+## Riwayat Penugasan Guru
+
+Pada halaman manajemen guru, operator memilih tahun ajaran lalu menyimpan status penugasan dan mapel ampu guru. Tahun ajaran berikutnya dipilih sebagai default bila tersedia. Penugasan berlaku sejak tahun ajaran yang dipilih dan diteruskan ke tahun berikutnya sampai operator menyimpan perubahan baru.
+
+- Gunakan status `Aktif mengajar` untuk guru yang dapat dipilih pada jadwal tahun tersebut.
+- Gunakan `Pensiun`, `Pindah sekolah`, `Cuti`, atau `Tidak ditugaskan` sekali pada tahun ajaran saat perubahan mulai berlaku; status tersebut otomatis terbawa ke tahun berikutnya tanpa entri berulang.
+- `Tidak ditugaskan` berarti guru masih tercatat sebagai pegawai tetapi tidak memiliki penugasan mengajar pada tahun ajaran tersebut; gunakan `Pensiun`, `Pindah sekolah`, atau `Cuti` bila salah satu kondisi itu lebih tepat.
+- Mapel ampu hanya diatur pada penugasan tahun ajaran dan menjadi acuan jadwal baru. Data mapel global lama disimpan sebagai fallback internal bagi tahun ajaran lama yang belum memiliki penugasan.
+- Admin dapat memilih foto guru dari file lokal pada form guru. Telegram tidak diatur oleh admin; guru mengisinya sendiri dari halaman Profil setelah login.
+- Akun guru baru selalu dibuat dengan `DEFAULT_USER_PASSWORD` dari environment. Pada login pertama sistem mewajibkan guru mengganti password tersebut; admin tidak dapat mengatur password dari form guru.
+- Bila guru lupa password, admin memakai tombol `Reset Password ke Default`. Sistem mencabut sesi aktif guru dan pada login berikutnya mewajibkan perubahan password.
+
 ## Tabel Jadwal Kelas
 
 Halaman `/schedules` menyediakan tabel jadwal per kelas:

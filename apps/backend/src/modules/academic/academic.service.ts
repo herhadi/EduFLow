@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AcademicCalendarEventType, AgendaStatus, SemesterType } from '@prisma/client';
+import { AcademicCalendarEventType, AgendaStatus, SemesterType, TeacherAssignmentStatus } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { sortSchoolClasses } from '@eduflow/shared';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -22,6 +22,7 @@ import { GenerateAgendaDto } from './dto/generate-agenda.dto';
 import { GenerateBulkAgendaDto } from './dto/generate-bulk-agenda.dto';
 import { SetClassHomeroomTeacherDto } from './dto/set-class-homeroom-teacher.dto';
 import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
+import { SetTeacherSchoolYearAssignmentDto } from './dto/set-teacher-school-year-assignment.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
 @Injectable()
@@ -412,6 +413,9 @@ export class AcademicService {
             },
           },
           subjects: { include: { subject: true } },
+          yearAssignments: {
+            include: { schoolYear: true, subjects: { include: { subject: true } } },
+          },
         },
         orderBy: { name: 'asc' },
       }),
@@ -517,7 +521,7 @@ export class AcademicService {
       throw new BadRequestException('Username atau email sudah digunakan');
     }
 
-    const password = dto.password ?? this.getDefaultUserPassword();
+    const password = this.getDefaultUserPassword();
     const user = await this.prisma.$transaction(async (tx) => {
       const savedUser = teacher.userId
         ? await tx.user.update({
@@ -527,7 +531,6 @@ export class AcademicService {
               username,
               name: teacher.name,
               deletedAt: null,
-              ...(dto.password ? { password: await hash(password, 12) } : {}),
             },
           })
         : await tx.user.create({
@@ -582,6 +585,40 @@ export class AcademicService {
     };
   }
 
+  async resetTeacherPassword(id: string) {
+    const teacher = await this.prisma.teacher.findFirst({
+      where: { id, deletedAt: null },
+      include: { user: true },
+    });
+    if (!teacher) throw new NotFoundException('Guru tidak ditemukan');
+    if (!teacher.user) throw new BadRequestException('Guru belum memiliki akun login');
+
+    const updatedUser = await this.prisma.$transaction(async (tx) => {
+      await tx.refreshToken.updateMany({
+        where: { userId: teacher.userId!, revokedAt: null },
+        data: { revokedAt: new Date(), revokedReason: 'admin-password-reset' },
+      });
+      return tx.user.update({
+        where: { id: teacher.userId! },
+        data: {
+          password: await hash(this.getDefaultUserPassword(), 12),
+          failedLoginCount: 0,
+          lockedUntil: null,
+          passwordChangedAt: null,
+        },
+      });
+    });
+
+    await this.auditService.record({
+      action: 'teacher.password.reset',
+      entityType: 'Teacher',
+      entityId: id,
+      before: { userId: teacher.userId },
+      after: { userId: updatedUser.id, resetToDefault: true },
+    });
+    return { data: { id: teacher.id }, message: 'Password guru direset ke password default.' };
+  }
+
   async setTeacherSubjects(id: string, dto: SetTeacherSubjectsDto) {
     const teacher = await this.prisma.teacher.findFirst({
       where: { id, deletedAt: null },
@@ -624,6 +661,69 @@ export class AcademicService {
     });
 
     return { data: result, message: 'Mapel ampu guru berhasil disimpan.' };
+  }
+
+  async getTeacherSchoolYearAssignments(teacherId: string) {
+    const teacher = await this.prisma.teacher.findFirst({ where: { id: teacherId, deletedAt: null }, select: { id: true } });
+    if (!teacher) throw new NotFoundException('Guru tidak ditemukan');
+
+    return {
+      data: await this.prisma.teacherSchoolYearAssignment.findMany({
+        where: { teacherId },
+        include: { schoolYear: true, subjects: { include: { subject: true } } },
+        orderBy: { schoolYear: { startsAt: 'desc' } },
+      }),
+    };
+  }
+
+  async setTeacherSchoolYearAssignment(
+    teacherId: string,
+    schoolYearId: string,
+    dto: SetTeacherSchoolYearAssignmentDto,
+  ) {
+    const subjectIds = [...new Set(dto.subjectIds)];
+    const [teacher, schoolYear, subjectCount, before] = await Promise.all([
+      this.prisma.teacher.findFirst({ where: { id: teacherId, deletedAt: null } }),
+      this.prisma.schoolYear.findFirst({ where: { id: schoolYearId, deletedAt: null } }),
+      this.prisma.subject.count({ where: { id: { in: subjectIds }, deletedAt: null } }),
+      this.prisma.teacherSchoolYearAssignment.findUnique({
+        where: { teacherId_schoolYearId: { teacherId, schoolYearId } },
+        include: { subjects: { include: { subject: true } } },
+      }),
+    ]);
+    if (!teacher) throw new NotFoundException('Guru tidak ditemukan');
+    if (!schoolYear) throw new NotFoundException('Tahun ajaran tidak ditemukan');
+    if (subjectCount !== subjectIds.length) throw new BadRequestException('Ada mata pelajaran yang tidak ditemukan');
+    if (dto.status === TeacherAssignmentStatus.ACTIVE && !subjectIds.length) {
+      throw new BadRequestException('Guru aktif harus memiliki minimal satu mapel ampu');
+    }
+
+    const assignment = await this.prisma.$transaction(async (tx) => {
+      const saved = await tx.teacherSchoolYearAssignment.upsert({
+        where: { teacherId_schoolYearId: { teacherId, schoolYearId } },
+        create: { teacherId, schoolYearId, status: dto.status, notes: dto.notes?.trim() || null },
+        update: { status: dto.status, notes: dto.notes?.trim() || null },
+      });
+      await tx.teacherSchoolYearSubject.deleteMany({ where: { assignmentId: saved.id } });
+      if (subjectIds.length) {
+        await tx.teacherSchoolYearSubject.createMany({
+          data: subjectIds.map((subjectId) => ({ assignmentId: saved.id, subjectId })),
+        });
+      }
+      return tx.teacherSchoolYearAssignment.findUniqueOrThrow({
+        where: { id: saved.id },
+        include: { schoolYear: true, subjects: { include: { subject: true } } },
+      });
+    });
+
+    await this.auditService.record({
+      action: 'teacher.school-year-assignment.updated',
+      entityType: 'TeacherSchoolYearAssignment',
+      entityId: assignment.id,
+      before,
+      after: assignment,
+    });
+    return { data: assignment, message: 'Penugasan tahun ajaran guru berhasil disimpan.' };
   }
 
   async deleteTeacher(id: string) {
@@ -887,9 +987,12 @@ export class AcademicService {
     const teacher = await this.getTeacherAccount(userId);
     const updated = await this.prisma.teacher.update({
       where: { id: teacher.id },
-      data: { photoUrl: dto.photoUrl?.trim() || null },
+      data: {
+        ...(dto.photoUrl !== undefined && { photoUrl: dto.photoUrl.trim() || null }),
+        ...(dto.telegramId !== undefined && { telegramId: dto.telegramId.trim() || null }),
+      },
     });
-    return { data: updated, message: 'Foto profil berhasil diperbarui.' };
+    return { data: updated, message: 'Profil guru berhasil diperbarui.' };
   }
 
   async getMyAgendas(userId: string, date?: string) {
@@ -1326,6 +1429,7 @@ export class AcademicService {
           schoolYearId: dto.schoolYearId,
           deletedAt: null,
         },
+        include: { schoolYear: true },
       }),
       this.prisma.class.findFirst({
         where: {
@@ -1339,6 +1443,11 @@ export class AcademicService {
       }),
       this.prisma.teacher.findFirst({
         where: { id: dto.teacherId, deletedAt: null },
+        include: {
+          yearAssignments: {
+            include: { schoolYear: true, subjects: true },
+          },
+        },
       }),
     ]);
 
@@ -1358,16 +1467,17 @@ export class AcademicService {
       throw new BadRequestException('Guru tidak valid');
     }
 
-    const teacherSubject = await this.prisma.teacherSubject.findUnique({
-      where: {
-        teacherId_subjectId: {
-          teacherId: dto.teacherId,
-          subjectId: dto.subjectId,
-        },
-      },
-    });
+    const assignment = this.getEffectiveTeacherAssignment(
+      teacher.yearAssignments,
+      semester.schoolYear.startsAt,
+    );
+    const teacherSubject = assignment
+      ? assignment.subjects.some(({ subjectId }) => subjectId === dto.subjectId)
+      : await this.prisma.teacherSubject.findUnique({
+        where: { teacherId_subjectId: { teacherId: dto.teacherId, subjectId: dto.subjectId } },
+      });
 
-    if (!teacherSubject) {
+    if ((assignment && assignment.status !== TeacherAssignmentStatus.ACTIVE) || !teacherSubject) {
       throw new BadRequestException('Guru belum diatur mengampu mata pelajaran ini');
     }
   }
@@ -1382,6 +1492,7 @@ export class AcademicService {
           schoolYearId: dto.schoolYearId,
           deletedAt: null,
         },
+        include: { schoolYear: true },
       }),
       this.prisma.class.findMany({
         where: {
@@ -1397,6 +1508,9 @@ export class AcademicService {
         where: { id: dto.teacherId, deletedAt: null, isActive: true },
         include: {
           subjects: true,
+          yearAssignments: {
+            include: { schoolYear: true, subjects: true },
+          },
           user: { include: { roles: { include: { role: true } } } },
         },
       }),
@@ -1423,7 +1537,16 @@ export class AcademicService {
       throw new BadRequestException('Guru, mata pelajaran, atau slot waktu tidak valid');
     }
 
-    if (!teacher.subjects.some(({ subjectId }) => subjectId === dto.subjectId)) {
+    const yearAssignment = this.getEffectiveTeacherAssignment(
+      teacher.yearAssignments,
+      semester.schoolYear.startsAt,
+    );
+    if (
+      (yearAssignment && yearAssignment.status !== TeacherAssignmentStatus.ACTIVE) ||
+      (yearAssignment
+        ? !yearAssignment.subjects.some(({ subjectId }) => subjectId === dto.subjectId)
+        : !teacher.subjects.some(({ subjectId }) => subjectId === dto.subjectId))
+    ) {
       throw new BadRequestException('Guru belum diatur mengampu mata pelajaran ini');
     }
 
@@ -1545,6 +1668,14 @@ export class AcademicService {
     return revisions
       ?.filter((item) => item.effectiveFrom <= effectiveFrom)
       .at(-1);
+  }
+
+  private getEffectiveTeacherAssignment<Assignment extends {
+    schoolYear: { startsAt: Date };
+  }>(assignments: Assignment[], schoolYearStartsAt: Date) {
+    return assignments
+      .filter((assignment) => assignment.schoolYear.startsAt <= schoolYearStartsAt)
+      .sort((first, second) => second.schoolYear.startsAt.getTime() - first.schoolYear.startsAt.getTime())[0];
   }
 
   private async validateAcademicCalendarEvent(dto: {

@@ -206,6 +206,7 @@ Domain ini masih bagian dari academic, tetapi sebaiknya dipisah sebagai subdomai
 - Perangkat ajar guru terikat ke `Teacher`, `Subject`, `SchoolYear`, dan bila perlu `Semester`.
 - Nilai siswa wajib terikat ke `StudentEnrollment`, bukan hanya `Student`, supaya histori kelas dan tahun ajaran aman.
 - Guru hanya boleh mengelola perangkat ajar dan nilai untuk kelas/mapel yang ditugaskan.
+- Riwayat penugasan guru disimpan per `SchoolYear`, mencakup status aktif, cuti, pindah, pensiun, atau tidak aktif beserta mapel ampu dan catatan. Jadwal tahun ajaran yang memiliki penugasan tersebut hanya boleh memakai guru aktif dengan mapel yang tercatat pada tahun ajaran itu.
 - Wali kelas harus tetap memiliki mapel ampu; wali kelas adalah tugas tambahan pada kelas, bukan jenis guru terpisah.
 - Dokumen perangkat ajar wajib menyimpan `status`, `submittedAt`, `reviewedAt`, `reviewedById`, dan `reviewNote`.
 - Nilai semester wajib menyimpan `approvedAt`, `approvedById`, dan `lockedAt` setelah disetujui.

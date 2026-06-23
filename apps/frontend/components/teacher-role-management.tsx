@@ -8,8 +8,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import { api, type SchoolClass, type Subject, type Teacher } from '../lib/api';
-import { PasswordToggleIcon } from './ui/password-toggle-icon';
+import { api, type SchoolClass, type SchoolYear, type Subject, type Teacher, type TeacherAssignmentStatus, type TeacherSchoolYearAssignment } from '../lib/api';
+import { getUpcomingSchoolYear } from '../lib/school-year';
 import { useToast } from './ui/toast';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
@@ -23,6 +23,34 @@ const assignableRoles = [
   { value: 'bk', label: 'Guru BK' },
   { value: 'tu', label: 'TU' },
 ];
+
+const assignmentStatusMeta: Record<TeacherAssignmentStatus, { label: string; cardClass: string; textClass: string }> = {
+  ACTIVE: {
+    label: 'Aktif mengajar',
+    cardClass: 'border-emerald-200 bg-emerald-50 hover:bg-emerald-100',
+    textClass: 'text-emerald-800',
+  },
+  ON_LEAVE: {
+    label: 'Cuti',
+    cardClass: 'border-amber-200 bg-amber-50 hover:bg-amber-100',
+    textClass: 'text-amber-900',
+  },
+  RETIRED: {
+    label: 'Pensiun',
+    cardClass: 'border-rose-200 bg-rose-50 hover:bg-rose-100',
+    textClass: 'text-rose-800',
+  },
+  TRANSFERRED: {
+    label: 'Pindah sekolah',
+    cardClass: 'border-sky-200 bg-sky-50 hover:bg-sky-100',
+    textClass: 'text-sky-800',
+  },
+  INACTIVE: {
+    label: 'Tidak ditugaskan',
+    cardClass: 'border-slate-200 bg-slate-100 hover:bg-slate-200',
+    textClass: 'text-slate-700',
+  },
+};
 
 function toUsername(name: string) {
   return name
@@ -44,20 +72,39 @@ function normalizeTeacherRoles(roles: string[]) {
   return uniqueRoles;
 }
 
+function getEffectiveAssignment(
+  assignments: TeacherSchoolYearAssignment[] | undefined,
+  schoolYear?: SchoolYear,
+) {
+  if (!schoolYear) return undefined;
+
+  return (assignments ?? [])
+    .filter((assignment) =>
+      assignment.schoolYear?.startsAt &&
+      new Date(assignment.schoolYear.startsAt) <= new Date(schoolYear.startsAt),
+    )
+    .sort((first, second) =>
+      new Date(second.schoolYear?.startsAt ?? 0).getTime() - new Date(first.schoolYear?.startsAt ?? 0).getTime(),
+    )[0];
+}
+
 export function TeacherRoleManagement() {
   const toast = useToast();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [classes, setClasses] = useState<SchoolClass[]>([]);
+  const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
+  const [teacherAssignments, setTeacherAssignments] = useState<TeacherSchoolYearAssignment[]>([]);
+  const [assignmentSchoolYearId, setAssignmentSchoolYearId] = useState('');
+  const [assignmentStatus, setAssignmentStatus] = useState<TeacherAssignmentStatus>('ACTIVE');
+  const [assignmentSubjectIds, setAssignmentSubjectIds] = useState<string[]>([]);
+  const [assignmentNotes, setAssignmentNotes] = useState('');
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<string[]>(['guru']);
-  const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>([]);
   const [selectedHomeroomClassIds, setSelectedHomeroomClassIds] = useState<string[]>([]);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [identity, setIdentity] = useState({ name: '', nip: '', nuptk: '', phone: '', email: '', telegramId: '', photoUrl: '' });
+  const [identity, setIdentity] = useState({ name: '', nip: '', nuptk: '', phone: '', email: '', photoUrl: '' });
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [message, setMessage] = useState('');
@@ -78,10 +125,11 @@ export function TeacherRoleManagement() {
       setLoadState('loading');
 
       try {
-        const [teacherResponse, subjectResponse, classResponse] = await Promise.all([
+        const [teacherResponse, subjectResponse, classResponse, schoolYearResponse] = await Promise.all([
           api.getTeachers(),
           api.getSubjects(),
           api.getClasses(),
+          api.getSchoolYears(),
         ]);
 
         if (!isMounted) {
@@ -91,6 +139,8 @@ export function TeacherRoleManagement() {
         setTeachers(teacherResponse.data);
         setSubjects(subjectResponse.data);
         setClasses(sortSchoolClasses(classResponse.data));
+        setSchoolYears(schoolYearResponse.data);
+        setAssignmentSchoolYearId(getUpcomingSchoolYear(schoolYearResponse.data)?.id ?? '');
         setSelectedTeacherId(teacherResponse.data[0]?.id ?? '');
         setLoadState('success');
       } catch {
@@ -119,21 +169,16 @@ export function TeacherRoleManagement() {
 
     setUsername(selectedTeacher.user?.username ?? toUsername(selectedTeacher.name));
     setEmail(selectedTeacher.user?.email ?? selectedTeacher.email ?? '');
-    setPassword('');
     setIdentity({
       name: selectedTeacher.name,
       nip: selectedTeacher.nip ?? '',
       nuptk: selectedTeacher.nuptk ?? '',
       phone: selectedTeacher.phone ?? '',
       email: selectedTeacher.email ?? '',
-      telegramId: selectedTeacher.telegramId ?? '',
       photoUrl: selectedTeacher.photoUrl ?? '',
     });
     setSelectedRoles(
       selectedTeacher.user?.roles.map(({ role }) => role.name) ?? ['guru'],
-    );
-    setSelectedSubjectIds(
-      selectedTeacher.subjects?.map(({ subject }) => subject.id) ?? [],
     );
     setSelectedHomeroomClassIds(
       classes
@@ -143,6 +188,27 @@ export function TeacherRoleManagement() {
     setMessage('');
     setSaveState('idle');
   }, [classes, selectedTeacher]);
+
+  useEffect(() => {
+    if (!selectedTeacherId) return;
+    void api.getTeacherSchoolYearAssignments(selectedTeacherId)
+      .then((response) => setTeacherAssignments(response.data))
+      .catch(() => setTeacherAssignments([]));
+  }, [selectedTeacherId]);
+
+  useEffect(() => {
+    const targetSchoolYear = schoolYears.find((item) => item.id === assignmentSchoolYearId);
+    const assignment = teacherAssignments
+      .filter((item) =>
+        targetSchoolYear && item.schoolYear?.startsAt && new Date(item.schoolYear.startsAt) <= new Date(targetSchoolYear.startsAt),
+      )
+      .sort((first, second) =>
+        new Date(second.schoolYear?.startsAt ?? 0).getTime() - new Date(first.schoolYear?.startsAt ?? 0).getTime(),
+      )[0];
+    setAssignmentStatus(assignment?.status ?? 'ACTIVE');
+    setAssignmentSubjectIds(assignment?.subjects.map(({ subject }) => subject.id) ?? []);
+    setAssignmentNotes(assignment?.notes ?? '');
+  }, [assignmentSchoolYearId, schoolYears, teacherAssignments]);
 
   useEffect(() => {
     const detailCard = detailCardRef.current;
@@ -171,12 +237,42 @@ export function TeacherRoleManagement() {
     );
   }
 
-  function toggleSubject(subjectId: string) {
-    setSelectedSubjectIds((currentSubjectIds) =>
+  function toggleAssignmentSubject(subjectId: string) {
+    setAssignmentSubjectIds((currentSubjectIds) =>
       currentSubjectIds.includes(subjectId)
         ? currentSubjectIds.filter((currentSubjectId) => currentSubjectId !== subjectId)
         : [...currentSubjectIds, subjectId],
     );
+  }
+
+  async function saveTeacherSchoolYearAssignment() {
+    if (!selectedTeacher || !assignmentSchoolYearId) return;
+    try {
+      const response = await api.setTeacherSchoolYearAssignment(selectedTeacher.id, assignmentSchoolYearId, {
+        status: assignmentStatus,
+        subjectIds: assignmentSubjectIds,
+        notes: assignmentNotes || undefined,
+      });
+      setTeacherAssignments((current) => [
+        ...current.filter((item) => item.schoolYearId !== assignmentSchoolYearId),
+        response.data,
+      ]);
+      toast.success(response.message ?? 'Penugasan tahun ajaran disimpan.', 'Riwayat Guru');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Penugasan tahun ajaran gagal disimpan.', 'Riwayat Guru');
+    }
+  }
+
+  async function resetTeacherPassword() {
+    if (!selectedTeacher?.user) return;
+    if (!window.confirm(`Reset password ${selectedTeacher.name} ke password default? Sesi aktifnya akan dikeluarkan.`)) return;
+
+    try {
+      const response = await api.resetTeacherPassword(selectedTeacher.id);
+      toast.success(response.message ?? 'Password guru berhasil direset.', 'Reset Password');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Reset password gagal.', 'Reset Password');
+    }
   }
 
   function toggleHomeroomClass(classId: string) {
@@ -221,16 +317,13 @@ export function TeacherRoleManagement() {
         nuptk: identity.nuptk || undefined,
         phone: identity.phone || undefined,
         email: identity.email || undefined,
-        telegramId: identity.telegramId || undefined,
         photoUrl: identity.photoUrl || undefined,
       });
       await api.configureTeacherAccount(selectedTeacher.id, {
         username,
         email: email || undefined,
-        password: password || undefined,
         roles: normalizeTeacherRoles(selectedRoles.length ? selectedRoles : ['guru']),
       });
-      await api.setTeacherSubjects(selectedTeacher.id, selectedSubjectIds);
       await Promise.all(
         classes.map((schoolClass) => {
           const shouldAssign = selectedHomeroomClassIds.includes(schoolClass.id);
@@ -389,6 +482,11 @@ export function TeacherRoleManagement() {
           <div className="mt-3 grid content-start gap-2 pr-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain">
             {teachers.map((teacher) => {
               const active = teacher.id === selectedTeacherId;
+              const assignment = getEffectiveAssignment(
+                teacher.yearAssignments,
+                schoolYears.find((schoolYear) => schoolYear.id === assignmentSchoolYearId),
+              );
+              const status = assignmentStatusMeta[assignment?.status ?? 'INACTIVE'];
               const roles = teacher.user?.roles.map(({ role }) => role.name).join(', ');
               const subjectNames = teacher.subjects
                 ?.map(({ subject }) => subject.name)
@@ -399,21 +497,24 @@ export function TeacherRoleManagement() {
                   className={[
                     'rounded-2xl border p-3 text-left transition',
                     active
-                      ? 'border-brand-600 bg-brand-600 text-white shadow-lg shadow-blue-100'
-                      : 'border-blue-100 bg-white text-slate-700 hover:bg-brand-50',
+                      ? `${status.cardClass} ring-2 ring-brand-600 ring-offset-1`
+                      : status.cardClass,
                   ].join(' ')}
                   key={teacher.id}
                   onClick={() => selectTeacher(teacher.id)}
                   type="button"
                 >
-                  <p className="font-black">{teacher.name}</p>
-                  <p className={['mt-1 text-xs font-semibold', active ? 'text-blue-100' : 'text-muted'].join(' ')}>
+                  <p className="font-black text-slate-900">{teacher.name}</p>
+                  <p className={['mt-1 text-xs font-black', status.textClass].join(' ')}>
+                    {status.label}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold text-muted">
                     {roles || 'Belum ada akun'}
                   </p>
-                <p className={['mt-1 line-clamp-2 text-xs', active ? 'text-blue-100' : 'text-muted'].join(' ')}>
+                <p className="mt-1 line-clamp-2 text-xs text-muted">
                   {subjectNames || 'Mapel belum diatur'}
                 </p>
-                <p className={['mt-1 line-clamp-2 text-xs', active ? 'text-blue-100' : 'text-muted'].join(' ')}>
+                <p className="mt-1 line-clamp-2 text-xs text-muted">
                   Wali: {classes
                     .filter((schoolClass) => schoolClass.homeroomTeacherId === teacher.id)
                     .map((schoolClass) => schoolClass.name)
@@ -455,20 +556,41 @@ export function TeacherRoleManagement() {
                     ['nuptk', 'NUPTK'],
                     ['phone', 'Nomor HP'],
                     ['email', 'Email Guru'],
-                    ['telegramId', 'Telegram ID'],
-                    ['photoUrl', 'URL Foto'],
                   ].map(([field, label]) => (
-                    <label className={`grid gap-2 text-sm font-bold text-slate-700 ${field === 'photoUrl' ? 'sm:col-span-2' : ''}`} key={field}>
+                    <label className="grid gap-2 text-sm font-bold text-slate-700" key={field}>
                       {label}
                       <input
                         className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600"
                         onChange={(event) => setIdentity((current) => ({ ...current, [field]: event.target.value }))}
-                        type={field === 'email' ? 'email' : field === 'photoUrl' ? 'url' : 'text'}
+                        type={field === 'email' ? 'email' : 'text'}
                         value={identity[field as keyof typeof identity]}
                       />
                     </label>
                   ))}
                 </div>
+                <label className="mt-3 grid gap-2 text-sm font-bold text-slate-700">
+                  Foto Guru
+                  <input
+                    accept="image/jpeg,image/png,image/webp"
+                    className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-normal file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-xs file:font-black file:text-brand-700"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 2 * 1024 * 1024) {
+                        toast.warning('Foto guru maksimal 2 MB.', 'Foto Guru');
+                        event.target.value = '';
+                        return;
+                      }
+                      const reader = new FileReader();
+                      reader.onload = () => setIdentity((current) => ({ ...current, photoUrl: String(reader.result ?? '') }));
+                      reader.readAsDataURL(file);
+                    }}
+                    type="file"
+                  />
+                </label>
+                {identity.photoUrl ? (
+                  <img alt={`Foto ${selectedTeacher.name}`} className="mt-3 size-20 rounded-xl border border-blue-100 object-cover" src={identity.photoUrl} />
+                ) : null}
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
@@ -489,32 +611,6 @@ export function TeacherRoleManagement() {
                     type="email"
                     value={email}
                   />
-                </label>
-                <label className="grid gap-2 text-sm font-bold text-slate-700 sm:col-span-2">
-                  Password Sementara
-                  <span className="flex overflow-hidden rounded-2xl border border-blue-100 bg-white transition focus-within:border-brand-600">
-                    <input
-                      className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm font-normal outline-none"
-                      maxLength={10}
-                      minLength={6}
-                      onChange={(event) => setPassword(event.target.value)}
-                      placeholder={
-                        selectedTeacher.user
-                          ? 'Kosongkan jika tidak diubah'
-                          : 'Kosongkan: default 123456'
-                      }
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                    />
-                    <button
-                      aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
-                      className="grid place-items-center px-4 text-brand-700"
-                      onClick={() => setShowPassword((current) => !current)}
-                      type="button"
-                    >
-                      <PasswordToggleIcon visible={showPassword} />
-                    </button>
-                  </span>
                 </label>
               </div>
 
@@ -546,22 +642,39 @@ export function TeacherRoleManagement() {
                 </div>
               </div>
 
-              <div>
-                <p className="text-sm font-black text-slate-800">Mata Pelajaran Diampu</p>
-                <div className="mt-3 flex flex-wrap gap-2">
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
+                <p className="text-sm font-black text-emerald-900">Riwayat Penugasan Tahun Ajaran</p>
+                <p className="mt-1 text-xs font-semibold text-emerald-800">Menjadi acuan utama untuk jadwal tahun ajaran yang dipilih.</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <label className="grid gap-1 text-sm font-bold text-slate-700">
+                    Tahun ajaran
+                    <select className="rounded-xl border border-emerald-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-emerald-600" onChange={(event) => setAssignmentSchoolYearId(event.target.value)} value={assignmentSchoolYearId}>
+                      {schoolYears.map((schoolYear) => <option key={schoolYear.id} value={schoolYear.id}>{schoolYear.name}</option>)}
+                    </select>
+                  </label>
+                  <label className="grid gap-1 text-sm font-bold text-slate-700">
+                    Status penugasan
+                    <select className="rounded-xl border border-emerald-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-emerald-600" onChange={(event) => setAssignmentStatus(event.target.value as TeacherAssignmentStatus)} value={assignmentStatus}>
+                      <option value="ACTIVE">Aktif mengajar</option>
+                      <option value="ON_LEAVE">Cuti</option>
+                      <option value="TRANSFERRED">Pindah sekolah</option>
+                      <option value="RETIRED">Pensiun</option>
+                      <option value="INACTIVE">Tidak ditugaskan</option>
+                    </select>
+                  </label>
+                </div>
+                <p className="mt-4 text-xs font-black text-slate-700">Mapel ampu pada tahun ajaran ini</p>
+                <div className="mt-2 flex flex-wrap gap-2">
                   {subjects.map((subject) => {
-                    const active = selectedSubjectIds.includes(subject.id);
-
+                    const active = assignmentSubjectIds.includes(subject.id);
                     return (
                       <button
                         className={[
                           'rounded-full border px-3 py-2 text-xs font-black transition',
-                          active
-                            ? 'border-emerald-600 bg-emerald-600 text-white'
-                            : 'border-blue-100 bg-white text-slate-700 hover:bg-brand-50',
+                          active ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-emerald-200 bg-white text-slate-700 hover:bg-emerald-100',
                         ].join(' ')}
                         key={subject.id}
-                        onClick={() => toggleSubject(subject.id)}
+                        onClick={() => toggleAssignmentSubject(subject.id)}
                         type="button"
                       >
                         {subject.name}
@@ -569,6 +682,11 @@ export function TeacherRoleManagement() {
                     );
                   })}
                 </div>
+                <label className="mt-4 grid gap-1 text-sm font-bold text-slate-700">
+                  Catatan riwayat
+                  <input className="rounded-xl border border-emerald-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-emerald-600" onChange={(event) => setAssignmentNotes(event.target.value)} placeholder="Contoh: pensiun per 1 Juli 2027" value={assignmentNotes} />
+                </label>
+                <button className="mt-4 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700 disabled:bg-slate-300" disabled={!assignmentSchoolYearId} onClick={() => void saveTeacherSchoolYearAssignment()} type="button">Simpan Penugasan Tahun Ajaran</button>
               </div>
 
               <div>
@@ -637,6 +755,16 @@ export function TeacherRoleManagement() {
                 >
                   {message}
                 </div>
+              ) : null}
+
+              {selectedTeacher.user ? (
+                <button
+                  className="w-full rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-black text-amber-900 hover:bg-amber-100"
+                  onClick={() => void resetTeacherPassword()}
+                  type="button"
+                >
+                  Reset Password ke Default
+                </button>
               ) : null}
 
               <button

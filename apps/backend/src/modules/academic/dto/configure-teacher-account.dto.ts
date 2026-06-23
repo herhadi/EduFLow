@@ -1,4 +1,4 @@
-import { IsArray, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsArray, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class ConfigureTeacherAccountDto {
   @IsString()
@@ -8,12 +8,6 @@ export class ConfigureTeacherAccountDto {
   @IsOptional()
   @IsString()
   email?: string;
-
-  @IsOptional()
-  @IsString()
-  @MinLength(6)
-  @MaxLength(10)
-  password?: string;
 
   @IsArray()
   @IsString({ each: true })

@@ -50,6 +50,19 @@ export interface Teacher {
     roles: Array<{ role: { name: string } }>;
   } | null;
   subjects?: Array<{ subject: Subject }>;
+  yearAssignments?: TeacherSchoolYearAssignment[];
+}
+
+export type TeacherAssignmentStatus = 'ACTIVE' | 'RETIRED' | 'TRANSFERRED' | 'ON_LEAVE' | 'INACTIVE';
+
+export interface TeacherSchoolYearAssignment {
+  id: string;
+  teacherId: string;
+  schoolYearId: string;
+  status: TeacherAssignmentStatus;
+  notes?: string | null;
+  schoolYear: SchoolYear;
+  subjects: Array<{ subject: Subject }>;
 }
 
 export interface SchoolYear {
@@ -686,7 +699,6 @@ export const api = {
     payload: {
       username: string;
       email?: string;
-      password?: string;
       roles: string[];
     },
   ) =>
@@ -694,10 +706,25 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
+  resetTeacherPassword: (id: string) =>
+    request<ApiResponse<{ id: string }>>(`/academic/teachers/${id}/reset-password`, {
+      method: 'POST',
+    }),
   setTeacherSubjects: (id: string, subjectIds: string[]) =>
     request<ApiResponse<Teacher>>(`/academic/teachers/${id}/subjects`, {
       method: 'PATCH',
       body: JSON.stringify({ subjectIds }),
+    }),
+  getTeacherSchoolYearAssignments: (id: string) =>
+    request<ApiResponse<TeacherSchoolYearAssignment[]>>(`/academic/teachers/${id}/assignments`),
+  setTeacherSchoolYearAssignment: (
+    id: string,
+    schoolYearId: string,
+    payload: { status: TeacherAssignmentStatus; subjectIds: string[]; notes?: string },
+  ) =>
+    request<ApiResponse<TeacherSchoolYearAssignment>>(`/academic/teachers/${id}/assignments/${schoolYearId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
     }),
   setClassHomeroomTeacher: (id: string, teacherId?: string | null) =>
     request<ApiResponse<SchoolClass>>(`/academic/classes/${id}/homeroom-teacher`, {
@@ -729,10 +756,10 @@ export const api = {
   submitAttendance: (payload: { attendanceId: string; notes?: string; items: Array<{ attendanceItemId: string; status: AttendanceStatus; notes?: string }> }) => request<ApiResponse<Attendance>>('/attendance/submit', { method: 'POST', body: JSON.stringify(payload) }),
   getMySubjects: () => request<ApiResponse<Subject[]>>('/academic/me/subjects'),
   getMyTeacherProfile: () => request<ApiResponse<Teacher>>('/academic/me/profile'),
-  updateMyTeacherProfile: (photoUrl?: string) =>
+  updateMyTeacherProfile: (payload: { photoUrl?: string; telegramId?: string }) =>
     request<ApiResponse<Teacher>>('/academic/me/profile', {
       method: 'PATCH',
-      body: JSON.stringify({ photoUrl: photoUrl || undefined }),
+      body: JSON.stringify(payload),
     }),
   getMyTeachingPlans: () => request<ApiResponse<TeachingPlan[]>>('/academic-planning/mine'),
   createTeachingPlan: (payload: { subjectId: string; schoolYearId: string; semesterId?: string; type: TeachingPlanType; title: string; description?: string; attachmentUrl?: string }) =>

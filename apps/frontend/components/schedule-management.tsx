@@ -181,13 +181,25 @@ export function ScheduleManagement() {
 
   const teacherSubjectOptions = useMemo(
     () =>
-      teachers.flatMap((teacher) =>
-        (teacher.subjects ?? []).map(({ subject }) => ({
+      teachers.flatMap((teacher) => {
+        const targetSchoolYear = schoolYears.find((item) => item.id === form.schoolYearId);
+        const assignment = teacher.yearAssignments
+          ?.filter((item) =>
+            targetSchoolYear && item.schoolYear?.startsAt && new Date(item.schoolYear.startsAt) <= new Date(targetSchoolYear.startsAt),
+          )
+          .sort((first, second) =>
+            new Date(second.schoolYear?.startsAt ?? 0).getTime() - new Date(first.schoolYear?.startsAt ?? 0).getTime(),
+          )[0];
+        const subjects = assignment
+          ? assignment.status === 'ACTIVE' ? assignment.subjects : []
+          : teacher.subjects ?? [];
+
+        return subjects.map(({ subject }) => ({
           label: `${teacher.name} · ${subject.name}`,
           value: `${teacher.id}:${subject.id}`,
-        })),
-      ),
-    [teachers],
+        }));
+      }),
+    [form.schoolYearId, schoolYears, teachers],
   );
 
   const dayTimeSlots = useMemo(

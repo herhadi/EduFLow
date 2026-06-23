@@ -20,6 +20,14 @@ enum AcademicCalendarEventType {
   OTHER
 }
 
+enum TeacherAssignmentStatus {
+  ACTIVE
+  RETIRED
+  TRANSFERRED
+  ON_LEAVE
+  INACTIVE
+}
+
 enum AcademicTimeSlotType {
   LESSON
   BREAK
@@ -245,23 +253,24 @@ model RolePermission {
 }
 
 model SchoolYear {
-  id             String                  @id @default(uuid()) @db.Uuid
-  name           String                  @unique
-  startsAt       DateTime
-  endsAt         DateTime
-  semesters      Semester[]
-  classes        Class[]
-  enrollments    StudentEnrollment[]
-  schedules      Schedule[]
-  agendas        DailyAgenda[]
-  timeSlots      AcademicTimeSlot[]
-  feeTypes       FeeType[]
-  invoices       Invoice[]
-  teachingPlans  TeachingPlan[]
-  calendarEvents AcademicCalendarEvent[]
-  createdAt      DateTime                @default(now())
-  updatedAt      DateTime                @updatedAt
-  deletedAt      DateTime?
+  id                 String                        @id @default(uuid()) @db.Uuid
+  name               String                        @unique
+  startsAt           DateTime
+  endsAt             DateTime
+  semesters          Semester[]
+  classes            Class[]
+  enrollments        StudentEnrollment[]
+  schedules          Schedule[]
+  agendas            DailyAgenda[]
+  timeSlots          AcademicTimeSlot[]
+  feeTypes           FeeType[]
+  invoices           Invoice[]
+  teachingPlans      TeachingPlan[]
+  calendarEvents     AcademicCalendarEvent[]
+  teacherAssignments TeacherSchoolYearAssignment[]
+  createdAt          DateTime                      @default(now())
+  updatedAt          DateTime                      @updatedAt
+  deletedAt          DateTime?
 }
 
 model AcademicTimeSlot {
@@ -370,40 +379,42 @@ model AcademicCalendarEvent {
 }
 
 model Subject {
-  id                String             @id @default(uuid()) @db.Uuid
+  id                String                     @id @default(uuid()) @db.Uuid
   name              String
-  code              String?            @unique
-  isActive          Boolean            @default(true)
+  code              String?                    @unique
+  isActive          Boolean                    @default(true)
   schedules         Schedule[]
   scheduleRevisions ScheduleRevision[]
   agendas           DailyAgenda[]
   teachers          TeacherSubject[]
+  yearAssignments   TeacherSchoolYearSubject[]
   teachingPlans     TeachingPlan[]
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
   deletedAt         DateTime?
 }
 
 model Teacher {
-  id                String             @id @default(uuid()) @db.Uuid
-  userId            String?            @unique @db.Uuid
+  id                String                        @id @default(uuid()) @db.Uuid
+  userId            String?                       @unique @db.Uuid
   name              String
-  nip               String?            @unique
-  nuptk             String?            @unique
-  email             String?            @unique
+  nip               String?                       @unique
+  nuptk             String?                       @unique
+  email             String?                       @unique
   phone             String?
   telegramId        String?
   photoUrl          String?
-  isActive          Boolean            @default(true)
+  isActive          Boolean                       @default(true)
   schedules         Schedule[]
   scheduleRevisions ScheduleRevision[]
   agendas           DailyAgenda[]
-  user              User?              @relation(fields: [userId], references: [id])
+  user              User?                         @relation(fields: [userId], references: [id])
   subjects          TeacherSubject[]
-  homeroomClasses   Class[]            @relation("ClassHomeroomTeacher")
+  homeroomClasses   Class[]                       @relation("ClassHomeroomTeacher")
   teachingPlans     TeachingPlan[]
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  yearAssignments   TeacherSchoolYearAssignment[]
+  createdAt         DateTime                      @default(now())
+  updatedAt         DateTime                      @updatedAt
   deletedAt         DateTime?
 
   @@index([phone])
@@ -420,6 +431,33 @@ model TeacherSubject {
   createdAt DateTime @default(now())
 
   @@id([teacherId, subjectId])
+  @@index([subjectId])
+}
+
+model TeacherSchoolYearAssignment {
+  id           String                     @id @default(uuid()) @db.Uuid
+  teacherId    String                     @db.Uuid
+  schoolYearId String                     @db.Uuid
+  status       TeacherAssignmentStatus    @default(ACTIVE)
+  notes        String?
+  teacher      Teacher                    @relation(fields: [teacherId], references: [id])
+  schoolYear   SchoolYear                 @relation(fields: [schoolYearId], references: [id])
+  subjects     TeacherSchoolYearSubject[]
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+
+  @@unique([teacherId, schoolYearId])
+  @@index([schoolYearId, status])
+}
+
+model TeacherSchoolYearSubject {
+  assignmentId String                      @db.Uuid
+  subjectId    String                      @db.Uuid
+  assignment   TeacherSchoolYearAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  subject      Subject                     @relation(fields: [subjectId], references: [id])
+  createdAt    DateTime                    @default(now())
+
+  @@id([assignmentId, subjectId])
   @@index([subjectId])
 }
 

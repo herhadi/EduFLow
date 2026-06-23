@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString, IsUrl, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateTeacherDto {
   @IsOptional()
@@ -27,6 +27,8 @@ export class UpdateTeacherDto {
   telegramId?: string;
 
   @IsOptional()
-  @IsUrl({ require_tld: false })
+  @IsString()
+  @MaxLength(3_000_000)
+  @Matches(/^(https?:\/\/|data:image\/(jpeg|png|webp);base64,)/)
   photoUrl?: string;
 }

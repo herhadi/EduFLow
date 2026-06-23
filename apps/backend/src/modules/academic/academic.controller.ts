@@ -21,6 +21,7 @@ import { GenerateAgendaDto } from './dto/generate-agenda.dto';
 import { GenerateBulkAgendaDto } from './dto/generate-bulk-agenda.dto';
 import { SetClassHomeroomTeacherDto } from './dto/set-class-homeroom-teacher.dto';
 import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
+import { SetTeacherSchoolYearAssignmentDto } from './dto/set-teacher-school-year-assignment.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
 @Controller('academic')
@@ -145,12 +146,34 @@ export class AcademicController {
   }
 
   @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Post('teachers/:id/reset-password')
+  resetTeacherPassword(@Param('id') id: string) {
+    return this.academicService.resetTeacherPassword(id);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
   @Patch('teachers/:id/subjects')
   setTeacherSubjects(
     @Param('id') id: string,
     @Body() dto: SetTeacherSubjectsDto,
   ) {
     return this.academicService.setTeacherSubjects(id, dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_READ)
+  @Get('teachers/:id/assignments')
+  getTeacherSchoolYearAssignments(@Param('id') id: string) {
+    return this.academicService.getTeacherSchoolYearAssignments(id);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Patch('teachers/:id/assignments/:schoolYearId')
+  setTeacherSchoolYearAssignment(
+    @Param('id') id: string,
+    @Param('schoolYearId') schoolYearId: string,
+    @Body() dto: SetTeacherSchoolYearAssignmentDto,
+  ) {
+    return this.academicService.setTeacherSchoolYearAssignment(id, schoolYearId, dto);
   }
 
   @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)

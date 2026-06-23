@@ -16,6 +16,7 @@ type CurrentUser = {
 export default function ProfilePage() {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [photoUrl, setPhotoUrl] = useState('');
+  const [telegramId, setTelegramId] = useState('');
   const [isTeacher, setIsTeacher] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -31,7 +32,10 @@ export default function ProfilePage() {
       setCurrentUser(user);
       if (user.roles?.some((role) => role === 'guru' || role === 'wali_kelas')) {
         setIsTeacher(true);
-        void api.getMyTeacherProfile().then((response) => setPhotoUrl(response.data.photoUrl ?? '')).catch(() => undefined);
+        void api.getMyTeacherProfile().then((response) => {
+          setPhotoUrl(response.data.photoUrl ?? '');
+          setTelegramId(response.data.telegramId ?? '');
+        }).catch(() => undefined);
       }
     } catch {
       localStorage.removeItem('currentUser');
@@ -66,7 +70,10 @@ export default function ProfilePage() {
                 <label className="grid gap-2 text-sm font-bold">URL Foto Profil
                   <input className="rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600" onChange={(event) => setPhotoUrl(event.target.value)} placeholder="https://.../foto-guru.jpg" type="url" value={photoUrl} />
                 </label>
-                <button className="mt-3 rounded-xl bg-brand-600 px-4 py-3 text-xs font-black text-white disabled:opacity-50" disabled={saving} onClick={async () => { setSaving(true); try { await api.updateMyTeacherProfile(photoUrl); } finally { setSaving(false); } }} type="button">{saving ? 'Menyimpan...' : 'Simpan Foto'}</button>
+                <label className="mt-3 grid gap-2 text-sm font-bold">Telegram ID
+                  <input className="rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600" onChange={(event) => setTelegramId(event.target.value)} placeholder="Diisi oleh guru setelah menghubungkan Telegram" value={telegramId} />
+                </label>
+                <button className="mt-3 rounded-xl bg-brand-600 px-4 py-3 text-xs font-black text-white disabled:opacity-50" disabled={saving} onClick={async () => { setSaving(true); try { await api.updateMyTeacherProfile({ photoUrl, telegramId }); } finally { setSaving(false); } }} type="button">{saving ? 'Menyimpan...' : 'Simpan Profil'}</button>
               </div>
             ) : null}
           </div>
