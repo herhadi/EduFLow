@@ -2,6 +2,10 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import { AcademicCalendarEventType, AgendaStatus, SemesterType, TeacherAssignmentStatus } from '@prisma/client';
 import { hash } from 'bcryptjs';
+import { randomUUID } from 'node:crypto';
+import { extname } from 'node:path';
+import { Inject } from '@nestjs/common';
+import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
 import { sortSchoolClasses } from '@eduflow/shared';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
@@ -31,6 +35,7 @@ export class AcademicService {
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     private readonly configService: ConfigService,
+    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
   async getSchoolYears() {
@@ -399,8 +404,7 @@ export class AcademicService {
   }
 
   async getTeachers() {
-    return {
-      data: await this.prisma.teacher.findMany({
+    const teachers = await this.prisma.teacher.findMany({
         where: { deletedAt: null },
         include: {
           user: {
@@ -418,8 +422,23 @@ export class AcademicService {
           },
         },
         orderBy: { name: 'asc' },
-      }),
-    };
+      });
+    return { data: await Promise.all(teachers.map((teacher) => this.withTeacherPhotoUrl(teacher))) };
+  }
+
+  async uploadTeacherPhoto(id: string, file: { buffer: Buffer; originalname: string; mimetype: string; size: number }) {
+    const teacher = await this.prisma.teacher.findFirst({ where: { id, deletedAt: null } });
+    if (!teacher) throw new NotFoundException('Guru tidak ditemukan');
+
+    const key = `teachers/${id}/${randomUUID()}${extname(file.originalname).toLowerCase()}`;
+    const stored = await this.storage.upload({ buffer: file.buffer, key, name: file.originalname, mimeType: file.mimetype });
+    const updated = await this.prisma.teacher.update({
+      where: { id },
+      data: { photoUrl: null, photoKey: stored.key, photoName: stored.name, photoMimeType: stored.mimeType, photoSize: stored.size },
+    });
+    if (teacher.photoKey) await this.storage.delete(teacher.photoKey).catch(() => undefined);
+    await this.auditService.record({ action: 'teacher.photo.uploaded', entityType: 'Teacher', entityId: id, before: teacher, after: updated });
+    return { data: await this.withTeacherPhotoUrl(updated), message: 'Foto guru berhasil diunggah.' };
   }
 
   async createTeacher(dto: CreateTeacherDto) {
@@ -980,7 +999,9 @@ export class AcademicService {
   }
 
   async getMyTeacherProfile(userId: string) {
-    return { data: await this.getTeacherAccount(userId) };
+    const teacherAccount = await this.getTeacherAccount(userId);
+    const teacher = await this.prisma.teacher.findUniqueOrThrow({ where: { id: teacherAccount.id } });
+    return { data: await this.withTeacherPhotoUrl(teacher) };
   }
 
   async updateMyTeacherProfile(userId: string, dto: UpdateMyTeacherProfileDto) {
@@ -1676,6 +1697,14 @@ export class AcademicService {
     return assignments
       .filter((assignment) => assignment.schoolYear.startsAt <= schoolYearStartsAt)
       .sort((first, second) => second.schoolYear.startsAt.getTime() - first.schoolYear.startsAt.getTime())[0];
+  }
+
+  private async withTeacherPhotoUrl<T extends { photoKey?: string | null; photoName?: string | null }>(teacher: T) {
+    if (!teacher.photoKey) return teacher;
+    return {
+      ...teacher,
+      photoUrl: await this.storage.createDownloadUrl(teacher.photoKey, teacher.photoName ?? 'foto-guru'),
+    };
   }
 
   private async validateAcademicCalendarEvent(dto: {

@@ -404,6 +404,10 @@ model Teacher {
   phone             String?
   telegramId        String?
   photoUrl          String?
+  photoKey          String?
+  photoName         String?
+  photoMimeType     String?
+  photoSize         Int?
   isActive          Boolean                       @default(true)
   schedules         Schedule[]
   scheduleRevisions ScheduleRevision[]

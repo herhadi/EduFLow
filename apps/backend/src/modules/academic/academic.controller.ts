@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { PERMISSIONS } from '../../common/constants/permissions';
@@ -134,6 +135,23 @@ export class AcademicController {
   @Patch('teachers/:id')
   updateTeacher(@Param('id') id: string, @Body() dto: UpdateTeacherDto) {
     return this.academicService.updateTeacher(id, dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Post('teachers/:id/photo')
+  @UseInterceptors(FileInterceptor('file', {
+    limits: { fileSize: 2 * 1024 * 1024 },
+    fileFilter: (_request, file, callback) => {
+      const supported = ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype);
+      callback(supported ? null : new BadRequestException('Foto guru harus JPEG, PNG, atau WebP'), supported);
+    },
+  }))
+  uploadTeacherPhoto(
+    @Param('id') id: string,
+    @UploadedFile() file?: { buffer: Buffer; originalname: string; mimetype: string; size: number },
+  ) {
+    if (!file) throw new BadRequestException('Foto guru wajib dipilih');
+    return this.academicService.uploadTeacherPhoto(id, file);
   }
 
   @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)

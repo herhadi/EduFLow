@@ -581,9 +581,13 @@ export function TeacherRoleManagement() {
                         event.target.value = '';
                         return;
                       }
-                      const reader = new FileReader();
-                      reader.onload = () => setIdentity((current) => ({ ...current, photoUrl: String(reader.result ?? '') }));
-                      reader.readAsDataURL(file);
+                      void api.uploadTeacherPhoto(selectedTeacher.id, file)
+                        .then((response) => {
+                          setIdentity((current) => ({ ...current, photoUrl: response.data.photoUrl ?? '' }));
+                          setTeachers((current) => current.map((teacher) => teacher.id === selectedTeacher.id ? { ...teacher, photoUrl: response.data.photoUrl } : teacher));
+                          toast.success(response.message ?? 'Foto guru berhasil diunggah.', 'Foto Guru');
+                        })
+                        .catch((error) => toast.error(error instanceof Error ? error.message : 'Upload foto guru gagal.', 'Foto Guru'));
                     }}
                     type="file"
                   />

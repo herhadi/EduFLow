@@ -694,6 +694,8 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
+  uploadTeacherPhoto: (id: string, file: File) =>
+    upload<ApiResponse<Teacher>>(`/academic/teachers/${id}/photo`, file),
   configureTeacherAccount: (
     id: string,
     payload: {

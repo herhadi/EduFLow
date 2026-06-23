@@ -258,7 +258,7 @@ Pada halaman manajemen guru, operator memilih tahun ajaran lalu menyimpan status
 - Gunakan `Pensiun`, `Pindah sekolah`, `Cuti`, atau `Tidak ditugaskan` sekali pada tahun ajaran saat perubahan mulai berlaku; status tersebut otomatis terbawa ke tahun berikutnya tanpa entri berulang.
 - `Tidak ditugaskan` berarti guru masih tercatat sebagai pegawai tetapi tidak memiliki penugasan mengajar pada tahun ajaran tersebut; gunakan `Pensiun`, `Pindah sekolah`, atau `Cuti` bila salah satu kondisi itu lebih tepat.
 - Mapel ampu hanya diatur pada penugasan tahun ajaran dan menjadi acuan jadwal baru. Data mapel global lama disimpan sebagai fallback internal bagi tahun ajaran lama yang belum memiliki penugasan.
-- Admin dapat memilih foto guru dari file lokal pada form guru. Telegram tidak diatur oleh admin; guru mengisinya sendiri dari halaman Profil setelah login.
+- Admin dapat memilih foto guru dari file lokal pada form guru. File foto disimpan di Cloudflare R2, sedangkan database hanya menyimpan key dan metadata foto. Telegram tidak diatur oleh admin; guru mengisinya sendiri dari halaman Profil setelah login.
 - Akun guru baru selalu dibuat dengan `DEFAULT_USER_PASSWORD` dari environment. Pada login pertama sistem mewajibkan guru mengganti password tersebut; admin tidak dapat mengatur password dari form guru.
 - Bila guru lupa password, admin memakai tombol `Reset Password ke Default`. Sistem mencabut sesi aktif guru dan pada login berikutnya mewajibkan perubahan password.
 

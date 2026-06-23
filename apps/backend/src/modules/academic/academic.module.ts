@@ -12,6 +12,7 @@ import { SemestersModule } from './semesters/semesters.module';
 import { StudentsModule } from './students/students.module';
 import { SubjectsModule } from './subjects/subjects.module';
 import { TeachersModule } from './teachers/teachers.module';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { TeachersModule } from './teachers/teachers.module';
     SubjectsModule,
     SemestersModule,
     SchoolYearsModule,
+    StorageModule,
   ],
   controllers: [AcademicController, AcademicImportController],
   providers: [AcademicService, AcademicImportService, ImportExcelService],
