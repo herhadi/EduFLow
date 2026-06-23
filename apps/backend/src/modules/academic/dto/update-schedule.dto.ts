@@ -15,6 +15,10 @@ export class UpdateScheduleDto {
   effectiveFrom?: string;
 
   @IsOptional()
+  @IsString()
+  reason?: string;
+
+  @IsOptional()
   @IsUUID()
   classId?: string;
 

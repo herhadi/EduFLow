@@ -16,6 +16,7 @@ import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { GenerateAgendaDto } from './dto/generate-agenda.dto';
+import { GenerateBulkAgendaDto } from './dto/generate-bulk-agenda.dto';
 import { SetClassHomeroomTeacherDto } from './dto/set-class-homeroom-teacher.dto';
 import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
@@ -230,10 +231,28 @@ export class AcademicController {
     return this.academicService.updateSchedule(id, dto);
   }
 
+  @RequirePermissions(PERMISSIONS.SCHEDULE_READ)
+  @Get('schedules/:id/revisions')
+  getScheduleRevisions(@Param('id') id: string) {
+    return this.academicService.getScheduleRevisions(id);
+  }
+
+  @RequirePermissions(PERMISSIONS.SCHEDULE_MANAGE)
+  @Delete('schedules/:id/revisions/:revisionId')
+  cancelScheduleRevision(@Param('id') id: string, @Param('revisionId') revisionId: string) {
+    return this.academicService.cancelScheduleRevision(id, revisionId);
+  }
+
   @RequirePermissions(PERMISSIONS.SCHEDULE_MANAGE)
   @Delete('schedules/:id')
   deleteSchedule(@Param('id') id: string) {
     return this.academicService.deleteSchedule(id);
+  }
+
+  @RequirePermissions(PERMISSIONS.AGENDA_GENERATE)
+  @Post('agendas/generate')
+  generateBulkAgenda(@Body() dto: GenerateBulkAgendaDto) {
+    return this.academicService.generateBulkAgenda(dto);
   }
 
   @RequirePermissions(PERMISSIONS.AGENDA_GENERATE)

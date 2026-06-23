@@ -239,15 +239,32 @@ Catatan penting:
 Halaman `/schedules` menyediakan tabel jadwal per kelas:
 
 - pilih kelas,
+- pilih `Lihat kondisi jadwal` untuk melihat baseline atau revisi yang sudah berlaku pada tanggal tersebut,
+- gunakan `Filter hari` bila hanya ingin melihat jadwal pada hari tertentu,
 - lihat daftar hari, jam, mapel, dan guru,
+- gunakan `Generate mulai` dan `Generate sampai`, lalu klik `Generate Agenda Kelas` untuk kelas yang sedang dilihat atau `Generate Semua Kelas VII-IX` untuk seluruh kelas VII, VIII, dan IX dalam rentang tanggal tersebut,
 - klik `Edit` untuk memperbaiki jadwal,
+- isi `Berlaku mulai` ketika perubahan hanya berlaku sejak tanggal tertentu,
+- isi alasan revisi agar histori perubahan mudah diaudit,
+- lihat histori revisi dari form edit dan gunakan `Batalkan` untuk menghapus revisi yang salah,
 - wali kelas ditampilkan sebagai konteks kelas, bukan sebagai guru pengajar otomatis.
+
+Aturan revisi jadwal:
+
+- `Schedule` adalah baseline template jadwal untuk satu tahun ajaran, bukan jadwal yang hanya berlaku di satu semester.
+- `ScheduleRevision` menyimpan perubahan efektif per tanggal, termasuk kelas, mapel, guru, hari, jam, ruang, semester, dan alasan.
+- Jika `Berlaku mulai` kosong, revisi berlaku sejak awal semester yang dipilih.
+- Tabel jadwal kelas memakai tanggal `Lihat kondisi jadwal`, sedangkan generate agenda memakai rentang `Generate mulai` sampai `Generate sampai`. Generate manual dapat dilakukan untuk satu kelas yang sedang dilihat atau sekaligus semua kelas VII-IX, bukan per jam pelajaran.
+- Memilih semester hanya membantu menentukan konteks tanggal awal semester; baseline jadwal tahun ajaran tetap terlihat di Ganjil maupun Genap selama belum ada revisi yang mengubahnya.
+- Revisi yang memindahkan jadwal ke kelas lain harus tampil pada kelas tujuan setelah tanggal efektifnya.
+- Backend wajib menolak jadwal atau revisi yang menyebabkan bentrok kelas atau bentrok guru dalam tahun ajaran tersebut pada tanggal efektif.
+- Jadwal guru pribadi membaca baseline dan revisi, sehingga guru baru hasil revisi dapat melihat jadwalnya.
 
 Catatan UI `/schedules`:
 
 - card form dan card tabel wajib memakai `min-w-0` di dalam grid agar tampilan mobile tidak terpotong,
 - tabel jadwal boleh horizontal scroll di dalam card, tetapi card tidak boleh melebar keluar viewport,
-- date picker pada `Tanggal agenda` mengikuti pola global `.date-picker-control`.
+- date picker pada `Lihat kondisi jadwal`, `Berlaku mulai`, `Generate mulai`, dan `Generate sampai` mengikuti pola global `.date-picker-control`.
 
 ## Manajemen User
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { sortSchoolClasses } from '@eduflow/shared';
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { getCurrentSessionUser } from '../lib/session';
 import { getPreferredSchoolYear, getPreferredSemester } from '../lib/school-year';
 import { useToast } from './ui/toast';
@@ -48,8 +48,10 @@ export function ScheduleManagement() {
   const [submitState, setSubmitState] = useState<LoadState>('idle');
   const [message, setMessage] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [generateDate, setGenerateDate] = useState(getToday());
-  const [generatedAgenda, setGeneratedAgenda] = useState<DailyAgenda | null>(null);
+  const [generateStartsAt, setGenerateStartsAt] = useState(getToday());
+  const [generateEndsAt, setGenerateEndsAt] = useState(getToday());
+  const [viewDate, setViewDate] = useState(getToday());
+  const [generatedAgendas, setGeneratedAgendas] = useState<DailyAgenda[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
@@ -58,11 +60,13 @@ export function ScheduleManagement() {
   const [timeSlots, setTimeSlots] = useState<AcademicTimeSlot[]>([]);
   const [form, setForm] = useState<SchedulePayload>(emptyForm);
   const [effectiveFrom, setEffectiveFrom] = useState('');
+  const [revisionReason, setRevisionReason] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('VII');
   const [slotClassIds, setSlotClassIds] = useState<Record<string, string[]>>({});
   const [expandedTimeSlotIds, setExpandedTimeSlotIds] = useState<string[]>([]);
   const [classTimeSlotActivities, setClassTimeSlotActivities] = useState<ClassTimeSlotActivity[]>([]);
   const [scheduleClassId, setScheduleClassId] = useState('');
+  const [scheduleDayFilter, setScheduleDayFilter] = useState('all');
   const [canGenerateAgenda, setCanGenerateAgenda] = useState(false);
 
   async function loadData() {
@@ -101,9 +105,16 @@ export function ScheduleManagement() {
         }
 
         const firstSemester = getPreferredSemester(semesterResponse.data, firstSchoolYear.id);
-        const firstClass = classResponse.data.find(
-          (schoolClass) => schoolClass.schoolYearId === firstSchoolYear.id,
+        const initialDate = getDateForSemester(firstSemester);
+        const initialClassId = getFirstScheduledClassId(
+          classResponse.data,
+          scheduleResponse.data,
+          firstSchoolYear.id,
+          initialDate,
         );
+        const firstClass =
+          classResponse.data.find((schoolClass) => schoolClass.id === initialClassId) ??
+          classResponse.data.find((schoolClass) => schoolClass.schoolYearId === firstSchoolYear.id);
         const firstTeacher = teacherResponse.data[0];
         const firstSubject = firstTeacher?.subjects?.[0]?.subject;
 
@@ -117,8 +128,10 @@ export function ScheduleManagement() {
         }));
 
         setSelectedGrade(firstClass?.grade ?? 'VII');
-
         setScheduleClassId(firstClass?.id ?? '');
+        setViewDate(initialDate);
+        setGenerateStartsAt(initialDate);
+        setGenerateEndsAt(initialDate);
       }
     } catch {
       setLoadState('error');
@@ -211,23 +224,44 @@ export function ScheduleManagement() {
     [classes, form.schoolYearId],
   );
 
+  const agendaClassIds = useMemo(
+    () => classes
+      .filter(
+        (schoolClass) =>
+          schoolClass.schoolYearId === form.schoolYearId &&
+          ['VII', 'VIII', 'IX'].includes(schoolClass.grade ?? ''),
+      )
+      .map((schoolClass) => schoolClass.id),
+    [classes, form.schoolYearId],
+  );
+
   const schedulesByClass = useMemo(
-    () =>
-      schedules
-        .filter(
-          (schedule) =>
-            schedule.classId === scheduleClassId && schedule.schoolYearId === form.schoolYearId,
-        )
-        .map((schedule) => {
-          const revision = schedule.revisions?.filter((item) => item.semesterId === form.semesterId).at(-1);
-          return revision ? { ...schedule, ...revision, hasRevision: true } : schedule;
-        })
+    () => {
+      const semester = semesters.find((item) => item.id === form.semesterId);
+      const viewTime = new Date(viewDate || semester?.startsAt || getToday()).getTime();
+      return schedules.map((schedule) => {
+        const revision = schedule.revisions
+          ?.filter((item) => new Date(item.effectiveFrom).getTime() <= viewTime)
+          .at(-1);
+        return revision
+          ? { ...schedule, ...revision, class: revision.class, subject: revision.subject, teacher: revision.teacher, hasRevision: true }
+          : schedule;
+      }).filter((schedule) =>
+        schedule.classId === scheduleClassId &&
+        schedule.schoolYearId === form.schoolYearId &&
+        (scheduleDayFilter === 'all' || schedule.dayOfWeek === Number(scheduleDayFilter)),
+      )
         .sort(
           (firstSchedule, secondSchedule) =>
             firstSchedule.dayOfWeek - secondSchedule.dayOfWeek ||
             firstSchedule.startsAt.localeCompare(secondSchedule.startsAt),
-        ),
-    [form.schoolYearId, form.semesterId, scheduleClassId, schedules],
+        );
+    }, [form.schoolYearId, form.semesterId, scheduleClassId, scheduleDayFilter, schedules, semesters, viewDate],
+  );
+
+  const editingSchedule = useMemo(
+    () => schedules.find((schedule) => schedule.id === editingId),
+    [editingId, schedules],
   );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -237,7 +271,7 @@ export function ScheduleManagement() {
 
     try {
       const response = editingId
-        ? await api.updateSchedule(editingId, { ...form, effectiveFrom: effectiveFrom || undefined })
+        ? await api.updateSchedule(editingId, { ...form, effectiveFrom: effectiveFrom || undefined, reason: revisionReason || undefined })
         : await api.createBulkSchedules({
             schoolYearId: form.schoolYearId,
             semesterId: form.semesterId,
@@ -293,13 +327,28 @@ export function ScheduleManagement() {
     }
   }
 
-  async function handleGenerate(schedule: Schedule) {
+  async function handleGenerateAgendas({
+    classId,
+    classIds,
+  }: {
+    classId?: string;
+    classIds?: string[];
+  }) {
+    if ((!classId && !classIds?.length) || !form.schoolYearId) return;
+
+    setSubmitState('loading');
     setMessage(null);
-    setGeneratedAgenda(null);
+    setGeneratedAgendas([]);
 
     try {
-      const response = await api.generateAgenda(schedule.id, generateDate);
-      setGeneratedAgenda(response.data);
+      const response = await api.generateAgendas({
+        startsAt: generateStartsAt,
+        endsAt: generateEndsAt,
+        classId,
+        classIds,
+        schoolYearId: form.schoolYearId,
+      });
+      setGeneratedAgendas(response.data);
       setMessage(response.message ?? 'Agenda berhasil digenerate.');
       toast.success(
         response.message ?? 'Agenda berhasil digenerate.',
@@ -311,6 +360,23 @@ export function ScheduleManagement() {
         : 'Generate agenda gagal. Periksa tanggal dan backend.';
       setMessage(errorMessage);
       toast.error(errorMessage, 'Generate Agenda Gagal');
+    } finally {
+      setSubmitState('idle');
+    }
+  }
+
+  async function handleCancelRevision(revisionId: string) {
+    if (!editingId) return;
+
+    const confirmed = window.confirm('Batalkan revisi jadwal ini?');
+    if (!confirmed) return;
+
+    try {
+      const response = await api.cancelScheduleRevision(editingId, revisionId);
+      setMessage(response.message ?? 'Revisi jadwal dibatalkan.');
+      await loadData();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Revisi jadwal gagal dibatalkan.');
     }
   }
 
@@ -327,6 +393,7 @@ export function ScheduleManagement() {
       endsAt: schedule.endsAt,
     });
     setEffectiveFrom('');
+    setRevisionReason('');
     setSelectedGrade(schedule.class.grade ?? 'VII');
     setSlotClassIds(schedule.timeSlotId ? { [schedule.timeSlotId]: [schedule.classId] } : {});
     setMessage(null);
@@ -403,17 +470,28 @@ export function ScheduleManagement() {
           <SelectField
             label="Tahun Ajaran"
             onChange={(value) => {
-              const firstClass = classes.find(
-                (schoolClass) => schoolClass.schoolYearId === value,
+              const semester = getPreferredSemester(semesters, value);
+              const nextViewDate = getDateForSemester(semester);
+              const firstClassId = getFirstScheduledClassId(
+                classes,
+                schedules,
+                value,
+                nextViewDate,
               );
+              const firstClass =
+                classes.find((schoolClass) => schoolClass.id === firstClassId) ??
+                classes.find((schoolClass) => schoolClass.schoolYearId === value);
               setForm((currentForm) => ({
                 ...currentForm,
                 schoolYearId: value,
-                semesterId: getPreferredSemester(semesters, value)?.id ?? '',
+                semesterId: semester?.id ?? '',
                 classId: '',
               }));
               setSelectedGrade(firstClass?.grade ?? 'VII');
               setScheduleClassId(firstClass?.id ?? '');
+              setViewDate(nextViewDate);
+              setGenerateStartsAt(nextViewDate);
+              setGenerateEndsAt(nextViewDate);
               setSlotClassIds({});
               setExpandedTimeSlotIds([]);
             }}
@@ -425,14 +503,64 @@ export function ScheduleManagement() {
           />
           <SelectField
             label="Semester"
-            onChange={(value) => setForm({ ...form, semesterId: value })}
+            onChange={(value) => {
+              const semester = semesters.find((item) => item.id === value);
+              const nextViewDate = getDateForSemester(semester);
+              const firstClassId = getFirstScheduledClassId(
+                classes,
+                schedules,
+                form.schoolYearId,
+                nextViewDate,
+              );
+              const firstClass =
+                classes.find((schoolClass) => schoolClass.id === firstClassId) ??
+                classes.find((schoolClass) => schoolClass.schoolYearId === form.schoolYearId);
+              setForm({ ...form, semesterId: value });
+              setSelectedGrade(firstClass?.grade ?? selectedGrade);
+              setScheduleClassId(firstClass?.id ?? '');
+              setViewDate(nextViewDate);
+              setGenerateStartsAt(nextViewDate);
+              setGenerateEndsAt(nextViewDate);
+            }}
             options={filteredSemesters.map((semester) => ({
               label: semester.type === 'ODD' ? 'Ganjil' : 'Genap',
               value: semester.id,
             }))}
             value={form.semesterId}
           />
-          {editingId ? <InputField label="Berlaku mulai (opsional)" onChange={setEffectiveFrom} type="date" value={effectiveFrom} /> : null}
+          {editingId ? <><InputField label="Berlaku mulai (opsional)" onChange={setEffectiveFrom} required={false} type="date" value={effectiveFrom} /><InputField label="Alasan revisi" onChange={setRevisionReason} required={false} value={revisionReason} /></> : null}
+
+          {editingId && editingSchedule?.revisions?.length ? (
+            <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-4">
+              <p className="text-xs font-black tracking-[0.1em] text-amber-800 uppercase">
+                Histori Revisi
+              </p>
+              <div className="mt-3 space-y-2">
+                {editingSchedule.revisions.map((revision) => (
+                  <div className="rounded-xl bg-white p-3 text-xs font-semibold text-slate-700" key={revision.id}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-black text-slate-900">
+                          {formatDateDisplay(revision.effectiveFrom)} · {revision.class.name}
+                        </p>
+                        <p className="mt-1">
+                          {getDayLabel(revision.dayOfWeek)} {revision.startsAt}-{revision.endsAt} · {revision.subject.name} · {revision.teacher.name}
+                        </p>
+                        {revision.reason ? <p className="mt-1 text-amber-800">{revision.reason}</p> : null}
+                      </div>
+                      <button
+                        className="rounded-lg border border-red-100 bg-red-50 px-2 py-1 text-[11px] font-black text-red-700"
+                        onClick={() => void handleCancelRevision(revision.id)}
+                        type="button"
+                      >
+                        Batalkan
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <SelectField
             label="Guru Pengampu"
@@ -604,8 +732,7 @@ export function ScheduleManagement() {
       <div className="min-w-0 space-y-4">
         <div className="min-w-0 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
           <div>
-            <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0">
+            <div className="min-w-0">
               <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
                 Jadwal Kelas
               </p>
@@ -613,20 +740,21 @@ export function ScheduleManagement() {
                 {selectedScheduleClass?.name ?? 'Pilih Kelas'}
               </h2>
               <p className="mt-1 text-sm leading-6 text-muted">
-                Tabel ini membantu cek mapel, guru, dan jam mengajar per kelas.
+                Tabel ini menampilkan jadwal kelas sesuai tanggal kondisi yang dipilih.
               </p>
-              </div>
-              {canGenerateAgenda ? (
-                <div className="w-full sm:w-44">
-                  <InputField
-                    label="Tanggal agenda"
-                    onChange={setGenerateDate}
-                    type="date"
-                    value={generateDate}
-                  />
-                </div>
-              ) : null}
             </div>
+
+            <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+              <div className="max-w-sm">
+                <DateControl
+                  description="Melihat jadwal yang berlaku pada tanggal ini."
+                  label="Lihat kondisi jadwal"
+                  onChange={setViewDate}
+                  value={viewDate}
+                />
+              </div>
+            </div>
+
             <div className="mt-5 space-y-3">
               {Object.entries(classesByGrade).map(([grade, gradeClasses]) => (
                 <div className="grid gap-2 sm:grid-cols-[4rem_1fr]" key={grade}>
@@ -662,7 +790,23 @@ export function ScheduleManagement() {
             </div>
           ) : null}
 
-          <div className="mt-5 max-w-full overflow-x-auto rounded-2xl border border-slate-100">
+          <div className="mt-5 flex justify-end">
+            <label className="grid w-full max-w-xs gap-1 text-sm font-semibold text-slate-700 sm:w-56">
+              Filter hari
+              <select
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal outline-none focus:border-brand-600"
+                onChange={(event) => setScheduleDayFilter(event.target.value)}
+                value={scheduleDayFilter}
+              >
+                <option value="all">Semua hari</option>
+                {dayOptions.map((day) => (
+                  <option key={day.value} value={day.value}>{day.label}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+	          <div className="mt-3 max-w-full overflow-x-auto rounded-2xl border border-slate-100">
             <table className="w-full min-w-[640px] border-collapse bg-white text-left text-sm sm:min-w-[720px]">
               <thead className="bg-slate-50 text-xs font-black tracking-[0.08em] text-slate-500 uppercase">
                 <tr>
@@ -696,13 +840,6 @@ export function ScheduleManagement() {
                       >
                         Edit
                       </button>
-                      {canGenerateAgenda ? <button
-                        className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700 transition hover:bg-emerald-100"
-                        onClick={() => void handleGenerate(schedule)}
-                        type="button"
-                      >
-                        Generate Agenda
-                      </button> : null}
                       <button
                         className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-black text-red-700 transition hover:bg-red-100"
                         onClick={() => void handleDelete(schedule)}
@@ -718,7 +855,7 @@ export function ScheduleManagement() {
                 {scheduleClassId && !schedulesByClass.length ? (
                   <tr>
                     <td className="px-4 py-5 text-sm font-semibold text-muted" colSpan={5}>
-                      Belum ada jadwal untuk kelas ini.
+                      Belum ada jadwal untuk kelas dan hari yang dipilih.
                     </td>
                   </tr>
                 ) : null}
@@ -731,14 +868,58 @@ export function ScheduleManagement() {
                   </tr>
                 ) : null}
               </tbody>
-            </table>
-          </div>
+	            </table>
+	          </div>
+
+          {canGenerateAgenda ? (
+            <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
+              <div className="mb-4">
+                <p className="text-xs font-black tracking-[0.12em] text-emerald-700 uppercase">
+                  Generate Agenda
+                </p>
+                <p className="mt-1 text-sm font-semibold leading-6 text-slate-700">
+                  Buat agenda harian berdasarkan jadwal efektif pada setiap tanggal.
+                </p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <DateControl
+                  description="Tanggal pertama agenda yang akan dibuat."
+                  label="Generate mulai"
+                  onChange={setGenerateStartsAt}
+                  value={generateStartsAt}
+                />
+                <DateControl
+                  description="Tanggal terakhir agenda yang akan dibuat."
+                  label="Generate sampai"
+                  onChange={setGenerateEndsAt}
+                  value={generateEndsAt}
+                />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-3">
+                <button
+                  className="h-12 rounded-xl bg-emerald-600 px-4 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={!scheduleClassId || !form.schoolYearId || submitState === 'loading'}
+                  onClick={() => void handleGenerateAgendas({ classId: scheduleClassId })}
+                  type="button"
+                >
+                  Generate Agenda Kelas
+                </button>
+                <button
+                  className="h-12 rounded-xl border border-emerald-600 bg-white px-4 text-sm font-black text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={!agendaClassIds.length || !form.schoolYearId || submitState === 'loading'}
+                  onClick={() => void handleGenerateAgendas({ classIds: agendaClassIds })}
+                  type="button"
+                >
+                  Generate Semua Kelas VII-IX
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
 
-        {canGenerateAgenda && generatedAgenda ? (
+        {canGenerateAgenda && generatedAgendas.length ? (
           <div className="rounded-2xl border border-brand-100 bg-brand-50 p-5 text-sm text-brand-700">
-            Agenda: <strong>{generatedAgenda.class.name}</strong> ·{' '}
-            {generatedAgenda.subject.name} · {generatedAgenda.status}
+            Agenda: <strong>{generatedAgendas.length}</strong> sesi untuk {formatDateDisplay(generateStartsAt)} sampai {formatDateDisplay(generateEndsAt)} sudah diproses.
           </div>
         ) : null}
       </div>
@@ -780,42 +961,95 @@ function SelectField({
 function InputField({
   label,
   onChange,
-  type,
+  required = true,
+  type = 'text',
   value,
 }: {
   label: string;
   onChange: (value: string) => void;
-  type: 'date' | 'time';
+  required?: boolean;
+  type?: 'date' | 'time' | 'text';
   value: string;
 }) {
   const isDate = type === 'date';
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function openDatePicker() {
+    const input = inputRef.current as (HTMLInputElement & { showPicker?: () => void }) | null;
+    if (!input) return;
+
+    if (input.showPicker) {
+      input.showPicker();
+      return;
+    }
+
+    input.focus();
+    input.click();
+  }
 
   return (
     <label className="grid gap-1 text-sm font-semibold text-slate-700">
       {label}
       {isDate ? (
-        <span className="date-picker-control grid grid-cols-[minmax(0,1fr)_2rem] items-center gap-1 rounded-xl py-1 pl-3 pr-1">
+        <span
+          className="date-picker-control grid grid-cols-[minmax(0,1fr)_2rem] items-center gap-1 rounded-xl py-1 pl-3 pr-1"
+          onClick={openDatePicker}
+        >
+          <span aria-hidden="true" className="date-picker-control__value truncate text-sm font-normal">
+            {value ? formatDateDisplay(value) : 'Pilih tanggal'}
+          </span>
           <input
-            className="h-9 text-sm font-normal"
+            className="date-picker-control__input"
             onChange={(event) => onChange(event.target.value)}
-            required
+            ref={inputRef}
+            required={required}
             type={type}
             value={value}
           />
-          <span className="date-picker-control__button" aria-hidden="true">
+          <button
+            aria-label={`Pilih ${label.toLowerCase()}`}
+            className="date-picker-control__button"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              openDatePicker();
+            }}
+            type="button"
+          >
             <CalendarIcon className="h-4 w-4" />
-          </span>
+          </button>
         </span>
       ) : (
         <input
           className="rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600"
           onChange={(event) => onChange(event.target.value)}
-          required
+          required={required}
           type={type}
           value={value}
         />
       )}
     </label>
+  );
+}
+
+function DateControl({
+  description,
+  label,
+  onChange,
+  value,
+}: {
+  description: string;
+  label: string;
+  onChange: (value: string) => void;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <InputField label={label} onChange={onChange} type="date" value={value} />
+      <p className="mt-1.5 min-h-8 text-[11px] font-semibold leading-4 text-slate-600">
+        {description}
+      </p>
+    </div>
   );
 }
 
@@ -845,4 +1079,63 @@ function getDayLabel(dayOfWeek: number) {
 
 function getToday() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function getDateForSemester(semester?: Semester) {
+  if (!semester) return getToday();
+
+  const today = new Date(getToday()).getTime();
+  const startsAt = new Date(semester.startsAt).getTime();
+  const endsAt = new Date(semester.endsAt).getTime();
+
+  if (startsAt <= today && today <= endsAt) {
+    return getToday();
+  }
+
+  return formatDateInput(semester.startsAt);
+}
+
+function formatDateInput(value?: string | Date | null) {
+  if (!value) return '';
+  return new Date(value).toISOString().slice(0, 10);
+}
+
+function formatDateDisplay(value: string | Date) {
+  const date = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(`${value}T00:00:00`)
+    : new Date(value);
+
+  return new Intl.DateTimeFormat('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+}
+
+function getFirstScheduledClassId(
+  classes: SchoolClass[],
+  schedules: Schedule[],
+  schoolYearId: string,
+  viewDate: string,
+) {
+  const viewTime = new Date(viewDate).getTime();
+  const classIds = new Set(classes
+    .filter((schoolClass) => schoolClass.schoolYearId === schoolYearId)
+    .map((schoolClass) => schoolClass.id));
+
+  return schedules
+    .map((schedule) => {
+      const revision = schedule.revisions
+        ?.filter((item) => new Date(item.effectiveFrom).getTime() <= viewTime)
+        .at(-1);
+
+      return revision
+        ? { classId: revision.classId, schoolYearId: schedule.schoolYearId }
+        : { classId: schedule.classId, schoolYearId: schedule.schoolYearId };
+    })
+    .find(
+      (schedule) =>
+        schedule.schoolYearId === schoolYearId &&
+        classIds.has(schedule.classId),
+    )?.classId;
 }

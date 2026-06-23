@@ -120,6 +120,7 @@ export interface Schedule {
   subject: Subject;
   teacher: Teacher;
   revisions?: Array<{
+    id: string;
     semesterId: string;
     effectiveFrom: string;
     classId: string;
@@ -133,10 +134,11 @@ export interface Schedule {
     class: SchoolClass;
     subject: Subject;
     teacher: Teacher;
+    reason?: string | null;
   }>;
 }
 
-export type ScheduleUpdatePayload = SchedulePayload & { effectiveFrom?: string };
+export type ScheduleUpdatePayload = SchedulePayload & { effectiveFrom?: string; reason?: string };
 
 export interface DailyAgenda {
   id: string;
@@ -697,6 +699,12 @@ export const api = {
     }),
   getStudents: () => request<ApiResponse<Student[]>>('/academic/students'),
   getSchedules: () => request<ApiResponse<Schedule[]>>('/academic/schedules'),
+  getScheduleRevisions: (id: string) =>
+    request<ApiResponse<NonNullable<Schedule['revisions']>>>(`/academic/schedules/${id}/revisions`),
+  cancelScheduleRevision: (id: string, revisionId: string) =>
+    request<ApiResponse<Schedule>>(`/academic/schedules/${id}/revisions/${revisionId}`, {
+      method: 'DELETE',
+    }),
   getMySchedules: () =>
     request<ApiResponse<Schedule[]>>('/academic/me/schedules'),
   getMyAgendas: (date: string) => request<ApiResponse<DailyAgenda[]>>(`/academic/me/agendas?date=${date}`),
@@ -767,6 +775,11 @@ export const api = {
     request<ApiResponse<DailyAgenda>>(`/academic/schedules/${id}/generate-agenda`, {
       method: 'POST',
       body: JSON.stringify({ date }),
+    }),
+  generateAgendas: (payload: { startsAt: string; endsAt: string; classId?: string; classIds?: string[]; schoolYearId?: string }) =>
+    request<ApiResponse<DailyAgenda[]>>('/academic/agendas/generate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     }),
   getSentNotifications: () =>
     request<ApiResponse<NotificationLog[]>>('/notifications/sent'),
