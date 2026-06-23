@@ -14,8 +14,17 @@ export interface UploadFileInput {
   mimeType: string;
 }
 
+export interface StorageUsageSummary {
+  bucket: string;
+  objectCount: number;
+  totalSizeBytes: number;
+  isPartial: boolean;
+}
+
 export interface StorageProvider {
   upload(input: UploadFileInput): Promise<StoredFile>;
   createDownloadUrl(key: string, downloadName: string): Promise<string>;
   delete(key: string): Promise<void>;
+  healthCheck(): Promise<void>;
+  getUsageSummary(): Promise<StorageUsageSummary>;
 }

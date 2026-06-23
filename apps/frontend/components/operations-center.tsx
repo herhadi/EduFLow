@@ -13,6 +13,12 @@ import { formatNumber } from '../lib/format';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
+function formatBytes(value: number) {
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 const emptyDashboard: OperationsDashboard = {
   health: {
     redis: 'Unhealthy',
@@ -20,9 +26,12 @@ const emptyDashboard: OperationsDashboard = {
     worker: 'Unhealthy',
     database: 'Unhealthy',
     notification: 'Unhealthy',
+    storage: 'Unhealthy',
   },
   queues: [],
   failedJobs: [],
+  storageSummary: null,
+  storageError: null,
 };
 const emptyBackups: OperationsBackups = { daily: [], academicYears: [] };
 
@@ -126,7 +135,7 @@ export function OperationsCenter() {
           </p>
         ) : null}
 
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <HealthCard label="Redis" status={dashboard.health.redis} />
           <HealthCard label="Queue" status={dashboard.health.queue} />
           <HealthCard label="Worker" status={dashboard.health.worker} />
@@ -135,6 +144,13 @@ export function OperationsCenter() {
             label="Notification"
             status={dashboard.health.notification}
           />
+          <HealthCard label="Cloudflare R2" status={dashboard.health.storage} />
+        </div>
+        <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700">
+          <p className="font-black text-slate-900">Cloudflare R2 Storage</p>
+          {dashboard.storageSummary ? (
+            <p className="mt-1">Bucket <strong>{dashboard.storageSummary.bucket}</strong> · <strong>{formatNumber(dashboard.storageSummary.objectCount)}</strong> file · <strong>{formatBytes(dashboard.storageSummary.totalSizeBytes)}</strong>{dashboard.storageSummary.isPartial ? ' (minimum, pemindaian dibatasi 10.000 file)' : ''}</p>
+          ) : <p className="mt-1 text-rose-700">{dashboard.storageError ?? 'Detail penggunaan tidak tersedia karena bucket tidak dapat diakses.'}</p>}
         </div>
       </div>
 

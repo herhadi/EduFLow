@@ -324,7 +324,10 @@ export interface OperationsDashboard {
     worker: HealthStatus;
     database: HealthStatus;
     notification: HealthStatus;
+    storage: HealthStatus;
   };
+  storageSummary: { bucket: string; objectCount: number; totalSizeBytes: number; isPartial: boolean } | null;
+  storageError: string | null;
   queues: QueueSummary[];
   failedJobs: FailedJob[];
 }

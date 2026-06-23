@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { spawn } from 'node:child_process';
 import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -7,6 +7,7 @@ import { QUEUES } from '@eduflow/shared';
 import { Job, Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
 
 type HealthStatus = 'Healthy' | 'Unhealthy';
 
@@ -30,6 +31,7 @@ export class OperationsService {
     private readonly notificationSendQueue: Queue,
     @InjectQueue(QUEUES.REPORT_DAILY)
     private readonly reportDailyQueue: Queue,
+    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
   async getBackups() {
@@ -83,9 +85,10 @@ export class OperationsService {
   }
 
   async getDashboard() {
-    const [database, redis, queues, failedJobs] = await Promise.all([
+    const [database, redis, storageResult, queues, failedJobs] = await Promise.all([
       this.checkDatabase(),
       this.checkRedis(),
+      this.getStorageStatus(),
       this.getQueueSummaries(),
       this.getFailedJobs(),
     ]);
@@ -100,6 +103,9 @@ export class OperationsService {
           queue: this.toHealth(queueHealthy),
           worker: this.toHealth(workerHealthy),
           database,
+          storage: storageResult.status,
+          storageSummary: storageResult.summary,
+          storageError: storageResult.error,
           notification: this.toHealth(
             queues.find((queue) => queue.name === QUEUES.NOTIFICATION_SEND)?.status ===
               'Healthy',
@@ -208,6 +214,15 @@ export class OperationsService {
       return 'Healthy';
     } catch {
       return 'Unhealthy';
+    }
+  }
+
+  private async getStorageStatus(): Promise<{ status: HealthStatus; summary: Awaited<ReturnType<StorageProvider['getUsageSummary']>> | null; error: string | null }> {
+    try {
+      return { status: 'Healthy', summary: await this.storage.getUsageSummary(), error: null };
+    } catch (error) {
+      const name = error instanceof Error ? error.name : 'UnknownError';
+      return { status: 'Unhealthy', summary: null, error: `Akses bucket gagal (${name}).` };
     }
   }
 
