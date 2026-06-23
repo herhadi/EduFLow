@@ -340,13 +340,13 @@ Endpoint berikut disiapkan untuk tahap berikutnya setelah schedule dan attendanc
 ### Kalender Pendidikan
 
 ```http
-GET /api/academic/calendar
+GET /api/academic/calendar/events?schoolYearId={schoolYearId}
 POST /api/academic/calendar/events
 PATCH /api/academic/calendar/events/:id
 DELETE /api/academic/calendar/events/:id
 ```
 
-Kalender pendidikan dikelola oleh `operator_sekolah`. Data ini menentukan hari efektif, libur, ujian, kegiatan sekolah, dan pengecualian generate agenda.
+Kaldik dikelola oleh `operator_sekolah`. Setiap event terikat ke tahun ajaran, memiliki rentang tanggal, jenis event, serta `blocksAgenda`. Event dengan `blocksAgenda=true` dilewati oleh generate agenda manual maupun otomatis.
 
 ### Perangkat Ajar Guru
 

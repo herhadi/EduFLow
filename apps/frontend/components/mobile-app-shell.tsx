@@ -166,7 +166,7 @@ function AppTopBar({
   const displayRole = getPrimaryRole(currentUser?.roles ?? []).replaceAll('_', ' ');
 
   return (
-    <header className="app-topbar sticky top-0 z-30 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur-xl sm:px-6">
+    <header className="app-topbar top-0 z-30 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur-xl sm:sticky sm:px-6">
       <div className="flex items-center justify-between gap-3">
         <Link className="flex items-center gap-3" href="/">
           <span className="grid size-10 place-items-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1">

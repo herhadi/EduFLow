@@ -1,6 +1,7 @@
 import { AcademicMasterManagement } from '../../../components/academic-master-management';
 import { Container } from '../../../components/ui/container';
 import { PageHeader } from '../../../components/ui/page-header';
+import Link from 'next/link';
 
 export default function AdminAcademicPage() {
   return (
@@ -9,6 +10,7 @@ export default function AdminAcademicPage() {
         <PageHeader
           description="Kelola rombongan belajar dan mata pelajaran secara fleksibel sesuai kondisi sekolah."
           eyebrow="Admin Akademik"
+          action={<Link className="secondary-button rounded-xl px-4 py-2 text-sm font-bold" href="/admin/akademik/kalender">Kaldik</Link>}
           title="Kelas & Mata Pelajaran"
         />
         <AcademicMasterManagement />

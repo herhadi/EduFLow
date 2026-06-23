@@ -6,8 +6,10 @@ import { RequestWithUser } from '../../core/http/request-with-user';
 import { AcademicService } from './academic.service';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
 import { CreateAcademicTimeSlotDto } from './dto/create-academic-time-slot.dto';
+import { CreateAcademicCalendarEventDto } from './dto/create-academic-calendar-event.dto';
 import { CreateBulkScheduleDto } from './dto/create-bulk-schedule.dto';
 import { UpdateClassTimeSlotActivityDto } from './dto/update-class-time-slot-activity.dto';
+import { UpdateAcademicCalendarEventDto } from './dto/update-academic-calendar-event.dto';
 import { UpdateMyTeacherProfileDto } from './dto/update-my-teacher-profile.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateClassDto } from './dto/create-class.dto';
@@ -41,6 +43,33 @@ export class AcademicController {
   @Get('semesters')
   getSemesters(@Query('schoolYearId') schoolYearId?: string) {
     return this.academicService.getSemesters(schoolYearId);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_CALENDAR_READ)
+  @Get('calendar/events')
+  getAcademicCalendarEvents(@Query('schoolYearId') schoolYearId?: string) {
+    return this.academicService.getAcademicCalendarEvents(schoolYearId);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_CALENDAR_MANAGE)
+  @Post('calendar/events')
+  createAcademicCalendarEvent(@Body() dto: CreateAcademicCalendarEventDto) {
+    return this.academicService.createAcademicCalendarEvent(dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_CALENDAR_MANAGE)
+  @Patch('calendar/events/:id')
+  updateAcademicCalendarEvent(
+    @Param('id') id: string,
+    @Body() dto: UpdateAcademicCalendarEventDto,
+  ) {
+    return this.academicService.updateAcademicCalendarEvent(id, dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_CALENDAR_MANAGE)
+  @Delete('calendar/events/:id')
+  deleteAcademicCalendarEvent(@Param('id') id: string) {
+    return this.academicService.deleteAcademicCalendarEvent(id);
   }
 
   @Public()

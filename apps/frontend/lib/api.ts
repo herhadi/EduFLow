@@ -68,6 +68,21 @@ export interface Semester {
   schoolYear?: SchoolYear;
 }
 
+export type AcademicCalendarEventType = 'HOLIDAY' | 'EXAM' | 'SCHOOL_ACTIVITY' | 'NON_TEACHING_DAY' | 'OTHER';
+
+export interface AcademicCalendarEvent {
+  id: string;
+  schoolYearId: string;
+  semesterId?: string | null;
+  title: string;
+  description?: string | null;
+  type: AcademicCalendarEventType;
+  startsAt: string;
+  endsAt: string;
+  blocksAgenda: boolean;
+  semester?: Semester | null;
+}
+
 export interface StudentEnrollment {
   id: string;
   isActive: boolean;
@@ -739,6 +754,19 @@ export const api = {
     request<ApiResponse<AcademicTimeSlot[]>>(
       `/academic/time-slots${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,
     ),
+  getAcademicCalendarEvents: (schoolYearId?: string) =>
+    request<ApiResponse<AcademicCalendarEvent[]>>(
+      `/academic/calendar/events${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,
+    ),
+  createAcademicCalendarEvent: (payload: Omit<AcademicCalendarEvent, 'id' | 'semester'>) =>
+    request<ApiResponse<AcademicCalendarEvent>>('/academic/calendar/events', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  deleteAcademicCalendarEvent: (id: string) =>
+    request<ApiResponse<AcademicCalendarEvent>>(`/academic/calendar/events/${id}`, {
+      method: 'DELETE',
+    }),
   getClassTimeSlotActivities: (classId: string) =>
     request<ApiResponse<ClassTimeSlotActivity[]>>(
       `/academic/classes/${classId}/time-slot-activities`,

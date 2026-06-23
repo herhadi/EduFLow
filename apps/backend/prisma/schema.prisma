@@ -12,6 +12,14 @@ enum SemesterType {
   EVEN
 }
 
+enum AcademicCalendarEventType {
+  HOLIDAY
+  EXAM
+  SCHOOL_ACTIVITY
+  NON_TEACHING_DAY
+  OTHER
+}
+
 enum AcademicTimeSlotType {
   LESSON
   BREAK
@@ -237,42 +245,43 @@ model RolePermission {
 }
 
 model SchoolYear {
-  id            String              @id @default(uuid()) @db.Uuid
-  name          String              @unique
-  startsAt      DateTime
-  endsAt        DateTime
-  semesters     Semester[]
-  classes       Class[]
-  enrollments   StudentEnrollment[]
-  schedules     Schedule[]
-  agendas       DailyAgenda[]
-  timeSlots     AcademicTimeSlot[]
-  feeTypes      FeeType[]
-  invoices      Invoice[]
-  teachingPlans TeachingPlan[]
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  deletedAt     DateTime?
+  id             String                  @id @default(uuid()) @db.Uuid
+  name           String                  @unique
+  startsAt       DateTime
+  endsAt         DateTime
+  semesters      Semester[]
+  classes        Class[]
+  enrollments    StudentEnrollment[]
+  schedules      Schedule[]
+  agendas        DailyAgenda[]
+  timeSlots      AcademicTimeSlot[]
+  feeTypes       FeeType[]
+  invoices       Invoice[]
+  teachingPlans  TeachingPlan[]
+  calendarEvents AcademicCalendarEvent[]
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  deletedAt      DateTime?
 }
 
 model AcademicTimeSlot {
-  id              String                  @id @default(uuid()) @db.Uuid
-  schoolYearId    String                  @db.Uuid
-  dayOfWeek       Int
-  periodNumber    Int?
-  name            String
-  type            AcademicTimeSlotType
-  startsAt        String
-  endsAt          String
-  isAssignable    Boolean                 @default(true)
-  isActive        Boolean                 @default(true)
-  schoolYear      SchoolYear              @relation(fields: [schoolYearId], references: [id])
-  schedules       Schedule[]
+  id                String                  @id @default(uuid()) @db.Uuid
+  schoolYearId      String                  @db.Uuid
+  dayOfWeek         Int
+  periodNumber      Int?
+  name              String
+  type              AcademicTimeSlotType
+  startsAt          String
+  endsAt            String
+  isAssignable      Boolean                 @default(true)
+  isActive          Boolean                 @default(true)
+  schoolYear        SchoolYear              @relation(fields: [schoolYearId], references: [id])
+  schedules         Schedule[]
   scheduleRevisions ScheduleRevision[]
-  classActivities ClassTimeSlotActivity[]
-  createdAt       DateTime                @default(now())
-  updatedAt       DateTime                @updatedAt
-  deletedAt       DateTime?
+  classActivities   ClassTimeSlotActivity[]
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  deletedAt         DateTime?
 
   @@unique([schoolYearId, dayOfWeek, startsAt, endsAt])
   @@index([schoolYearId, dayOfWeek, periodNumber])
@@ -295,19 +304,20 @@ model ClassTimeSlotActivity {
 }
 
 model Semester {
-  id            String         @id @default(uuid()) @db.Uuid
-  schoolYearId  String         @db.Uuid
-  type          SemesterType
-  startsAt      DateTime
-  endsAt        DateTime
-  schoolYear    SchoolYear     @relation(fields: [schoolYearId], references: [id])
-  schedules     Schedule[]
+  id                String                  @id @default(uuid()) @db.Uuid
+  schoolYearId      String                  @db.Uuid
+  type              SemesterType
+  startsAt          DateTime
+  endsAt            DateTime
+  schoolYear        SchoolYear              @relation(fields: [schoolYearId], references: [id])
+  schedules         Schedule[]
   scheduleRevisions ScheduleRevision[]
-  agendas       DailyAgenda[]
-  teachingPlans TeachingPlan[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  deletedAt     DateTime?
+  agendas           DailyAgenda[]
+  teachingPlans     TeachingPlan[]
+  calendarEvents    AcademicCalendarEvent[]
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  deletedAt         DateTime?
 
   @@unique([schoolYearId, type])
   @@index([schoolYearId])
@@ -338,42 +348,63 @@ model Class {
   @@index([homeroomTeacherId])
 }
 
+model AcademicCalendarEvent {
+  id           String                    @id @default(uuid()) @db.Uuid
+  schoolYearId String                    @db.Uuid
+  semesterId   String?                   @db.Uuid
+  title        String
+  description  String?
+  type         AcademicCalendarEventType
+  startsAt     DateTime                  @db.Date
+  endsAt       DateTime                  @db.Date
+  blocksAgenda Boolean                   @default(true)
+  schoolYear   SchoolYear                @relation(fields: [schoolYearId], references: [id])
+  semester     Semester?                 @relation(fields: [semesterId], references: [id])
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+  deletedAt    DateTime?
+
+  @@index([schoolYearId, startsAt, endsAt])
+  @@index([semesterId])
+  @@index([blocksAgenda])
+}
+
 model Subject {
-  id            String           @id @default(uuid()) @db.Uuid
-  name          String
-  code          String?          @unique
-  isActive      Boolean          @default(true)
-  schedules     Schedule[]
+  id                String             @id @default(uuid()) @db.Uuid
+  name              String
+  code              String?            @unique
+  isActive          Boolean            @default(true)
+  schedules         Schedule[]
   scheduleRevisions ScheduleRevision[]
-  agendas       DailyAgenda[]
-  teachers      TeacherSubject[]
-  teachingPlans TeachingPlan[]
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  deletedAt     DateTime?
+  agendas           DailyAgenda[]
+  teachers          TeacherSubject[]
+  teachingPlans     TeachingPlan[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
 }
 
 model Teacher {
-  id              String           @id @default(uuid()) @db.Uuid
-  userId          String?          @unique @db.Uuid
-  name            String
-  nip             String?          @unique
-  nuptk           String?          @unique
-  email           String?          @unique
-  phone           String?
-  telegramId      String?
-  photoUrl        String?
-  isActive        Boolean          @default(true)
-  schedules       Schedule[]
+  id                String             @id @default(uuid()) @db.Uuid
+  userId            String?            @unique @db.Uuid
+  name              String
+  nip               String?            @unique
+  nuptk             String?            @unique
+  email             String?            @unique
+  phone             String?
+  telegramId        String?
+  photoUrl          String?
+  isActive          Boolean            @default(true)
+  schedules         Schedule[]
   scheduleRevisions ScheduleRevision[]
-  agendas         DailyAgenda[]
-  user            User?            @relation(fields: [userId], references: [id])
-  subjects        TeacherSubject[]
-  homeroomClasses Class[]          @relation("ClassHomeroomTeacher")
-  teachingPlans   TeachingPlan[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  deletedAt       DateTime?
+  agendas           DailyAgenda[]
+  user              User?              @relation(fields: [userId], references: [id])
+  subjects          TeacherSubject[]
+  homeroomClasses   Class[]            @relation("ClassHomeroomTeacher")
+  teachingPlans     TeachingPlan[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
 
   @@index([phone])
   @@index([telegramId])
@@ -509,28 +540,28 @@ model StudentEnrollment {
 }
 
 model Schedule {
-  id           String            @id @default(uuid()) @db.Uuid
-  schoolYearId String            @db.Uuid
-  semesterId   String            @db.Uuid
-  classId      String            @db.Uuid
-  subjectId    String            @db.Uuid
-  teacherId    String            @db.Uuid
-  timeSlotId   String?           @db.Uuid
+  id           String             @id @default(uuid()) @db.Uuid
+  schoolYearId String             @db.Uuid
+  semesterId   String             @db.Uuid
+  classId      String             @db.Uuid
+  subjectId    String             @db.Uuid
+  teacherId    String             @db.Uuid
+  timeSlotId   String?            @db.Uuid
   dayOfWeek    Int
   startsAt     String
   endsAt       String
   room         String?
-  isActive     Boolean           @default(true)
-  schoolYear   SchoolYear        @relation(fields: [schoolYearId], references: [id])
-  semester     Semester          @relation(fields: [semesterId], references: [id])
-  class        Class             @relation(fields: [classId], references: [id])
-  subject      Subject           @relation(fields: [subjectId], references: [id])
-  teacher      Teacher           @relation(fields: [teacherId], references: [id])
-  timeSlot     AcademicTimeSlot? @relation(fields: [timeSlotId], references: [id])
+  isActive     Boolean            @default(true)
+  schoolYear   SchoolYear         @relation(fields: [schoolYearId], references: [id])
+  semester     Semester           @relation(fields: [semesterId], references: [id])
+  class        Class              @relation(fields: [classId], references: [id])
+  subject      Subject            @relation(fields: [subjectId], references: [id])
+  teacher      Teacher            @relation(fields: [teacherId], references: [id])
+  timeSlot     AcademicTimeSlot?  @relation(fields: [timeSlotId], references: [id])
   revisions    ScheduleRevision[]
   agendas      DailyAgenda[]
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
   deletedAt    DateTime?
 
   @@index([schoolYearId, semesterId])
@@ -541,27 +572,28 @@ model Schedule {
 }
 
 model ScheduleRevision {
-  id String @id @default(uuid()) @db.Uuid
-  scheduleId String @db.Uuid
-  semesterId String @db.Uuid
-  effectiveFrom DateTime @db.Date
-  classId String @db.Uuid
-  subjectId String @db.Uuid
-  teacherId String @db.Uuid
-  timeSlotId String? @db.Uuid
-  dayOfWeek Int
-  startsAt String
-  endsAt String
-  room String?
-  reason String?
-  schedule Schedule @relation(fields: [scheduleId], references: [id])
-  semester Semester @relation(fields: [semesterId], references: [id])
-  class Class @relation(fields: [classId], references: [id])
-  subject Subject @relation(fields: [subjectId], references: [id])
-  teacher Teacher @relation(fields: [teacherId], references: [id])
-  timeSlot AcademicTimeSlot? @relation(fields: [timeSlotId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String            @id @default(uuid()) @db.Uuid
+  scheduleId    String            @db.Uuid
+  semesterId    String            @db.Uuid
+  effectiveFrom DateTime          @db.Date
+  classId       String            @db.Uuid
+  subjectId     String            @db.Uuid
+  teacherId     String            @db.Uuid
+  timeSlotId    String?           @db.Uuid
+  dayOfWeek     Int
+  startsAt      String
+  endsAt        String
+  room          String?
+  reason        String?
+  schedule      Schedule          @relation(fields: [scheduleId], references: [id])
+  semester      Semester          @relation(fields: [semesterId], references: [id])
+  class         Class             @relation(fields: [classId], references: [id])
+  subject       Subject           @relation(fields: [subjectId], references: [id])
+  teacher       Teacher           @relation(fields: [teacherId], references: [id])
+  timeSlot      AcademicTimeSlot? @relation(fields: [timeSlotId], references: [id])
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
   @@unique([scheduleId, effectiveFrom])
   @@index([semesterId, effectiveFrom])
 }
@@ -594,36 +626,36 @@ model DailyAgenda {
 }
 
 model Attendance {
-  id             String           @id @default(uuid()) @db.Uuid
-  agendaId       String           @unique @db.Uuid
-  classId        String           @db.Uuid
-  state          AttendanceState  @default(DRAFT)
-  startedAt      DateTime?
-  submittedAt    DateTime?
-  submittedById  String?          @db.Uuid
-  approvedAt     DateTime?
-  approvedById   String?          @db.Uuid
-  correctionAt   DateTime?
-  correctedById  String?          @db.Uuid
-  lockedAt       DateTime?
-  lockedById     String?          @db.Uuid
-  endedAt        DateTime?
-  notes          String?
-  classPhotoKey  String?
-  classPhotoName String?
-  classPhotoMimeType String?
-  classPhotoSize Int?
+  id                   String           @id @default(uuid()) @db.Uuid
+  agendaId             String           @unique @db.Uuid
+  classId              String           @db.Uuid
+  state                AttendanceState  @default(DRAFT)
+  startedAt            DateTime?
+  submittedAt          DateTime?
+  submittedById        String?          @db.Uuid
+  approvedAt           DateTime?
+  approvedById         String?          @db.Uuid
+  correctionAt         DateTime?
+  correctedById        String?          @db.Uuid
+  lockedAt             DateTime?
+  lockedById           String?          @db.Uuid
+  endedAt              DateTime?
+  notes                String?
+  classPhotoKey        String?
+  classPhotoName       String?
+  classPhotoMimeType   String?
+  classPhotoSize       Int?
   classPhotoUploadedAt DateTime?
-  correctionNote String?
-  agenda         DailyAgenda      @relation(fields: [agendaId], references: [id])
-  class          Class            @relation(fields: [classId], references: [id])
-  submittedBy    User?            @relation("AttendanceSubmittedBy", fields: [submittedById], references: [id])
-  approvedBy     User?            @relation("AttendanceApprovedBy", fields: [approvedById], references: [id])
-  correctedBy    User?            @relation("AttendanceCorrectedBy", fields: [correctedById], references: [id])
-  lockedBy       User?            @relation("AttendanceLockedBy", fields: [lockedById], references: [id])
-  items          AttendanceItem[]
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  correctionNote       String?
+  agenda               DailyAgenda      @relation(fields: [agendaId], references: [id])
+  class                Class            @relation(fields: [classId], references: [id])
+  submittedBy          User?            @relation("AttendanceSubmittedBy", fields: [submittedById], references: [id])
+  approvedBy           User?            @relation("AttendanceApprovedBy", fields: [approvedById], references: [id])
+  correctedBy          User?            @relation("AttendanceCorrectedBy", fields: [correctedById], references: [id])
+  lockedBy             User?            @relation("AttendanceLockedBy", fields: [lockedById], references: [id])
+  items                AttendanceItem[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 
   @@index([classId])
   @@index([state])

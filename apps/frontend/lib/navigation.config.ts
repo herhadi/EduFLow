@@ -99,6 +99,7 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'schedules', href: '/schedules', label: 'Setup Jadwal' },
   { section: 'schedules', href: '/admin/guru', label: 'Mapel Guru' },
   { section: 'schedules', href: '/admin/akademik', label: 'Kelas & Mapel' },
+  { section: 'schedules', href: '/admin/akademik/kalender', label: 'Kaldik' },
   { section: 'operations', href: '/operations', label: 'Health' },
   { section: 'operations', href: '/notifications', label: 'Notifikasi' },
   { section: 'operations', href: '/audit', label: 'Audit' },

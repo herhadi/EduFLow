@@ -34,7 +34,7 @@ Operator sekolah mengelola data yang bersifat konfigurasi akademik sekolah:
 - jadwal tetap,
 - generate agenda harian.
 
-Kalender pendidikan dipakai untuk menentukan hari efektif, libur, ujian, kegiatan sekolah, dan pengecualian jadwal.
+Kaldik (kalender pendidikan) dipakai untuk menentukan hari efektif, libur, ujian, kegiatan sekolah, dan pengecualian jadwal. Event Kaldik yang memiliki `blocksAgenda` menjadi sumber tunggal untuk melewati pembuatan `DailyAgenda`.
 
 Admin teknis tidak sama dengan TU. Dalam EduFlow, `root` atau admin teknis dipakai untuk akses penuh dan recovery, sedangkan pekerjaan operasional harian sekolah memakai `operator_sekolah` dan `tu`.
 
@@ -188,7 +188,6 @@ Domain ini masih bagian dari academic, tetapi sebaiknya dipisah sebagai subdomai
 
 | Entity | Fungsi |
 | --- | --- |
-| `AcademicCalendar` | Kalender pendidikan sekolah |
 | `AcademicCalendarEvent` | Hari libur, ujian, kegiatan, atau pengecualian KBM |
 | `AnnualProgram` | Program Tahunan guru per tahun ajaran dan mapel |
 | `SemesterProgram` | Program Semester guru per semester dan mapel |
@@ -202,7 +201,7 @@ Domain ini masih bagian dari academic, tetapi sebaiknya dipisah sebagai subdomai
 
 ## Prinsip Relasi
 
-- Kalender pendidikan terikat ke `SchoolYear`.
+- Kaldik disimpan sebagai `AcademicCalendarEvent` yang terikat ke `SchoolYear`; model tahun ajaran menjadi master kalender agar tidak ada container data yang redundan.
 - Event kalender dapat terikat ke `Semester` jika spesifik semester.
 - Perangkat ajar guru terikat ke `Teacher`, `Subject`, `SchoolYear`, dan bila perlu `Semester`.
 - Nilai siswa wajib terikat ke `StudentEnrollment`, bukan hanya `Student`, supaya histori kelas dan tahun ajaran aman.
@@ -261,6 +260,6 @@ Pilihan mata pelajaran pada halaman tersebut dibaca dari `GET /api/academic/me/s
 
 - Jangan gabungkan `LessonPlan` dengan `DailyAgenda`; lesson plan adalah rencana, agenda adalah realisasi harian.
 - Jangan simpan nilai siswa langsung di `Student`; gunakan `StudentGrade` dengan `StudentEnrollment`.
-- Kalender pendidikan harus memengaruhi generate agenda agar agenda tidak dibuat pada hari libur atau kegiatan non-KBM.
+- Kaldik harus memengaruhi generate agenda agar agenda tidak dibuat pada hari libur atau kegiatan non-KBM yang memblokir agenda.
 - File upload dokumen sebaiknya masuk storage provider melalui infrastructure layer, sedangkan metadata dan workflow approval tetap di PostgreSQL.
 - Kepala sekolah tidak perlu mengedit isi dokumen/nilai secara langsung; KS memberi approval, reject/revisi, dan catatan.

@@ -234,6 +234,22 @@ Catatan penting:
 - Untuk mengosongkan wali kelas, klik ulang kelas yang sedang aktif atau tekan `Kosongkan wali kelas`, lalu simpan.
 - Untuk mengganti wali kelas, kosongkan pilihan lama atau langsung pilih kelas lain pada guru yang sama, lalu simpan.
 
+## Kaldik
+
+Kaldik adalah master kalender pendidikan per tahun ajaran pada halaman `/admin/akademik/kalender`. Operator sekolah mengisinya mengikuti kalender pendidikan pemerintah dan keputusan sekolah sebelum generate agenda dilakukan.
+
+1. Pilih tahun ajaran.
+2. Tambahkan event untuk libur, ujian atau asesmen, kegiatan sekolah, hari non-KBM, atau kebutuhan lain.
+3. Isi judul dan rentang tanggal event.
+4. Aktifkan `Blokir pembuatan agenda` untuk tanggal yang tidak boleh memiliki agenda pembelajaran reguler.
+
+Aturan:
+
+- Event Kaldik terikat pada satu tahun ajaran dan tidak boleh melampaui periode tahun ajaran tersebut.
+- Generate agenda satu kelas maupun semua kelas VII-IX melewati tanggal yang diblokir Kaldik.
+- Event tanpa blokir tetap menjadi catatan operasional sekolah dan tidak menghentikan generate agenda.
+- Kaldik tidak menghapus agenda yang sudah terlanjur dibuat; operator perlu meninjau agenda tersebut bila kalender diubah setelah generate.
+
 ## Tabel Jadwal Kelas
 
 Halaman `/schedules` menyediakan tabel jadwal per kelas:

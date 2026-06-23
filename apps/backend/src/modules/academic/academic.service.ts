@@ -1,13 +1,15 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AgendaStatus, SemesterType } from '@prisma/client';
+import { AcademicCalendarEventType, AgendaStatus, SemesterType } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { sortSchoolClasses } from '@eduflow/shared';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
 import { CreateAcademicTimeSlotDto } from './dto/create-academic-time-slot.dto';
+import { CreateAcademicCalendarEventDto } from './dto/create-academic-calendar-event.dto';
 import { UpdateClassTimeSlotActivityDto } from './dto/update-class-time-slot-activity.dto';
+import { UpdateAcademicCalendarEventDto } from './dto/update-academic-calendar-event.dto';
 import { UpdateMyTeacherProfileDto } from './dto/update-my-teacher-profile.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateBulkScheduleDto } from './dto/create-bulk-schedule.dto';
@@ -107,6 +109,73 @@ export class AcademicService {
         orderBy: [{ startsAt: 'desc' }, { type: 'asc' }],
       }),
     };
+  }
+
+  async getAcademicCalendarEvents(schoolYearId?: string) {
+    return {
+      data: await this.prisma.academicCalendarEvent.findMany({
+        where: { deletedAt: null, schoolYearId },
+        include: { semester: true },
+        orderBy: [{ startsAt: 'asc' }, { createdAt: 'asc' }],
+      }),
+    };
+  }
+
+  async createAcademicCalendarEvent(dto: CreateAcademicCalendarEventDto) {
+    const event = await this.validateAcademicCalendarEvent(dto);
+    const created = await this.prisma.academicCalendarEvent.create({ data: event, include: { semester: true } });
+
+    await this.auditService.record({
+      action: 'academic-calendar.event.created',
+      entityType: 'AcademicCalendarEvent',
+      entityId: created.id,
+      after: created,
+    });
+
+    return { data: created, message: 'Event Kaldik berhasil ditambahkan.' };
+  }
+
+  async updateAcademicCalendarEvent(id: string, dto: UpdateAcademicCalendarEventDto) {
+    const existing = await this.prisma.academicCalendarEvent.findFirst({ where: { id, deletedAt: null } });
+    if (!existing) throw new NotFoundException('Event Kaldik tidak ditemukan');
+
+    const event = await this.validateAcademicCalendarEvent({
+      schoolYearId: existing.schoolYearId,
+      semesterId: dto.semesterId === undefined ? existing.semesterId ?? undefined : dto.semesterId ?? undefined,
+      title: dto.title ?? existing.title,
+      description: dto.description === undefined ? existing.description ?? undefined : dto.description ?? undefined,
+      type: dto.type ?? existing.type,
+      startsAt: dto.startsAt ?? existing.startsAt.toISOString(),
+      endsAt: dto.endsAt ?? existing.endsAt.toISOString(),
+      blocksAgenda: dto.blocksAgenda ?? existing.blocksAgenda,
+    });
+    const updated = await this.prisma.academicCalendarEvent.update({ where: { id }, data: event, include: { semester: true } });
+
+    await this.auditService.record({
+      action: 'academic-calendar.event.updated',
+      entityType: 'AcademicCalendarEvent',
+      entityId: id,
+      before: existing,
+      after: updated,
+    });
+
+    return { data: updated, message: 'Event Kaldik berhasil diperbarui.' };
+  }
+
+  async deleteAcademicCalendarEvent(id: string) {
+    const existing = await this.prisma.academicCalendarEvent.findFirst({ where: { id, deletedAt: null } });
+    if (!existing) throw new NotFoundException('Event Kaldik tidak ditemukan');
+
+    const deleted = await this.prisma.academicCalendarEvent.update({ where: { id }, data: { deletedAt: new Date() } });
+    await this.auditService.record({
+      action: 'academic-calendar.event.deleted',
+      entityType: 'AcademicCalendarEvent',
+      entityId: id,
+      before: existing,
+      after: deleted,
+    });
+
+    return { data: deleted, message: 'Event Kaldik dihapus.' };
   }
 
   async getClasses(schoolYearId?: string) {
@@ -1071,6 +1140,10 @@ export class AcademicService {
       };
     }
 
+    if (await this.isAgendaBlockedByCalendar(schedule.schoolYearId, agendaDate)) {
+      throw new BadRequestException('Tanggal ini diblokir oleh Kaldik, agenda tidak dapat dibuat');
+    }
+
     const effectiveSchedule = this.getScheduleSnapshotAtDate(schedule, agendaDate);
     const semester = await this.prisma.semester.findFirstOrThrow({ where: { schoolYearId: schedule.schoolYearId, startsAt: { lte: agendaDate }, endsAt: { gte: agendaDate }, deletedAt: null } });
     const agenda = await this.createAgendaFromEffectiveSchedule(effectiveSchedule, semester.id, agendaDate);
@@ -1121,6 +1194,7 @@ export class AcademicService {
     }
 
     const schoolYearId = semesters[0].schoolYearId;
+    const blockedDates = await this.getBlockedAgendaDates(schoolYearId, startsAt, endsAt);
     const schedules = await this.prisma.schedule.findMany({
       where: {
         schoolYearId,
@@ -1138,8 +1212,14 @@ export class AcademicService {
         : null;
     const agendas = [];
     let skipped = 0;
+    let calendarSkipped = 0;
 
     for (const agendaDate of dates) {
+      if (blockedDates.has(agendaDate.toISOString().slice(0, 10))) {
+        calendarSkipped += 1;
+        continue;
+      }
+
       const semester = semesters.find(
         (item) => item.startsAt <= agendaDate && item.endsAt >= agendaDate,
       );
@@ -1182,12 +1262,13 @@ export class AcademicService {
         schoolYearId,
         generated: agendas.length - skipped,
         skipped,
+        calendarSkipped,
       },
     });
 
     return {
       data: agendas,
-      message: `${agendas.length - skipped} agenda dibuat, ${skipped} sudah ada.`,
+      message: `${agendas.length - skipped} agenda dibuat, ${skipped} sudah ada, ${calendarSkipped} hari dilewati oleh Kaldik.`,
     };
   }
 
@@ -1464,6 +1545,75 @@ export class AcademicService {
     return revisions
       ?.filter((item) => item.effectiveFrom <= effectiveFrom)
       .at(-1);
+  }
+
+  private async validateAcademicCalendarEvent(dto: {
+    schoolYearId: string;
+    semesterId?: string;
+    title: string;
+    description?: string;
+    type: AcademicCalendarEventType;
+    startsAt: string;
+    endsAt: string;
+    blocksAgenda?: boolean;
+  }) {
+    const [schoolYear, semester] = await Promise.all([
+      this.prisma.schoolYear.findFirst({ where: { id: dto.schoolYearId, deletedAt: null } }),
+      dto.semesterId
+        ? this.prisma.semester.findFirst({ where: { id: dto.semesterId, schoolYearId: dto.schoolYearId, deletedAt: null } })
+        : null,
+    ]);
+
+    if (!schoolYear) throw new NotFoundException('Tahun ajaran tidak ditemukan');
+    if (dto.semesterId && !semester) throw new BadRequestException('Semester tidak berada pada tahun ajaran yang dipilih');
+    if (!dto.title.trim()) throw new BadRequestException('Judul event Kaldik wajib diisi');
+
+    const startsAt = this.toDateOnly(dto.startsAt);
+    const endsAt = this.toDateOnly(dto.endsAt);
+    if (endsAt < startsAt) throw new BadRequestException('Tanggal akhir tidak boleh lebih awal dari tanggal mulai');
+    if (startsAt < this.toDateOnly(schoolYear.startsAt.toISOString()) || endsAt > this.toDateOnly(schoolYear.endsAt.toISOString())) {
+      throw new BadRequestException('Rentang event harus berada dalam tahun ajaran yang dipilih');
+    }
+
+    return {
+      schoolYearId: dto.schoolYearId,
+      semesterId: dto.semesterId,
+      title: dto.title.trim(),
+      description: dto.description?.trim() || null,
+      type: dto.type,
+      startsAt,
+      endsAt,
+      blocksAgenda: dto.blocksAgenda ?? true,
+    };
+  }
+
+  private async isAgendaBlockedByCalendar(schoolYearId: string, date: Date) {
+    const blockedEvent = await this.prisma.academicCalendarEvent.findFirst({
+      where: {
+        schoolYearId,
+        blocksAgenda: true,
+        deletedAt: null,
+        startsAt: { lte: date },
+        endsAt: { gte: date },
+      },
+      select: { id: true },
+    });
+    return Boolean(blockedEvent);
+  }
+
+  private async getBlockedAgendaDates(schoolYearId: string, startsAt: Date, endsAt: Date) {
+    const events = await this.prisma.academicCalendarEvent.findMany({
+      where: {
+        schoolYearId,
+        blocksAgenda: true,
+        deletedAt: null,
+        startsAt: { lte: endsAt },
+        endsAt: { gte: startsAt },
+      },
+      select: { startsAt: true, endsAt: true },
+    });
+    return new Set(events.flatMap((event) => this.getDateRange(event.startsAt, event.endsAt)
+      .map((date) => date.toISOString().slice(0, 10))));
   }
 
   private toDateOnly(value: string) {
