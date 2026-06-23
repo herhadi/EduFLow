@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api, type AcademicCalendarEvent, type AcademicCalendarEventType, type SchoolYear } from '../lib/api';
-import { getPreferredSchoolYear } from '../lib/school-year';
+import { getUpcomingSchoolYear } from '../lib/school-year';
 import { useToast } from './ui/toast';
 
 const eventTypes: Array<{ value: AcademicCalendarEventType; label: string; blocksAgenda: boolean }> = [
@@ -62,7 +62,7 @@ export function AcademicCalendarManagement() {
     try {
       const response = await api.getSchoolYears();
       setSchoolYears(response.data);
-      const preferred = getPreferredSchoolYear(response.data);
+      const preferred = getUpcomingSchoolYear(response.data);
       const nextId = schoolYearId || preferred?.id || response.data[0]?.id || '';
       setSchoolYearId(nextId);
     } catch {

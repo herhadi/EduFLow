@@ -24,6 +24,19 @@ export function getPreferredSchoolYear(schoolYears: SchoolYear[], now = new Date
   );
 }
 
+export function getUpcomingSchoolYear(schoolYears: SchoolYear[], now = new Date()) {
+  const nowTime = now.getTime();
+  const upcomingSchoolYear = schoolYears
+    .filter((schoolYear) => new Date(schoolYear.startsAt).getTime() > nowTime)
+    .sort(
+      (firstSchoolYear, secondSchoolYear) =>
+        new Date(firstSchoolYear.startsAt).getTime() -
+        new Date(secondSchoolYear.startsAt).getTime(),
+    )[0];
+
+  return upcomingSchoolYear ?? getPreferredSchoolYear(schoolYears, now);
+}
+
 export function getPreferredSemester(
   semesters: Semester[],
   schoolYearId: string,

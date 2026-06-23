@@ -236,7 +236,7 @@ Catatan penting:
 
 ## Kaldik
 
-Kaldik adalah master kalender pendidikan per tahun ajaran pada halaman `/admin/akademik/kalender`. Operator sekolah mengisinya mengikuti kalender pendidikan pemerintah dan keputusan sekolah sebelum generate agenda dilakukan.
+Kaldik adalah master kalender pendidikan per tahun ajaran pada halaman `/admin/akademik/kalender`. Operator sekolah mengisinya mengikuti kalender pendidikan pemerintah dan keputusan sekolah sebelum generate agenda dilakukan. Bila sudah tersedia, Kaldik otomatis memilih tahun ajaran berikutnya agar persiapan dapat dilakukan lebih awal.
 
 1. Pilih tahun ajaran.
 2. Tambahkan event untuk libur, ujian atau asesmen, kegiatan sekolah, hari non-KBM, atau kebutuhan lain.

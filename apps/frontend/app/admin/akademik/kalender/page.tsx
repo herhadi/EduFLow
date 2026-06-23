@@ -9,7 +9,7 @@ export default function AcademicCalendarPage() {
         <PageHeader
           description="Tandai libur, ujian, kegiatan sekolah, dan hari non-KBM sebagai acuan agenda harian."
           eyebrow="Admin Akademik"
-          title="Kaldik"
+          title="Kalender Pendidikan"
         />
         <AcademicCalendarManagement />
       </Container>
