@@ -48,6 +48,8 @@ Tahun ajaran dikelola dari `/admin/akademik` oleh pengguna dengan permission `ac
 
 Pembuatan memakai `POST /api/academic/school-years`, menyimpan data pada `SchoolYear`, membuat semester `Ganjil` (1 Juli-31 Desember) serta `Genap` (1 Januari-30 Juni), dan mencatat audit action `school-year.created`. Tahun ajaran yang berhasil dibuat langsung tersedia sebagai pilihan saat membuat rombongan belajar.
 
+Jadwal adalah baseline satu tahun ajaran. Perubahan tidak menyalin jadwal; sistem menyimpan `ScheduleRevision` dengan tanggal mulai berlaku. Filter semester menampilkan baseline atau revisi yang berlaku pada semester tersebut, dan agenda harian menyimpan snapshot efektif pada tanggal agenda dibuat.
+
 Form rombongan belajar menampilkan label untuk Tahun Ajaran Baru, Tahun Ajaran, Tingkat, dan Rombel agar konteks setiap nilai jelas.
 
 ## Hak Guru

@@ -18,6 +18,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memperbaiki pilihan awal tahun ajaran pada form jadwal, data master, dan perangkat ajar agar memilih tahun berjalan, bukan tahun ajaran masa depan yang masih kosong.
 - Memisahkan tampilan jadwal per tahun ajaran secara ketat serta membuat semester `Ganjil` dan `Genap` otomatis pada setiap tahun ajaran baru.
 - Memilih semester aktif secara otomatis pada form jadwal; tahun ajaran masa depan selalu dimulai dari pilihan `Ganjil`.
+- Menambahkan revisi jadwal efektif per tanggal agar baseline tahunan tidak diduplikasi saat terjadi perubahan Ganjil, Genap, atau tengah semester.
 
 ## 2026-06-21
 

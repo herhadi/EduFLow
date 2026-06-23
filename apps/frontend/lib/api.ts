@@ -119,7 +119,24 @@ export interface Schedule {
   class: SchoolClass;
   subject: Subject;
   teacher: Teacher;
+  revisions?: Array<{
+    semesterId: string;
+    effectiveFrom: string;
+    classId: string;
+    subjectId: string;
+    teacherId: string;
+    timeSlotId?: string | null;
+    dayOfWeek: number;
+    startsAt: string;
+    endsAt: string;
+    room?: string | null;
+    class: SchoolClass;
+    subject: Subject;
+    teacher: Teacher;
+  }>;
 }
+
+export type ScheduleUpdatePayload = SchedulePayload & { effectiveFrom?: string };
 
 export interface DailyAgenda {
   id: string;
@@ -737,7 +754,7 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  updateSchedule: (id: string, payload: SchedulePayload) =>
+  updateSchedule: (id: string, payload: ScheduleUpdatePayload) =>
     request<ApiResponse<Schedule>>(`/academic/schedules/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),

@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, IsUUID, Matches, Max, Min } from 'class-validator';
+import { IsDateString, IsInt, IsOptional, IsString, IsUUID, Matches, Max, Min } from 'class-validator';
 
 export class UpdateScheduleDto {
   @IsOptional()
@@ -9,6 +9,10 @@ export class UpdateScheduleDto {
   @IsOptional()
   @IsUUID()
   semesterId?: string;
+
+  @IsOptional()
+  @IsDateString()
+  effectiveFrom?: string;
 
   @IsOptional()
   @IsUUID()

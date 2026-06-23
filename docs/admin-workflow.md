@@ -155,6 +155,8 @@ Setiap tahun ajaran selalu memiliki semester `Ganjil` dan `Genap`. Pilihan semes
 
 Pemilihan semester awal mengikuti tanggal saat form dibuka. Untuk tahun ajaran yang sedang berlangsung, semester aktif dipilih; untuk tahun ajaran masa depan, sistem memilih semester `Ganjil` sebagai periode pertama.
 
+Saat mengubah jadwal, operator dapat mengisi tanggal mulai berlaku untuk revisi tengah semester. Jika dikosongkan, revisi berlaku sejak awal semester yang dipilih.
+
 Kelas tidak dapat dihapus jika sudah memiliki:
 
 - siswa aktif atau histori enrollment,

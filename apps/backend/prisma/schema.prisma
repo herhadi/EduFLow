@@ -268,6 +268,7 @@ model AcademicTimeSlot {
   isActive        Boolean                 @default(true)
   schoolYear      SchoolYear              @relation(fields: [schoolYearId], references: [id])
   schedules       Schedule[]
+  scheduleRevisions ScheduleRevision[]
   classActivities ClassTimeSlotActivity[]
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
@@ -301,6 +302,7 @@ model Semester {
   endsAt        DateTime
   schoolYear    SchoolYear     @relation(fields: [schoolYearId], references: [id])
   schedules     Schedule[]
+  scheduleRevisions ScheduleRevision[]
   agendas       DailyAgenda[]
   teachingPlans TeachingPlan[]
   createdAt     DateTime       @default(now())
@@ -322,6 +324,7 @@ model Class {
   homeroomTeacher    Teacher?                @relation("ClassHomeroomTeacher", fields: [homeroomTeacherId], references: [id])
   enrollments        StudentEnrollment[]
   schedules          Schedule[]
+  scheduleRevisions  ScheduleRevision[]
   agendas            DailyAgenda[]
   attendances        Attendance[]
   timeSlotActivities ClassTimeSlotActivity[]
@@ -341,6 +344,7 @@ model Subject {
   code          String?          @unique
   isActive      Boolean          @default(true)
   schedules     Schedule[]
+  scheduleRevisions ScheduleRevision[]
   agendas       DailyAgenda[]
   teachers      TeacherSubject[]
   teachingPlans TeachingPlan[]
@@ -361,6 +365,7 @@ model Teacher {
   photoUrl        String?
   isActive        Boolean          @default(true)
   schedules       Schedule[]
+  scheduleRevisions ScheduleRevision[]
   agendas         DailyAgenda[]
   user            User?            @relation(fields: [userId], references: [id])
   subjects        TeacherSubject[]
@@ -522,6 +527,7 @@ model Schedule {
   subject      Subject           @relation(fields: [subjectId], references: [id])
   teacher      Teacher           @relation(fields: [teacherId], references: [id])
   timeSlot     AcademicTimeSlot? @relation(fields: [timeSlotId], references: [id])
+  revisions    ScheduleRevision[]
   agendas      DailyAgenda[]
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
@@ -532,6 +538,32 @@ model Schedule {
   @@index([teacherId, dayOfWeek])
   @@index([timeSlotId])
   @@index([isActive])
+}
+
+model ScheduleRevision {
+  id String @id @default(uuid()) @db.Uuid
+  scheduleId String @db.Uuid
+  semesterId String @db.Uuid
+  effectiveFrom DateTime @db.Date
+  classId String @db.Uuid
+  subjectId String @db.Uuid
+  teacherId String @db.Uuid
+  timeSlotId String? @db.Uuid
+  dayOfWeek Int
+  startsAt String
+  endsAt String
+  room String?
+  reason String?
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+  semester Semester @relation(fields: [semesterId], references: [id])
+  class Class @relation(fields: [classId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+  timeSlot AcademicTimeSlot? @relation(fields: [timeSlotId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([scheduleId, effectiveFrom])
+  @@index([semesterId, effectiveFrom])
 }
 
 model DailyAgenda {

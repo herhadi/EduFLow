@@ -57,6 +57,7 @@ export function ScheduleManagement() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [timeSlots, setTimeSlots] = useState<AcademicTimeSlot[]>([]);
   const [form, setForm] = useState<SchedulePayload>(emptyForm);
+  const [effectiveFrom, setEffectiveFrom] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('VII');
   const [slotClassIds, setSlotClassIds] = useState<Record<string, string[]>>({});
   const [expandedTimeSlotIds, setExpandedTimeSlotIds] = useState<string[]>([]);
@@ -217,12 +218,16 @@ export function ScheduleManagement() {
           (schedule) =>
             schedule.classId === scheduleClassId && schedule.schoolYearId === form.schoolYearId,
         )
+        .map((schedule) => {
+          const revision = schedule.revisions?.filter((item) => item.semesterId === form.semesterId).at(-1);
+          return revision ? { ...schedule, ...revision, hasRevision: true } : schedule;
+        })
         .sort(
           (firstSchedule, secondSchedule) =>
             firstSchedule.dayOfWeek - secondSchedule.dayOfWeek ||
             firstSchedule.startsAt.localeCompare(secondSchedule.startsAt),
         ),
-    [form.schoolYearId, scheduleClassId, schedules],
+    [form.schoolYearId, form.semesterId, scheduleClassId, schedules],
   );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -232,7 +237,7 @@ export function ScheduleManagement() {
 
     try {
       const response = editingId
-        ? await api.updateSchedule(editingId, form)
+        ? await api.updateSchedule(editingId, { ...form, effectiveFrom: effectiveFrom || undefined })
         : await api.createBulkSchedules({
             schoolYearId: form.schoolYearId,
             semesterId: form.semesterId,
@@ -321,6 +326,7 @@ export function ScheduleManagement() {
       startsAt: schedule.startsAt,
       endsAt: schedule.endsAt,
     });
+    setEffectiveFrom('');
     setSelectedGrade(schedule.class.grade ?? 'VII');
     setSlotClassIds(schedule.timeSlotId ? { [schedule.timeSlotId]: [schedule.classId] } : {});
     setMessage(null);
@@ -426,6 +432,7 @@ export function ScheduleManagement() {
             }))}
             value={form.semesterId}
           />
+          {editingId ? <InputField label="Berlaku mulai (opsional)" onChange={setEffectiveFrom} type="date" value={effectiveFrom} /> : null}
 
           <SelectField
             label="Guru Pengampu"
@@ -677,6 +684,7 @@ export function ScheduleManagement() {
                     </td>
                     <td className="px-4 py-3 font-semibold text-slate-800">
                       {schedule.subject.name}
+                      {'hasRevision' in schedule && schedule.hasRevision ? <span className="ml-2 text-xs text-amber-700">Revisi</span> : null}
                     </td>
                     <td className="px-4 py-3 text-slate-600">{schedule.teacher.name}</td>
                     <td className="px-4 py-3">

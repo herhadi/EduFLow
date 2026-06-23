@@ -690,6 +690,7 @@ export class AcademicService {
           subject: true,
           teacher: true,
           timeSlot: true,
+          revisions: { include: { semester: true, class: true, subject: true, teacher: true, timeSlot: true }, orderBy: { effectiveFrom: 'asc' } },
         },
         orderBy: [{ dayOfWeek: 'asc' }, { startsAt: 'asc' }],
       }),
@@ -940,38 +941,52 @@ export class AcademicService {
 
   async updateSchedule(id: string, dto: UpdateScheduleDto) {
     const existingSchedule = await this.prisma.schedule.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, deletedAt: null }, include: { semester: true },
     });
 
     if (!existingSchedule) {
       throw new NotFoundException('Jadwal tidak ditemukan');
     }
 
-    const nextSchedule = { ...existingSchedule, ...dto };
+    const { effectiveFrom, ...scheduleChanges } = dto;
+    const nextSchedule = { ...existingSchedule, ...scheduleChanges };
     this.validateScheduleTime(nextSchedule.startsAt, nextSchedule.endsAt);
     await this.ensureScheduleRelations(nextSchedule);
 
-    const schedule = await this.prisma.schedule.update({
-      where: { id },
-      data: dto,
-      include: {
-        schoolYear: true,
-        semester: true,
-        class: true,
-        subject: true,
-        teacher: true,
+    const revisionSemester = await this.prisma.semester.findUniqueOrThrow({
+      where: { id: nextSchedule.semesterId },
+    });
+    const revisionEffectiveFrom = effectiveFrom
+      ? this.toDateOnly(effectiveFrom)
+      : revisionSemester.startsAt;
+
+    if (revisionEffectiveFrom < revisionSemester.startsAt || revisionEffectiveFrom > revisionSemester.endsAt) {
+      throw new BadRequestException('Tanggal revisi harus berada dalam semester yang dipilih');
+    }
+    const revision = await this.prisma.scheduleRevision.upsert({
+      where: { scheduleId_effectiveFrom: { scheduleId: id, effectiveFrom: revisionEffectiveFrom } },
+      update: {
+        semesterId: revisionSemester.id, classId: nextSchedule.classId, subjectId: nextSchedule.subjectId,
+        teacherId: nextSchedule.teacherId, timeSlotId: nextSchedule.timeSlotId, dayOfWeek: nextSchedule.dayOfWeek,
+        startsAt: nextSchedule.startsAt, endsAt: nextSchedule.endsAt,
       },
+      create: {
+        scheduleId: id, semesterId: revisionSemester.id, effectiveFrom: revisionEffectiveFrom,
+        classId: nextSchedule.classId, subjectId: nextSchedule.subjectId, teacherId: nextSchedule.teacherId,
+        timeSlotId: nextSchedule.timeSlotId, dayOfWeek: nextSchedule.dayOfWeek, startsAt: nextSchedule.startsAt, endsAt: nextSchedule.endsAt,
+      },
+      include: { semester: true, class: true, subject: true, teacher: true, timeSlot: true },
     });
 
     await this.auditService.record({
       action: 'schedule.updated',
       entityType: 'Schedule',
-      entityId: schedule.id,
+      entityId: id,
       before: existingSchedule,
-      after: schedule,
+      after: revision,
     });
 
-    return { data: schedule, message: 'Jadwal berhasil diperbarui.' };
+    return { data: { ...existingSchedule, revisions: [revision] }, message: 'Revisi jadwal berhasil disimpan.' };
   }
 
   async deleteSchedule(id: string) {
@@ -994,9 +1009,7 @@ export class AcademicService {
   }
 
   async generateAgenda(id: string, dto: GenerateAgendaDto) {
-    const schedule = await this.prisma.schedule.findFirst({
-      where: { id, deletedAt: null },
-    });
+    const schedule = await this.prisma.schedule.findFirst({ where: { id, deletedAt: null }, include: { revisions: { orderBy: { effectiveFrom: 'asc' } } } });
 
     if (!schedule) {
       throw new NotFoundException('Jadwal tidak ditemukan');
@@ -1023,14 +1036,17 @@ export class AcademicService {
       };
     }
 
+    const revision = [...schedule.revisions].reverse().find((item) => item.effectiveFrom <= agendaDate);
+    const effectiveSchedule = revision ?? schedule;
+    const semester = await this.prisma.semester.findFirstOrThrow({ where: { schoolYearId: schedule.schoolYearId, startsAt: { lte: agendaDate }, endsAt: { gte: agendaDate }, deletedAt: null } });
     const agenda = await this.prisma.dailyAgenda.create({
       data: {
         scheduleId: schedule.id,
         schoolYearId: schedule.schoolYearId,
-        semesterId: schedule.semesterId,
-        classId: schedule.classId,
-        subjectId: schedule.subjectId,
-        teacherId: schedule.teacherId,
+        semesterId: semester.id,
+        classId: effectiveSchedule.classId,
+        subjectId: effectiveSchedule.subjectId,
+        teacherId: effectiveSchedule.teacherId,
         date: agendaDate,
         status: AgendaStatus.SCHEDULED,
       },
