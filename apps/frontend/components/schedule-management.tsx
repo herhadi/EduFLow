@@ -3,6 +3,7 @@
 import { sortSchoolClasses } from '@eduflow/shared';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { getCurrentSessionUser } from '../lib/session';
+import { getPreferredSchoolYear, getPreferredSemester } from '../lib/school-year';
 import { useToast } from './ui/toast';
 import {
   api,
@@ -91,11 +92,14 @@ export function ScheduleManagement() {
       setTimeSlots(timeSlotResponse.data);
       setLoadState('success');
 
-      if (!form.schoolYearId && schoolYearResponse.data[0]) {
-        const firstSchoolYear = schoolYearResponse.data[0];
-        const firstSemester = semesterResponse.data.find(
-          (semester) => semester.schoolYearId === firstSchoolYear.id,
-        );
+      if (!form.schoolYearId) {
+        const firstSchoolYear = getPreferredSchoolYear(schoolYearResponse.data);
+
+        if (!firstSchoolYear) {
+          return;
+        }
+
+        const firstSemester = getPreferredSemester(semesterResponse.data, firstSchoolYear.id);
         const firstClass = classResponse.data.find(
           (schoolClass) => schoolClass.schoolYearId === firstSchoolYear.id,
         );
@@ -183,13 +187,19 @@ export function ScheduleManagement() {
   );
 
   const selectedScheduleClass = useMemo(
-    () => classes.find((schoolClass) => schoolClass.id === scheduleClassId),
-    [classes, scheduleClassId],
+    () =>
+      classes.find(
+        (schoolClass) =>
+          schoolClass.id === scheduleClassId && schoolClass.schoolYearId === form.schoolYearId,
+      ),
+    [classes, form.schoolYearId, scheduleClassId],
   );
 
   const classesByGrade = useMemo(
     () => {
-      const sortedClasses = sortSchoolClasses(classes);
+      const sortedClasses = sortSchoolClasses(
+        classes.filter((schoolClass) => schoolClass.schoolYearId === form.schoolYearId),
+      );
 
       return sortedClasses.reduce<Record<string, SchoolClass[]>>((groups, schoolClass) => {
         const grade = schoolClass.grade ?? 'Lainnya';
@@ -197,19 +207,22 @@ export function ScheduleManagement() {
         return groups;
       }, {});
     },
-    [classes],
+    [classes, form.schoolYearId],
   );
 
   const schedulesByClass = useMemo(
     () =>
       schedules
-        .filter((schedule) => schedule.classId === scheduleClassId)
+        .filter(
+          (schedule) =>
+            schedule.classId === scheduleClassId && schedule.schoolYearId === form.schoolYearId,
+        )
         .sort(
           (firstSchedule, secondSchedule) =>
             firstSchedule.dayOfWeek - secondSchedule.dayOfWeek ||
             firstSchedule.startsAt.localeCompare(secondSchedule.startsAt),
         ),
-    [scheduleClassId, schedules],
+    [form.schoolYearId, scheduleClassId, schedules],
   );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -390,11 +403,11 @@ export function ScheduleManagement() {
               setForm((currentForm) => ({
                 ...currentForm,
                 schoolYearId: value,
-                semesterId:
-                  semesters.find((semester) => semester.schoolYearId === value)?.id ?? '',
+                semesterId: getPreferredSemester(semesters, value)?.id ?? '',
                 classId: '',
               }));
               setSelectedGrade(firstClass?.grade ?? 'VII');
+              setScheduleClassId(firstClass?.id ?? '');
               setSlotClassIds({});
               setExpandedTimeSlotIds([]);
             }}

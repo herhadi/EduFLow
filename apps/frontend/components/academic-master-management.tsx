@@ -8,6 +8,7 @@ import {
   type SchoolYear,
   type Subject,
 } from '../lib/api';
+import { getPreferredSchoolYear } from '../lib/school-year';
 import { useToast } from './ui/toast';
 
 type LoadState = 'loading' | 'success' | 'error';
@@ -46,7 +47,7 @@ export function AcademicMasterManagement() {
       setSchoolYears(yearResponse.data);
       setClassForm((current) => ({
         ...current,
-        schoolYearId: current.schoolYearId || yearResponse.data[0]?.id || '',
+        schoolYearId: current.schoolYearId || getPreferredSchoolYear(yearResponse.data)?.id || '',
       }));
       setLoadState('success');
     } catch {

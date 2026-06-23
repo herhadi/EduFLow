@@ -5,7 +5,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 ## 2026-06-22
 
 - Memperbaiki perintah migration deployment agar Prisma selalu menggunakan schema monorepo `apps/backend/prisma/schema.prisma` dari workdir container `/app`.
-- Memindahkan konteks seluruh data akademik yang ada dari `2026/2027` ke `2025/2026` melalui migrasi data, lalu menyediakan `2026/2027` kosong untuk konfigurasi tahun ajaran baru.
+- Memindahkan konteks seluruh data akademik dan transaksi keuangan yang ada dari `2026/2027` ke `2025/2026` melalui migrasi data, lalu menyediakan `2026/2027` kosong untuk konfigurasi tahun ajaran baru. Migration hanya melanjutkan bila target `2025/2026` masih kosong.
 - Menambahkan export/import PostgreSQL untuk transfer data demo tanpa akun ber-role `root`; akun root target dibuat ulang dari environment Debian setelah import.
 - Menetapkan permission `system.recovery.manage` untuk fitur recovery dan operasi backup yang khusus role `root`.
 - Menambahkan panel backup pada `/operations` untuk membuat dump PostgreSQL harian dan arsip JSON per tahun ajaran.
@@ -15,6 +15,9 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan migration grant permission `system.recovery.manage` ke role `root` agar deploy normal tidak bergantung pada seed untuk akses recovery.
 - Mengubah dropdown tahun ajaran di panel backup agar membaca endpoint akademik langsung dan tidak memicu 403 dari endpoint recovery.
 - Memisahkan permission `/operations`: dashboard health memakai `reporting.read`, aksi queue memakai `reporting.manage`, sedangkan backup/restore tetap khusus `system.recovery.manage`.
+- Memperbaiki pilihan awal tahun ajaran pada form jadwal, data master, dan perangkat ajar agar memilih tahun berjalan, bukan tahun ajaran masa depan yang masih kosong.
+- Memisahkan tampilan jadwal per tahun ajaran secara ketat serta membuat semester `Ganjil` dan `Genap` otomatis pada setiap tahun ajaran baru.
+- Memilih semester aktif secara otomatis pada form jadwal; tahun ajaran masa depan selalu dimulai dari pilihan `Ganjil`.
 
 ## 2026-06-21
 

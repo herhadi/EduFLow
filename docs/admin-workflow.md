@@ -147,6 +147,14 @@ Admin dapat menambah rombel baru seperti `VII-I` atau menghapus rombel kosong me
 
 Tahun ajaran `2026/2027` disediakan kosong untuk konfigurasi baru. Semester, kelas, siswa terdaftar, jadwal, agenda, slot waktu, dan perangkat ajar tidak disalin otomatis dari tahun sebelumnya.
 
+Form akademik memilih tahun ajaran yang sedang berjalan secara otomatis. Jika belum ada tahun yang aktif pada tanggal perangkat, sistem memakai tahun ajaran terakhir yang sudah dimulai, sehingga tahun ajaran masa depan yang masih kosong tidak menjadi pilihan awal.
+
+Saat pemindahan data awal dilakukan, seluruh transaksi yang sudah telanjur terkait `2026/2027` dipindahkan ke `2025/2026`, termasuk tagihan dan jenis biaya per tahun ajaran. Presensi tetap konsisten karena terhubung ke agenda dan enrollment yang ikut berpindah.
+
+Setiap tahun ajaran selalu memiliki semester `Ganjil` dan `Genap`. Pilihan semester pada form jadwal dibaca dari tabel `Semester`, bukan ditentukan oleh frontend. Memilih tahun ajaran baru hanya menampilkan konfigurasi tahun tersebut; jadwal lama tidak ditampilkan atau dimuat ke konteks tahun ajaran baru.
+
+Pemilihan semester awal mengikuti tanggal saat form dibuka. Untuk tahun ajaran yang sedang berlangsung, semester aktif dipilih; untuk tahun ajaran masa depan, sistem memilih semester `Ganjil` sebagai periode pertama.
+
 Kelas tidak dapat dihapus jika sudah memiliki:
 
 - siswa aktif atau histori enrollment,

@@ -3,6 +3,7 @@
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react';
 import { api, type SchoolYear, type Semester, type Subject, type TeachingPlan, type TeachingPlanType } from '../lib/api';
 import { openTeachingPlanAttachment } from '../lib/open-document';
+import { getPreferredSchoolYear } from '../lib/school-year';
 import { CameraCaptureButton } from './ui/camera-capture-button';
 import { useToast } from './ui/toast';
 
@@ -39,7 +40,7 @@ export function TeacherTeachingPlans() {
       setSubjects(subjectResponse.data);
       setSchoolYears(schoolYearResponse.data);
       setSemesters(semesterResponse.data);
-      setForm((current) => ({ ...current, subjectId: current.subjectId || subjectResponse.data[0]?.id || '', schoolYearId: current.schoolYearId || schoolYearResponse.data[0]?.id || '' }));
+      setForm((current) => ({ ...current, subjectId: current.subjectId || subjectResponse.data[0]?.id || '', schoolYearId: current.schoolYearId || getPreferredSchoolYear(schoolYearResponse.data)?.id || '' }));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Data perangkat ajar gagal dimuat.');
     } finally { setLoading(false); }

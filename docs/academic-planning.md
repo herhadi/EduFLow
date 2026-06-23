@@ -46,7 +46,7 @@ Menu teknis seperti health check, queue monitoring, worker status, dan failed jo
 
 Tahun ajaran dikelola dari `/admin/akademik` oleh pengguna dengan permission `academic.manage`. Operator memasukkan format `YYYY/YYYY`, misalnya `2025/2026`; nilai harus berurutan. Sistem menyimpan periode akademik otomatis dari 1 Juli pada tahun pertama hingga 30 Juni pada tahun kedua.
 
-Pembuatan memakai `POST /api/academic/school-years`, menyimpan data pada `SchoolYear`, dan mencatat audit action `school-year.created`. Tahun ajaran yang berhasil dibuat langsung tersedia sebagai pilihan saat membuat rombongan belajar.
+Pembuatan memakai `POST /api/academic/school-years`, menyimpan data pada `SchoolYear`, membuat semester `Ganjil` (1 Juli-31 Desember) serta `Genap` (1 Januari-30 Juni), dan mencatat audit action `school-year.created`. Tahun ajaran yang berhasil dibuat langsung tersedia sebagai pilihan saat membuat rombongan belajar.
 
 Form rombongan belajar menampilkan label untuk Tahun Ajaran Baru, Tahun Ajaran, Tingkat, dan Rombel agar konteks setiap nilai jelas.
 

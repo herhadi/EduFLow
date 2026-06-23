@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AgendaStatus } from '@prisma/client';
+import { AgendaStatus, SemesterType } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { sortSchoolClasses } from '@eduflow/shared';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -56,12 +56,36 @@ export class AcademicService {
       throw new BadRequestException('Tahun ajaran sudah tersedia');
     }
 
-    const schoolYear = await this.prisma.schoolYear.create({
-      data: {
-        name,
-        startsAt: new Date(Date.UTC(startYear, 6, 1)),
-        endsAt: new Date(Date.UTC(endYear, 5, 30, 23, 59, 59, 999)),
-      },
+    const schoolYear = await this.prisma.$transaction(async (transaction) => {
+      const schoolYear = await transaction.schoolYear.create({
+        data: {
+          name,
+          startsAt: new Date(Date.UTC(startYear, 6, 1)),
+          endsAt: new Date(Date.UTC(endYear, 5, 30, 23, 59, 59, 999)),
+        },
+      });
+
+      await transaction.semester.createMany({
+        data: [
+          {
+            schoolYearId: schoolYear.id,
+            type: SemesterType.ODD,
+            startsAt: new Date(Date.UTC(startYear, 6, 1)),
+            endsAt: new Date(Date.UTC(startYear, 11, 31, 23, 59, 59, 999)),
+          },
+          {
+            schoolYearId: schoolYear.id,
+            type: SemesterType.EVEN,
+            startsAt: new Date(Date.UTC(endYear, 0, 1)),
+            endsAt: new Date(Date.UTC(endYear, 5, 30, 23, 59, 59, 999)),
+          },
+        ],
+      });
+
+      return transaction.schoolYear.findUniqueOrThrow({
+        where: { id: schoolYear.id },
+        include: { semesters: { orderBy: { startsAt: 'asc' } } },
+      });
     });
 
     await this.auditService.record({
