@@ -23,6 +23,7 @@ services:
         condition: service_started
     ports:
       - "3001:3001"
+    restart: unless-stopped
     volumes:
       - ./backups:/app/backups
 
@@ -40,6 +41,7 @@ services:
       - backend
     ports:
       - "3000:3000"
+    restart: unless-stopped
 
   postgres:
     image: postgres:16-alpine
@@ -52,6 +54,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
@@ -59,6 +62,7 @@ services:
   redis:
     image: redis:7-alpine
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    restart: unless-stopped
     volumes:
       - redis_data:/data
       - ./infra/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
