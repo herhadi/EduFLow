@@ -213,19 +213,6 @@ export function ScheduleManagement() {
   );
 
   useEffect(() => {
-    if (!dayTimeSlots.length) {
-      setExpandedTimeSlotIds([]);
-      return;
-    }
-
-    setExpandedTimeSlotIds(
-      dayTimeSlots
-        .filter((slot) => slot.isAssignable)
-        .map((slot) => slot.id),
-    );
-  }, [dayTimeSlots]);
-
-  useEffect(() => {
     if (!availableGrades.length) {
       setSelectedGrade('VII');
       return;
