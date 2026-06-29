@@ -6,6 +6,7 @@ import { PERMISSIONS } from '../../common/constants/permissions';
 import { RequestWithUser } from '../../core/http/request-with-user';
 import { AcademicService } from './academic.service';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
+import { CloneSchoolYearMasterDto } from './dto/clone-school-year-master.dto';
 import { CreateAcademicTimeSlotDto } from './dto/create-academic-time-slot.dto';
 import { CreateAcademicCalendarEventDto } from './dto/create-academic-calendar-event.dto';
 import { CreateBulkScheduleDto } from './dto/create-bulk-schedule.dto';
@@ -39,6 +40,12 @@ export class AcademicController {
   @Post('school-years')
   createSchoolYear(@Body() dto: CreateSchoolYearDto) {
     return this.academicService.createSchoolYear(dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Post('school-years/clone-master')
+  cloneSchoolYearMaster(@Body() dto: CloneSchoolYearMasterDto) {
+    return this.academicService.cloneSchoolYearMaster(dto);
   }
 
   @Public()

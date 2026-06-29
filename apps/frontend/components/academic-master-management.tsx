@@ -25,10 +25,18 @@ export function AcademicMasterManagement() {
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [isSaving, setIsSaving] = useState(false);
   const [isCreatingSchoolYear, setIsCreatingSchoolYear] = useState(false);
+  const [isCloningMaster, setIsCloningMaster] = useState(false);
   const [classForm, setClassForm] = useState({
     schoolYearId: '',
     grade: 'VII',
     suffix: '',
+  });
+  const [cloneForm, setCloneForm] = useState({
+    sourceSchoolYearId: '',
+    targetSchoolYearId: '',
+    includeClasses: true,
+    includeTimeSlots: true,
+    includeClassActivities: true,
   });
   const [subjectForm, setSubjectForm] = useState({ name: '', code: '' });
   const [schoolYearName, setSchoolYearName] = useState('');
@@ -45,6 +53,21 @@ export function AcademicMasterManagement() {
       setClasses(sortSchoolClasses(classResponse.data));
       setSubjects(subjectResponse.data);
       setSchoolYears(yearResponse.data);
+      setCloneForm((current) => {
+        const preferred = getPreferredSchoolYear(yearResponse.data);
+        const sortedYears = [...yearResponse.data].sort(
+          (first, second) => new Date(second.startsAt).getTime() - new Date(first.startsAt).getTime(),
+        );
+        const targetSchoolYear = preferred ?? sortedYears[0];
+        const sourceSchoolYear =
+          sortedYears.find((schoolYear) => schoolYear.id !== targetSchoolYear?.id) ?? sortedYears[1];
+
+        return {
+          ...current,
+          sourceSchoolYearId: current.sourceSchoolYearId || sourceSchoolYear?.id || '',
+          targetSchoolYearId: current.targetSchoolYearId || targetSchoolYear?.id || '',
+        };
+      });
       setClassForm((current) => ({
         ...current,
         schoolYearId: current.schoolYearId || getPreferredSchoolYear(yearResponse.data)?.id || '',
@@ -65,10 +88,14 @@ export function AcademicMasterManagement() {
       grades.map((grade) => ({
         grade,
         classes: sortSchoolClasses(
-          classes.filter((schoolClass) => schoolClass.grade === grade),
+          classes.filter(
+            (schoolClass) =>
+              schoolClass.grade === grade &&
+              (!classForm.schoolYearId || schoolClass.schoolYearId === classForm.schoolYearId),
+          ),
         ),
       })),
-    [classes],
+    [classForm.schoolYearId, classes],
   );
 
   async function handleCreateClass(event: FormEvent<HTMLFormElement>) {
@@ -118,6 +145,7 @@ export function AcademicMasterManagement() {
       const response = await api.createSchoolYear({ name });
       setSchoolYears((current) => [response.data, ...current]);
       setClassForm((current) => ({ ...current, schoolYearId: response.data.id }));
+      setCloneForm((current) => ({ ...current, targetSchoolYearId: response.data.id }));
       setSchoolYearName('');
       toast.success(response.message ?? 'Tahun ajaran berhasil ditambahkan.', 'Tahun Ajaran Ditambahkan');
     } catch (error) {
@@ -189,6 +217,41 @@ export function AcademicMasterManagement() {
         error instanceof Error ? error.message : 'Gagal menghapus mapel.',
         'Aksi Gagal',
       );
+    }
+  }
+
+  async function handleCloneSchoolYearMaster(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!cloneForm.sourceSchoolYearId || !cloneForm.targetSchoolYearId) {
+      toast.warning('Pilih tahun sumber dan target.', 'Data Belum Lengkap');
+      return;
+    }
+
+    if (cloneForm.sourceSchoolYearId === cloneForm.targetSchoolYearId) {
+      toast.warning('Tahun sumber dan target tidak boleh sama.', 'Pilihan Belum Sesuai');
+      return;
+    }
+
+    if (!cloneForm.includeClasses && !cloneForm.includeTimeSlots && !cloneForm.includeClassActivities) {
+      toast.warning('Pilih minimal satu data master untuk disalin.', 'Data Belum Lengkap');
+      return;
+    }
+
+    setIsCloningMaster(true);
+
+    try {
+      const response = await api.cloneSchoolYearMaster(cloneForm);
+      await loadData();
+      setClassForm((current) => ({ ...current, schoolYearId: cloneForm.targetSchoolYearId }));
+      toast.success(response.message ?? 'Master tahun ajaran berhasil disalin.', 'Master Disalin');
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Gagal menyalin master tahun ajaran.',
+        'Aksi Gagal',
+      );
+    } finally {
+      setIsCloningMaster(false);
     }
   }
 
@@ -275,6 +338,72 @@ export function AcademicMasterManagement() {
               Tambah
             </button>
           </div>
+        </form>
+
+        <form className="mt-5 grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3" onSubmit={handleCloneSchoolYearMaster}>
+          <div>
+            <p className="text-sm font-black text-slate-900">Salin Master Tahun Ajaran</p>
+            <p className="mt-1 text-xs font-semibold text-muted">
+              Gunakan untuk menyiapkan kelas dan susunan jam tahun ajaran baru dari tahun sebelumnya.
+            </p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="clone-source-school-year">
+              Sumber
+              <select
+                className="min-w-0 rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
+                id="clone-source-school-year"
+                onChange={(event) => setCloneForm((current) => ({ ...current, sourceSchoolYearId: event.target.value }))}
+                value={cloneForm.sourceSchoolYearId}
+              >
+                {schoolYears.map((year) => (
+                  <option key={year.id} value={year.id}>{year.name}</option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="clone-target-school-year">
+              Target
+              <select
+                className="min-w-0 rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
+                id="clone-target-school-year"
+                onChange={(event) => setCloneForm((current) => ({ ...current, targetSchoolYearId: event.target.value }))}
+                value={cloneForm.targetSchoolYearId}
+              >
+                {schoolYears.map((year) => (
+                  <option key={year.id} value={year.id}>{year.name}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="grid gap-2 text-xs font-bold text-slate-700 sm:grid-cols-3">
+            {[
+              ['includeClasses', 'Kelas'],
+              ['includeTimeSlots', 'Jam pelajaran'],
+              ['includeClassActivities', 'Aktivitas slot'],
+            ].map(([field, label]) => (
+              <label className="flex items-center gap-2 rounded-xl bg-white px-3 py-2" key={field}>
+                <input
+                  checked={cloneForm[field as keyof typeof cloneForm] as boolean}
+                  className="h-4 w-4 accent-brand-600"
+                  onChange={(event) =>
+                    setCloneForm((current) => ({
+                      ...current,
+                      [field]: event.target.checked,
+                    }))
+                  }
+                  type="checkbox"
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+          <button
+            className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300"
+            disabled={isCloningMaster}
+            type="submit"
+          >
+            Salin Master
+          </button>
         </form>
 
         <div className="mt-5 space-y-4">

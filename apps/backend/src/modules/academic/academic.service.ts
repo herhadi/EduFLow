@@ -9,6 +9,7 @@ import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/
 import { sortSchoolClasses } from '@eduflow/shared';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { CloneSchoolYearMasterDto } from './dto/clone-school-year-master.dto';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
 import { CreateAcademicTimeSlotDto } from './dto/create-academic-time-slot.dto';
 import { CreateAcademicCalendarEventDto } from './dto/create-academic-calendar-event.dto';
@@ -105,6 +106,147 @@ export class AcademicService {
     });
 
     return { data: schoolYear, message: 'Tahun ajaran berhasil ditambahkan.' };
+  }
+
+  async cloneSchoolYearMaster(dto: CloneSchoolYearMasterDto) {
+    if (dto.sourceSchoolYearId === dto.targetSchoolYearId) {
+      throw new BadRequestException('Tahun sumber dan target tidak boleh sama.');
+    }
+
+    const includeClasses = dto.includeClasses ?? true;
+    const includeTimeSlots = dto.includeTimeSlots ?? true;
+    const includeClassActivities = dto.includeClassActivities ?? true;
+
+    if (!includeClasses && !includeTimeSlots && !includeClassActivities) {
+      throw new BadRequestException('Pilih minimal satu data master untuk disalin.');
+    }
+
+    const [sourceSchoolYear, targetSchoolYear] = await Promise.all([
+      this.prisma.schoolYear.findFirst({ where: { id: dto.sourceSchoolYearId, deletedAt: null } }),
+      this.prisma.schoolYear.findFirst({ where: { id: dto.targetSchoolYearId, deletedAt: null } }),
+    ]);
+
+    if (!sourceSchoolYear || !targetSchoolYear) {
+      throw new NotFoundException('Tahun ajaran sumber atau target tidak ditemukan.');
+    }
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const classIdMap = new Map<string, string>();
+      const timeSlotIdMap = new Map<string, string>();
+      let classes = 0;
+      let timeSlots = 0;
+      let classActivities = 0;
+
+      const sourceClasses = await tx.class.findMany({
+        where: { schoolYearId: sourceSchoolYear.id, deletedAt: null },
+        orderBy: [{ grade: 'asc' }, { name: 'asc' }],
+      });
+
+      if (includeClasses || includeClassActivities) {
+        for (const sourceClass of sourceClasses) {
+          const targetClass = await tx.class.upsert({
+            where: {
+              schoolYearId_name: {
+                schoolYearId: targetSchoolYear.id,
+                name: sourceClass.name,
+              },
+            },
+            update: {
+              code: sourceClass.code,
+              grade: sourceClass.grade,
+              deletedAt: null,
+            },
+            create: {
+              schoolYearId: targetSchoolYear.id,
+              name: sourceClass.name,
+              code: sourceClass.code,
+              grade: sourceClass.grade,
+            },
+          });
+          classIdMap.set(sourceClass.id, targetClass.id);
+          classes += 1;
+        }
+      }
+
+      const sourceTimeSlots = await tx.academicTimeSlot.findMany({
+        where: { schoolYearId: sourceSchoolYear.id, deletedAt: null, isActive: true },
+        orderBy: [{ dayOfWeek: 'asc' }, { startsAt: 'asc' }],
+      });
+
+      if (includeTimeSlots || includeClassActivities) {
+        for (const sourceSlot of sourceTimeSlots) {
+          const targetSlot = await tx.academicTimeSlot.upsert({
+            where: {
+              schoolYearId_dayOfWeek_startsAt_endsAt: {
+                schoolYearId: targetSchoolYear.id,
+                dayOfWeek: sourceSlot.dayOfWeek,
+                startsAt: sourceSlot.startsAt,
+                endsAt: sourceSlot.endsAt,
+              },
+            },
+            update: {
+              periodNumber: sourceSlot.periodNumber,
+              name: sourceSlot.name,
+              type: sourceSlot.type,
+              isAssignable: sourceSlot.isAssignable,
+              isActive: sourceSlot.isActive,
+              deletedAt: null,
+            },
+            create: {
+              schoolYearId: targetSchoolYear.id,
+              dayOfWeek: sourceSlot.dayOfWeek,
+              periodNumber: sourceSlot.periodNumber,
+              name: sourceSlot.name,
+              type: sourceSlot.type,
+              startsAt: sourceSlot.startsAt,
+              endsAt: sourceSlot.endsAt,
+              isAssignable: sourceSlot.isAssignable,
+              isActive: sourceSlot.isActive,
+            },
+          });
+          timeSlotIdMap.set(sourceSlot.id, targetSlot.id);
+          timeSlots += 1;
+        }
+      }
+
+      if (includeClassActivities) {
+        const sourceActivities = await tx.classTimeSlotActivity.findMany({
+          where: {
+            classId: { in: sourceClasses.map((sourceClass) => sourceClass.id) },
+            timeSlotId: { in: sourceTimeSlots.map((sourceSlot) => sourceSlot.id) },
+          },
+        });
+
+        for (const sourceActivity of sourceActivities) {
+          const classId = classIdMap.get(sourceActivity.classId);
+          const timeSlotId = timeSlotIdMap.get(sourceActivity.timeSlotId);
+
+          if (!classId || !timeSlotId) continue;
+
+          await tx.classTimeSlotActivity.upsert({
+            where: { classId_timeSlotId: { classId, timeSlotId } },
+            update: { type: sourceActivity.type },
+            create: { classId, timeSlotId, type: sourceActivity.type },
+          });
+          classActivities += 1;
+        }
+      }
+
+      return { classes, timeSlots, classActivities };
+    });
+
+    await this.auditService.record({
+      action: 'school-year.master.cloned',
+      entityType: 'SchoolYear',
+      entityId: targetSchoolYear.id,
+      before: { sourceSchoolYear, targetSchoolYear },
+      after: { ...result, includeClasses, includeTimeSlots, includeClassActivities },
+    });
+
+    return {
+      data: result,
+      message: `Master tahun ajaran disalin: ${result.classes} kelas, ${result.timeSlots} slot jam, ${result.classActivities} aktivitas kelas.`,
+    };
   }
 
   async getSemesters(schoolYearId?: string) {

@@ -72,6 +72,12 @@ export interface SchoolYear {
   endsAt: string;
 }
 
+export interface CloneSchoolYearMasterResult {
+  classes: number;
+  timeSlots: number;
+  classActivities: number;
+}
+
 export interface Semester {
   id: string;
   schoolYearId: string;
@@ -646,6 +652,17 @@ export const api = {
     request<ApiResponse<SchoolYear[]>>('/academic/school-years'),
   createSchoolYear: (payload: { name: string }) =>
     request<ApiResponse<SchoolYear>>('/academic/school-years', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  cloneSchoolYearMaster: (payload: {
+    sourceSchoolYearId: string;
+    targetSchoolYearId: string;
+    includeClasses?: boolean;
+    includeTimeSlots?: boolean;
+    includeClassActivities?: boolean;
+  }) =>
+    request<ApiResponse<CloneSchoolYearMasterResult>>('/academic/school-years/clone-master', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),

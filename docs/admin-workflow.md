@@ -153,6 +153,8 @@ Saat pemindahan data awal dilakukan, seluruh transaksi yang sudah telanjur terka
 
 Setiap tahun ajaran selalu memiliki semester `Ganjil` dan `Genap`. Pilihan semester pada form jadwal dibaca dari tabel `Semester`, bukan ditentukan oleh frontend. Memilih tahun ajaran baru hanya menampilkan konfigurasi tahun tersebut; jadwal lama tidak ditampilkan atau dimuat ke konteks tahun ajaran baru.
 
+Kelas, jam pelajaran, dan aktivitas slot terikat pada tahun ajaran. Saat menyiapkan tahun ajaran baru, operator dapat memakai aksi `Salin Master Tahun Ajaran` di `/admin/akademik` untuk menyalin kelas, susunan jam pelajaran, dan aktivitas slot dari tahun sebelumnya ke tahun target. Aksi ini tidak menyalin jadwal mengajar, agenda, presensi, atau penugasan guru sehingga jadwal tahun baru tetap disusun sesuai kebutuhan tahun tersebut.
+
 Pemilihan semester awal mengikuti tanggal saat form dibuka. Untuk tahun ajaran yang sedang berlangsung, semester aktif dipilih; untuk tahun ajaran masa depan, sistem memilih semester `Ganjil` sebagai periode pertama.
 
 Saat mengubah jadwal, operator dapat mengisi tanggal mulai berlaku untuk revisi tengah semester. Jika dikosongkan, revisi berlaku sejak awal semester yang dipilih.
