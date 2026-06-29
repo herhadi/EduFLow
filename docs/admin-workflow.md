@@ -41,12 +41,12 @@ Halaman `/teacher/schedules` membaca `GET /api/academic/me/schedules`, sehingga 
 
 | URL | Fungsi |
 | --- | --- |
-| `/admin` | Menu utama administrasi |
+| `/admin/data` | Menu utama master administrasi |
 | `/admin/guru` | Akun, role, mapel ampu, dan wali kelas |
 | `/admin/akademik` | Kelas dan mata pelajaran |
 | `/admin/akses` | User, role, status akun, dan penghapusan user |
-| `/schedules` | Setup jadwal kelas keseluruhan dan generate agenda |
-| `/import-data` | Import data guru dan siswa dari Excel |
+| `/admin/schedules` | Setup jadwal kelas keseluruhan dan generate agenda |
+| `/admin/import-data` | Import data guru dan siswa dari Excel |
 
 ## Navigasi Role-Based
 
@@ -59,7 +59,7 @@ Hero/card utama halaman memakai lebar penuh container dan token `page-hero` agar
 Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama sesuai actor yang sedang login:
 
 - `root`: `Admin`, `Ops`, `Audit`, `Inbox`, `Profil`.
-- `operator_sekolah`: `Beranda`, `Data`, `Jadwal`, `Inbox`, `Profil`.
+- `operator_sekolah`: `Beranda`, `Master`, `Jadwal`, `Inbox`, `Profil`.
 - `kepala_sekolah`: `Beranda`, `Review`, `Performa`, `Inbox`, `Profil`.
 - `guru`: `Hari Ini`, `Jadwal`, `Presensi`, `Inbox`, `Profil`.
 - `wali_kelas`: `Hari Ini`, `Jadwal`, `Presensi`, `Inbox`, `Profil`.
@@ -73,7 +73,7 @@ Item `Inbox` memakai icon pesan dan memiliki badge/dot jika ada notifikasi `PEND
 
 `Ops` hanya muncul untuk `root` karena berisi health check, queue monitoring, failed jobs, dan tindakan teknis operasional sistem.
 
-`Admin` pada bottom navigation berarti pekerjaan `operator_sekolah` sebagai admin operasional akademik, bukan root teknis.
+`Master` pada bottom navigation operator berarti pusat data administrasi akademik di namespace `/admin/data`, bukan root teknis.
 
 Top submenu berbentuk deretan tombol dihapus karena menduplikasi bottom navigation dan akses cepat pada dashboard. Perpindahan fitur dilakukan melalui bottom navigation sesuai role dan kartu menu pada halaman beranda masing-masing actor.
 
@@ -100,7 +100,7 @@ Dashboard wajib menampilkan information architecture sesuai actor:
 
 Catatan jadwal:
 
-- `/schedules` adalah area admin/operator untuk setup jadwal keseluruhan.
+- `/admin/schedules` adalah area admin/operator untuk setup jadwal keseluruhan.
 - `/teacher/schedules` adalah area guru untuk melihat jadwal mengajar miliknya sendiri.
 - `/teacher/attendance` adalah area guru untuk membuka kelas dan mengisi presensi.
 - Role lain dapat memiliki halaman jadwal berbeda sesuai konteks, misalnya monitoring jadwal untuk kepala sekolah atau jadwal anak untuk orang tua.
@@ -271,7 +271,7 @@ Pada halaman manajemen guru, operator memilih tahun ajaran lalu menyimpan status
 
 ## Tabel Jadwal Kelas
 
-Halaman `/schedules` menyediakan tabel jadwal per kelas:
+Halaman `/admin/schedules` menyediakan tabel jadwal per kelas:
 
 - pilih kelas,
 - pilih `Lihat kondisi jadwal` untuk melihat baseline atau revisi yang sudah berlaku pada tanggal tersebut,
@@ -295,7 +295,7 @@ Aturan revisi jadwal:
 - Backend wajib menolak jadwal atau revisi yang menyebabkan bentrok kelas atau bentrok guru dalam tahun ajaran tersebut pada tanggal efektif.
 - Jadwal guru pribadi membaca baseline dan revisi, sehingga guru baru hasil revisi dapat melihat jadwalnya.
 
-Catatan UI `/schedules`:
+Catatan UI `/admin/schedules`:
 
 - card form dan card tabel wajib memakai `min-w-0` di dalam grid agar tampilan mobile tidak terpotong,
 - tabel jadwal boleh horizontal scroll di dalam card, tetapi card tidak boleh melebar keluar viewport,

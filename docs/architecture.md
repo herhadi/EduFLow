@@ -73,16 +73,26 @@ Area admin dipisahkan berdasarkan domain agar halaman tidak terlalu besar dan le
 
 ```text
 /admin
+  /dashboard
+  /data
   /guru
   /akademik
+  /schedules
+  /import-data
+  /audit
   /akses
 ```
 
-- `/admin`: hub atau menu utama administrasi.
+- `/admin` dan `/admin/data`: hub atau menu utama master administrasi.
+- `/admin/dashboard`: beranda operator sekolah.
 - `/admin/guru`: akun login guru, role, mapel ampu, dan kelas binaan wali kelas.
 - `/admin/akademik`: CRUD kelas dan mata pelajaran.
+- `/admin/schedules`: manajemen jadwal tetap dan generate agenda.
+- `/admin/import-data`: import data guru dan siswa.
+- `/admin/audit`: audit trail untuk aktivitas penting.
 - `/admin/akses`: user sistem, role, permission, nonaktif, dan hapus permanen.
-- `/schedules`: manajemen jadwal tetap dan generate agenda.
+
+Route lama seperti `/schedules`, `/import-data`, dan `/audit` tetap disediakan sebagai kompatibilitas, tetapi navigasi operator memakai namespace `/admin/...`.
 
 Komponen feedback aksi memakai `ToastProvider` global di root layout. Komponen fitur menggunakan `useToast()` dan tidak membuat implementasi toast sendiri-sendiri.
 

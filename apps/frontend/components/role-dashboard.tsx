@@ -142,7 +142,7 @@ function OperatorHome({ currentUser }: { currentUser: CurrentUser | null }) {
           />
           <AdminInsightCard
             description="Cek jadwal yang belum lengkap, bentrok guru, atau slot kelas kosong."
-            href="/schedules"
+            href="/admin/schedules"
             label="Validasi Jadwal"
             status="Harian"
             tone="warning"

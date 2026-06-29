@@ -290,7 +290,18 @@ function isBottomNavItemActive(
       section === 'admin' &&
       !pathname.startsWith('/admin/dashboard') &&
       !pathname.startsWith('/admin/notifications') &&
-      !pathname.startsWith('/admin/profile')
+      !pathname.startsWith('/admin/profile') &&
+      !pathname.startsWith('/admin/schedules')
+    );
+  }
+
+  if (href === '/admin/data') {
+    return (
+      section === 'admin' &&
+      !pathname.startsWith('/admin/dashboard') &&
+      !pathname.startsWith('/admin/notifications') &&
+      !pathname.startsWith('/admin/profile') &&
+      !pathname.startsWith('/admin/schedules')
     );
   }
 

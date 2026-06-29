@@ -30,8 +30,8 @@ const rootNavigation: NavigationItem[] = [
 
 const operatorNavigation: NavigationItem[] = [
   { href: '/admin/dashboard', label: 'Beranda', icon: '⌂' },
-  { href: '/admin', label: 'Data', icon: '☷' },
-  { href: '/schedules', label: 'Jadwal', icon: '▦' },
+  { href: '/admin/data', label: 'Master', icon: '☷' },
+  { href: '/admin/schedules', label: 'Jadwal', icon: '▦' },
   { href: '/admin/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
   { href: '/admin/profile', label: 'Profil', icon: '👤' },
 ];
@@ -92,12 +92,15 @@ const roleNavigation: Record<UserRole, NavigationItem[]> = {
 };
 
 export const sectionSubNavigation: Array<NavigationItem & { section: string }> = [
+  { section: 'admin', href: '/admin/dashboard', label: 'Dashboard' },
+  { section: 'admin', href: '/admin/data', label: 'Master' },
   { section: 'admin', href: '/admin/guru', label: 'Guru' },
   { section: 'admin', href: '/admin/akademik', label: 'Akademik' },
+  { section: 'admin', href: '/admin/schedules', label: 'Jadwal' },
   { section: 'admin', href: '/admin/akses', label: 'Akses', roles: ['root'] },
-  { section: 'admin', href: '/import-data', label: 'Import' },
-  { section: 'admin', href: '/audit', label: 'Audit' },
-  { section: 'schedules', href: '/schedules', label: 'Setup Jadwal' },
+  { section: 'admin', href: '/admin/import-data', label: 'Import' },
+  { section: 'admin', href: '/admin/audit', label: 'Audit' },
+  { section: 'schedules', href: '/admin/schedules', label: 'Setup Jadwal' },
   { section: 'schedules', href: '/admin/guru', label: 'Mapel Guru' },
   { section: 'schedules', href: '/admin/akademik', label: 'Kelas & Mapel' },
   { section: 'schedules', href: '/admin/akademik/kalender', label: 'Kaldik' },
@@ -176,12 +179,12 @@ export function getDashboardPathForRoles(roles: string[] = []) {
 }
 
 export function getSectionFromPath(pathname: string) {
-  if (pathname.startsWith('/admin') || pathname === '/import-data') {
-    return 'admin';
+  if (pathname.startsWith('/schedules') || pathname.startsWith('/admin/schedules')) {
+    return 'schedules';
   }
 
-  if (pathname.startsWith('/schedules')) {
-    return 'schedules';
+  if (pathname.startsWith('/admin') || pathname === '/import-data') {
+    return 'admin';
   }
 
   if (pathname.startsWith('/teacher/')) {

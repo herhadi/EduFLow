@@ -19,7 +19,7 @@ const adminMenus = [
     title: 'Manajemen Guru',
     description: 'Akun login, role, mapel ampu, dan wali kelas.',
     icon: 'G',
-  }, 
+  },
   {
     href: '/admin/akses',
     title: 'User & Hak Akses',
@@ -28,19 +28,19 @@ const adminMenus = [
     roles: ['root'] as UserRole[],
   },
   {
-    href: '/schedules',
+    href: '/admin/schedules',
     title: 'Setup Jadwal',
     description: 'Susun jadwal kelas keseluruhan berdasarkan kelas, guru, dan mapel.',
     icon: 'J',
   },
   {
-    href: '/import-data',
+    href: '/admin/import-data',
     title: 'Import Data',
     description: 'Import data massal guru dan siswa dari Excel.',
     icon: 'I',
   },
   {
-    href: '/audit',
+    href: '/admin/audit',
     title: 'Audit Trail',
     description: 'Pantau perubahan penting oleh pengguna sistem.',
     icon: 'L',
@@ -62,9 +62,9 @@ export default function AdminPage() {
     <main>
       <Container>
         <PageHeader
-          description="Pilih area administrasi agar tiap domain tetap terpisah, mudah dirawat, dan nyaman digunakan di mobile."
-          eyebrow="Admin Center"
-          title="Administrasi EduFlow"
+          description="Pilih master data akademik, jadwal, import, dan audit dari namespace admin operator."
+          eyebrow="Admin Data"
+          title="Master Administrasi"
         />
 
         <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

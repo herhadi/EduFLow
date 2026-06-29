@@ -18,7 +18,7 @@ Dokumen ini memisahkan tanggung jawab admin dan guru dalam pengelolaan jadwal, k
 - `/admin/guru`: menghubungkan `Teacher` dengan `User`, mengatur role, mapel ampu, dan wali kelas.
 - `/admin/akademik`: mengelola kelas dan mata pelajaran secara fleksibel.
 - `/admin/akses`: mengelola user dan hak akses.
-- `/schedules`: menyusun jadwal berdasarkan kelas, mapel, dan guru yang sudah dikonfigurasi.
+- `/admin/schedules`: menyusun jadwal berdasarkan kelas, mapel, dan guru yang sudah dikonfigurasi.
 
 ## Hak Operator Sekolah
 
