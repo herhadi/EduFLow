@@ -212,6 +212,30 @@ export function ScheduleManagement() {
     [form.dayOfWeek, form.schoolYearId, timeSlots],
   );
 
+  useEffect(() => {
+    if (!dayTimeSlots.length) {
+      setExpandedTimeSlotIds([]);
+      return;
+    }
+
+    setExpandedTimeSlotIds(
+      dayTimeSlots
+        .filter((slot) => slot.isAssignable)
+        .map((slot) => slot.id),
+    );
+  }, [dayTimeSlots]);
+
+  useEffect(() => {
+    if (!availableGrades.length) {
+      setSelectedGrade('VII');
+      return;
+    }
+
+    if (!availableGrades.includes(selectedGrade)) {
+      setSelectedGrade(availableGrades[0]);
+    }
+  }, [availableGrades, selectedGrade]);
+
   const selectedScheduleClass = useMemo(
     () =>
       classes.find(
@@ -691,6 +715,11 @@ export function ScheduleManagement() {
                           </button>
                         );
                       })}
+                      {!gradeClasses.length ? (
+                        <p className="w-full rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
+                          Belum ada rombel untuk tingkat {selectedGrade} pada tahun ajaran ini.
+                        </p>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
