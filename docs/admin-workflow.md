@@ -31,9 +31,9 @@ Slot terikat pada tahun ajaran sehingga sekolah dapat mengubah susunan jam untuk
 
 ## Route Admin
 
-Pada `/admin/guru`, operator dapat menambahkan data guru baru langsung dari panel `Pilih Guru`. Setelah dibuat, guru otomatis terpilih untuk dilanjutkan ke pengaturan akun login, role, mata pelajaran, dan wali kelas.
+Pada `/admin/guru`, operator dapat menambahkan data guru baru langsung dari panel `Pilih Guru`. Setelah dibuat, guru otomatis terpilih untuk dilanjutkan ke pengaturan akun login, role, penugasan tahun ajaran, dan wali kelas.
 
-Data guru hasil import dapat dilengkapi dari kartu `Guru Terpilih` pada `/admin/guru`. Operator dapat mengedit nama, NIP, NUPTK, nomor HP, email, Telegram ID, dan URL foto, kemudian menyimpan bersamaan dengan pengaturan akun guru.
+Data guru hasil import dapat dilengkapi dari kartu `Guru Terpilih` pada `/admin/guru`. Operator dapat mengedit nama, NIP, NUPTK, nomor HP, email, dan foto dari file lokal, kemudian menyimpan bersamaan dengan pengaturan akun guru. Telegram diisi sendiri oleh guru dari halaman profil setelah login.
 
 Semua daftar dan dropdown kelas wajib memakai helper `sortSchoolClasses` dari `@eduflow/shared`. Urutan standar adalah tingkat VII, VIII, IX, kemudian rombel A, B, C, dan seterusnya. Jangan membuat sorting kelas lokal di masing-masing komponen.
 
@@ -187,9 +187,8 @@ Flow membuat guru dapat login:
 ```text
 Pilih Teacher
   -> tentukan username/email
-  -> tentukan password sementara atau kosongkan untuk default
   -> pilih role
-  -> pilih satu atau beberapa mapel
+  -> pilih penugasan tahun ajaran, status, dan mapel ampu
   -> pilih kelas binaan jika wali kelas
   -> simpan
 ```
@@ -199,10 +198,10 @@ Aturan:
 - guru mapel belum tentu wali kelas,
 - wali kelas pasti guru mapel,
 - memilih `wali_kelas` otomatis mempertahankan role `guru`,
-- satu guru dapat mengampu banyak mata pelajaran,
+- satu guru dapat mengampu banyak mata pelajaran melalui penugasan tahun ajaran,
 - password default akun baru memakai `DEFAULT_USER_PASSWORD` di `apps/backend/.env`,
 - panjang password minimal 6 dan maksimal 10 karakter,
-- satu mata pelajaran dapat diampu banyak guru.
+- satu mata pelajaran dapat diampu banyak guru,
 - jika password user masih sama dengan `DEFAULT_USER_PASSWORD`, login wajib menampilkan form ganti password,
 - form ganti password meminta password baru dan ulangi password,
 - setelah password baru tersimpan, user langsung diarahkan ke dashboard sesuai role.
@@ -257,7 +256,7 @@ Pada halaman manajemen guru, operator memilih tahun ajaran lalu menyimpan status
 - Gunakan status `Aktif mengajar` untuk guru yang dapat dipilih pada jadwal tahun tersebut.
 - Gunakan `Pensiun`, `Pindah sekolah`, `Cuti`, atau `Tidak ditugaskan` sekali pada tahun ajaran saat perubahan mulai berlaku; status tersebut otomatis terbawa ke tahun berikutnya tanpa entri berulang.
 - `Tidak ditugaskan` berarti guru masih tercatat sebagai pegawai tetapi tidak memiliki penugasan mengajar pada tahun ajaran tersebut; gunakan `Pensiun`, `Pindah sekolah`, atau `Cuti` bila salah satu kondisi itu lebih tepat.
-- Mapel ampu hanya diatur pada penugasan tahun ajaran dan menjadi acuan jadwal baru. Data mapel global lama disimpan sebagai fallback internal bagi tahun ajaran lama yang belum memiliki penugasan.
+- Mapel ampu hanya diatur pada penugasan tahun ajaran dan menjadi acuan jadwal baru. Data mapel global lama dari import sebelumnya dipakai sebagai fallback tampilan dan pilihan awal bagi guru yang belum pernah disimpan penugasannya.
 - Admin dapat memilih foto guru dari file lokal pada form guru. File foto disimpan di Cloudflare R2, sedangkan database hanya menyimpan key dan metadata foto. Telegram tidak diatur oleh admin; guru mengisinya sendiri dari halaman Profil setelah login.
 - Akun guru baru selalu dibuat dengan `DEFAULT_USER_PASSWORD` dari environment. Pada login pertama sistem mewajibkan guru mengganti password tersebut; admin tidak dapat mengatur password dari form guru.
 - Bila guru lupa password, admin memakai tombol `Reset Password ke Default`. Sistem mencabut sesi aktif guru dan pada login berikutnya mewajibkan perubahan password.

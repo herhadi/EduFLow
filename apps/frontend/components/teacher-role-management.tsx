@@ -88,6 +88,25 @@ function getEffectiveAssignment(
     )[0];
 }
 
+function getLegacyAssignmentStatus(teacher?: Teacher | null): TeacherAssignmentStatus {
+  return teacher?.isActive === false ? 'INACTIVE' : 'ACTIVE';
+}
+
+function getEffectiveAssignmentStatus(
+  teacher: Teacher,
+  schoolYear?: SchoolYear,
+): TeacherAssignmentStatus {
+  return getEffectiveAssignment(teacher.yearAssignments, schoolYear)?.status ?? getLegacyAssignmentStatus(teacher);
+}
+
+function getEffectiveAssignmentSubjects(
+  teacher: Teacher,
+  schoolYear?: SchoolYear,
+) {
+  const assignment = getEffectiveAssignment(teacher.yearAssignments, schoolYear);
+  return assignment?.subjects?.length ? assignment.subjects : teacher.subjects ?? [];
+}
+
 export function TeacherRoleManagement() {
   const toast = useToast();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -205,10 +224,14 @@ export function TeacherRoleManagement() {
       .sort((first, second) =>
         new Date(second.schoolYear?.startsAt ?? 0).getTime() - new Date(first.schoolYear?.startsAt ?? 0).getTime(),
       )[0];
-    setAssignmentStatus(assignment?.status ?? 'ACTIVE');
-    setAssignmentSubjectIds(assignment?.subjects.map(({ subject }) => subject.id) ?? []);
+    setAssignmentStatus(assignment?.status ?? getLegacyAssignmentStatus(selectedTeacher));
+    setAssignmentSubjectIds(
+      assignment?.subjects.map(({ subject }) => subject.id)
+        ?? selectedTeacher?.subjects?.map(({ subject }) => subject.id)
+        ?? [],
+    );
     setAssignmentNotes(assignment?.notes ?? '');
-  }, [assignmentSchoolYearId, schoolYears, teacherAssignments]);
+  }, [assignmentSchoolYearId, schoolYears, selectedTeacher, teacherAssignments]);
 
   useEffect(() => {
     const detailCard = detailCardRef.current;
@@ -482,13 +505,10 @@ export function TeacherRoleManagement() {
           <div className="mt-3 grid content-start gap-2 pr-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain">
             {teachers.map((teacher) => {
               const active = teacher.id === selectedTeacherId;
-              const assignment = getEffectiveAssignment(
-                teacher.yearAssignments,
-                schoolYears.find((schoolYear) => schoolYear.id === assignmentSchoolYearId),
-              );
-              const status = assignmentStatusMeta[assignment?.status ?? 'INACTIVE'];
+              const selectedSchoolYear = schoolYears.find((schoolYear) => schoolYear.id === assignmentSchoolYearId);
+              const status = assignmentStatusMeta[getEffectiveAssignmentStatus(teacher, selectedSchoolYear)];
               const roles = teacher.user?.roles.map(({ role }) => role.name).join(', ');
-              const subjectNames = teacher.subjects
+              const subjectNames = getEffectiveAssignmentSubjects(teacher, selectedSchoolYear)
                 ?.map(({ subject }) => subject.name)
                 .join(', ');
 
