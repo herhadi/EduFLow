@@ -1,9 +1,14 @@
+'use client';
+
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { Container } from '../../components/ui/container';
 import { PageHeader } from '../../components/ui/page-header';
+import { getPrimaryRole, type UserRole } from '../../lib/navigation.config';
+import { getCurrentSessionUser } from '../../lib/session';
 
 const adminMenus = [
-   {
+  {
     href: '/admin/akademik',
     title: 'Kelas & Mata Pelajaran',
     description: 'Tambah/hapus rombel dan mapel secara fleksibel.',
@@ -20,6 +25,7 @@ const adminMenus = [
     title: 'User & Hak Akses',
     description: 'User sistem, role, permission, nonaktif, dan hapus.',
     icon: 'U',
+    roles: ['root'] as UserRole[],
   },
   {
     href: '/schedules',
@@ -42,6 +48,16 @@ const adminMenus = [
 ];
 
 export default function AdminPage() {
+  const [role, setRole] = useState<UserRole>('guru');
+
+  useEffect(() => {
+    setRole(getPrimaryRole(getCurrentSessionUser()?.roles ?? []));
+  }, []);
+
+  const visibleMenus = adminMenus.filter(
+    (menu) => !('roles' in menu) || !menu.roles?.length || menu.roles.includes(role),
+  );
+
   return (
     <main>
       <Container>
@@ -52,7 +68,7 @@ export default function AdminPage() {
         />
 
         <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {adminMenus.map((menu) => (
+          {visibleMenus.map((menu) => (
             <Link
               className="rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60 transition hover:-translate-y-0.5 hover:border-brand-600 hover:shadow-lg"
               href={menu.href}

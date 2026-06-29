@@ -5,6 +5,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 ## 2026-06-22
 
 - Memperbaiki perintah migration deployment agar Prisma selalu menggunakan schema monorepo `apps/backend/prisma/schema.prisma` dari workdir container `/app`.
+- Membatasi menu dan halaman `/admin/akses` hanya untuk `root`; user non-root mendapat peringatan akses ditolak lalu diarahkan ke dashboard sesuai role.
 - Memindahkan konteks seluruh data akademik dan transaksi keuangan yang ada dari `2026/2027` ke `2025/2026` melalui migrasi data, lalu menyediakan `2026/2027` kosong untuk konfigurasi tahun ajaran baru. Migration hanya melanjutkan bila target `2025/2026` masih kosong.
 - Menambahkan export/import PostgreSQL untuk transfer data demo tanpa akun ber-role `root`; akun root target dibuat ulang dari environment Debian setelah import.
 - Menetapkan permission `system.recovery.manage` untuk fitur recovery dan operasi backup yang khusus role `root`.

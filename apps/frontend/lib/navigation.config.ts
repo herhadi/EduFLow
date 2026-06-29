@@ -13,6 +13,7 @@ export interface NavigationItem {
   label: string;
   icon?: string;
   badge?: 'notifications';
+  roles?: UserRole[];
 }
 
 export type NotificationAccess =
@@ -93,7 +94,7 @@ const roleNavigation: Record<UserRole, NavigationItem[]> = {
 export const sectionSubNavigation: Array<NavigationItem & { section: string }> = [
   { section: 'admin', href: '/admin/guru', label: 'Guru' },
   { section: 'admin', href: '/admin/akademik', label: 'Akademik' },
-  { section: 'admin', href: '/admin/akses', label: 'Akses' },
+  { section: 'admin', href: '/admin/akses', label: 'Akses', roles: ['root'] },
   { section: 'admin', href: '/import-data', label: 'Import' },
   { section: 'admin', href: '/audit', label: 'Audit' },
   { section: 'schedules', href: '/schedules', label: 'Setup Jadwal' },
@@ -210,12 +211,16 @@ export function getSectionFromPath(pathname: string) {
   return null;
 }
 
-export function getSubNavigation(pathname: string) {
+export function getSubNavigation(pathname: string, roles: string[] = []) {
   const section = getSectionFromPath(pathname);
 
   if (!section) {
     return [];
   }
 
-  return sectionSubNavigation.filter((item) => item.section === section);
+  const primaryRole = getPrimaryRole(roles);
+
+  return sectionSubNavigation.filter(
+    (item) => item.section === section && (!item.roles?.length || item.roles.includes(primaryRole)),
+  );
 }

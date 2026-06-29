@@ -1051,6 +1051,7 @@ export class AcademicService {
 
   async createTimeSlot(dto: CreateAcademicTimeSlotDto) {
     this.validateScheduleTime(dto.startsAt, dto.endsAt);
+    this.validateTimeSlotTypeRules(dto.type, dto.dayOfWeek);
 
     const timeSlot = await this.prisma.academicTimeSlot.create({
       data: {
@@ -1073,6 +1074,7 @@ export class AcademicService {
 
   async updateTimeSlot(id: string, dto: UpdateAcademicTimeSlotDto) {
     this.validateScheduleTime(dto.startsAt, dto.endsAt);
+    this.validateTimeSlotTypeRules(dto.type, dto.dayOfWeek);
 
     const existing = await this.prisma.academicTimeSlot.findFirst({
       where: { id, deletedAt: null },
@@ -1651,6 +1653,12 @@ export class AcademicService {
   private validateScheduleTime(startsAt: string, endsAt: string) {
     if (startsAt >= endsAt) {
       throw new BadRequestException('Jam mulai harus lebih awal dari jam selesai');
+    }
+  }
+
+  private validateTimeSlotTypeRules(type: string, dayOfWeek: number) {
+    if (type === 'CEREMONY' && dayOfWeek !== 1) {
+      throw new BadRequestException('Slot Upacara hanya boleh ditempatkan pada hari Senin.');
     }
   }
 

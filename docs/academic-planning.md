@@ -41,6 +41,7 @@ Admin teknis tidak sama dengan TU. Dalam EduFlow, `root` atau admin teknis dipak
 Dalam navigasi frontend, `operator_sekolah` diperlakukan sebagai admin operasional sekolah. Menu personal seperti profil, ganti password, dan session management tetap dipisahkan di menu `Profil`.
 
 Menu teknis seperti health check, queue monitoring, worker status, dan failed jobs berada di area `Ops` dan hanya ditampilkan untuk `root`.
+Menu user dan hak akses berada di `/admin/akses` dan hanya ditampilkan serta dapat dibuka oleh `root`. Jika user non-root membuka URL tersebut secara manual, frontend menampilkan peringatan akses ditolak lalu mengarahkan user ke dashboard sesuai role. Operator sekolah tidak mengelola user global atau permission teknis dari navigasi harian.
 
 ## Tahun Ajaran
 

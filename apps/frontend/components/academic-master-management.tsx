@@ -10,7 +10,7 @@ import {
   type SchoolYear,
   type Subject,
 } from '../lib/api';
-import { getPreferredSchoolYear } from '../lib/school-year';
+import { getPreferredSchoolYear, getUpcomingSchoolYear } from '../lib/school-year';
 import { useToast } from './ui/toast';
 
 type LoadState = 'loading' | 'success' | 'error';
@@ -89,13 +89,12 @@ export function AcademicMasterManagement() {
       setSchoolYears(yearResponse.data);
       setTimeSlots(timeSlotResponse.data);
       setCloneForm((current) => {
-        const preferred = getPreferredSchoolYear(yearResponse.data);
-        const sortedYears = [...yearResponse.data].sort(
-          (first, second) => new Date(second.startsAt).getTime() - new Date(first.startsAt).getTime(),
-        );
-        const targetSchoolYear = preferred ?? sortedYears[0];
-        const sourceSchoolYear =
-          sortedYears.find((schoolYear) => schoolYear.id !== targetSchoolYear?.id) ?? sortedYears[1];
+        const sourceSchoolYear = getPreferredSchoolYear(yearResponse.data);
+        const upcomingSchoolYear = getUpcomingSchoolYear(yearResponse.data);
+        const targetSchoolYear =
+          upcomingSchoolYear?.id !== sourceSchoolYear?.id
+            ? upcomingSchoolYear
+            : yearResponse.data.find((schoolYear) => schoolYear.id !== sourceSchoolYear?.id);
 
         return {
           ...current,
@@ -660,6 +659,7 @@ export function AcademicMasterManagement() {
               Hari
               <select
                 className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
+                disabled={timeSlotForm.type === 'CEREMONY'}
                 id="time-slot-day"
                 onChange={(event) => setTimeSlotForm((current) => ({ ...current, dayOfWeek: Number(event.target.value) }))}
                 value={timeSlotForm.dayOfWeek}
@@ -724,6 +724,7 @@ export function AcademicMasterManagement() {
                     const type = event.target.value as AcademicTimeSlotType;
                     return {
                       ...current,
+                      dayOfWeek: type === 'CEREMONY' ? 1 : current.dayOfWeek,
                       type,
                       isAssignable: type === 'LESSON' ? current.isAssignable : false,
                     };
@@ -748,6 +749,11 @@ export function AcademicMasterManagement() {
             />
             Slot ini bisa dipakai untuk penjadwalan pelajaran
           </label>
+          {timeSlotForm.type === 'CEREMONY' ? (
+            <p className="text-xs font-semibold text-brand-700">
+              Slot Upacara dikunci pada hari Senin.
+            </p>
+          ) : null}
 
           <div className="flex flex-wrap gap-3">
             <button
