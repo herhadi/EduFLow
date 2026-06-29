@@ -15,6 +15,7 @@ import { CreateAcademicTimeSlotDto } from './dto/create-academic-time-slot.dto';
 import { CreateAcademicCalendarEventDto } from './dto/create-academic-calendar-event.dto';
 import { UpdateClassTimeSlotActivityDto } from './dto/update-class-time-slot-activity.dto';
 import { UpdateAcademicCalendarEventDto } from './dto/update-academic-calendar-event.dto';
+import { UpdateAcademicTimeSlotDto } from './dto/update-academic-time-slot.dto';
 import { UpdateMyTeacherProfileDto } from './dto/update-my-teacher-profile.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateBulkScheduleDto } from './dto/create-bulk-schedule.dto';
@@ -1068,6 +1069,84 @@ export class AcademicService {
     });
 
     return { data: timeSlot, message: 'Slot waktu berhasil ditambahkan.' };
+  }
+
+  async updateTimeSlot(id: string, dto: UpdateAcademicTimeSlotDto) {
+    this.validateScheduleTime(dto.startsAt, dto.endsAt);
+
+    const existing = await this.prisma.academicTimeSlot.findFirst({
+      where: { id, deletedAt: null },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Slot waktu tidak ditemukan.');
+    }
+
+    const updated = await this.prisma.academicTimeSlot.update({
+      where: { id },
+      data: {
+        dayOfWeek: dto.dayOfWeek,
+        periodNumber: dto.periodNumber ?? null,
+        name: dto.name.trim(),
+        type: dto.type,
+        startsAt: dto.startsAt,
+        endsAt: dto.endsAt,
+        isAssignable: dto.isAssignable ?? dto.type === 'LESSON',
+        isActive: dto.isActive ?? existing.isActive,
+      },
+      include: { schoolYear: true },
+    });
+
+    await this.auditService.record({
+      action: 'academic-time-slot.updated',
+      entityType: 'AcademicTimeSlot',
+      entityId: updated.id,
+      before: existing,
+      after: updated,
+    });
+
+    return { data: updated, message: 'Slot waktu berhasil diperbarui.' };
+  }
+
+  async deleteTimeSlot(id: string) {
+    const existing = await this.prisma.academicTimeSlot.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        schedules: { where: { deletedAt: null }, select: { id: true } },
+        scheduleRevisions: { select: { id: true } },
+        classActivities: { select: { id: true } },
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Slot waktu tidak ditemukan.');
+    }
+
+    if (
+      existing.schedules.length ||
+      existing.scheduleRevisions.length ||
+      existing.classActivities.length
+    ) {
+      throw new BadRequestException(
+        'Slot waktu sudah dipakai jadwal atau aktivitas kelas. Ubah slot yang ada daripada menghapusnya.',
+      );
+    }
+
+    const deleted = await this.prisma.academicTimeSlot.update({
+      where: { id },
+      data: { deletedAt: new Date(), isActive: false },
+      include: { schoolYear: true },
+    });
+
+    await this.auditService.record({
+      action: 'academic-time-slot.deleted',
+      entityType: 'AcademicTimeSlot',
+      entityId: deleted.id,
+      before: existing,
+      after: deleted,
+    });
+
+    return { data: deleted, message: 'Slot waktu berhasil dihapus.' };
   }
 
   async getClassTimeSlotActivities(classId: string) {

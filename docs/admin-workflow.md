@@ -157,6 +157,8 @@ Kelas, jam pelajaran, dan aktivitas slot terikat pada tahun ajaran. Saat menyiap
 
 Pada form jadwal, operator memilih tingkat terlebih dahulu, lalu rombel A, B, C, dan seterusnya tampil otomatis pada setiap slot jam yang bisa dijadwalkan. Jika rombel belum muncul, berarti tahun ajaran tersebut belum memiliki data kelas pada tingkat yang dipilih.
 
+Pengaturan jam pelajaran berada di `/admin/akademik`, bukan di halaman jadwal. Operator dapat menambah, mengubah, atau menghapus slot waktu per tahun ajaran, termasuk nomor jam, jam mulai, jam selesai, jenis slot, dan apakah slot tersebut boleh dipakai untuk jadwal pelajaran. Slot yang sudah dipakai jadwal, revisi jadwal, atau aktivitas kelas tidak dapat dihapus agar histori tetap aman.
+
 Pemilihan semester awal mengikuti tanggal saat form dibuka. Untuk tahun ajaran yang sedang berlangsung, semester aktif dipilih; untuk tahun ajaran masa depan, sistem memilih semester `Ganjil` sebagai periode pertama.
 
 Saat mengubah jadwal, operator dapat mengisi tanggal mulai berlaku untuk revisi tengah semester. Jika dikosongkan, revisi berlaku sejak awal semester yang dipilih.

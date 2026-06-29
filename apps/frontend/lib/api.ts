@@ -803,6 +803,38 @@ export const api = {
     request<ApiResponse<AcademicTimeSlot[]>>(
       `/academic/time-slots${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,
     ),
+  createAcademicTimeSlot: (payload: {
+    schoolYearId: string;
+    dayOfWeek: number;
+    periodNumber?: number;
+    name: string;
+    type: AcademicTimeSlotType;
+    startsAt: string;
+    endsAt: string;
+    isAssignable?: boolean;
+  }) =>
+    request<ApiResponse<AcademicTimeSlot>>('/academic/time-slots', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  updateAcademicTimeSlot: (id: string, payload: {
+    dayOfWeek: number;
+    periodNumber?: number | null;
+    name: string;
+    type: AcademicTimeSlotType;
+    startsAt: string;
+    endsAt: string;
+    isAssignable?: boolean;
+    isActive?: boolean;
+  }) =>
+    request<ApiResponse<AcademicTimeSlot>>(`/academic/time-slots/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  deleteAcademicTimeSlot: (id: string) =>
+    request<ApiResponse<AcademicTimeSlot>>(`/academic/time-slots/${id}`, {
+      method: 'DELETE',
+    }),
   getAcademicCalendarEvents: (schoolYearId?: string) =>
     request<ApiResponse<AcademicCalendarEvent[]>>(
       `/academic/calendar/events${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,

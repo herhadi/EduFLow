@@ -12,6 +12,7 @@ import { CreateAcademicCalendarEventDto } from './dto/create-academic-calendar-e
 import { CreateBulkScheduleDto } from './dto/create-bulk-schedule.dto';
 import { UpdateClassTimeSlotActivityDto } from './dto/update-class-time-slot-activity.dto';
 import { UpdateAcademicCalendarEventDto } from './dto/update-academic-calendar-event.dto';
+import { UpdateAcademicTimeSlotDto } from './dto/update-academic-time-slot.dto';
 import { UpdateMyTeacherProfileDto } from './dto/update-my-teacher-profile.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateClassDto } from './dto/create-class.dto';
@@ -235,6 +236,18 @@ export class AcademicController {
   @Post('time-slots')
   createTimeSlot(@Body() dto: CreateAcademicTimeSlotDto) {
     return this.academicService.createTimeSlot(dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.SCHEDULE_MANAGE)
+  @Patch('time-slots/:id')
+  updateTimeSlot(@Param('id') id: string, @Body() dto: UpdateAcademicTimeSlotDto) {
+    return this.academicService.updateTimeSlot(id, dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.SCHEDULE_MANAGE)
+  @Delete('time-slots/:id')
+  deleteTimeSlot(@Param('id') id: string) {
+    return this.academicService.deleteTimeSlot(id);
   }
 
   @Public()
