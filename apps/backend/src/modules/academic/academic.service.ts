@@ -275,7 +275,7 @@ export class AcademicService {
   ) {
     const schoolClass = await this.prisma.class.findFirst({
       where: { id, deletedAt: null },
-      include: { homeroomTeacher: true },
+      include: { schoolYear: true, homeroomTeacher: true },
     });
 
     if (!schoolClass) {
@@ -287,6 +287,9 @@ export class AcademicService {
         where: { id: dto.teacherId, deletedAt: null },
         include: {
           subjects: true,
+          yearAssignments: {
+            include: { schoolYear: true, subjects: true },
+          },
           user: { include: { roles: { include: { role: true } } } },
         },
       });
@@ -295,9 +298,16 @@ export class AcademicService {
         throw new NotFoundException('Guru tidak ditemukan');
       }
 
-      if (!teacher.subjects.length) {
+      const effectiveAssignment = teacher.yearAssignments
+        .filter((assignment) => assignment.schoolYear.startsAt <= schoolClass.schoolYear.startsAt)
+        .sort((first, second) => second.schoolYear.startsAt.getTime() - first.schoolYear.startsAt.getTime())[0];
+      const hasTeachingSubject = effectiveAssignment
+        ? effectiveAssignment.status === 'ACTIVE' && effectiveAssignment.subjects.length > 0
+        : teacher.subjects.length > 0;
+
+      if (!hasTeachingSubject) {
         throw new BadRequestException(
-          'Wali kelas harus guru mapel. Atur mapel ampu guru terlebih dahulu.',
+          'Wali kelas harus guru mapel. Atur penugasan tahun ajaran dan mapel ampu guru terlebih dahulu.',
         );
       }
 
