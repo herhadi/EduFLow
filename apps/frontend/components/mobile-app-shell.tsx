@@ -252,10 +252,7 @@ function BottomNavigation({
     >
       <div className="bottom-nav mx-auto grid grid-cols-5 gap-1 rounded-[1.75rem] p-2 backdrop-blur-xl">
         {primaryNavItems.map((item) => {
-          const active =
-            pathname.startsWith(item.href) ||
-            (item.href === '/admin' && section === 'admin') ||
-            (item.href === '/reports' && section === 'reports');
+          const active = isBottomNavItemActive(item.href, pathname, section);
 
           return (
             <Link
@@ -281,4 +278,25 @@ function BottomNavigation({
       </div>
     </nav>
   );
+}
+
+function isBottomNavItemActive(
+  href: string,
+  pathname: string,
+  section: string | null,
+) {
+  if (href === '/admin') {
+    return (
+      section === 'admin' &&
+      !pathname.startsWith('/admin/dashboard') &&
+      !pathname.startsWith('/admin/notifications') &&
+      !pathname.startsWith('/admin/profile')
+    );
+  }
+
+  if (href === '/reports') {
+    return section === 'reports';
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
 }

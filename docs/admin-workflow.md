@@ -82,15 +82,15 @@ Konfigurasi navigasi global berada di `apps/frontend/lib/navigation.config.ts`.
 Dashboard dipisahkan per role:
 
 - `root`: `/dashboard`.
-- `operator_sekolah`: `/dashboard/admin`.
-- `kepala_sekolah`: `/dashboard/kepala-sekolah`.
-- `guru`: `/dashboard/guru`.
-- `wali_kelas`: `/dashboard/wali-kelas`.
-- `orang_tua`: `/dashboard/orang-tua`.
+- `operator_sekolah`: `/admin/dashboard`.
+- `kepala_sekolah`: `/principal/dashboard`.
+- `guru`: `/teacher/dashboard`.
+- `wali_kelas`: `/teacher/dashboard`.
+- `orang_tua`: `/parent/dashboard`.
 - `tu`: `/dashboard/tu`.
 - `bk`: `/dashboard/bk`.
 
-Login mengarahkan user langsung ke dashboard sesuai role. Jika user non-root membuka `/dashboard`, frontend mengarahkan ke dashboard role-nya. Halaman `/admin/akses` hanya untuk `root`; user non-root yang membuka URL tersebut akan melihat peringatan akses ditolak sebelum diarahkan kembali ke menu sesuai role.
+Login mengarahkan user langsung ke dashboard sesuai role. Jika user non-root membuka `/dashboard`, frontend mengarahkan ke dashboard role-nya. Inbox dan Profil juga mengikuti namespace role, misalnya `/admin/notifications`, `/admin/profile`, `/teacher/notifications`, dan `/teacher/profile`. Halaman `/admin/akses` hanya untuk `root`; user non-root yang membuka URL tersebut akan melihat peringatan akses ditolak sebelum diarahkan kembali ke menu sesuai role.
 
 Dashboard wajib menampilkan information architecture sesuai actor:
 

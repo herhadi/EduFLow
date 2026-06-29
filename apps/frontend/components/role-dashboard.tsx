@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { type ReactNode, useEffect, useState } from 'react';
 import {
   getDashboardPathForRole,
@@ -24,6 +24,7 @@ export function RoleDashboard({
   dashboardRole?: UserRole;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [teacherPhotoUrl, setTeacherPhotoUrl] = useState<string | null>(null);
@@ -54,10 +55,10 @@ export function RoleDashboard({
 
     const dashboardPath = getDashboardPathForRole(role);
 
-    if (dashboardPath !== '/dashboard') {
+    if (dashboardPath !== '/dashboard' && dashboardPath !== pathname) {
       router.replace(dashboardPath);
     }
-  }, [dashboardRole, role, router]);
+  }, [dashboardRole, pathname, role, router]);
 
   if (!role) {
     return (
@@ -69,7 +70,7 @@ export function RoleDashboard({
 
   const activeRole = dashboardRole ?? role;
 
-  if (!dashboardRole && activeRole !== 'root') {
+  if (!dashboardRole && activeRole !== 'root' && pathname !== getDashboardPathForRole(activeRole)) {
     return (
       <div className="rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted shadow-sm shadow-blue-100/60">
         Mengarahkan ke dashboard sesuai role...
@@ -155,7 +156,7 @@ function OperatorHome({ currentUser }: { currentUser: CurrentUser | null }) {
           />
           <AdminInsightCard
             description="Lihat notifikasi gagal, perubahan data penting, dan laporan yang perlu diekspor."
-            href="/notifications"
+            href="/admin/notifications"
             label="Kesehatan Operasional"
             status="Monitoring"
             tone="danger"
@@ -199,7 +200,7 @@ function PrincipalHome({ currentUser }: { currentUser: CurrentUser | null }) {
       />
       <RoleSection description="Hal yang membutuhkan perhatian dan keputusan kepala sekolah." title="Perlu Tindakan">
         <RoleActionCard href="/principal/review" icon="✓" label="Pusat Review" description="Review perangkat ajar dan penilaian semester yang diajukan guru." priority />
-        <RoleActionCard href="/notifications" icon="✦" label="Inbox Kepala Sekolah" description="Lihat kelas kosong, guru belum submit, koreksi, dan pengajuan approval." />
+        <RoleActionCard href="/principal/notifications" icon="✦" label="Inbox Kepala Sekolah" description="Lihat kelas kosong, guru belum submit, koreksi, dan pengajuan approval." />
       </RoleSection>
       <RoleSection description="Ringkasan untuk evaluasi dan pengambilan keputusan." title="Monitoring Sekolah">
         <RoleActionCard href="/teacher-performance" icon="◈" label="Performa Guru" description="Bandingkan sesi mengajar, keterlambatan submit, dan kelas kosong." />
@@ -265,7 +266,7 @@ function TeacherHome({
           ) : null}
           <TeacherCard
             description="Lihat pengumuman, reminder kelas, dan permintaan revisi."
-            href="/notifications"
+            href="/teacher/notifications"
             label="Notifikasi"
           />
         </RoleSection>
