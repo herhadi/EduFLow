@@ -431,11 +431,11 @@ export function AcademicMasterManagement() {
 
   const renderTimeSlotForm = (submitLabel: string) => (
     <form className="grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-4" onSubmit={handleSaveTimeSlot}>
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-[0.85fr_0.65fr_1fr]">
         <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="time-slot-day">
           Hari
           <select
-            className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
+            className="min-w-0 rounded-2xl border border-blue-100 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
             disabled={timeSlotForm.type === 'CEREMONY'}
             id="time-slot-day"
             onChange={(event) => setTimeSlotForm((current) => ({ ...current, dayOfWeek: Number(event.target.value) }))}
@@ -447,9 +447,9 @@ export function AcademicMasterManagement() {
           </select>
         </label>
         <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="time-slot-period">
-          Nomor Jam
+          Jam ke-
           <input
-            className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
+            className="min-w-0 rounded-2xl border border-blue-100 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
             id="time-slot-period"
             min="1"
             onChange={(event) => setTimeSlotForm((current) => ({ ...current, periodNumber: event.target.value }))}
@@ -461,7 +461,7 @@ export function AcademicMasterManagement() {
         <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="time-slot-type">
           Jenis Slot
           <select
-            className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
+            className="min-w-0 rounded-2xl border border-blue-100 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
             id="time-slot-type"
             onChange={(event) =>
               setTimeSlotForm((current) => {
@@ -483,11 +483,11 @@ export function AcademicMasterManagement() {
         </label>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-[1.1fr_0.8fr_0.8fr]">
+      <div className="grid gap-3 sm:grid-cols-[1fr_0.7fr_0.7fr]">
         <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="time-slot-name">
           Nama Slot
           <input
-            className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
+            className="min-w-0 rounded-2xl border border-blue-100 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
             id="time-slot-name"
             onChange={(event) => setTimeSlotForm((current) => ({ ...current, name: event.target.value }))}
             placeholder="Contoh Jam 2"
@@ -497,7 +497,7 @@ export function AcademicMasterManagement() {
         <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="time-slot-start">
           Mulai
           <input
-            className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
+            className="min-w-0 rounded-2xl border border-blue-100 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
             id="time-slot-start"
             onChange={(event) => setTimeSlotForm((current) => ({ ...current, startsAt: event.target.value }))}
             type="time"
@@ -507,7 +507,7 @@ export function AcademicMasterManagement() {
         <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="time-slot-end">
           Selesai
           <input
-            className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
+            className="min-w-0 rounded-2xl border border-blue-100 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
             id="time-slot-end"
             onChange={(event) => setTimeSlotForm((current) => ({ ...current, endsAt: event.target.value }))}
             type="time"
