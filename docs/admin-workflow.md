@@ -73,6 +73,8 @@ Item `Inbox` memakai icon pesan dan memiliki badge/dot jika ada notifikasi priba
 
 Halaman Profil dipakai oleh semua role untuk melihat identitas login, mengunggah foto dari file lokal perangkat, mengaktifkan Telegram, mengubah password, melihat sesi aktif, dan keluar dari semua perangkat. Telegram tidak diketik manual; UI meminta token aktivasi ke backend lalu membuka bot Telegram. Setelah bot menerima token dan mengirim konfirmasi ke `POST /api/auth/telegram/link/confirm`, `User.telegramId` tersimpan otomatis.
 
+Catatan integrasi Telegram: EduFlow sudah menyediakan endpoint token dan endpoint confirm. Bot Telegram tetap perlu dikonfigurasi agar saat user membuka bot dari Profil dan mengirim `/start <token>`, bot memanggil endpoint confirm dengan token tersebut serta Telegram ID pengirim.
+
 `Ops` hanya muncul untuk `root` karena berisi health check, queue monitoring, failed jobs, dan tindakan teknis operasional sistem.
 
 `Master` pada bottom navigation operator berarti pusat data administrasi akademik di namespace `/admin/data`, bukan root teknis.

@@ -549,6 +549,8 @@ POST /api/auth/telegram/link/confirm
 
 `POST /api/auth/me/profile/photo` menerima multipart field `file` dengan format JPEG, PNG, atau WebP maksimal 2 MB. File disimpan melalui storage provider, sedangkan database menyimpan key dan metadata pada `User`. `telegramId` tidak diisi manual dari UI profil; UI membuat token aktivasi, membuka bot Telegram dengan parameter `start`, lalu bot mengirim token dan Telegram ID ke endpoint confirm agar `User.telegramId` tersimpan otomatis.
 
+Backend menyediakan endpoint aktivasi, tetapi webhook atau service bot Telegram harus tetap menjalankan alur `/start <token>` dan memanggil `POST /api/auth/telegram/link/confirm`.
+
 ## Notification Center API
 
 ### Inbox Personal Guru dan Kepala Sekolah

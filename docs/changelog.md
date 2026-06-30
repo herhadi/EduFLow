@@ -10,6 +10,8 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan endpoint `POST /api/auth/change-password`, `GET/PATCH /api/auth/me/profile`, `POST /api/auth/me/profile/photo`, `POST /api/auth/me/telegram/link-token`, dan `POST /api/auth/telegram/link/confirm`.
 - Membersihkan notifikasi operasional dari data `IN_APP`, menambahkan tab Inbox untuk root/operator, dan mengubah badge Inbox agar berbasis unread pribadi.
 - Menambahkan metadata perangkat pada session aktif, termasuk penanda perangkat saat ini, IP, dan ringkasan browser/perangkat di halaman Profil.
+- Merapikan dokumentasi operasional dengan menggabungkan dokumen kecil `operations` dan `workflow` ke `architecture` serta `infrastructure` agar referensi utama lebih mudah dibaca.
+- Memperjelas batas implementasi aktivasi Telegram: backend menyediakan token dan endpoint confirm, sementara bot Telegram harus memanggil endpoint confirm dari alur `/start <token>`.
 
 ## 2026-06-22
 

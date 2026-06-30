@@ -54,14 +54,16 @@ Frontend menjadi pintu masuk browser. Untuk pola satu stack, browser memanggil `
 
 ```text
 Schedule
-  -> Generate Daily Agenda
+  -> Scheduler membuat job generate agenda
+  -> Worker membuat DailyAgenda
   -> Attendance & Activity
   -> Publish Domain Event
-  -> Queue Job
-  -> Worker Process
+  -> Queue membuat job notifikasi atau summary
+  -> Worker memproses pengiriman atau laporan
 ```
 
 Presensi wajib mengacu pada `DailyAgenda`, bukan langsung pada `Schedule`.
+Scheduler hanya membuat job. Proses asynchronous seperti generate agenda, reminder, notifikasi, dan summary diproses oleh worker.
 
 ## Otorisasi
 
@@ -143,3 +145,7 @@ Bottom navigation menggunakan label `Inbox` untuk pusat notifikasi dan `Profil` 
 Domain module tidak boleh membuat koneksi Redis atau memanggil BullMQ langsung. Domain module memakai gateway queue, sedangkan konfigurasi provider berada di `apps/backend/src/infrastructure`.
 
 Tidak masuk infra: attendance logic, auth logic, approval flow, reporting rule, dan schedule generation. Semua itu tetap domain logic.
+
+## Kebijakan Data Operasional
+
+EduFlow tidak mempertahankan mode data contoh di runtime production. Endpoint, service, UI, seed otomatis, dan fallback angka yang membuat data contoh tidak boleh ditambahkan ke alur utama. Data yang tampil di dashboard harus berasal dari PostgreSQL atau bernilai kosong ketika backend belum dapat memuat data.

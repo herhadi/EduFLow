@@ -99,7 +99,8 @@ Manual deployment di server:
 - `docs/backup-recovery.md`: backup dan restore PostgreSQL/Redis.
 - `infra/backup/export-postgres-without-root.sh`: export data untuk demo tanpa akun root sumber.
 - `infra/backup/import-postgres-without-root.sh`: import destruktif ke server lalu membuat root dari environment target.
-- `docs/workflow.md`: alur kerja utama dan referensi dokumen domain.
+- `docs/admin-workflow.md`: alur kerja operator sekolah dan konfigurasi awal akademik.
+- `docs/academic-planning.md`: kalender pendidikan, perangkat ajar, buku KBM, dan nilai siswa.
 - `docs/changelog.md`: catatan perubahan operasional penting.
 
 ## Endpoint Auth Awal
