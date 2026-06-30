@@ -553,14 +553,14 @@ export function AcademicMasterManagement() {
 
   return (
     <div className="mt-6 grid gap-5">
-      <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      <section className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Rombongan Belajar</p>
         <h2 className="mt-1 text-2xl font-black text-ink">Manajemen Kelas</h2>
         <p className="mt-1 text-sm leading-6 text-muted">
           Jumlah kelas bebas menyesuaikan jumlah siswa. Tambah atau hapus rombel tanpa mengubah kode aplikasi.
         </p>
 
-        <form className="mt-5 grid gap-2 sm:grid-cols-[1fr_auto]" onSubmit={handleCreateSchoolYear}>
+        <form className="mt-5 grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]" onSubmit={handleCreateSchoolYear}>
           <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="new-school-year">
             Tahun Ajaran Baru
             <input
@@ -595,7 +595,7 @@ export function AcademicMasterManagement() {
               ))}
             </select>
           </label>
-          <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
+          <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
             <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="class-grade">
               Tingkat
               <select
@@ -619,7 +619,7 @@ export function AcademicMasterManagement() {
               />
             </label>
             <button
-              className="self-end rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300"
+              className="col-span-2 self-end rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300 sm:col-span-1"
               disabled={isSaving}
               type="submit"
             >
@@ -654,7 +654,7 @@ export function AcademicMasterManagement() {
           ))}
         </div>
 
-        <form className="mt-5 grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3" onSubmit={handleCloneSchoolYearMaster}>
+        <form className="mt-5 grid min-w-0 gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3" onSubmit={handleCloneSchoolYearMaster}>
           <div>
             <p className="text-sm font-black text-slate-900">Salin Master Tahun Ajaran</p>
             <p className="mt-1 text-xs font-semibold text-muted">
@@ -722,14 +722,14 @@ export function AcademicMasterManagement() {
 
       </section>
 
-      <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      <section className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Kurikulum</p>
         <h2 className="mt-1 text-2xl font-black text-ink">Manajemen Mata Pelajaran</h2>
         <p className="mt-1 text-sm leading-6 text-muted">
           Daftar mapel bersifat fleksibel. Admin dapat menambah mapel lokal atau menghapus mapel yang belum dipakai.
         </p>
 
-        <form className="mt-5 grid gap-3 sm:grid-cols-[1fr_0.45fr_auto]" onSubmit={handleCreateSubject}>
+        <form className="mt-5 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.45fr)_auto]" onSubmit={handleCreateSubject}>
           <input
             className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm outline-none focus:border-brand-600"
             onChange={(event) => setSubjectForm((current) => ({ ...current, name: event.target.value }))}
@@ -770,7 +770,7 @@ export function AcademicMasterManagement() {
         </div>
       </section>
 
-      <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      <section className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Jadwal Sekolah</p>
         <h2 className="mt-1 text-2xl font-black text-ink">Manajemen Jam Pelajaran</h2>
         <p className="mt-1 text-sm leading-6 text-muted">

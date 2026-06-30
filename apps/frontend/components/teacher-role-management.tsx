@@ -425,7 +425,7 @@ export function TeacherRoleManagement() {
   }
 
   return (
-    <section className="mt-6 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+    <section className="mt-6 min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
@@ -447,9 +447,9 @@ export function TeacherRoleManagement() {
         </div>
       ) : null}
 
-      <div className="mt-5 grid items-stretch gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+      <div className="mt-5 grid min-w-0 items-stretch gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
         <div
-          className="flex flex-col rounded-[1.5rem] border border-blue-50 bg-slate-50 p-3 lg:h-[var(--detail-card-height)] lg:min-h-0 lg:overflow-hidden"
+          className="min-w-0 flex flex-col rounded-[1.5rem] border border-blue-50 bg-slate-50 p-3 lg:h-[var(--detail-card-height)] lg:min-h-0 lg:overflow-hidden"
           style={
             {
               '--detail-card-height': detailCardHeight
@@ -458,7 +458,7 @@ export function TeacherRoleManagement() {
             } as CSSProperties
           }
         >
-          <div className="flex items-center justify-between gap-3 px-2">
+          <div className="flex min-w-0 items-center justify-between gap-3 px-2">
             <p className="text-xs font-black text-muted">Pilih Guru</p>
             <button
               className="rounded-full bg-brand-600 px-3 py-2 text-xs font-black text-white"
@@ -502,7 +502,7 @@ export function TeacherRoleManagement() {
             </div>
           ) : null}
 
-          <div className="mt-3 grid content-start gap-2 pr-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain">
+          <div className="mt-3 grid min-w-0 content-start gap-2 pr-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain">
             {teachers.map((teacher) => {
               const active = teacher.id === selectedTeacherId;
               const selectedSchoolYear = schoolYears.find((schoolYear) => schoolYear.id === assignmentSchoolYearId);
@@ -515,7 +515,7 @@ export function TeacherRoleManagement() {
               return (
                 <button
                   className={[
-                    'rounded-2xl border p-3 text-left transition',
+                    'min-w-0 rounded-2xl border p-3 text-left transition',
                     active
                       ? `${status.cardClass} ring-2 ring-brand-600 ring-offset-1`
                       : status.cardClass,
@@ -524,7 +524,7 @@ export function TeacherRoleManagement() {
                   onClick={() => selectTeacher(teacher.id)}
                   type="button"
                 >
-                  <p className="font-black text-slate-900">{teacher.name}</p>
+                  <p className="truncate font-black text-slate-900">{teacher.name}</p>
                   <p className={['mt-1 text-xs font-black', status.textClass].join(' ')}>
                     {status.label}
                   </p>
@@ -553,7 +553,7 @@ export function TeacherRoleManagement() {
         </div>
 
         <div
-          className="scroll-mt-24 rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4"
+          className="min-w-0 scroll-mt-24 rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4"
           ref={detailCardRef}
         >
           {selectedTeacher ? (

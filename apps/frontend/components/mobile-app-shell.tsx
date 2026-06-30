@@ -75,7 +75,7 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="app-backdrop min-h-dvh overflow-x-hidden">
-      <div className="app-frame mx-auto min-h-dvh max-w-[452px] overflow-x-hidden md:my-3 md:min-h-[calc(100dvh-1.5rem)] md:w-[calc(100%-1.5rem)] md:max-w-none md:rounded-[2rem] xl:w-[calc(100%-2rem)]">
+      <div className="app-frame mx-auto min-h-dvh max-w-[456px] overflow-x-hidden md:my-3 md:min-h-[calc(100dvh-1.5rem)] md:w-[calc(100%-1.5rem)] md:max-w-none md:rounded-[2rem] xl:w-[calc(100%-2rem)]">
         <AppTopBar currentUser={currentUser} />
 
         <div className="px-3 pt-3 pb-28 sm:px-5 md:px-6">
@@ -232,7 +232,7 @@ function BottomNavigation({
   return (
     <nav
       aria-label="Navigasi utama"
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[452px] px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] md:w-1/2 md:max-w-none"
+      className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[456px] px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] md:w-1/2 md:max-w-none"
     >
       <div className="bottom-nav mx-auto grid grid-cols-5 gap-1 rounded-[1.75rem] p-2 backdrop-blur-xl">
         {primaryNavItems.map((item) => {
