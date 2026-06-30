@@ -189,6 +189,8 @@ model RefreshToken {
   userId        String    @db.Uuid
   tokenHash     String    @unique
   expiresAt     DateTime
+  ipAddress     String?
+  userAgent     String?
   revokedAt     DateTime?
   revokedReason String?
   user          User      @relation(fields: [userId], references: [id])

@@ -15,7 +15,10 @@ export interface ApiResponse<T> {
 
 export interface AuthSession {
   id: string;
+  tokenHash: string;
   expiresAt: string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
   revokedAt?: string | null;
   revokedReason?: string | null;
   createdAt: string;

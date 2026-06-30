@@ -534,6 +534,7 @@ Catatan:
 
 - Jika `refreshToken` dikirim, hanya sesi tersebut yang dicabut.
 - Jika body kosong, semua sesi aktif user dicabut.
+- `RefreshToken` menyimpan `ipAddress` dan `userAgent` dari login agar halaman Profil dapat menampilkan perangkat aktif.
 - `RefreshToken.revokedReason` menyimpan alasan revoke seperti `logout`, `rotated`, `password_reset`, atau `manual_revoke`.
 
 Profil user:

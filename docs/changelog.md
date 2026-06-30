@@ -9,6 +9,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Melengkapi halaman Profil dengan upload foto lokal, token aktivasi Telegram tanpa input ID manual, ubah password mandiri, daftar sesi, dan aksi keluar dari semua perangkat.
 - Menambahkan endpoint `POST /api/auth/change-password`, `GET/PATCH /api/auth/me/profile`, `POST /api/auth/me/profile/photo`, `POST /api/auth/me/telegram/link-token`, dan `POST /api/auth/telegram/link/confirm`.
 - Membersihkan notifikasi operasional dari data `IN_APP`, menambahkan tab Inbox untuk root/operator, dan mengubah badge Inbox agar berbasis unread pribadi.
+- Menambahkan metadata perangkat pada session aktif, termasuk penanda perangkat saat ini, IP, dan ringkasan browser/perangkat di halaman Profil.
 
 ## 2026-06-22
 

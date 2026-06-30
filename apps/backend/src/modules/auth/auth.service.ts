@@ -146,7 +146,7 @@ export class AuthService {
       ...meta,
     });
 
-    return this.createSession(user.id);
+    return this.createSession(user.id, meta);
   }
 
   async refresh(refreshToken: string) {
@@ -167,7 +167,10 @@ export class AuthService {
       data: { revokedAt: new Date(), revokedReason: 'rotated' },
     });
 
-    return this.createSession(storedToken.userId);
+    return this.createSession(storedToken.userId, {
+      ipAddress: storedToken.ipAddress ?? undefined,
+      userAgent: storedToken.userAgent ?? undefined,
+    });
   }
 
   async logout(refreshToken: string) {
@@ -495,7 +498,10 @@ export class AuthService {
         where: { userId },
         select: {
           id: true,
+          tokenHash: true,
           expiresAt: true,
+          ipAddress: true,
+          userAgent: true,
           revokedAt: true,
           revokedReason: true,
           createdAt: true,
@@ -692,7 +698,7 @@ export class AuthService {
     }
   }
 
-  private async createSession(userId: string) {
+  private async createSession(userId: string, meta: AuthRequestMeta = {}) {
     const user = await this.prisma.user.findFirstOrThrow({
       where: { id: userId, deletedAt: null },
       include: {
@@ -726,6 +732,8 @@ export class AuthService {
         userId: user.id,
         tokenHash: this.hashToken(refreshToken),
         expiresAt,
+        ipAddress: meta.ipAddress,
+        userAgent: meta.userAgent,
       },
     });
     const accessToken = await this.jwtService.signAsync(

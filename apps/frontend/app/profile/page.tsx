@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const [photoUrl, setPhotoUrl] = useState('');
   const [telegramId, setTelegramId] = useState('');
   const [sessions, setSessions] = useState<AuthSession[]>([]);
+  const [currentRefreshTokenHash, setCurrentRefreshTokenHash] = useState('');
   const [status, setStatus] = useState<Status>(null);
   const [savingPhoto, setSavingPhoto] = useState(false);
   const [linkingTelegram, setLinkingTelegram] = useState(false);
@@ -36,6 +37,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     void loadSessions();
+    void loadCurrentRefreshTokenHash();
   }, []);
 
   async function loadSessions() {
@@ -45,6 +47,18 @@ export default function ProfilePage() {
     } catch {
       setSessions([]);
     }
+  }
+
+  async function loadCurrentRefreshTokenHash() {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken || !crypto.subtle) return;
+
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(refreshToken));
+    setCurrentRefreshTokenHash(
+      [...new Uint8Array(digest)]
+        .map((byte) => byte.toString(16).padStart(2, '0'))
+        .join(''),
+    );
   }
 
   async function loadProfile() {
@@ -316,9 +330,25 @@ export default function ProfilePage() {
               <div className="mt-4 max-h-52 space-y-2 overflow-auto pr-1">
                 {sessions.slice(0, 6).map((session) => (
                   <div className="rounded-2xl border border-slate-100 p-3 text-xs font-semibold text-muted" key={session.id}>
-                    <p className="font-black text-slate-800">
-                      {session.revokedAt ? 'Dicabut' : 'Aktif'} · {new Date(session.createdAt).toLocaleString('id-ID')}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-black text-slate-800">
+                        {getSessionDeviceLabel(session.userAgent)}
+                      </p>
+                      {session.tokenHash === currentRefreshTokenHash ? (
+                        <span className="rounded-full bg-emerald-50 px-2 py-1 text-[0.65rem] font-black text-emerald-700">
+                          Aktif saat ini
+                        </span>
+                      ) : (
+                        <span className={`rounded-full px-2 py-1 text-[0.65rem] font-black ${
+                          session.revokedAt ? 'bg-slate-100 text-slate-500' : 'bg-blue-50 text-brand-700'
+                        }`}
+                        >
+                          {session.revokedAt ? 'Dicabut' : 'Aktif'}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1">Masuk: {new Date(session.createdAt).toLocaleString('id-ID')}</p>
+                    <p className="mt-1">IP: {session.ipAddress ?? '-'}</p>
                     <p className="mt-1">Berakhir: {new Date(session.expiresAt).toLocaleString('id-ID')}</p>
                     {session.revokedReason ? <p className="mt-1">Alasan: {session.revokedReason}</p> : null}
                   </div>
@@ -338,4 +368,31 @@ export default function ProfilePage() {
       </Container>
     </main>
   );
+}
+
+function getSessionDeviceLabel(userAgent?: string | null) {
+  if (!userAgent) return 'Perangkat tidak dikenal';
+
+  const browser = userAgent.includes('Edg/')
+    ? 'Edge'
+    : userAgent.includes('Chrome/')
+      ? 'Chrome'
+      : userAgent.includes('Safari/') && !userAgent.includes('Chrome/')
+        ? 'Safari'
+        : userAgent.includes('Firefox/')
+          ? 'Firefox'
+          : 'Browser';
+  const device = /Android/i.test(userAgent)
+    ? 'Android'
+    : /iPhone|iPad/i.test(userAgent)
+      ? 'iOS'
+      : /Macintosh|Mac OS X/i.test(userAgent)
+        ? 'Mac'
+        : /Windows/i.test(userAgent)
+          ? 'Windows'
+          : /Linux/i.test(userAgent)
+            ? 'Linux'
+            : 'Perangkat';
+
+  return `${browser} di ${device}`;
 }
