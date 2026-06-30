@@ -5,6 +5,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { RequestWithUser } from '../../core/http/request-with-user';
 import { AuthService } from './auth.service';
 import { ChangeInitialPasswordDto } from './dto/change-initial-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -50,6 +51,14 @@ export class AuthController {
     @Req() request: RequestWithUser,
   ) {
     return this.authService.changeInitialPassword(request.user.id, dto);
+  }
+
+  @Post('change-password')
+  changePassword(
+    @Body() dto: ChangePasswordDto,
+    @Req() request: RequestWithUser,
+  ) {
+    return this.authService.changePassword(request.user.id, dto);
   }
 
   @Public()

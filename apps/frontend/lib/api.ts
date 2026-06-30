@@ -13,6 +13,14 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+export interface AuthSession {
+  id: string;
+  expiresAt: string;
+  revokedAt?: string | null;
+  revokedReason?: string | null;
+  createdAt: string;
+}
+
 export interface SchoolClass {
   id: string;
   schoolYearId: string;
@@ -623,8 +631,23 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  changePassword: (payload: {
+    currentPassword: string;
+    newPassword: string;
+    repeatPassword: string;
+  }) =>
+    request<ApiResponse<null>>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   logout: (refreshToken: string) =>
     request<{ success: boolean }>('/auth/logout', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken }),
+    }),
+  getSessions: () => request<ApiResponse<AuthSession[]>>('/auth/sessions'),
+  revokeSessions: (refreshToken?: string) =>
+    request<ApiResponse<null>>('/auth/sessions/revoke', {
       method: 'POST',
       body: JSON.stringify({ refreshToken }),
     }),
@@ -783,6 +806,8 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
+  uploadMyTeacherProfilePhoto: (file: File) =>
+    upload<ApiResponse<Teacher>>('/academic/me/profile/photo', file),
   getMyTeachingPlans: () => request<ApiResponse<TeachingPlan[]>>('/academic-planning/mine'),
   createTeachingPlan: (payload: { subjectId: string; schoolYearId: string; semesterId?: string; type: TeachingPlanType; title: string; description?: string; attachmentUrl?: string }) =>
     request<ApiResponse<TeachingPlan>>('/academic-planning', { method: 'POST', body: JSON.stringify(payload) }),

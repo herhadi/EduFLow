@@ -289,6 +289,22 @@ export class AcademicController {
     return this.academicService.updateMyTeacherProfile(request.user.id, dto);
   }
 
+  @Post('me/profile/photo')
+  @UseInterceptors(FileInterceptor('file', {
+    limits: { fileSize: 2 * 1024 * 1024 },
+    fileFilter: (_request, file, callback) => {
+      const supported = ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype);
+      callback(supported ? null : new BadRequestException('Foto profil harus JPEG, PNG, atau WebP'), supported);
+    },
+  }))
+  uploadMyTeacherPhoto(
+    @Req() request: RequestWithUser,
+    @UploadedFile() file?: { buffer: Buffer; originalname: string; mimetype: string; size: number },
+  ) {
+    if (!file) throw new BadRequestException('Foto profil wajib dipilih');
+    return this.academicService.uploadMyTeacherPhoto(request.user.id, file);
+  }
+
   @Get('me/agendas')
   getMyAgendas(
     @Req() request: RequestWithUser,

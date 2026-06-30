@@ -71,6 +71,8 @@ Item paling kanan selalu `Profil` untuk kebutuhan personal seperti ganti passwor
 
 Item `Inbox` memakai icon pesan dan memiliki badge/dot jika ada notifikasi `PENDING` atau `FAILED`. Item `Profil` memakai icon orang.
 
+Halaman Profil dipakai oleh semua role untuk melihat identitas login, mengubah password, melihat sesi aktif, dan keluar dari semua perangkat. Untuk guru dan wali kelas, Profil juga menyediakan upload foto dari file lokal perangkat. Telegram tidak diketik manual; jika `Teacher.telegramId` belum ada, UI menampilkan tombol aktivasi yang diarahkan ke bot Telegram melalui `NEXT_PUBLIC_TELEGRAM_BOT_URL`.
+
 `Ops` hanya muncul untuk `root` karena berisi health check, queue monitoring, failed jobs, dan tindakan teknis operasional sistem.
 
 `Master` pada bottom navigation operator berarti pusat data administrasi akademik di namespace `/admin/data`, bukan root teknis.

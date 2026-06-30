@@ -1249,6 +1249,14 @@ export class AcademicService {
     return { data: updated, message: 'Profil guru berhasil diperbarui.' };
   }
 
+  async uploadMyTeacherPhoto(
+    userId: string,
+    file: { buffer: Buffer; originalname: string; mimetype: string; size: number },
+  ) {
+    const teacher = await this.getTeacherAccount(userId);
+    return this.uploadTeacherPhoto(teacher.id, file);
+  }
+
   async getMyAgendas(userId: string, date?: string) {
     const teacher = await this.getTeacherAccount(userId);
     const agendaDate = date ? this.toDateOnly(date) : undefined;

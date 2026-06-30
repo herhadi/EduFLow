@@ -2,6 +2,11 @@
 
 Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
+## 2026-06-30
+
+- Melengkapi halaman Profil dengan upload foto lokal untuk guru, status aktivasi Telegram tanpa input ID manual, ubah password mandiri, daftar sesi, dan aksi keluar dari semua perangkat.
+- Menambahkan endpoint `POST /api/auth/change-password` untuk perubahan password setelah login dan `POST /api/academic/me/profile/photo` untuk upload foto profil guru sendiri.
+
 ## 2026-06-22
 
 - Memperbaiki perintah migration deployment agar Prisma selalu menggunakan schema monorepo `apps/backend/prisma/schema.prisma` dari workdir container `/app`.

@@ -35,6 +35,7 @@ Response login membawa `user.mustChangePassword`. Nilai ini `true` jika password
 
 ```http
 POST /api/auth/change-initial-password
+POST /api/auth/change-password
 Authorization: Bearer <accessToken>
 Content-Type: application/json
 
@@ -52,6 +53,8 @@ Aturan:
 - panjang password minimal 6 dan maksimal 10 karakter,
 - setelah berhasil, backend mengisi `passwordChangedAt` dan mengembalikan data user terbaru,
 - frontend menyimpan session terbaru dan mengarahkan user ke dashboard sesuai role.
+
+`POST /api/auth/change-password` dipakai dari halaman Profil setelah user login. Request membawa `currentPassword`, `newPassword`, dan `repeatPassword`. Backend memvalidasi password lama, menolak password default, mengisi `passwordChangedAt`, lalu mencabut semua refresh token aktif agar user login ulang.
 
 ### User Management
 
@@ -532,6 +535,16 @@ Catatan:
 - Jika `refreshToken` dikirim, hanya sesi tersebut yang dicabut.
 - Jika body kosong, semua sesi aktif user dicabut.
 - `RefreshToken.revokedReason` menyimpan alasan revoke seperti `logout`, `rotated`, `password_reset`, atau `manual_revoke`.
+
+Profil guru:
+
+```txt
+GET /api/academic/me/profile
+PATCH /api/academic/me/profile
+POST /api/academic/me/profile/photo
+```
+
+`POST /api/academic/me/profile/photo` menerima multipart field `file` dengan format JPEG, PNG, atau WebP maksimal 2 MB. File disimpan melalui storage provider, sedangkan database menyimpan key dan metadata. `telegramId` tidak diisi manual dari UI profil; aktivasi Telegram dilakukan dari bot agar ID tersimpan otomatis.
 
 ## Notification Center API
 

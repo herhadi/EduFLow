@@ -39,6 +39,10 @@ type ChangeInitialPasswordInput = {
   repeatPassword: string;
 };
 
+type ChangePasswordInput = ChangeInitialPasswordInput & {
+  currentPassword: string;
+};
+
 type LoginAuditInput = AuthRequestMeta & {
   email: string;
   reason?: string;
@@ -209,6 +213,50 @@ export class AuthService {
       data: await this.getSessionUser(userId),
       message: 'Password berhasil diganti.',
     };
+  }
+
+  async changePassword(userId: string, input: ChangePasswordInput) {
+    if (input.newPassword !== input.repeatPassword) {
+      throw new BadRequestException('Konfirmasi password tidak sama');
+    }
+
+    if (input.newPassword === input.currentPassword) {
+      throw new BadRequestException('Password baru tidak boleh sama dengan password lama');
+    }
+
+    if (input.newPassword === this.getDefaultUserPassword()) {
+      throw new BadRequestException('Password baru tidak boleh sama dengan password default');
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User tidak ditemukan');
+    }
+
+    const passwordMatches = await compare(input.currentPassword, user.password);
+
+    if (!passwordMatches) {
+      throw new UnauthorizedException('Password lama tidak sesuai');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          password: await hash(input.newPassword, 12),
+          passwordChangedAt: new Date(),
+        },
+      }),
+      this.prisma.refreshToken.updateMany({
+        where: { userId: user.id, revokedAt: null },
+        data: { revokedAt: new Date(), revokedReason: 'password_changed' },
+      }),
+    ]);
+
+    return { message: 'Password berhasil diganti. Silakan login ulang.' };
   }
 
   async requestPasswordReset(dto: RequestPasswordResetInput) {
