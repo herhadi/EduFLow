@@ -426,7 +426,6 @@ export interface ParentPortalSummary {
     id: string;
     name: string;
     phone?: string | null;
-    telegramId?: string | null;
     email?: string | null;
   };
   date: string;

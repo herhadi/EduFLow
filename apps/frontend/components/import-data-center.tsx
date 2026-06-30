@@ -17,7 +17,7 @@ const importItems: Array<{
     title: 'Guru',
     filename: 'Guru.xlsx',
     description: 'Import data guru pengajar. Role, mapel, dan wali kelas diatur lewat Admin.',
-    columns: ['nama', 'nip', 'nuptk', 'email', 'no_hp', 'telegram_id', 'status'],
+    columns: ['nama', 'nip', 'nuptk', 'email', 'no_hp', 'status'],
   },
   {
     type: 'students',
@@ -34,7 +34,6 @@ const importItems: Array<{
       'tahun_ajaran',
       'nama_wali',
       'hp_wali',
-      'telegram_id_wali',
       'alamat_wali',
       'status',
     ],
@@ -148,7 +147,7 @@ function ImportCard({
         <div
           className={[
             'mt-3 flex flex-wrap gap-2',
-            showColumns ? 'flex' : 'hidden sm:flex',
+            showColumns ? 'flex' : 'hidden',
           ].join(' ')}
         >
           {item.columns.map((column) => (

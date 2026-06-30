@@ -164,12 +164,11 @@ function TeacherList({ teachers }: { teachers: Teacher[] }) {
   return (
     <ResponsiveList
       emptyLabel="Belum ada guru."
-      headers={['Nama Guru', 'NIP', 'No HP', 'Telegram', 'Status']}
+      headers={['Nama Guru', 'NIP', 'No HP', 'Status']}
       rows={teachers.map((teacher) => [
         teacher.name,
         teacher.nip ?? '-',
         teacher.phone ?? '-',
-        teacher.telegramId ?? '-',
         teacher.isActive === false ? 'Nonaktif' : 'Aktif',
       ])}
     />

@@ -553,7 +553,6 @@ export function AdminAccessCenter({
                     <span>NIP: {teacher.nip ?? '-'}</span>
                     <span>HP: {teacher.phone ?? '-'}</span>
                     <span>Email: {teacher.email ?? '-'}</span>
-                    <span>Telegram: {teacher.telegramId ?? '-'}</span>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 sm:flex">

@@ -27,7 +27,6 @@ export class ParentPortalService {
         isActive: true,
         OR: [
           { phone: normalizedContact },
-          { telegramId: normalizedContact },
           { email: normalizedContact },
         ],
       },
@@ -138,7 +137,6 @@ export class ParentPortalService {
           id: guardian.id,
           name: guardian.name,
           phone: guardian.phone,
-          telegramId: guardian.telegramId,
           email: guardian.email,
         },
         date: this.formatDateOnly(today.startOfDay),

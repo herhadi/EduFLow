@@ -11,9 +11,14 @@ import { getCurrentSessionUser } from '../lib/session';
 import { NOTIFICATION_CHANGED_EVENT } from './mobile-app-shell';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
-type NotificationTab = 'sent' | 'pending' | 'failed' | 'retry';
+type NotificationTab = 'inbox' | 'sent' | 'pending' | 'failed' | 'retry';
 
 const tabs: Array<{ id: NotificationTab; label: string; description: string }> = [
+  {
+    id: 'inbox',
+    label: 'Inbox',
+    description: 'Notifikasi pribadi untuk akun yang sedang login.',
+  },
   {
     id: 'sent',
     label: 'Terkirim',
@@ -37,12 +42,13 @@ const tabs: Array<{ id: NotificationTab; label: string; description: string }> =
 ];
 
 export function NotificationCenter() {
+  const router = useRouter();
   const [personalInboxRole, setPersonalInboxRole] = useState<
     'teacher' | 'principal' | 'parent' | null
   >(null);
   const [notificationAccess, setNotificationAccess] = useState<NotificationAccess | null>(null);
   const [myNotifications, setMyNotifications] = useState<NotificationLog[]>([]);
-  const [activeTab, setActiveTab] = useState<NotificationTab>('sent');
+  const [activeTab, setActiveTab] = useState<NotificationTab>('inbox');
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [actionState, setActionState] = useState<LoadState>('idle');
   const [message, setMessage] = useState<string | null>(null);
@@ -66,14 +72,16 @@ export function NotificationCenter() {
         return;
       }
 
-      const [sentResponse, pendingResponse, failedResponse, retryResponse] =
+      const [mineResponse, sentResponse, pendingResponse, failedResponse, retryResponse] =
         await Promise.all([
+          api.getMyNotifications(),
           api.getSentNotifications(),
           api.getPendingNotifications(),
           api.getFailedNotifications(),
           access.canRetry ? api.getRetryNotifications() : Promise.resolve({ data: [] }),
         ]);
 
+      setMyNotifications(mineResponse.data);
       setSent(sentResponse.data);
       setPending(pendingResponse.data);
       setFailed(failedResponse.data);
@@ -181,6 +189,12 @@ export function NotificationCenter() {
 
         <div className="mt-6 min-w-0">
           {activeTab === 'sent' ? <NotificationTable items={sent} /> : null}
+          {activeTab === 'inbox' ? (
+            <OperationalInboxTable
+              items={myNotifications}
+              onOpen={openOperationalNotification}
+            />
+          ) : null}
           {activeTab === 'pending' ? <NotificationTable items={pending} /> : null}
           {activeTab === 'failed' ? (
             <NotificationTable items={failed} />
@@ -198,6 +212,10 @@ export function NotificationCenter() {
   );
 
   function getTabCount(tab: NotificationTab) {
+    if (tab === 'inbox') {
+      return myNotifications.filter((notification) => !notification.readAt).length;
+    }
+
     if (tab === 'sent') {
       return sent.length;
     }
@@ -211,6 +229,16 @@ export function NotificationCenter() {
     }
 
     return retry.length;
+  }
+
+  async function openOperationalNotification(item: NotificationLog) {
+    if (!item.readAt) {
+      await api.markMyNotificationAsRead(item.id);
+      window.dispatchEvent(new Event(NOTIFICATION_CHANGED_EVENT));
+      await loadNotifications();
+    }
+
+    if (item.actionUrl) router.push(item.actionUrl);
   }
 }
 
@@ -316,6 +344,53 @@ function PersonalNotificationInbox({
         ))}
       </div>
     </section>
+  );
+}
+
+function OperationalInboxTable({
+  items,
+  onOpen,
+}: {
+  items: NotificationLog[];
+  onOpen: (notification: NotificationLog) => Promise<void>;
+}) {
+  if (!items.length) {
+    return (
+      <p className="rounded-xl bg-slate-50 p-4 text-sm text-muted">
+        Tidak ada notifikasi pribadi untuk akun ini.
+      </p>
+    );
+  }
+
+  return (
+    <div className="grid gap-3">
+      {items.map((item) => (
+        <button
+          className="w-full rounded-2xl border border-blue-100 bg-white p-4 text-left shadow-sm shadow-blue-100/60 transition hover:border-brand-300 hover:bg-brand-50/40"
+          key={item.id}
+          onClick={() => void onOpen(item)}
+          type="button"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-black text-brand-700">
+                {item.subject ?? 'Notifikasi'}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-700">{item.message}</p>
+            </div>
+            {!item.readAt ? (
+              <span className="size-2.5 shrink-0 rounded-full bg-rose-500" />
+            ) : null}
+          </div>
+          <p className="mt-3 text-xs font-semibold text-muted">
+            {formatDateTime(item.sentAt ?? item.failedAt ?? item.createdAt)}
+          </p>
+          {item.actionUrl ? (
+            <p className="mt-3 text-xs font-black text-brand-700">Buka Detail →</p>
+          ) : null}
+        </button>
+      ))}
+    </div>
   );
 }
 

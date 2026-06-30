@@ -82,7 +82,7 @@ export class NotificationService implements OnModuleInit {
         email: true,
         telegramId: true,
         teacherProfile: {
-          select: { email: true, phone: true, telegramId: true },
+          select: { email: true, phone: true },
         },
       },
     });
@@ -96,7 +96,6 @@ export class NotificationService implements OnModuleInit {
       user.telegramId,
       user.teacherProfile?.email,
       user.teacherProfile?.phone,
-      user.teacherProfile?.telegramId,
     ];
     const allowedTemplates = roles.includes('kepala_sekolah')
       ? [
@@ -125,12 +124,11 @@ export class NotificationService implements OnModuleInit {
     if (roles.includes('orang_tua')) {
       const guardians = await this.prisma.guardian.findMany({
         where: { email: user.email, deletedAt: null, isActive: true },
-        select: { email: true, phone: true, telegramId: true },
+        select: { email: true, phone: true },
       });
       recipients.push(...guardians.flatMap((guardian) => [
         guardian.email,
         guardian.phone,
-        guardian.telegramId,
       ]));
     }
 
@@ -355,7 +353,7 @@ export class NotificationService implements OnModuleInit {
   private async getLogsByStatus(status: NotificationStatus) {
     return {
       data: await this.prisma.notificationLog.findMany({
-        where: { status },
+        where: { status, channel: { not: 'IN_APP' } },
         orderBy: { createdAt: 'desc' },
         take: 100,
       }),

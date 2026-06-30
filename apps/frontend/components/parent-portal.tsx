@@ -51,7 +51,7 @@ export function ParentPortal() {
           Pantau Kehadiran Anak
         </h2>
         <p className="mt-2 text-sm leading-6 text-blue-100">
-          Masukkan nomor HP, Telegram ID, atau email wali murid untuk melihat
+          Masukkan nomor HP atau email wali murid untuk melihat
           ringkasan harian dan riwayat presensi.
         </p>
 

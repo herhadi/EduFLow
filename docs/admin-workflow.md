@@ -33,7 +33,7 @@ Slot terikat pada tahun ajaran sehingga sekolah dapat mengubah susunan jam untuk
 
 Pada `/admin/guru`, operator dapat menambahkan data guru baru langsung dari panel `Pilih Guru`. Setelah dibuat, guru otomatis terpilih untuk dilanjutkan ke pengaturan akun login, role, penugasan tahun ajaran, dan wali kelas.
 
-Data guru hasil import dapat dilengkapi dari kartu `Guru Terpilih` pada `/admin/guru`. Operator dapat mengedit nama, NIP, NUPTK, nomor HP, email, dan foto dari file lokal, kemudian menyimpan bersamaan dengan pengaturan akun guru. Telegram diisi sendiri oleh guru dari halaman profil setelah login.
+Data guru hasil import dapat dilengkapi dari kartu `Guru Terpilih` pada `/admin/guru`. Operator dapat mengedit nama, NIP, NUPTK, nomor HP, email, dan foto dari file lokal, kemudian menyimpan bersamaan dengan pengaturan akun guru. Telegram tidak diisi dari admin atau import; semua user mengaktifkannya sendiri dari halaman Profil setelah login.
 
 Semua daftar dan dropdown kelas wajib memakai helper `sortSchoolClasses` dari `@eduflow/shared`. Urutan standar adalah tingkat VII, VIII, IX, kemudian rombel A, B, C, dan seterusnya. Jangan membuat sorting kelas lokal di masing-masing komponen.
 
@@ -54,7 +54,7 @@ Halaman `/teacher/schedules` membaca `GET /api/academic/me/schedules`, sehingga 
 
 Frontend menggunakan tema biru modern dengan mode terang dan gelap. Pilihan tema disimpan pada browser melalui key `eduflow-theme`, mengikuti preferensi perangkat ketika pengguna belum memilih, dan diterapkan sebelum halaman dirender untuk mencegah kilatan tema. Komponen baru wajib memakai token global pada `apps/frontend/app/globals.css` atau komponen UI bersama agar konsisten dan tetap terbaca pada dark mode.
 
-Hero/card utama halaman memakai lebar penuh container dan token `page-hero` agar kontras pada mode terang maupun gelap. Profil user menyimpan foto akun; untuk guru yang sudah terhubung akun login, foto yang diunggah admin dari `/admin/guru` dan foto yang diganti user dari halaman Profil disinkronkan ke file profil yang sama. Untuk data lama, foto guru pada `Teacher` tetap menjadi fallback sampai sinkronisasi terjadi.
+Hero/card utama halaman memakai lebar penuh container dan token `page-hero` agar kontras pada mode terang maupun gelap. Profil user menyimpan foto akun; untuk guru yang sudah terhubung akun login, foto yang diunggah admin dari `/admin/guru` dan foto yang diganti user dari halaman Profil disinkronkan ke file profil yang sama.
 
 Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama sesuai actor yang sedang login:
 
@@ -69,7 +69,7 @@ Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama 
 
 Item paling kanan selalu `Profil` untuk kebutuhan personal seperti ganti password, session management, dan preferensi akun.
 
-Item `Inbox` memakai icon pesan dan memiliki badge/dot jika ada notifikasi `PENDING` atau `FAILED`. Item `Profil` memakai icon orang.
+Item `Inbox` memakai icon pesan dan memiliki badge/dot jika ada notifikasi pribadi yang belum dibaca. Status operasional seperti `PENDING` atau `FAILED` tetap ditampilkan di tab notifikasi operasional, tetapi tidak mengunci badge unread. Item `Profil` memakai icon orang.
 
 Halaman Profil dipakai oleh semua role untuk melihat identitas login, mengunggah foto dari file lokal perangkat, mengaktifkan Telegram, mengubah password, melihat sesi aktif, dan keluar dari semua perangkat. Telegram tidak diketik manual; UI meminta token aktivasi ke backend lalu membuka bot Telegram. Setelah bot menerima token dan mengirim konfirmasi ke `POST /api/auth/telegram/link/confirm`, `User.telegramId` tersimpan otomatis.
 

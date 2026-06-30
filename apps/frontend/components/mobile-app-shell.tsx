@@ -14,7 +14,6 @@ import {
 import {
   getPrimaryNavigation,
   getPrimaryRole,
-  getNotificationAccess,
   getSectionFromPath,
 } from '../lib/navigation.config';
 
@@ -52,26 +51,11 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
       return;
     }
 
-    const notificationAccess = getNotificationAccess(user.roles ?? []);
-
     async function loadNotificationBadge() {
       try {
-        if (notificationAccess.mode === 'personal') {
-          const response = await api.getMyNotifications();
-          setNotificationBadgeCount(
-            response.data.filter((notification) => !notification.readAt)
-              .length,
-          );
-          return;
-        }
-
-        const [pendingResponse, failedResponse] = await Promise.all([
-          api.getPendingNotifications(),
-          api.getFailedNotifications(),
-        ]);
-
+        const response = await api.getMyNotifications();
         setNotificationBadgeCount(
-          pendingResponse.data.length + failedResponse.data.length,
+          response.data.filter((notification) => !notification.readAt).length,
         );
       } catch {
         setNotificationBadgeCount(0);

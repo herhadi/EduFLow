@@ -77,7 +77,6 @@ export class AcademicImportService {
     const nuptk = this.optional(row, ['nuptk']);
     const email = this.optional(row, ['email']);
     const phone = this.optional(row, ['no_hp', 'phone', 'hp']);
-    const telegramId = this.optional(row, ['telegram_id', 'telegram']);
     const isActive = this.parseActive(this.optional(row, ['status', 'is_active']));
     const existingTeacher =
       (nip ? await this.prisma.teacher.findUnique({ where: { nip } }) : null) ??
@@ -96,7 +95,6 @@ export class AcademicImportService {
           nuptk: nuptk || existingTeacher.nuptk,
           email: email || existingTeacher.email,
           phone: phone || existingTeacher.phone,
-          telegramId: telegramId || existingTeacher.telegramId,
           isActive,
           deletedAt: null,
         },
@@ -111,7 +109,6 @@ export class AcademicImportService {
         nuptk: nuptk || null,
         email: email || null,
         phone: phone || null,
-        telegramId: telegramId || null,
         isActive,
       },
     });
@@ -213,11 +210,6 @@ export class AcademicImportService {
     const schoolClass = await this.findClass(schoolYear.id, className);
     const guardianName = this.optional(row, ['nama_wali', 'wali', 'guardian']);
     const guardianPhone = this.optional(row, ['hp_wali', 'telepon_wali', 'phone_wali']);
-    const guardianTelegramId = this.optional(row, [
-      'telegram_id_wali',
-      'telegram_id',
-      'telegram',
-    ]);
     const guardianAddress = this.optional(row, ['alamat_wali', 'address']);
     const isActive = this.parseActive(this.optional(row, ['status', 'is_active']));
 
@@ -279,7 +271,6 @@ export class AcademicImportService {
       const guardian = await this.findOrCreateGuardian({
         name: guardianName,
         phone: guardianPhone,
-        telegramId: guardianTelegramId,
         address: guardianAddress,
       });
 
@@ -430,7 +421,6 @@ export class AcademicImportService {
   private async findOrCreateGuardian(data: {
     name: string;
     phone?: string;
-    telegramId?: string;
     address?: string;
   }) {
     const existingGuardian = data.phone
@@ -447,7 +437,6 @@ export class AcademicImportService {
         data: {
           name: data.name,
           phone: data.phone || existingGuardian.phone,
-          telegramId: data.telegramId || existingGuardian.telegramId,
           address: data.address || existingGuardian.address,
           isActive: true,
         },
@@ -458,7 +447,6 @@ export class AcademicImportService {
       data: {
         name: data.name,
         phone: data.phone || null,
-        telegramId: data.telegramId || null,
         address: data.address || null,
       },
     });

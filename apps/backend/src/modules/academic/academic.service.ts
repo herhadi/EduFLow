@@ -671,7 +671,6 @@ export class AcademicService {
         ...(dto.nuptk !== undefined && { nuptk: dto.nuptk.trim() || null }),
         ...(dto.phone !== undefined && { phone: dto.phone.trim() || null }),
         ...(dto.email !== undefined && { email: dto.email.trim().toLowerCase() || null }),
-        ...(dto.telegramId !== undefined && { telegramId: dto.telegramId.trim() || null }),
         ...(dto.photoUrl !== undefined && { photoUrl: dto.photoUrl.trim() || null }),
       },
       include: { user: { include: { roles: { include: { role: true } } } }, subjects: { include: { subject: true } } },

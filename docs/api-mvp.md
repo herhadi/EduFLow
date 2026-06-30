@@ -645,12 +645,11 @@ Format:
 
 ```http
 GET /api/parent-portal/summary?contact=08561186917
-GET /api/parent-portal/summary?contact=648351920
 ```
 
 Fungsi:
 
-- mencari wali murid berdasarkan `Guardian.phone`, `Guardian.telegramId`, atau `Guardian.email`,
+- mencari wali murid berdasarkan `Guardian.phone` atau `Guardian.email`,
 - menampilkan anak yang terhubung melalui `StudentGuardian`,
 - menampilkan kelas aktif dari `StudentEnrollment`,
 - menampilkan ringkasan presensi hari ini,
@@ -664,8 +663,7 @@ Response utama:
     "guardian": {
       "id": "uuid-wali",
       "name": "Nama Wali",
-      "phone": "08561186917",
-      "telegramId": "648351920"
+      "phone": "08561186917"
     },
     "date": "2026-06-04",
     "summary": {
@@ -855,8 +853,8 @@ Format kolom:
 
 | File | Kolom minimal |
 | --- | --- |
-| `Guru.xlsx` | `nama`, `nip`, `nuptk`, `email`, `no_hp`, `telegram_id`, `status` |
-| `Siswa.xlsx` | `nama`, `nis`, `nisn`, `jenis_kelamin`, `tanggal_lahir`, `kelas`, `tahun_ajaran`, `nama_wali`, `hp_wali`, `telegram_id_wali`, `alamat_wali`, `status` |
+| `Guru.xlsx` | `nama`, `nip`, `nuptk`, `email`, `no_hp`, `status` |
+| `Siswa.xlsx` | `nama`, `nis`, `nisn`, `jenis_kelamin`, `tanggal_lahir`, `kelas`, `tahun_ajaran`, `nama_wali`, `hp_wali`, `alamat_wali`, `status` |
 
 Catatan:
 
@@ -864,6 +862,6 @@ Catatan:
 - Kelas, mata pelajaran, jadwal, role guru, mapel ampu, dan wali kelas diatur lewat halaman admin.
 - Data siswa membutuhkan kelas dan tahun ajaran sudah tersedia.
 - `status` menerima nilai aktif secara default. Nilai `nonaktif`, `inactive`, `false`, `0`, atau `tidak` dianggap nonaktif.
-- Reminder guru memakai `Teacher.phone`, `User.telegramId`, atau fallback `Teacher.telegramId`.
-- Notifikasi wali murid memakai `Guardian.phone` atau `Guardian.telegramId`.
+- Reminder guru memakai `Teacher.phone` atau `User.telegramId`.
+- Notifikasi wali murid memakai `Guardian.phone`, `Guardian.email`, atau `User.telegramId` pada akun orang tua yang sudah aktivasi Telegram dari Profil.
 - Semua import menghasilkan ringkasan `created`, `updated`, `skipped`, dan `errors`.

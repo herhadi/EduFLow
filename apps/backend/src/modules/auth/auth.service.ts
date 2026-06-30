@@ -799,13 +799,9 @@ export class AuthService {
     telegramId?: string | null;
     telegramLinkedAt?: Date | null;
     roles: Array<{ role: { name: string } }>;
-    teacherProfile?: {
-      photoKey?: string | null;
-      photoName?: string | null;
-    } | null;
   }) {
-    const photoKey = user.photoKey ?? user.teacherProfile?.photoKey;
-    const photoName = user.photoName ?? user.teacherProfile?.photoName ?? 'foto-profil';
+    const photoKey = user.photoKey;
+    const photoName = user.photoName ?? 'foto-profil';
 
     return {
       id: user.id,
