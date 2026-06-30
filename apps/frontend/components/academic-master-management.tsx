@@ -552,7 +552,7 @@ export function AcademicMasterManagement() {
   );
 
   return (
-    <div className="mt-6 grid gap-5 lg:grid-cols-2">
+    <div className="mt-6 grid gap-5">
       <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Rombongan Belajar</p>
         <h2 className="mt-1 text-2xl font-black text-ink">Manajemen Kelas</h2>
@@ -770,7 +770,7 @@ export function AcademicMasterManagement() {
         </div>
       </section>
 
-      <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6 lg:col-span-2">
+      <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Jadwal Sekolah</p>
         <h2 className="mt-1 text-2xl font-black text-ink">Manajemen Jam Pelajaran</h2>
         <p className="mt-1 text-sm leading-6 text-muted">
