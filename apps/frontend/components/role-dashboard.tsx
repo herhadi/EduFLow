@@ -14,6 +14,7 @@ import { UserAvatar } from './ui/user-avatar';
 
 type CurrentUser = {
   name?: string;
+  photoUrl?: string | null;
   roles?: string[];
   username?: string | null;
 };
@@ -40,9 +41,15 @@ export function RoleDashboard({
       const user = JSON.parse(storedUser) as CurrentUser;
       setCurrentUser(user);
       setRole(getPrimaryRole(user.roles ?? []));
-      if (user.roles?.some((roleName) => roleName === 'guru' || roleName === 'wali_kelas')) {
-        void import('../lib/api').then(({ api }) => api.getMyTeacherProfile()).then((response) => setTeacherPhotoUrl(response.data.photoUrl ?? null)).catch(() => undefined);
-      }
+      setTeacherPhotoUrl(user.photoUrl ?? null);
+      void import('../lib/api')
+        .then(({ api }) => api.getMyProfile())
+        .then((response) => {
+          setCurrentUser(response.data);
+          setTeacherPhotoUrl(response.data.photoUrl ?? null);
+          localStorage.setItem('currentUser', JSON.stringify({ ...user, ...response.data }));
+        })
+        .catch(() => undefined);
     } catch {
       localStorage.removeItem('currentUser');
     }

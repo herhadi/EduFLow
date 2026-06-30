@@ -54,7 +54,7 @@ Halaman `/teacher/schedules` membaca `GET /api/academic/me/schedules`, sehingga 
 
 Frontend menggunakan tema biru modern dengan mode terang dan gelap. Pilihan tema disimpan pada browser melalui key `eduflow-theme`, mengikuti preferensi perangkat ketika pengguna belum memilih, dan diterapkan sebelum halaman dirender untuk mencegah kilatan tema. Komponen baru wajib memakai token global pada `apps/frontend/app/globals.css` atau komponen UI bersama agar konsisten dan tetap terbaca pada dark mode.
 
-Hero/card utama halaman memakai lebar penuh container dan token `page-hero` agar kontras pada mode terang maupun gelap. Profil guru dapat menyimpan `Teacher.photoUrl`; foto tersebut tampil pada beranda guru dan halaman profil, dengan fallback inisial jika belum tersedia.
+Hero/card utama halaman memakai lebar penuh container dan token `page-hero` agar kontras pada mode terang maupun gelap. Profil user menyimpan foto akun; untuk guru yang sudah terhubung akun login, foto yang diunggah admin dari `/admin/guru` dan foto yang diganti user dari halaman Profil disinkronkan ke file profil yang sama. Untuk data lama, foto guru pada `Teacher` tetap menjadi fallback sampai sinkronisasi terjadi.
 
 Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama sesuai actor yang sedang login:
 
@@ -71,7 +71,7 @@ Item paling kanan selalu `Profil` untuk kebutuhan personal seperti ganti passwor
 
 Item `Inbox` memakai icon pesan dan memiliki badge/dot jika ada notifikasi `PENDING` atau `FAILED`. Item `Profil` memakai icon orang.
 
-Halaman Profil dipakai oleh semua role untuk melihat identitas login, mengubah password, melihat sesi aktif, dan keluar dari semua perangkat. Untuk guru dan wali kelas, Profil juga menyediakan upload foto dari file lokal perangkat. Telegram tidak diketik manual; jika `Teacher.telegramId` belum ada, UI menampilkan tombol aktivasi yang diarahkan ke bot Telegram melalui `NEXT_PUBLIC_TELEGRAM_BOT_URL`.
+Halaman Profil dipakai oleh semua role untuk melihat identitas login, mengunggah foto dari file lokal perangkat, mengaktifkan Telegram, mengubah password, melihat sesi aktif, dan keluar dari semua perangkat. Telegram tidak diketik manual; UI meminta token aktivasi ke backend lalu membuka bot Telegram. Setelah bot menerima token dan mengirim konfirmasi ke `POST /api/auth/telegram/link/confirm`, `User.telegramId` tersimpan otomatis.
 
 `Ops` hanya muncul untuk `root` karena berisi health check, queue monitoring, failed jobs, dan tindakan teknis operasional sistem.
 
@@ -267,7 +267,7 @@ Pada halaman manajemen guru, operator memilih tahun ajaran lalu menyimpan status
 - `Tidak ditugaskan` berarti guru masih tercatat sebagai pegawai tetapi tidak memiliki penugasan mengajar pada tahun ajaran tersebut; gunakan `Pensiun`, `Pindah sekolah`, atau `Cuti` bila salah satu kondisi itu lebih tepat.
 - Mapel ampu hanya diatur pada penugasan tahun ajaran dan menjadi acuan jadwal baru. Data mapel global lama dari import sebelumnya dipakai sebagai fallback tampilan dan pilihan awal bagi guru yang belum pernah disimpan penugasannya.
 - Penetapan wali kelas divalidasi dari penugasan efektif pada tahun ajaran kelas tersebut. Guru harus berstatus `Aktif mengajar` dan memiliki minimal satu mapel ampu; untuk data lama yang belum memiliki penugasan, sistem memakai mapel global hasil import sebagai fallback.
-- Admin dapat memilih foto guru dari file lokal pada form guru. File foto disimpan di Cloudflare R2, sedangkan database hanya menyimpan key dan metadata foto. Telegram tidak diatur oleh admin; guru mengisinya sendiri dari halaman Profil setelah login.
+- Admin dapat memilih foto guru dari file lokal pada form guru. Jika guru sudah memiliki akun login, upload admin ikut memperbarui foto profil `User`; jika user mengganti foto sendiri dari Profil, foto `Teacher` juga ikut diperbarui. File foto disimpan di Cloudflare R2, sedangkan database hanya menyimpan key dan metadata foto. Telegram tidak diatur oleh admin; setiap user mengaktifkannya sendiri dari halaman Profil setelah login.
 - Akun guru baru selalu dibuat dengan `DEFAULT_USER_PASSWORD` dari environment. Pada login pertama sistem mewajibkan guru mengganti password tersebut; admin tidak dapat mengatur password dari form guru.
 - Bila guru lupa password, admin memakai tombol `Reset Password ke Default`. Sistem mencabut sesi aktif guru dan pada login berikutnya mewajibkan perubahan password.
 

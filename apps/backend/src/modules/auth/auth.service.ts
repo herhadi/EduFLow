@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -9,14 +10,19 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { LoginAuditStatus } from '@prisma/client';
 import { compare, hash } from 'bcryptjs';
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { extname } from 'node:path';
+import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ConfirmTelegramLinkDto } from './dto/confirm-telegram-link.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { UpdateMyProfileDto } from './dto/update-my-profile.dto';
 
 const LOGIN_SESSION_LIFETIME_HOURS = 24;
 const PASSWORD_RESET_LIFETIME_MINUTES = 30;
+const TELEGRAM_LINK_LIFETIME_MINUTES = 15;
 const MAX_FAILED_LOGIN_ATTEMPTS = 5;
 const ACCOUNT_LOCK_MINUTES = 15;
 
@@ -56,6 +62,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -257,6 +264,135 @@ export class AuthService {
     ]);
 
     return { message: 'Password berhasil diganti. Silakan login ulang.' };
+  }
+
+  async getMyProfile(userId: string) {
+    const user = await this.prisma.user.findFirstOrThrow({
+      where: { id: userId, deletedAt: null },
+      include: { roles: { include: { role: true } }, teacherProfile: true },
+    });
+
+    return { data: await this.toProfileUser(user) };
+  }
+
+  async updateMyProfile(userId: string, dto: UpdateMyProfileDto) {
+    const name = dto.name?.trim();
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(name !== undefined && { name: name || undefined }),
+      },
+      include: { roles: { include: { role: true } }, teacherProfile: true },
+    });
+
+    return { data: await this.toProfileUser(user), message: 'Profil berhasil diperbarui.' };
+  }
+
+  async uploadMyProfilePhoto(
+    userId: string,
+    file: { buffer: Buffer; originalname: string; mimetype: string; size: number },
+  ) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+      include: { roles: { include: { role: true } }, teacherProfile: true },
+    });
+
+    if (!user) throw new NotFoundException('User tidak ditemukan');
+
+    const key = `users/${userId}/profile/${randomUUID()}${extname(file.originalname).toLowerCase()}`;
+    const stored = await this.storage.upload({
+      buffer: file.buffer,
+      key,
+      name: file.originalname,
+      mimeType: file.mimetype,
+    });
+    const photoData = {
+      photoKey: stored.key,
+      photoName: stored.name,
+      photoMimeType: stored.mimeType,
+      photoSize: stored.size,
+    };
+    const syncedUser = await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: photoData,
+      });
+
+      if (user.teacherProfile) {
+        await tx.teacher.update({
+          where: { id: user.teacherProfile.id },
+          data: { photoUrl: null, ...photoData },
+        });
+      }
+
+      return tx.user.findFirstOrThrow({
+        where: { id: userId, deletedAt: null },
+        include: { roles: { include: { role: true } }, teacherProfile: true },
+      });
+    });
+
+    const obsoleteKeys = new Set(
+      [user.photoKey, user.teacherProfile?.photoKey].filter(
+        (photoKey): photoKey is string => Boolean(photoKey) && photoKey !== stored.key,
+      ),
+    );
+    await Promise.all([...obsoleteKeys].map((photoKey) => this.storage.delete(photoKey).catch(() => undefined)));
+
+    return { data: await this.toProfileUser(syncedUser), message: 'Foto profil berhasil diunggah.' };
+  }
+
+  async createTelegramLinkToken(userId: string) {
+    await this.prisma.user.findFirstOrThrow({ where: { id: userId, deletedAt: null } });
+
+    const token = randomBytes(32).toString('base64url');
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + TELEGRAM_LINK_LIFETIME_MINUTES);
+
+    await this.prisma.telegramLinkToken.create({
+      data: {
+        userId,
+        tokenHash: this.hashToken(token),
+        expiresAt,
+      },
+    });
+
+    return {
+      data: {
+        token,
+        botUrl: this.getTelegramBotUrl(token),
+        expiresAt,
+      },
+      message: 'Token aktivasi Telegram dibuat.',
+    };
+  }
+
+  async confirmTelegramLink(dto: ConfirmTelegramLinkDto) {
+    const linkToken = await this.prisma.telegramLinkToken.findUnique({
+      where: { tokenHash: this.hashToken(dto.token) },
+    });
+
+    if (!linkToken || linkToken.usedAt || linkToken.expiresAt <= new Date()) {
+      throw new BadRequestException('Token aktivasi Telegram tidak valid atau kedaluwarsa');
+    }
+
+    const telegramId = dto.telegramId.trim();
+    if (!telegramId) throw new BadRequestException('Telegram ID wajib diisi');
+
+    const now = new Date();
+    const user = await this.prisma.$transaction(async (tx) => {
+      await tx.telegramLinkToken.update({
+        where: { id: linkToken.id },
+        data: { usedAt: now },
+      });
+
+      return tx.user.update({
+        where: { id: linkToken.userId },
+        data: { telegramId, telegramLinkedAt: now },
+        include: { roles: { include: { role: true } }, teacherProfile: true },
+      });
+    });
+
+    return { data: await this.toProfileUser(user), message: 'Telegram berhasil diaktifkan.' };
   }
 
   async requestPasswordReset(dto: RequestPasswordResetInput) {
@@ -560,6 +696,7 @@ export class AuthService {
     const user = await this.prisma.user.findFirstOrThrow({
       where: { id: userId, deletedAt: null },
       include: {
+        teacherProfile: true,
         roles: {
           include: {
             role: {
@@ -579,6 +716,7 @@ export class AuthService {
       ),
     ];
     const roles = [...new Set(user.roles.map(({ role }) => role.name))];
+    const profileUser = await this.toProfileUser(user);
     const refreshToken = randomBytes(48).toString('base64url');
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + LOGIN_SESSION_LIFETIME_HOURS);
@@ -609,10 +747,7 @@ export class AuthService {
       refreshToken,
       expiresAt,
       user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        name: user.name,
+        ...profileUser,
         roles,
         permissions,
         mustChangePassword,
@@ -624,6 +759,7 @@ export class AuthService {
     const user = await this.prisma.user.findFirstOrThrow({
       where: { id: userId, deletedAt: null },
       include: {
+        teacherProfile: true,
         roles: {
           include: {
             role: {
@@ -643,16 +779,60 @@ export class AuthService {
       ),
     ];
     const roles = [...new Set(user.roles.map(({ role }) => role.name))];
+    const profileUser = await this.toProfileUser(user);
+
+    return {
+      ...profileUser,
+      roles,
+      permissions,
+      mustChangePassword: await this.isDefaultPassword(user.password),
+    };
+  }
+
+  private async toProfileUser(user: {
+    id: string;
+    email: string;
+    username: string | null;
+    name: string;
+    photoKey?: string | null;
+    photoName?: string | null;
+    telegramId?: string | null;
+    telegramLinkedAt?: Date | null;
+    roles: Array<{ role: { name: string } }>;
+    teacherProfile?: {
+      photoKey?: string | null;
+      photoName?: string | null;
+    } | null;
+  }) {
+    const photoKey = user.photoKey ?? user.teacherProfile?.photoKey;
+    const photoName = user.photoName ?? user.teacherProfile?.photoName ?? 'foto-profil';
 
     return {
       id: user.id,
       email: user.email,
       username: user.username,
       name: user.name,
-      roles,
-      permissions,
-      mustChangePassword: await this.isDefaultPassword(user.password),
+      roles: [...new Set(user.roles.map(({ role }) => role.name))],
+      photoUrl: photoKey ? await this.storage.createDownloadUrl(photoKey, photoName) : null,
+      telegramId: user.telegramId ?? null,
+      telegramLinkedAt: user.telegramLinkedAt ?? null,
     };
+  }
+
+  private getTelegramBotUrl(token: string) {
+    const configuredUrl = this.configService.get<string>('TELEGRAM_BOT_URL');
+    const botUsername = this.configService.get<string>('TELEGRAM_BOT_USERNAME');
+
+    if (configuredUrl) {
+      const separator = configuredUrl.includes('?') ? '&' : '?';
+      return `${configuredUrl}${separator}start=${encodeURIComponent(token)}`;
+    }
+
+    if (botUsername) {
+      return `https://t.me/${botUsername.replace(/^@/, '')}?start=${encodeURIComponent(token)}`;
+    }
+
+    return null;
   }
 
   private async isDefaultPassword(passwordHash: string) {

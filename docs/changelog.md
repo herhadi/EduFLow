@@ -4,8 +4,10 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 ## 2026-06-30
 
-- Melengkapi halaman Profil dengan upload foto lokal untuk guru, status aktivasi Telegram tanpa input ID manual, ubah password mandiri, daftar sesi, dan aksi keluar dari semua perangkat.
-- Menambahkan endpoint `POST /api/auth/change-password` untuk perubahan password setelah login dan `POST /api/academic/me/profile/photo` untuk upload foto profil guru sendiri.
+- Memindahkan foto profil dan Telegram ke level `User` agar semua role dapat mengelola profil dari halaman Profil.
+- Menyinkronkan foto guru dan foto profil akun untuk guru yang sudah memiliki user login, termasuk backfill foto/Telegram lama dari `Teacher` ke `User`.
+- Melengkapi halaman Profil dengan upload foto lokal, token aktivasi Telegram tanpa input ID manual, ubah password mandiri, daftar sesi, dan aksi keluar dari semua perangkat.
+- Menambahkan endpoint `POST /api/auth/change-password`, `GET/PATCH /api/auth/me/profile`, `POST /api/auth/me/profile/photo`, `POST /api/auth/me/telegram/link-token`, dan `POST /api/auth/telegram/link/confirm`.
 
 ## 2026-06-22
 

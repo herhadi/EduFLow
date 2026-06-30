@@ -536,15 +536,17 @@ Catatan:
 - Jika body kosong, semua sesi aktif user dicabut.
 - `RefreshToken.revokedReason` menyimpan alasan revoke seperti `logout`, `rotated`, `password_reset`, atau `manual_revoke`.
 
-Profil guru:
+Profil user:
 
 ```txt
-GET /api/academic/me/profile
-PATCH /api/academic/me/profile
-POST /api/academic/me/profile/photo
+GET /api/auth/me/profile
+PATCH /api/auth/me/profile
+POST /api/auth/me/profile/photo
+POST /api/auth/me/telegram/link-token
+POST /api/auth/telegram/link/confirm
 ```
 
-`POST /api/academic/me/profile/photo` menerima multipart field `file` dengan format JPEG, PNG, atau WebP maksimal 2 MB. File disimpan melalui storage provider, sedangkan database menyimpan key dan metadata. `telegramId` tidak diisi manual dari UI profil; aktivasi Telegram dilakukan dari bot agar ID tersimpan otomatis.
+`POST /api/auth/me/profile/photo` menerima multipart field `file` dengan format JPEG, PNG, atau WebP maksimal 2 MB. File disimpan melalui storage provider, sedangkan database menyimpan key dan metadata pada `User`. `telegramId` tidak diisi manual dari UI profil; UI membuat token aktivasi, membuka bot Telegram dengan parameter `start`, lalu bot mengirim token dan Telegram ID ke endpoint confirm agar `User.telegramId` tersimpan otomatis.
 
 ## Notification Center API
 
@@ -862,6 +864,6 @@ Catatan:
 - Kelas, mata pelajaran, jadwal, role guru, mapel ampu, dan wali kelas diatur lewat halaman admin.
 - Data siswa membutuhkan kelas dan tahun ajaran sudah tersedia.
 - `status` menerima nilai aktif secara default. Nilai `nonaktif`, `inactive`, `false`, `0`, atau `tidak` dianggap nonaktif.
-- Reminder guru memakai `Teacher.phone` atau `Teacher.telegramId`.
+- Reminder guru memakai `Teacher.phone`, `User.telegramId`, atau fallback `Teacher.telegramId`.
 - Notifikasi wali murid memakai `Guardian.phone` atau `Guardian.telegramId`.
 - Semua import menghasilkan ringkasan `created`, `updated`, `skipped`, dan `errors`.

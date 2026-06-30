@@ -161,9 +161,16 @@ model User {
   lockedUntil           DateTime?
   lastLoginAt           DateTime?
   passwordChangedAt     DateTime?
+  photoKey              String?
+  photoName             String?
+  photoMimeType         String?
+  photoSize             Int?
+  telegramId            String?              @unique
+  telegramLinkedAt      DateTime?
   roles                 UserRole[]
   refreshTokens         RefreshToken[]
   passwordResetTokens   PasswordResetToken[]
+  telegramLinkTokens    TelegramLinkToken[]
   loginAudits           LoginAudit[]
   submittedAttendances  Attendance[]         @relation("AttendanceSubmittedBy")
   approvedAttendances   Attendance[]         @relation("AttendanceApprovedBy")
@@ -192,6 +199,18 @@ model RefreshToken {
 }
 
 model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+
+  @@index([userId, expiresAt])
+}
+
+model TelegramLinkToken {
   id        String    @id @default(uuid()) @db.Uuid
   userId    String    @db.Uuid
   tokenHash String    @unique

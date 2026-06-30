@@ -21,6 +21,23 @@ export interface AuthSession {
   createdAt: string;
 }
 
+export interface MyProfile {
+  id: string;
+  email: string;
+  username?: string | null;
+  name: string;
+  roles: string[];
+  photoUrl?: string | null;
+  telegramId?: string | null;
+  telegramLinkedAt?: string | null;
+}
+
+export interface TelegramLinkToken {
+  token: string;
+  botUrl?: string | null;
+  expiresAt: string;
+}
+
 export interface SchoolClass {
   id: string;
   schoolYearId: string;
@@ -479,6 +496,9 @@ export interface LoginResult {
     email: string;
     username?: string | null;
     name: string;
+    photoUrl?: string | null;
+    telegramId?: string | null;
+    telegramLinkedAt?: string | null;
     roles: string[];
     permissions: string[];
     mustChangePassword?: boolean;
@@ -651,6 +671,18 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ refreshToken }),
     }),
+  getMyProfile: () => request<ApiResponse<MyProfile>>('/auth/me/profile'),
+  updateMyProfile: (payload: { name?: string }) =>
+    request<ApiResponse<MyProfile>>('/auth/me/profile', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  uploadMyProfilePhoto: (file: File) =>
+    upload<ApiResponse<MyProfile>>('/auth/me/profile/photo', file),
+  createTelegramLinkToken: () =>
+    request<ApiResponse<TelegramLinkToken>>('/auth/me/telegram/link-token', {
+      method: 'POST',
+    }),
   getUsers: () => request<ApiResponse<AppUser[]>>('/auth/users'),
   createUser: (payload: {
     email?: string;
@@ -800,14 +832,6 @@ export const api = {
   uploadAttendanceClassPhoto: (id: string, file: File) => upload<ApiResponse<Attendance>>(`/attendance/${id}/class-photo`, file),
   submitAttendance: (payload: { attendanceId: string; notes?: string; items: Array<{ attendanceItemId: string; status: AttendanceStatus; notes?: string }> }) => request<ApiResponse<Attendance>>('/attendance/submit', { method: 'POST', body: JSON.stringify(payload) }),
   getMySubjects: () => request<ApiResponse<Subject[]>>('/academic/me/subjects'),
-  getMyTeacherProfile: () => request<ApiResponse<Teacher>>('/academic/me/profile'),
-  updateMyTeacherProfile: (payload: { photoUrl?: string; telegramId?: string }) =>
-    request<ApiResponse<Teacher>>('/academic/me/profile', {
-      method: 'PATCH',
-      body: JSON.stringify(payload),
-    }),
-  uploadMyTeacherProfilePhoto: (file: File) =>
-    upload<ApiResponse<Teacher>>('/academic/me/profile/photo', file),
   getMyTeachingPlans: () => request<ApiResponse<TeachingPlan[]>>('/academic-planning/mine'),
   createTeachingPlan: (payload: { subjectId: string; schoolYearId: string; semesterId?: string; type: TeachingPlanType; title: string; description?: string; attachmentUrl?: string }) =>
     request<ApiResponse<TeachingPlan>>('/academic-planning', { method: 'POST', body: JSON.stringify(payload) }),

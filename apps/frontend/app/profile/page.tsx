@@ -4,28 +4,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { Container } from '../../components/ui/container';
 import { PageHeader } from '../../components/ui/page-header';
 import { UserAvatar } from '../../components/ui/user-avatar';
-import { api, type AuthSession } from '../../lib/api';
+import { api, type AuthSession, type MyProfile } from '../../lib/api';
 import { clearBrowserSession } from '../../lib/session';
-
-type CurrentUser = {
-  email?: string;
-  name?: string;
-  roles?: string[];
-  username?: string | null;
-};
 
 type Status = { tone: 'success' | 'error' | 'info'; text: string } | null;
 
-const telegramBotUrl = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL ?? '';
-
 export default function ProfilePage() {
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<MyProfile | null>(null);
   const [photoUrl, setPhotoUrl] = useState('');
   const [telegramId, setTelegramId] = useState('');
-  const [isTeacher, setIsTeacher] = useState(false);
   const [sessions, setSessions] = useState<AuthSession[]>([]);
   const [status, setStatus] = useState<Status>(null);
   const [savingPhoto, setSavingPhoto] = useState(false);
+  const [linkingTelegram, setLinkingTelegram] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [revoking, setRevoking] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
@@ -40,25 +31,7 @@ export default function ProfilePage() {
   );
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('currentUser');
-
-    if (!storedUser) {
-      return;
-    }
-
-    try {
-      const user = JSON.parse(storedUser) as CurrentUser;
-      setCurrentUser(user);
-      if (user.roles?.some((role) => role === 'guru' || role === 'wali_kelas')) {
-        setIsTeacher(true);
-        void api.getMyTeacherProfile().then((response) => {
-          setPhotoUrl(response.data.photoUrl ?? '');
-          setTelegramId(response.data.telegramId ?? '');
-        }).catch(() => undefined);
-      }
-    } catch {
-      localStorage.removeItem('currentUser');
-    }
+    void loadProfile();
   }, []);
 
   useEffect(() => {
@@ -74,6 +47,27 @@ export default function ProfilePage() {
     }
   }
 
+  async function loadProfile() {
+    try {
+      const response = await api.getMyProfile();
+      setCurrentUser(response.data);
+      setPhotoUrl(response.data.photoUrl ?? '');
+      setTelegramId(response.data.telegramId ?? '');
+      saveProfileToSession(response.data);
+    } catch {
+      const storedUser = localStorage.getItem('currentUser');
+      if (!storedUser) return;
+      try {
+        const user = JSON.parse(storedUser) as MyProfile;
+        setCurrentUser(user);
+        setPhotoUrl(user.photoUrl ?? '');
+        setTelegramId(user.telegramId ?? '');
+      } catch {
+        localStorage.removeItem('currentUser');
+      }
+    }
+  }
+
   async function handlePhotoUpload(file?: File | null) {
     if (!file) {
       return;
@@ -82,8 +76,10 @@ export default function ProfilePage() {
     setSavingPhoto(true);
     setStatus(null);
     try {
-      const response = await api.uploadMyTeacherProfilePhoto(file);
+      const response = await api.uploadMyProfilePhoto(file);
+      setCurrentUser(response.data);
       setPhotoUrl(response.data.photoUrl ?? '');
+      saveProfileToSession(response.data);
       setStatus({ tone: 'success', text: 'Foto profil berhasil diperbarui.' });
     } catch (error) {
       setStatus({
@@ -92,6 +88,40 @@ export default function ProfilePage() {
       });
     } finally {
       setSavingPhoto(false);
+    }
+  }
+
+  function saveProfileToSession(profile: MyProfile) {
+    const storedUser = localStorage.getItem('currentUser');
+    const existingUser = storedUser ? JSON.parse(storedUser) as Record<string, unknown> : {};
+    localStorage.setItem('currentUser', JSON.stringify({ ...existingUser, ...profile }));
+  }
+
+  async function handleTelegramActivation() {
+    setLinkingTelegram(true);
+    setStatus(null);
+    try {
+      const response = await api.createTelegramLinkToken();
+      if (!response.data.botUrl) {
+        setStatus({
+          tone: 'info',
+          text: 'Bot Telegram belum dikonfigurasi. Isi TELEGRAM_BOT_URL atau TELEGRAM_BOT_USERNAME di backend.',
+        });
+        return;
+      }
+
+      window.open(response.data.botUrl, '_blank', 'noopener,noreferrer');
+      setStatus({
+        tone: 'info',
+        text: 'Telegram dibuka. Setelah klik Start di bot, kembali ke halaman ini dan refresh status profil.',
+      });
+    } catch (error) {
+      setStatus({
+        tone: 'error',
+        text: error instanceof Error ? error.message : 'Token aktivasi Telegram gagal dibuat.',
+      });
+    } finally {
+      setLinkingTelegram(false);
     }
   }
 
@@ -180,52 +210,56 @@ export default function ProfilePage() {
               <p>Role: {currentUser?.roles?.join(', ') ?? '-'}</p>
             </div>
 
-            {isTeacher ? (
-              <div className="mt-5 space-y-4 border-t border-slate-100 pt-4">
-                <div>
-                  <p className="text-sm font-black text-slate-900">Foto Profil</p>
-                  <p className="mt-1 text-xs font-semibold leading-5 text-muted">
-                    Pilih foto dari perangkat admin/guru. Format JPEG, PNG, atau WebP maksimal 2 MB.
-                  </p>
-                  <label className="mt-3 inline-flex cursor-pointer rounded-2xl bg-brand-600 px-4 py-3 text-xs font-black text-white transition hover:bg-brand-700">
-                    {savingPhoto ? 'Mengunggah...' : 'Pilih Foto Lokal'}
-                    <input
-                      accept="image/jpeg,image/png,image/webp"
-                      className="sr-only"
-                      disabled={savingPhoto}
-                      onChange={(event) => void handlePhotoUpload(event.target.files?.[0])}
-                      type="file"
-                    />
-                  </label>
-                </div>
+            <div className="mt-5 space-y-4 border-t border-slate-100 pt-4">
+              <div>
+                <p className="text-sm font-black text-slate-900">Foto Profil</p>
+                <p className="mt-1 text-xs font-semibold leading-5 text-muted">
+                  Pilih foto dari perangkat lokal. Format JPEG, PNG, atau WebP maksimal 2 MB.
+                </p>
+                <label className="mt-3 inline-flex cursor-pointer rounded-2xl bg-brand-600 px-4 py-3 text-xs font-black text-white transition hover:bg-brand-700">
+                  {savingPhoto ? 'Mengunggah...' : 'Pilih Foto Lokal'}
+                  <input
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    disabled={savingPhoto}
+                    onChange={(event) => void handlePhotoUpload(event.target.files?.[0])}
+                    type="file"
+                  />
+                </label>
+              </div>
 
-                <div className="rounded-2xl border border-blue-100 bg-white p-4">
-                  <p className="text-sm font-black text-slate-900">Telegram</p>
-                  <p className="mt-1 text-xs font-semibold leading-5 text-muted">
-                    {telegramId
-                      ? `Terhubung dengan Telegram ID ${telegramId}.`
-                      : 'Belum terhubung. Aktivasi dilakukan dari bot agar ID tersimpan otomatis, bukan diketik manual.'}
-                  </p>
+              <div className="rounded-2xl border border-blue-100 bg-white p-4">
+                <p className="text-sm font-black text-slate-900">Telegram</p>
+                <p className="mt-1 text-xs font-semibold leading-5 text-muted">
+                  {telegramId
+                    ? `Terhubung dengan Telegram ID ${telegramId}.`
+                    : 'Belum terhubung. Aktivasi dilakukan dari bot agar ID tersimpan otomatis, bukan diketik manual.'}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
                   {telegramId ? (
-                    <span className="mt-3 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+                    <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
                       Aktif
                     </span>
                   ) : (
                     <button
-                      className="mt-3 rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-xs font-black text-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
-                      disabled={!telegramBotUrl}
-                      onClick={() => {
-                        if (telegramBotUrl) window.open(telegramBotUrl, '_blank', 'noopener,noreferrer');
-                        else setStatus({ tone: 'info', text: 'Link bot Telegram belum dikonfigurasi di NEXT_PUBLIC_TELEGRAM_BOT_URL.' });
-                      }}
+                      className="rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-xs font-black text-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={linkingTelegram}
+                      onClick={() => void handleTelegramActivation()}
                       type="button"
                     >
-                      Aktivasi Telegram
+                      {linkingTelegram ? 'Membuat Token...' : 'Aktivasi Telegram'}
                     </button>
                   )}
+                  <button
+                    className="rounded-2xl border border-slate-200 px-4 py-3 text-xs font-black text-slate-700"
+                    onClick={() => void loadProfile()}
+                    type="button"
+                  >
+                    Refresh Status
+                  </button>
                 </div>
               </div>
-            ) : null}
+            </div>
           </div>
 
           <div className="space-y-4">

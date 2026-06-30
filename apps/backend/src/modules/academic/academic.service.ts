@@ -16,7 +16,6 @@ import { CreateAcademicCalendarEventDto } from './dto/create-academic-calendar-e
 import { UpdateClassTimeSlotActivityDto } from './dto/update-class-time-slot-activity.dto';
 import { UpdateAcademicCalendarEventDto } from './dto/update-academic-calendar-event.dto';
 import { UpdateAcademicTimeSlotDto } from './dto/update-academic-time-slot.dto';
-import { UpdateMyTeacherProfileDto } from './dto/update-my-teacher-profile.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateBulkScheduleDto } from './dto/create-bulk-schedule.dto';
 import { CreateClassDto } from './dto/create-class.dto';
@@ -580,16 +579,41 @@ export class AcademicService {
   }
 
   async uploadTeacherPhoto(id: string, file: { buffer: Buffer; originalname: string; mimetype: string; size: number }) {
-    const teacher = await this.prisma.teacher.findFirst({ where: { id, deletedAt: null } });
+    const teacher = await this.prisma.teacher.findFirst({
+      where: { id, deletedAt: null },
+      include: { user: true },
+    });
     if (!teacher) throw new NotFoundException('Guru tidak ditemukan');
 
     const key = `teachers/${id}/${randomUUID()}${extname(file.originalname).toLowerCase()}`;
     const stored = await this.storage.upload({ buffer: file.buffer, key, name: file.originalname, mimeType: file.mimetype });
-    const updated = await this.prisma.teacher.update({
-      where: { id },
-      data: { photoUrl: null, photoKey: stored.key, photoName: stored.name, photoMimeType: stored.mimeType, photoSize: stored.size },
+    const photoData = {
+      photoKey: stored.key,
+      photoName: stored.name,
+      photoMimeType: stored.mimeType,
+      photoSize: stored.size,
+    };
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const updatedTeacher = await tx.teacher.update({
+        where: { id },
+        data: { photoUrl: null, ...photoData },
+      });
+
+      if (teacher.userId) {
+        await tx.user.update({
+          where: { id: teacher.userId },
+          data: photoData,
+        });
+      }
+
+      return updatedTeacher;
     });
-    if (teacher.photoKey) await this.storage.delete(teacher.photoKey).catch(() => undefined);
+    const obsoleteKeys = new Set(
+      [teacher.photoKey, teacher.user?.photoKey].filter(
+        (photoKey): photoKey is string => Boolean(photoKey) && photoKey !== stored.key,
+      ),
+    );
+    await Promise.all([...obsoleteKeys].map((photoKey) => this.storage.delete(photoKey).catch(() => undefined)));
     await this.auditService.record({ action: 'teacher.photo.uploaded', entityType: 'Teacher', entityId: id, before: teacher, after: updated });
     return { data: await this.withTeacherPhotoUrl(updated), message: 'Foto guru berhasil diunggah.' };
   }
@@ -1229,32 +1253,6 @@ export class AcademicService {
         orderBy: { name: 'asc' },
       }),
     };
-  }
-
-  async getMyTeacherProfile(userId: string) {
-    const teacherAccount = await this.getTeacherAccount(userId);
-    const teacher = await this.prisma.teacher.findUniqueOrThrow({ where: { id: teacherAccount.id } });
-    return { data: await this.withTeacherPhotoUrl(teacher) };
-  }
-
-  async updateMyTeacherProfile(userId: string, dto: UpdateMyTeacherProfileDto) {
-    const teacher = await this.getTeacherAccount(userId);
-    const updated = await this.prisma.teacher.update({
-      where: { id: teacher.id },
-      data: {
-        ...(dto.photoUrl !== undefined && { photoUrl: dto.photoUrl.trim() || null }),
-        ...(dto.telegramId !== undefined && { telegramId: dto.telegramId.trim() || null }),
-      },
-    });
-    return { data: updated, message: 'Profil guru berhasil diperbarui.' };
-  }
-
-  async uploadMyTeacherPhoto(
-    userId: string,
-    file: { buffer: Buffer; originalname: string; mimetype: string; size: number },
-  ) {
-    const teacher = await this.getTeacherAccount(userId);
-    return this.uploadTeacherPhoto(teacher.id, file);
   }
 
   async getMyAgendas(userId: string, date?: string) {

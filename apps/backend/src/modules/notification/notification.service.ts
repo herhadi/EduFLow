@@ -80,6 +80,7 @@ export class NotificationService implements OnModuleInit {
       where: { id: userId },
       select: {
         email: true,
+        telegramId: true,
         teacherProfile: {
           select: { email: true, phone: true, telegramId: true },
         },
@@ -92,6 +93,7 @@ export class NotificationService implements OnModuleInit {
 
     const recipients = [
       user.email,
+      user.telegramId,
       user.teacherProfile?.email,
       user.teacherProfile?.phone,
       user.teacherProfile?.telegramId,

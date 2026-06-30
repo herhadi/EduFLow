@@ -13,7 +13,6 @@ import { CreateBulkScheduleDto } from './dto/create-bulk-schedule.dto';
 import { UpdateClassTimeSlotActivityDto } from './dto/update-class-time-slot-activity.dto';
 import { UpdateAcademicCalendarEventDto } from './dto/update-academic-calendar-event.dto';
 import { UpdateAcademicTimeSlotDto } from './dto/update-academic-time-slot.dto';
-import { UpdateMyTeacherProfileDto } from './dto/update-my-teacher-profile.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateClassDto } from './dto/create-class.dto';
 import { CreateSchoolYearDto } from './dto/create-school-year.dto';
@@ -274,35 +273,6 @@ export class AcademicController {
   @Get('me/subjects')
   getMySubjects(@Req() request: RequestWithUser) {
     return this.academicService.getMySubjects(request.user.id);
-  }
-
-  @Get('me/profile')
-  getMyTeacherProfile(@Req() request: RequestWithUser) {
-    return this.academicService.getMyTeacherProfile(request.user.id);
-  }
-
-  @Patch('me/profile')
-  updateMyTeacherProfile(
-    @Req() request: RequestWithUser,
-    @Body() dto: UpdateMyTeacherProfileDto,
-  ) {
-    return this.academicService.updateMyTeacherProfile(request.user.id, dto);
-  }
-
-  @Post('me/profile/photo')
-  @UseInterceptors(FileInterceptor('file', {
-    limits: { fileSize: 2 * 1024 * 1024 },
-    fileFilter: (_request, file, callback) => {
-      const supported = ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype);
-      callback(supported ? null : new BadRequestException('Foto profil harus JPEG, PNG, atau WebP'), supported);
-    },
-  }))
-  uploadMyTeacherPhoto(
-    @Req() request: RequestWithUser,
-    @UploadedFile() file?: { buffer: Buffer; originalname: string; mimetype: string; size: number },
-  ) {
-    if (!file) throw new BadRequestException('Foto profil wajib dipilih');
-    return this.academicService.uploadMyTeacherPhoto(request.user.id, file);
   }
 
   @Get('me/agendas')

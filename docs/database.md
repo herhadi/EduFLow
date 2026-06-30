@@ -6,9 +6,9 @@ Fokus awal database EduFlow adalah relasi akademik yang benar. Jangan menambah b
 
 Urutan fisik kolom tabel `User` distandarkan menjadi:
 
-`id`, `username`, `password`, `name`, `email`, `createdAt`, `updatedAt`, `deletedAt`, `failedLoginCount`, `lockedUntil`, `lastLoginAt`, `passwordChangedAt`.
+`id`, `username`, `password`, `name`, `email`, `createdAt`, `updatedAt`, `deletedAt`, `failedLoginCount`, `lockedUntil`, `lastLoginAt`, `passwordChangedAt`, lalu metadata profil seperti `photoKey`, `photoName`, `photoMimeType`, `photoSize`, `telegramId`, dan `telegramLinkedAt`.
 
-Migration `20260613100000_reorder_user_columns` membangun ulang tabel secara transaksional dengan mempertahankan data, index, dan seluruh foreign key.
+Migration `20260613100000_reorder_user_columns` membangun ulang tabel secara transaksional dengan mempertahankan data, index, dan seluruh foreign key. Migration profil user menambahkan metadata foto akun dan Telegram pada `User`, sehingga semua role dapat mengelola profil tanpa bergantung pada `Teacher`. Untuk guru yang sudah memiliki akun login, foto dan Telegram lama dari `Teacher` dibackfill ke `User`.
 
 ## Urutan Entity Inti
 
@@ -115,7 +115,7 @@ Attendance
 | `Subject` | Mata pelajaran | Dipakai jadwal dan agenda |
 | `Teacher` | Profil guru sekolah | Dipakai jadwal, agenda, akun login, mapel ampu, dan wali kelas |
 | `TeacherSubject` | Relasi mapel yang diampu guru | Satu guru dapat mengampu banyak mapel dan satu mapel dapat diampu banyak guru |
-| `User` | Akun login dan otorisasi | Dapat ditautkan ke satu profil `Teacher` melalui `Teacher.userId` |
+| `User` | Akun login, otorisasi, foto profil, dan Telegram akun | Dapat ditautkan ke satu profil `Teacher` melalui `Teacher.userId`; memiliki `TelegramLinkToken` sementara untuk aktivasi bot |
 | `Student` | Data identitas siswa | Tidak menyimpan `classId` langsung |
 | `Guardian` | Data wali murid atau orang tua | Menyimpan kontak HP, Telegram, dan email |
 | `StudentGuardian` | Relasi siswa dan wali murid | Menyimpan hubungan dan kontak utama |
