@@ -91,6 +91,7 @@ Permission menentukan capability. Scope data tetap harus dibatasi:
 - Guru hanya mengelola agenda yang ditugaskan.
 - Guru hanya mengelola perangkat ajar dan nilai untuk kelas/mapel yang diampu.
 - Guru mapel belum tentu wali kelas; wali kelas pasti guru mapel dan merupakan penugasan tambahan pada kelas.
+- Akun wali kelas tetap memiliki role `guru`, sehingga pekerjaan harian seperti jadwal dan presensi memakai permission guru. Scope wali kelas hanya menambah akses baca kelas binaan.
 - Operator sekolah mengelola kalender pendidikan dan jadwal sekolah.
 - Root adalah akses teknis semua fitur, bukan role pekerjaan harian sekolah.
 - Wali kelas hanya melihat kelas binaannya.

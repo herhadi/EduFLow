@@ -1044,6 +1044,130 @@ export class AcademicService {
     };
   }
 
+  async getMyHomeroom(userId: string) {
+    const teacher = await this.getTeacherAccount(userId);
+    const today = this.toDateOnly(new Date().toISOString());
+    const todayDate = new Date(`${today}T00:00:00.000Z`);
+    const monthStart = new Date(Date.UTC(todayDate.getUTCFullYear(), todayDate.getUTCMonth(), 1));
+    const nextMonthStart = new Date(Date.UTC(todayDate.getUTCFullYear(), todayDate.getUTCMonth() + 1, 1));
+
+    const schoolClass = await this.prisma.class.findFirst({
+      where: {
+        homeroomTeacherId: teacher.id,
+        deletedAt: null,
+        schoolYear: {
+          deletedAt: null,
+          startsAt: { lte: todayDate },
+          endsAt: { gte: todayDate },
+        },
+      },
+      include: { schoolYear: true },
+      orderBy: { name: 'asc' },
+    });
+
+    if (!schoolClass) {
+      return {
+        data: {
+          class: null,
+          students: [],
+          summary: this.emptyAttendanceSummary(),
+          monthSummary: this.emptyAttendanceSummary(),
+          riskStudents: [],
+        },
+      };
+    }
+
+    const [students, todayItems, monthItems] = await Promise.all([
+      this.prisma.student.findMany({
+        where: {
+          deletedAt: null,
+          enrollments: {
+            some: {
+              classId: schoolClass.id,
+              schoolYearId: schoolClass.schoolYearId,
+              isActive: true,
+              deletedAt: null,
+            },
+          },
+        },
+        include: {
+          enrollments: {
+            where: {
+              classId: schoolClass.id,
+              schoolYearId: schoolClass.schoolYearId,
+              isActive: true,
+              deletedAt: null,
+            },
+            include: { class: true, schoolYear: true },
+          },
+          guardians: {
+            where: { deletedAt: null },
+            include: { guardian: true },
+          },
+        },
+        orderBy: { name: 'asc' },
+      }),
+      this.prisma.attendanceItem.findMany({
+        where: {
+          attendance: {
+            classId: schoolClass.id,
+            agenda: { date: todayDate },
+          },
+        },
+        include: { student: true },
+      }),
+      this.prisma.attendanceItem.findMany({
+        where: {
+          attendance: {
+            classId: schoolClass.id,
+            agenda: {
+              date: {
+                gte: monthStart,
+                lt: nextMonthStart,
+              },
+            },
+          },
+        },
+        include: { student: true },
+      }),
+    ]);
+
+    const monthByStudent = new Map<string, ReturnType<typeof this.emptyAttendanceSummary>>();
+    for (const item of monthItems) {
+      const current = monthByStudent.get(item.studentId) ?? this.emptyAttendanceSummary();
+      this.addAttendanceStatus(current, item.status);
+      monthByStudent.set(item.studentId, current);
+    }
+
+    const todayByStudent = new Map(todayItems.map((item) => [item.studentId, item.status]));
+    const enrichedStudents = students.map((student) => {
+      const monthSummary = monthByStudent.get(student.id) ?? this.emptyAttendanceSummary();
+      return {
+        ...student,
+        todayStatus: todayByStudent.get(student.id) ?? null,
+        monthSummary,
+      };
+    });
+
+    const riskStudents = enrichedStudents
+      .filter((student) => student.monthSummary.absent + student.monthSummary.sick + student.monthSummary.excused > 0)
+      .sort((first, second) =>
+        (second.monthSummary.absent * 3 + second.monthSummary.sick + second.monthSummary.excused) -
+        (first.monthSummary.absent * 3 + first.monthSummary.sick + first.monthSummary.excused),
+      )
+      .slice(0, 8);
+
+    return {
+      data: {
+        class: schoolClass,
+        students: enrichedStudents,
+        summary: this.countAttendanceItems(todayItems),
+        monthSummary: this.countAttendanceItems(monthItems),
+        riskStudents,
+      },
+    };
+  }
+
   async getSchedules(classId?: string) {
     return {
       data: await this.prisma.schedule.findMany({
@@ -1060,6 +1184,32 @@ export class AcademicService {
         orderBy: [{ dayOfWeek: 'asc' }, { startsAt: 'asc' }],
       }),
     };
+  }
+
+  private emptyAttendanceSummary() {
+    return {
+      total: 0,
+      present: 0,
+      sick: 0,
+      excused: 0,
+      absent: 0,
+    };
+  }
+
+  private countAttendanceItems(items: Array<{ status: string }>) {
+    const summary = this.emptyAttendanceSummary();
+    for (const item of items) {
+      this.addAttendanceStatus(summary, item.status);
+    }
+    return summary;
+  }
+
+  private addAttendanceStatus(summary: ReturnType<typeof this.emptyAttendanceSummary>, status: string) {
+    summary.total += 1;
+    if (status === 'PRESENT') summary.present += 1;
+    if (status === 'SICK') summary.sick += 1;
+    if (status === 'EXCUSED') summary.excused += 1;
+    if (status === 'ABSENT') summary.absent += 1;
   }
 
   async getTimeSlots(schoolYearId?: string) {

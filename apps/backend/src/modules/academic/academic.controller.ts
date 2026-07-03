@@ -81,8 +81,8 @@ export class AcademicController {
     return this.academicService.deleteAcademicCalendarEvent(id);
   }
 
-  @Public()
   @Get('classes')
+  @RequirePermissions(PERMISSIONS.ACADEMIC_READ)
   getClasses(@Query('schoolYearId') schoolYearId?: string) {
     return this.academicService.getClasses(schoolYearId);
   }
@@ -108,8 +108,8 @@ export class AcademicController {
     return this.academicService.setClassHomeroomTeacher(id, dto);
   }
 
-  @Public()
   @Get('subjects')
+  @RequirePermissions(PERMISSIONS.ACADEMIC_READ)
   getSubjects() {
     return this.academicService.getSubjects();
   }
@@ -126,8 +126,8 @@ export class AcademicController {
     return this.academicService.deleteSubject(id);
   }
 
-  @Public()
   @Get('teachers')
+  @RequirePermissions(PERMISSIONS.ACADEMIC_READ)
   getTeachers() {
     return this.academicService.getTeachers();
   }
@@ -213,20 +213,20 @@ export class AcademicController {
     return this.academicService.deleteTeacherPermanently(id);
   }
 
-  @Public()
   @Get('students')
+  @RequirePermissions(PERMISSIONS.ACADEMIC_READ)
   getStudents(@Query('classId') classId?: string) {
     return this.academicService.getStudents(classId);
   }
 
-  @Public()
   @Get('schedules')
+  @RequirePermissions(PERMISSIONS.SCHEDULE_READ)
   getSchedules(@Query('classId') classId?: string) {
     return this.academicService.getSchedules(classId);
   }
 
-  @Public()
   @Get('time-slots')
+  @RequirePermissions(PERMISSIONS.SCHEDULE_READ)
   getTimeSlots(@Query('schoolYearId') schoolYearId?: string) {
     return this.academicService.getTimeSlots(schoolYearId);
   }
@@ -249,8 +249,8 @@ export class AcademicController {
     return this.academicService.deleteTimeSlot(id);
   }
 
-  @Public()
   @Get('classes/:classId/time-slot-activities')
+  @RequirePermissions(PERMISSIONS.SCHEDULE_READ)
   getClassTimeSlotActivities(@Param('classId') classId: string) {
     return this.academicService.getClassTimeSlotActivities(classId);
   }
@@ -283,7 +283,13 @@ export class AcademicController {
     return this.academicService.getMyAgendas(request.user.id, date);
   }
 
-  @Public()
+  @RequirePermissions(PERMISSIONS.ATTENDANCE_READ)
+  @Get('me/homeroom')
+  getMyHomeroom(@Req() request: RequestWithUser) {
+    return this.academicService.getMyHomeroom(request.user.id);
+  }
+
+  @RequirePermissions(PERMISSIONS.SCHEDULE_READ)
   @Get('schedules/:id')
   getSchedule(@Param('id') id: string) {
     return this.academicService.getSchedule(id);
@@ -337,8 +343,8 @@ export class AcademicController {
     return this.academicService.generateAgenda(id, dto);
   }
 
-  @Public()
   @Get('agendas')
+  @RequirePermissions(PERMISSIONS.AGENDA_READ)
   getAgendas(@Query('date') date?: string) {
     return this.academicService.getAgendas(date);
   }

@@ -107,6 +107,14 @@ export function RoleDashboard({
     return <ParentHome currentUser={currentUser} />;
   }
 
+  if (activeRole === 'tu') {
+    return <StaffHome currentUser={currentUser} />;
+  }
+
+  if (activeRole === 'bk') {
+    return <CounselingHome currentUser={currentUser} />;
+  }
+
   return (
     <>
       <PageHeader
@@ -372,6 +380,45 @@ function ParentHome({ currentUser }: { currentUser: CurrentUser | null }) {
       <div className="mt-6">
         <TeacherAction href="/parent/info" label="Lihat Data Anak" />
       </div>
+    </>
+  );
+}
+
+function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) {
+  const displayName = currentUser?.name ?? currentUser?.username ?? 'Tata Usaha';
+
+  return (
+    <>
+      <RoleHero
+        description="Kelola data administrasi akademik, import data, dan laporan yang mendukung operasional sekolah."
+        eyebrow="Tata Usaha"
+        title={`Selamat bekerja, ${displayName}`}
+      />
+      <RoleSection description="Ruang kerja administratif harian." title="Administrasi Sekolah">
+        <RoleActionCard href="/tu/data" icon="☷" label="Data Akademik" description="Lihat kelas, mata pelajaran, tahun ajaran, dan struktur data akademik." priority />
+        <RoleActionCard href="/tu/import-data" icon="⇧" label="Import Data" description="Upload data guru dan siswa dari Excel sesuai format sekolah." />
+        <RoleActionCard href="/tu/reports" icon="▣" label="Laporan" description="Export rekap operasional untuk kebutuhan administrasi." />
+        <RoleActionCard href="/tu/notifications" icon="✉" label="Inbox" description="Pantau pemberitahuan administratif yang perlu ditindaklanjuti." />
+      </RoleSection>
+    </>
+  );
+}
+
+function CounselingHome({ currentUser }: { currentUser: CurrentUser | null }) {
+  const displayName = currentUser?.name ?? currentUser?.username ?? 'BK';
+
+  return (
+    <>
+      <RoleHero
+        description="Pantau siswa yang membutuhkan perhatian dan gunakan data presensi sebagai dasar tindak lanjut."
+        eyebrow="Bimbingan Konseling"
+        title={`Selamat bekerja, ${displayName}`}
+      />
+      <RoleSection description="Fokus pada monitoring siswa dan tindak lanjut pembinaan." title="Monitoring BK">
+        <RoleActionCard href="/bk/students" icon="☷" label="Data Siswa" description="Lihat data siswa, kelas, dan wali murid sebagai dasar pembinaan." priority />
+        <RoleActionCard href="/bk/reports" icon="▣" label="Laporan Presensi" description="Tinjau rekap presensi dan siswa yang perlu perhatian." />
+        <RoleActionCard href="/bk/notifications" icon="✉" label="Inbox" description="Pantau notifikasi kelas kosong, presensi, dan tindak lanjut siswa." />
+      </RoleSection>
     </>
   );
 }

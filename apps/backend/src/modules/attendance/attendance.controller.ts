@@ -1,6 +1,8 @@
 import { BadRequestException, Body, Controller, Get, Param, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { RequestWithUser } from '../../core/http/request-with-user';
+import { PERMISSIONS } from '../../common/constants/permissions';
+import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { AttendanceService } from './attendance.service';
 import { OpenClassDto } from './dto/open-class.dto';
 import { SubmitAttendanceDto } from './dto/submit-attendance.dto';
@@ -9,21 +11,25 @@ import { SubmitAttendanceDto } from './dto/submit-attendance.dto';
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
+  @RequirePermissions(PERMISSIONS.ATTENDANCE_READ)
   @Get(':id')
   getAttendance(@Param('id') id: string, @Req() request: RequestWithUser) {
     return this.attendanceService.getAttendance(id, request.user.id);
   }
 
+  @RequirePermissions(PERMISSIONS.ATTENDANCE_MANAGE)
   @Post('open-class')
   openClass(@Body() dto: OpenClassDto, @Req() request: RequestWithUser) {
     return this.attendanceService.openClass(dto, request.user.id);
   }
 
+  @RequirePermissions(PERMISSIONS.ATTENDANCE_MANAGE)
   @Post('submit')
   submit(@Body() dto: SubmitAttendanceDto, @Req() request: RequestWithUser) {
     return this.attendanceService.submit(dto, request.user.id);
   }
 
+  @RequirePermissions(PERMISSIONS.ATTENDANCE_MANAGE)
   @Post(':id/class-photo')
   @UseInterceptors(FileInterceptor('file', {
     limits: { fileSize: 10 * 1024 * 1024 },

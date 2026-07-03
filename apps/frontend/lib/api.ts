@@ -216,6 +216,24 @@ export interface DailyAgenda {
 export type AttendanceStatus = 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT';
 export interface AttendanceItem { id: string; status: AttendanceStatus; notes?: string | null; student: Pick<Student, 'id' | 'name'>; }
 export interface Attendance { id: string; state: string; items: AttendanceItem[]; classPhotoName?: string | null; }
+export interface AttendanceSummary {
+  total: number;
+  present: number;
+  sick: number;
+  excused: number;
+  absent: number;
+}
+export interface HomeroomStudent extends Student {
+  todayStatus?: AttendanceStatus | null;
+  monthSummary: AttendanceSummary;
+}
+export interface HomeroomOverview {
+  class: SchoolClass | null;
+  students: HomeroomStudent[];
+  summary: AttendanceSummary;
+  monthSummary: AttendanceSummary;
+  riskStudents: HomeroomStudent[];
+}
 
 export type AcademicTimeSlotType =
   | 'LESSON'
@@ -834,6 +852,7 @@ export const api = {
   uploadAttendanceClassPhoto: (id: string, file: File) => upload<ApiResponse<Attendance>>(`/attendance/${id}/class-photo`, file),
   submitAttendance: (payload: { attendanceId: string; notes?: string; items: Array<{ attendanceItemId: string; status: AttendanceStatus; notes?: string }> }) => request<ApiResponse<Attendance>>('/attendance/submit', { method: 'POST', body: JSON.stringify(payload) }),
   getMySubjects: () => request<ApiResponse<Subject[]>>('/academic/me/subjects'),
+  getMyHomeroom: () => request<ApiResponse<HomeroomOverview>>('/academic/me/homeroom'),
   getMyTeachingPlans: () => request<ApiResponse<TeachingPlan[]>>('/academic-planning/mine'),
   createTeachingPlan: (payload: { subjectId: string; schoolYearId: string; semesterId?: string; type: TeachingPlanType; title: string; description?: string; attachmentUrl?: string }) =>
     request<ApiResponse<TeachingPlan>>('/academic-planning', { method: 'POST', body: JSON.stringify(payload) }),

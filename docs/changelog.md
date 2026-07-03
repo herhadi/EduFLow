@@ -8,6 +8,8 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan namespace route kepala sekolah untuk performa guru, laporan sekolah, dan audit supervisi: `/principal/teacher-performance`, `/principal/reports`, dan `/principal/audit`.
 - Menambahkan guard ringan di shell frontend untuk memberi peringatan akses ditolak dan redirect ketika user membuka namespace role yang tidak sesuai.
 - Mengubah prioritas akun `guru + wali_kelas` agar tetap masuk ke dashboard guru, dengan menu tambahan `Binaan` untuk tugas wali kelas.
+- Mengaktifkan halaman `/homeroom/students` dengan endpoint `GET /api/academic/me/homeroom` untuk kelas binaan, ringkasan presensi, kontak wali murid, dan daftar siswa perlu perhatian.
+- Memperketat endpoint baca data akademik internal dan presensi dengan permission guard eksplisit.
 
 ## 2026-06-30
 

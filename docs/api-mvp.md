@@ -81,6 +81,12 @@ Aturan penghapusan:
 
 ## Academic Read API
 
+Endpoint baca data akademik internal membutuhkan `Authorization: Bearer <accessToken>` dan permission sesuai domain:
+
+- `academic.read` untuk kelas, mapel, guru, dan siswa.
+- `schedule.read` untuk jadwal dan slot waktu.
+- `agenda.read` untuk agenda.
+
 ```http
 GET /api/academic/school-years
 POST /api/academic/school-years
@@ -97,6 +103,18 @@ GET /api/academic/schedules?classId=:classId
 GET /api/academic/agendas
 GET /api/academic/agendas?date=2026-06-03
 ```
+
+`school-years` dan `semesters` masih dapat dibaca publik untuk kebutuhan pemilihan periode dasar. Data internal lain wajib melewati permission guard.
+
+### Wali Kelas
+
+```http
+GET /api/academic/me/homeroom
+Authorization: Bearer <accessToken>
+Permission: attendance.read
+```
+
+Response berisi kelas binaan tahun ajaran aktif, daftar siswa aktif, kontak wali murid, status presensi hari ini, ringkasan bulan berjalan, dan daftar siswa yang perlu perhatian.
 
 ## Academic Master Management API
 
@@ -401,6 +419,8 @@ Nilai semester harus disubmit guru dan di-approve kepala sekolah sebelum dikunci
 
 ```http
 POST /api/attendance/open-class
+Authorization: Bearer <accessToken>
+Permission: attendance.manage
 Content-Type: application/json
 
 {
@@ -418,6 +438,8 @@ Efek:
 
 ```http
 POST /api/attendance/submit
+Authorization: Bearer <accessToken>
+Permission: attendance.manage
 Content-Type: application/json
 
 {
@@ -431,6 +453,11 @@ Content-Type: application/json
   ]
 }
 ```
+
+Endpoint presensi lain:
+
+- `GET /api/attendance/:id` membutuhkan `attendance.read`.
+- `POST /api/attendance/:id/class-photo` membutuhkan `attendance.manage`.
 
 Efek:
 
@@ -695,7 +722,7 @@ Response utama:
 
 Catatan:
 
-- Endpoint ini masih public untuk MVP awal.
+- Endpoint parent portal publik tetap dibatasi oleh kontak wali murid yang terdaftar.
 - Saat authentication parent sudah dibuat, lookup sebaiknya memakai user session, bukan query `contact`.
 - Data yang ditampilkan hanya anak yang terhubung dengan wali tersebut.
 

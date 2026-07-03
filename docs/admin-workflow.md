@@ -122,6 +122,7 @@ Catatan namespace kepala sekolah:
 Catatan namespace role lain:
 
 - `/homeroom/students` untuk tugas tambahan wali kelas. Jadwal, presensi, inbox, dan profil tetap memakai namespace guru karena wali kelas juga guru.
+- Halaman `/homeroom/students` membaca `GET /api/academic/me/homeroom`, sehingga wali kelas hanya melihat kelas yang `homeroomTeacherId`-nya terhubung ke akun guru tersebut pada tahun ajaran aktif.
 - `/parent/dashboard`, `/parent/reports`, dan `/parent/info` untuk wali murid.
 - `/tu/dashboard`, `/tu/data`, `/tu/import-data`, dan `/tu/reports` untuk tata usaha.
 - `/bk/dashboard`, `/bk/students`, dan `/bk/reports` untuk bimbingan konseling.
