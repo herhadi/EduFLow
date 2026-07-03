@@ -10,6 +10,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Mengubah prioritas akun `guru + wali_kelas` agar tetap masuk ke dashboard guru, dengan menu tambahan `Binaan` untuk tugas wali kelas.
 - Mengaktifkan halaman `/homeroom/students` dengan endpoint `GET /api/academic/me/homeroom` untuk kelas binaan, ringkasan presensi, kontak wali murid, dan daftar siswa perlu perhatian.
 - Memperketat endpoint baca data akademik internal dan presensi dengan permission guard eksplisit.
+- Merapikan `/principal/teacher-performance` menjadi monitoring compact: default bulan ini, filter cepat, pencarian guru, filter status risiko, detail aktivitas collapse, dan muat bertahap 10 guru.
 
 ## 2026-06-30
 
