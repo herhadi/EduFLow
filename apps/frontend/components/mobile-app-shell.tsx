@@ -12,9 +12,11 @@ import {
   SESSION_CHANGED_EVENT,
 } from '../lib/session';
 import {
+  getDashboardPathForRole,
   getPrimaryNavigation,
   getPrimaryRole,
   getSectionFromPath,
+  type UserRole,
 } from '../lib/navigation.config';
 
 export const NOTIFICATION_CHANGED_EVENT = 'eduflow-notification-changed';
@@ -67,6 +69,22 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(NOTIFICATION_CHANGED_EVENT, loadNotificationBadge);
   }, [currentUser, isPublicPage]);
 
+  useEffect(() => {
+    if (isPublicPage || !currentUser) {
+      return;
+    }
+
+    const primaryRole = getPrimaryRole(currentUser.roles ?? []);
+    const requiredRole = getRequiredRoleForPath(pathname);
+
+    if (!requiredRole || hasRoleNamespaceAccess(primaryRole, requiredRole)) {
+      return;
+    }
+
+    window.alert('Akses ditolak. Anda akan diarahkan ke menu sesuai role akun.');
+    window.location.href = getDashboardPathForRole(primaryRole);
+  }, [currentUser, isPublicPage, pathname]);
+
   if (isPublicPage) {
     return <>{children}</>;
   }
@@ -91,6 +109,25 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
       </div>
     </div>
   );
+}
+
+function getRequiredRoleForPath(pathname: string): UserRole | null {
+  if (pathname.startsWith('/system') || pathname.startsWith('/operations')) return 'root';
+  if (pathname.startsWith('/principal')) return 'kepala_sekolah';
+  if (pathname.startsWith('/homeroom')) return 'wali_kelas';
+  if (pathname.startsWith('/parent')) return 'orang_tua';
+  if (pathname.startsWith('/tu')) return 'tu';
+  if (pathname.startsWith('/bk')) return 'bk';
+  if (pathname.startsWith('/teacher')) return 'guru';
+  if (pathname.startsWith('/admin')) return 'operator_sekolah';
+  return null;
+}
+
+function hasRoleNamespaceAccess(primaryRole: UserRole, requiredRole: UserRole) {
+  if (primaryRole === requiredRole) return true;
+  if (primaryRole === 'root' && requiredRole === 'operator_sekolah') return true;
+  if (primaryRole === 'wali_kelas' && requiredRole === 'guru') return true;
+  return false;
 }
 
 function MobileGreeting({
@@ -234,7 +271,10 @@ function BottomNavigation({
       aria-label="Navigasi utama"
       className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[456px] px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] md:w-1/2 md:max-w-none"
     >
-      <div className="bottom-nav mx-auto grid grid-cols-5 gap-1 rounded-[1.75rem] p-2 backdrop-blur-xl">
+      <div
+        className="bottom-nav mx-auto grid gap-1 rounded-[1.75rem] p-2 backdrop-blur-xl"
+        style={{ gridTemplateColumns: `repeat(${primaryNavItems.length}, minmax(0, 1fr))` }}
+      >
         {primaryNavItems.map((item) => {
           const active = isBottomNavItemActive(item.href, pathname, section);
 

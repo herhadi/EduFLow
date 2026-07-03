@@ -89,12 +89,14 @@ Dashboard dipisahkan per role:
 - `operator_sekolah`: `/admin/dashboard`.
 - `kepala_sekolah`: `/principal/dashboard`.
 - `guru`: `/teacher/dashboard`.
-- `wali_kelas`: `/teacher/dashboard`.
+- `wali_kelas`: `/homeroom/dashboard`.
 - `orang_tua`: `/parent/dashboard`.
-- `tu`: `/dashboard/tu`.
-- `bk`: `/dashboard/bk`.
+- `tu`: `/tu/dashboard`.
+- `bk`: `/bk/dashboard`.
 
 Login mengarahkan user langsung ke dashboard sesuai role. Jika user non-root membuka `/dashboard`, frontend mengarahkan ke dashboard role-nya. Inbox dan Profil juga mengikuti namespace role, misalnya `/admin/notifications`, `/admin/profile`, `/teacher/notifications`, dan `/teacher/profile`. Halaman `/admin/akses` hanya untuk `root`; user non-root yang membuka URL tersebut akan melihat peringatan akses ditolak sebelum diarahkan kembali ke menu sesuai role.
+
+Shell aplikasi juga melakukan guard ringan untuk namespace role. Jika user membuka namespace yang tidak sesuai, misalnya guru membuka `/principal/...` atau orang tua membuka `/tu/...`, browser menampilkan peringatan akses ditolak lalu mengarahkan user ke dashboard role-nya. Validasi final tetap wajib berada di backend permission.
 
 Dashboard wajib menampilkan information architecture sesuai actor:
 
@@ -108,6 +110,21 @@ Catatan jadwal:
 - `/teacher/schedules` adalah area guru untuk melihat jadwal mengajar miliknya sendiri.
 - `/teacher/attendance` adalah area guru untuk membuka kelas dan mengisi presensi.
 - Role lain dapat memiliki halaman jadwal berbeda sesuai konteks, misalnya monitoring jadwal untuk kepala sekolah atau jadwal anak untuk orang tua.
+
+Catatan namespace kepala sekolah:
+
+- `/principal/dashboard` untuk beranda kepala sekolah.
+- `/principal/review` untuk approval perangkat ajar dan nilai.
+- `/principal/teacher-performance` untuk monitoring performa guru.
+- `/principal/reports` untuk laporan sekolah.
+- `/principal/audit` untuk jejak aktivitas supervisi.
+
+Catatan namespace role lain:
+
+- `/homeroom/dashboard`, `/homeroom/schedules`, `/homeroom/attendance`, dan `/homeroom/students` untuk tugas wali kelas.
+- `/parent/dashboard`, `/parent/reports`, dan `/parent/info` untuk wali murid.
+- `/tu/dashboard`, `/tu/data`, `/tu/import-data`, dan `/tu/reports` untuk tata usaha.
+- `/bk/dashboard`, `/bk/students`, dan `/bk/reports` untuk bimbingan konseling.
 
 ## Urutan Konfigurasi Awal
 

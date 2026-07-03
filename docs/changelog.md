@@ -2,6 +2,12 @@
 
 Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
+## 2026-07-03
+
+- Menambahkan namespace route untuk wali kelas, orang tua, TU, dan BK agar navigasi tidak lagi bergantung pada route global seperti `/reports`, `/parent-portal`, `/master-data`, atau `/dashboard/bk`.
+- Menambahkan namespace route kepala sekolah untuk performa guru, laporan sekolah, dan audit supervisi: `/principal/teacher-performance`, `/principal/reports`, dan `/principal/audit`.
+- Menambahkan guard ringan di shell frontend untuk memberi peringatan akses ditolak dan redirect ketika user membuka namespace role yang tidak sesuai.
+
 ## 2026-06-30
 
 - Memindahkan foto profil dan Telegram ke level `User` agar semua role dapat mengelola profil dari halaman Profil.

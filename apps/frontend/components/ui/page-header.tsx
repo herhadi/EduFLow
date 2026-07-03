@@ -16,7 +16,6 @@ export function PageHeader({
 }) {
   return (
     <header className="page-hero relative w-full overflow-hidden rounded-2xl border border-blue-100/70 p-4 shadow-sm shadow-blue-100/60 backdrop-blur-xl sm:p-5">
-      <span className="pointer-events-none absolute -top-20 -right-16 size-48 rounded-full bg-blue-400/10 blur-3xl" />
       {showBackLink ? (
         <Link
           className="secondary-button relative inline-flex rounded-full px-3 py-1.5 text-xs font-bold"

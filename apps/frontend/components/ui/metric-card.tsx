@@ -26,7 +26,6 @@ export function MetricCard({
         toneClass[tone],
       )}
     >
-      <span className="absolute -top-8 -right-8 size-20 rounded-full bg-current opacity-[0.06] blur-xl transition group-hover:scale-125" />
       <p className="relative text-xs font-semibold leading-4 text-slate-600 sm:text-sm">{label}</p>
       <strong className="relative mt-1.5 block text-2xl font-black sm:text-3xl">
         {formatNumber(value)}

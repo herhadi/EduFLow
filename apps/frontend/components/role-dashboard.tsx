@@ -210,9 +210,9 @@ function PrincipalHome({ currentUser }: { currentUser: CurrentUser | null }) {
         <RoleActionCard href="/principal/notifications" icon="✦" label="Inbox Kepala Sekolah" description="Lihat kelas kosong, guru belum submit, koreksi, dan pengajuan approval." />
       </RoleSection>
       <RoleSection description="Ringkasan untuk evaluasi dan pengambilan keputusan." title="Monitoring Sekolah">
-        <RoleActionCard href="/teacher-performance" icon="◈" label="Performa Guru" description="Bandingkan sesi mengajar, keterlambatan submit, dan kelas kosong." />
-        <RoleActionCard href="/reports" icon="▣" label="Laporan Sekolah" description="Lihat dan export rekap kehadiran serta kegiatan belajar mengajar." />
-        <RoleActionCard href="/audit" icon="◇" label="Jejak Aktivitas" description="Telusuri aktivitas penting untuk kebutuhan supervisi." />
+        <RoleActionCard href="/principal/teacher-performance" icon="◈" label="Performa Guru" description="Bandingkan sesi mengajar, keterlambatan submit, dan kelas kosong." />
+        <RoleActionCard href="/principal/reports" icon="▣" label="Laporan Sekolah" description="Lihat dan export rekap kehadiran serta kegiatan belajar mengajar." />
+        <RoleActionCard href="/principal/audit" icon="◇" label="Jejak Aktivitas" description="Telusuri aktivitas penting untuk kebutuhan supervisi." />
       </RoleSection>
     </>
   );
@@ -228,6 +228,7 @@ function TeacherHome({
   photoUrl?: string | null;
 }) {
   const displayName = currentUser?.name ?? currentUser?.username ?? 'Guru';
+  const basePath = isHomeroom ? '/homeroom' : '/teacher';
 
   return (
     <>
@@ -250,8 +251,8 @@ function TeacherHome({
             Jadwal personal akan tampil berdasarkan akun guru, mapel ampu, dan agenda harian.
           </p>
           <div className="mt-5 grid grid-cols-2 gap-3">
-            <TeacherAction href="/teacher/schedules" label="Jadwal Saya" />
-            <TeacherAction href="/teacher/attendance" label="Buka Presensi" />
+            <TeacherAction href={`${basePath}/schedules`} label="Jadwal Saya" />
+            <TeacherAction href={`${basePath}/attendance`} label="Buka Presensi" />
           </div>
         </div>
 
@@ -268,12 +269,13 @@ function TeacherHome({
           {isHomeroom ? (
             <TeacherCard
               description="Pantau presensi, ringkasan, dan tindak lanjut siswa kelas binaan."
+              href="/homeroom/students"
               label="Kelas Binaan"
             />
           ) : null}
           <TeacherCard
             description="Lihat pengumuman, reminder kelas, dan permintaan revisi."
-            href="/teacher/notifications"
+            href={`${basePath}/notifications`}
             label="Notifikasi"
           />
         </RoleSection>
@@ -368,7 +370,7 @@ function ParentHome({ currentUser }: { currentUser: CurrentUser | null }) {
         title={`Halo, ${currentUser?.name ?? 'Wali Murid'}`}
       />
       <div className="mt-6">
-        <TeacherAction href="/parent-portal" label="Lihat Data Anak" />
+        <TeacherAction href="/parent/info" label="Lihat Data Anak" />
       </div>
     </>
   );
