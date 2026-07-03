@@ -126,7 +126,9 @@ function getRequiredRoleForPath(pathname: string): UserRole | null {
 function hasRoleNamespaceAccess(primaryRole: UserRole, requiredRole: UserRole) {
   if (primaryRole === requiredRole) return true;
   if (primaryRole === 'root' && requiredRole === 'operator_sekolah') return true;
-  if (primaryRole === 'wali_kelas' && requiredRole === 'guru') return true;
+  if (primaryRole === 'guru' && requiredRole === 'wali_kelas') {
+    return getCurrentSessionUser()?.roles?.includes('wali_kelas') ?? false;
+  }
   return false;
 }
 

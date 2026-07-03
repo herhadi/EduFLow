@@ -7,6 +7,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan namespace route untuk wali kelas, orang tua, TU, dan BK agar navigasi tidak lagi bergantung pada route global seperti `/reports`, `/parent-portal`, `/master-data`, atau `/dashboard/bk`.
 - Menambahkan namespace route kepala sekolah untuk performa guru, laporan sekolah, dan audit supervisi: `/principal/teacher-performance`, `/principal/reports`, dan `/principal/audit`.
 - Menambahkan guard ringan di shell frontend untuk memberi peringatan akses ditolak dan redirect ketika user membuka namespace role yang tidak sesuai.
+- Mengubah prioritas akun `guru + wali_kelas` agar tetap masuk ke dashboard guru, dengan menu tambahan `Binaan` untuk tugas wali kelas.
 
 ## 2026-06-30
 

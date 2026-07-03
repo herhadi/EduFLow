@@ -62,7 +62,7 @@ Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama 
 - `operator_sekolah`: `Beranda`, `Master`, `Jadwal`, `Inbox`, `Profil`.
 - `kepala_sekolah`: `Beranda`, `Review`, `Performa`, `Inbox`, `Profil`.
 - `guru`: `Hari Ini`, `Jadwal`, `Presensi`, `Inbox`, `Profil`.
-- `wali_kelas`: `Hari Ini`, `Jadwal`, `Presensi`, `Inbox`, `Profil`.
+- `wali_kelas`: `Hari Ini`, `Jadwal`, `Presensi`, `Binaan`, `Inbox`, `Profil`.
 - `tu`: `Data`, `Import`, `Report`, `Inbox`, `Profil`.
 - `bk`: `Home`, `Siswa`, `Laporan`, `Inbox`, `Profil`.
 - `orang_tua`: `Anak`, `Inbox`, `Riwayat`, `Info`, `Profil`.
@@ -89,7 +89,7 @@ Dashboard dipisahkan per role:
 - `operator_sekolah`: `/admin/dashboard`.
 - `kepala_sekolah`: `/principal/dashboard`.
 - `guru`: `/teacher/dashboard`.
-- `wali_kelas`: `/homeroom/dashboard`.
+- `wali_kelas`: `/teacher/dashboard`, karena keseharian tetap sebagai guru. Menu tambahan `Binaan` mengarah ke `/homeroom/students`.
 - `orang_tua`: `/parent/dashboard`.
 - `tu`: `/tu/dashboard`.
 - `bk`: `/bk/dashboard`.
@@ -121,7 +121,7 @@ Catatan namespace kepala sekolah:
 
 Catatan namespace role lain:
 
-- `/homeroom/dashboard`, `/homeroom/schedules`, `/homeroom/attendance`, dan `/homeroom/students` untuk tugas wali kelas.
+- `/homeroom/students` untuk tugas tambahan wali kelas. Jadwal, presensi, inbox, dan profil tetap memakai namespace guru karena wali kelas juga guru.
 - `/parent/dashboard`, `/parent/reports`, dan `/parent/info` untuk wali murid.
 - `/tu/dashboard`, `/tu/data`, `/tu/import-data`, dan `/tu/reports` untuk tata usaha.
 - `/bk/dashboard`, `/bk/students`, dan `/bk/reports` untuk bimbingan konseling.

@@ -89,7 +89,7 @@ export function RoleDashboard({
     return (
       <TeacherHome
         currentUser={currentUser}
-        isHomeroom={activeRole === 'wali_kelas'}
+        isHomeroom={currentUser?.roles?.includes('wali_kelas') ?? activeRole === 'wali_kelas'}
         photoUrl={teacherPhotoUrl}
       />
     );

@@ -53,11 +53,12 @@ const teacherNavigation: NavigationItem[] = [
 ];
 
 const homeroomNavigation: NavigationItem[] = [
-  { href: '/homeroom/dashboard', label: 'Hari Ini', icon: '⌂' },
-  { href: '/homeroom/schedules', label: 'Jadwal', icon: '▦' },
+  { href: '/teacher/dashboard', label: 'Hari Ini', icon: '⌂' },
+  { href: '/teacher/schedules', label: 'Jadwal', icon: '▦' },
+  { href: '/teacher/attendance', label: 'Presensi', icon: '✓' },
   { href: '/homeroom/students', label: 'Binaan', icon: '☷' },
-  { href: '/homeroom/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
-  { href: '/homeroom/profile', label: 'Profil', icon: '👤' },
+  { href: '/teacher/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
+  { href: '/teacher/profile', label: 'Profil', icon: '👤' },
 ];
 
 const parentNavigation: NavigationItem[] = [
@@ -146,8 +147,8 @@ const rolePriority: UserRole[] = [
   'root',
   'operator_sekolah',
   'kepala_sekolah',
-  'wali_kelas',
   'guru',
+  'wali_kelas',
   'tu',
   'bk',
   'orang_tua',
@@ -158,6 +159,10 @@ export function getPrimaryRole(roles: string[] = []): UserRole {
 }
 
 export function getPrimaryNavigation(roles: string[] = []) {
+  if (roles.includes('wali_kelas') && roles.includes('guru')) {
+    return homeroomNavigation;
+  }
+
   return roleNavigation[getPrimaryRole(roles)];
 }
 
@@ -184,7 +189,7 @@ export function getDashboardPathForRole(role: UserRole) {
     root: '/dashboard',
     operator_sekolah: '/admin/dashboard',
     kepala_sekolah: '/principal/dashboard',
-    wali_kelas: '/homeroom/dashboard',
+    wali_kelas: '/teacher/dashboard',
     guru: '/teacher/dashboard',
     tu: '/tu/dashboard',
     bk: '/bk/dashboard',
