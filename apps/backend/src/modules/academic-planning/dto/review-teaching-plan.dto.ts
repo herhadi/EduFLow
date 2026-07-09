@@ -1,4 +1,4 @@
-import { TeachingPlanStatus } from '@prisma/client';
+import { TeachingPlanRevisionPriority, TeachingPlanStatus } from '@prisma/client';
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class ReviewTeachingPlanDto {
@@ -9,4 +9,13 @@ export class ReviewTeachingPlanDto {
   @IsString()
   @MaxLength(2000)
   reviewNote?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(240)
+  reviewSection?: string;
+
+  @IsOptional()
+  @IsEnum(TeachingPlanRevisionPriority)
+  reviewPriority?: TeachingPlanRevisionPriority;
 }

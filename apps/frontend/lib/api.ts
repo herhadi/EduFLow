@@ -527,6 +527,7 @@ export interface LoginResult {
 
 export type TeachingPlanType = 'ANNUAL_PROGRAM' | 'SEMESTER_PROGRAM' | 'KKTP' | 'LESSON_PLAN' | 'TEACHING_BOOK';
 export type TeachingPlanStatus = 'DRAFT' | 'SUBMITTED' | 'REVISION_REQUESTED' | 'APPROVED' | 'ARCHIVED';
+export type TeachingPlanRevisionPriority = 'HIGH' | 'MEDIUM' | 'LOW';
 export interface TeachingPlan {
   id: string;
   subjectId: string;
@@ -543,6 +544,8 @@ export interface TeachingPlan {
   attachmentUploadedAt?: string | null;
   status: TeachingPlanStatus;
   reviewNote?: string | null;
+  reviewSection?: string | null;
+  reviewPriority?: TeachingPlanRevisionPriority | null;
   subject: Subject;
   schoolYear: SchoolYear;
   semester?: Semester | null;
@@ -871,7 +874,12 @@ export const api = {
     request<ApiResponse<{ url: string }>>(`/academic-planning/${id}/attachment-url`),
   getTeachingPlanReviewQueue: () =>
     request<ApiResponse<TeachingPlan[]>>('/academic-planning/review-queue'),
-  reviewTeachingPlan: (id: string, payload: { status: 'APPROVED' | 'REVISION_REQUESTED'; reviewNote?: string }) =>
+  reviewTeachingPlan: (id: string, payload: {
+    status: 'APPROVED' | 'REVISION_REQUESTED';
+    reviewNote?: string;
+    reviewSection?: string;
+    reviewPriority?: TeachingPlanRevisionPriority;
+  }) =>
     request<ApiResponse<TeachingPlan>>(`/academic-planning/${id}/review`, {
       method: 'PATCH',
       body: JSON.stringify(payload),

@@ -209,7 +209,7 @@ Domain ini masih bagian dari academic, tetapi sebaiknya dipisah sebagai subdomai
 - Guru hanya boleh mengelola perangkat ajar dan nilai untuk kelas/mapel yang ditugaskan.
 - Riwayat penugasan guru disimpan per `SchoolYear`, mencakup status aktif, cuti, pindah, pensiun, atau tidak aktif beserta mapel ampu dan catatan. Jadwal tahun ajaran yang memiliki penugasan tersebut hanya boleh memakai guru aktif dengan mapel yang tercatat pada tahun ajaran itu.
 - Wali kelas harus tetap memiliki mapel ampu; wali kelas adalah tugas tambahan pada kelas, bukan jenis guru terpisah.
-- Dokumen perangkat ajar wajib menyimpan `status`, `submittedAt`, `reviewedAt`, `reviewedById`, dan `reviewNote`.
+- Dokumen perangkat ajar wajib menyimpan `status`, `submittedAt`, `reviewedAt`, `reviewedById`, `reviewNote`, serta penanda revisi sederhana seperti `reviewSection` dan `reviewPriority`.
 - Nilai semester wajib menyimpan `approvedAt`, `approvedById`, dan `lockedAt` setelah disetujui.
 
 ## Workflow Umum
@@ -250,11 +250,11 @@ Konfigurasi backend yang wajib tersedia:
 
 File dibatasi maksimal 10 MB. Untuk `Program Tahunan`, `Program Semester`, `KKTP`, dan `Perencanaan Pembelajaran`, lampiran wajib berformat DOCX. Untuk `Buku KBM`, form menyediakan aksi `Buka Kamera` dan `Pilih Galeri` untuk foto JPEG, PNG, atau WebP; aksi kamera meminta kamera belakang pada perangkat yang mendukungnya. Foto buku wajib tersedia sebelum pengajuan dapat dikirim kepada Kepala Sekolah. Guru hanya dapat mengganti lampiran ketika status masih `DRAFT` atau `REVISION_REQUESTED`.
 
-Kepala Sekolah membuka `/principal/review` untuk melihat antrean `SUBMITTED`, membuka dokumen melalui signed URL R2, menyetujui perangkat ajar, atau meminta revisi dengan catatan wajib.
+Kepala Sekolah membuka `/principal/review` untuk melihat antrean `SUBMITTED`, membuka dokumen melalui signed URL R2, menyetujui perangkat ajar, atau meminta revisi dengan catatan wajib. Saat meminta revisi, KS dapat mengisi bagian/halaman yang perlu diperbaiki dan memilih prioritas `Tinggi`, `Sedang`, atau `Rendah`.
 
 Saat guru submit, sistem membuat notifikasi `IN_APP` untuk setiap akun Kepala Sekolah. Badge navigasi menghitung notifikasi dengan `readAt = null`; klik inbox menandai notifikasi dibaca dan membuka `/principal/review`.
 
-Hasil review membuat notifikasi inbox untuk guru. Status `REVISION_REQUESTED` menggunakan indikator kuning dan status `APPROVED` menggunakan indikator hijau. Keputusan KS menandai notifikasi pengajuan terkait sebagai sudah dibaca sehingga badge langsung berkurang.
+Hasil review membuat notifikasi inbox untuk guru. Status `REVISION_REQUESTED` menggunakan indikator kuning dan status `APPROVED` menggunakan indikator hijau. Pada status revisi, guru melihat catatan KS, bagian/halaman yang ditandai bila ada, dan prioritas revisi. Keputusan KS menandai notifikasi pengajuan terkait sebagai sudah dibaca sehingga badge langsung berkurang.
 
 Badge pada daftar perangkat ajar juga menggunakan kuning untuk revisi dan hijau untuk disetujui. Pembukaan DOCX memakai helper frontend bersama: desktop diarahkan ke Microsoft Office Online Viewer, sedangkan perangkat mobile membuka signed URL sementara langsung dan menyerahkan penanganan file kepada browser atau sistem operasi. Web browser tidak dapat memaksa dialog pemilihan aplikasi secara konsisten.
 

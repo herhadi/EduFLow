@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { TeachingPlanStatus } from '@prisma/client';
+import { TeachingPlanRevisionPriority, TeachingPlanStatus } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
 import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
@@ -58,7 +58,14 @@ export class AcademicPlanningService {
     }
 
     const plan = await this.prisma.teachingPlan.update({
-      where: { id }, data: { status: TeachingPlanStatus.SUBMITTED, submittedAt: new Date(), reviewNote: null },
+      where: { id },
+      data: {
+        status: TeachingPlanStatus.SUBMITTED,
+        submittedAt: new Date(),
+        reviewNote: null,
+        reviewSection: null,
+        reviewPriority: null,
+      },
       include: { subject: true, schoolYear: true, semester: true },
     });
     await this.audit.record({ action: 'teaching-plan.submitted', entityType: 'TeachingPlan', entityId: id, before: existing, after: plan, userId });
@@ -144,8 +151,19 @@ export class AcademicPlanningService {
     if (!existing) throw new NotFoundException('Pengajuan perangkat ajar tidak ditemukan');
     if (dto.status === TeachingPlanStatus.REVISION_REQUESTED && !dto.reviewNote?.trim()) throw new BadRequestException('Catatan revisi wajib diisi');
 
+    const revisionRequested = dto.status === TeachingPlanStatus.REVISION_REQUESTED;
     const plan = await this.prisma.teachingPlan.update({
-      where: { id }, data: { status: dto.status, reviewedAt: new Date(), reviewedById: userId, reviewNote: dto.reviewNote?.trim() },
+      where: { id },
+      data: {
+        status: dto.status,
+        reviewedAt: new Date(),
+        reviewedById: userId,
+        reviewNote: dto.reviewNote?.trim(),
+        reviewSection: revisionRequested ? dto.reviewSection?.trim() || null : null,
+        reviewPriority: revisionRequested
+          ? dto.reviewPriority ?? TeachingPlanRevisionPriority.MEDIUM
+          : null,
+      },
       include: { teacher: true, subject: true, schoolYear: true, semester: true },
     });
     await this.audit.record({ action: dto.status === 'APPROVED' ? 'teaching-plan.approved' : 'teaching-plan.revision-requested', entityType: 'TeachingPlan', entityId: id, before: existing, after: plan, userId });

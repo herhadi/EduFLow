@@ -153,7 +153,21 @@ export function TeacherTeachingPlans() {
               <div><p className="text-xs font-black text-brand-700">{planTypes.find((item) => item.value === plan.type)?.label}</p><h3 className="mt-1 text-lg font-black">{plan.title}</h3><p className="mt-1 text-sm text-muted">{plan.subject.name} · {plan.schoolYear.name}{plan.semester ? ` · ${plan.semester.type === 'ODD' ? 'Ganjil' : 'Genap'}` : ''}</p></div>
               <Status status={plan.status} />
             </div>
-            {plan.reviewNote ? <p className="mt-4 rounded-2xl bg-amber-50 p-3 text-sm font-semibold text-amber-800">Catatan KS: {plan.reviewNote}</p> : null}
+            {plan.reviewNote ? (
+              <div className="mt-4 rounded-2xl bg-amber-50 p-3 text-sm font-semibold text-amber-900">
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-amber-800">
+                    Prioritas: {getRevisionPriorityLabel(plan.reviewPriority)}
+                  </span>
+                  {plan.reviewSection ? (
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-amber-800">
+                      {plan.reviewSection}
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-3">Catatan KS: {plan.reviewNote}</p>
+              </div>
+            ) : null}
             <div className="mt-4 flex flex-wrap gap-2">
               {plan.attachmentKey || plan.attachmentUrl ? <button className="secondary-button rounded-xl px-3 py-2 text-xs font-black" onClick={() => void openAttachment(plan)} type="button">{plan.type === 'TEACHING_BOOK' ? 'Lihat Foto Buku' : 'Buka Dokumen'}{plan.attachmentName ? ` · ${plan.attachmentName}` : ''}</button> : null}
               {plan.status === 'DRAFT' || plan.status === 'REVISION_REQUESTED' ? <button className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-black text-white" onClick={() => void submitPlan(plan)} type="button">Kirim ke KS</button> : null}
@@ -178,5 +192,10 @@ function Status({ status }: { status: TeachingPlan['status'] }) {
     ARCHIVED: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
   };
   return <span className={`rounded-full px-3 py-2 text-xs font-black ${tones[status]}`}>{labels[status]}</span>;
+}
+function getRevisionPriorityLabel(priority: TeachingPlan['reviewPriority']) {
+  if (priority === 'HIGH') return 'Tinggi';
+  if (priority === 'LOW') return 'Rendah';
+  return 'Sedang';
 }
 function formatFileSize(size: number) { return size < 1024 * 1024 ? `${Math.ceil(size / 1024)} KB` : `${(size / 1024 / 1024).toFixed(1)} MB`; }

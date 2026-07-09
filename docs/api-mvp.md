@@ -11,6 +11,8 @@
 - `GET /api/academic-planning/review-queue`
 - `PATCH /api/academic-planning/:id/review`
 
+Payload review perangkat ajar menerima `status`, `reviewNote`, `reviewSection`, dan `reviewPriority`. `reviewPriority` bernilai `HIGH`, `MEDIUM`, atau `LOW`; saat KS meminta revisi dan prioritas tidak dikirim, backend menyimpan default `MEDIUM`.
+
 Endpoint berikut bersifat dasar untuk memvalidasi flow backend sebelum frontend lengkap dibuat.
 
 ## Auth API

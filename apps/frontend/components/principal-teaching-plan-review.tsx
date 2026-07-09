@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api, type TeachingPlan } from '../lib/api';
+import { api, type TeachingPlan, type TeachingPlanRevisionPriority } from '../lib/api';
 import { openTeachingPlanAttachment } from '../lib/open-document';
 import { useToast } from './ui/toast';
 import { NOTIFICATION_CHANGED_EVENT } from './mobile-app-shell';
@@ -18,6 +18,8 @@ export function PrincipalTeachingPlanReview() {
   const toast = useToast();
   const [plans, setPlans] = useState<TeachingPlan[]>([]);
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [sections, setSections] = useState<Record<string, string>>({});
+  const [priorities, setPriorities] = useState<Record<string, TeachingPlanRevisionPriority>>({});
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
@@ -48,6 +50,9 @@ export function PrincipalTeachingPlanReview() {
 
   async function review(plan: TeachingPlan, status: 'APPROVED' | 'REVISION_REQUESTED') {
     const reviewNote = notes[plan.id]?.trim();
+    const reviewSection = sections[plan.id]?.trim();
+    const reviewPriority = priorities[plan.id] ?? 'MEDIUM';
+
     if (status === 'REVISION_REQUESTED' && !reviewNote) {
       toast.error('Catatan revisi wajib diisi.');
       return;
@@ -55,7 +60,12 @@ export function PrincipalTeachingPlanReview() {
 
     setProcessingId(plan.id);
     try {
-      const response = await api.reviewTeachingPlan(plan.id, { status, reviewNote: reviewNote || undefined });
+      const response = await api.reviewTeachingPlan(plan.id, {
+        status,
+        reviewNote: reviewNote || undefined,
+        reviewSection: status === 'REVISION_REQUESTED' ? reviewSection || undefined : undefined,
+        reviewPriority: status === 'REVISION_REQUESTED' ? reviewPriority : undefined,
+      });
       setPlans((current) => current.filter((item) => item.id !== plan.id));
       window.dispatchEvent(new Event(NOTIFICATION_CHANGED_EVENT));
       toast.success(response.message ?? (status === 'APPROVED' ? 'Perangkat ajar disetujui.' : 'Revisi dikirim ke guru.'));
@@ -95,6 +105,36 @@ export function PrincipalTeachingPlanReview() {
               {plan.attachmentKey || plan.attachmentUrl ? <button className="secondary-button rounded-xl px-3 py-2 text-xs font-black" onClick={() => void openAttachment(plan)} type="button">{plan.type === 'TEACHING_BOOK' ? 'Lihat Foto Buku' : 'Buka Dokumen'}{plan.attachmentName ? ` · ${plan.attachmentName}` : ''}</button> : <span className="text-xs font-bold text-amber-700">Lampiran belum tersedia</span>}
             </div>
 
+            <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_0.55fr]">
+              <label className="grid gap-2 text-sm font-bold">
+                Bagian/Halaman
+                <input
+                  className="rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:bg-slate-950"
+                  onChange={(event) =>
+                    setSections((current) => ({ ...current, [plan.id]: event.target.value }))
+                  }
+                  placeholder="Contoh: Hal. 2 bagian asesmen"
+                  value={sections[plan.id] ?? ''}
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-bold">
+                Prioritas
+                <select
+                  className="rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:bg-slate-950"
+                  onChange={(event) =>
+                    setPriorities((current) => ({
+                      ...current,
+                      [plan.id]: event.target.value as TeachingPlanRevisionPriority,
+                    }))
+                  }
+                  value={priorities[plan.id] ?? 'MEDIUM'}
+                >
+                  <option value="HIGH">Tinggi</option>
+                  <option value="MEDIUM">Sedang</option>
+                  <option value="LOW">Rendah</option>
+                </select>
+              </label>
+            </div>
             <label className="mt-4 grid gap-2 text-sm font-bold">Catatan untuk Guru<textarea className="min-h-24 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:bg-slate-950" onChange={(event) => setNotes((current) => ({ ...current, [plan.id]: event.target.value }))} placeholder="Wajib diisi jika meminta revisi" value={notes[plan.id] ?? ''} /></label>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button className="rounded-2xl border border-amber-300 px-4 py-3 text-sm font-black text-amber-700 disabled:opacity-50" disabled={processingId === plan.id} onClick={() => void review(plan, 'REVISION_REQUESTED')} type="button">Minta Revisi</button>
