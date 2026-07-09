@@ -181,18 +181,19 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <nav className="school-nav-strip no-scrollbar mt-4 flex gap-2 overflow-x-auto lg:hidden">
-            {navigationItems.map((item) => (
-              <a
-                className="school-nav-link shrink-0 px-3 py-2"
-                href={`#${item.toLowerCase()}`}
-                key={item}
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
         </header>
+
+        <nav className="school-mobile-nav-row no-scrollbar flex gap-2 overflow-x-auto px-4 py-3 min-[600px]:px-6 lg:hidden">
+          {navigationItems.map((item) => (
+            <a
+              className="school-nav-link shrink-0 px-3 py-2"
+              href={`#${item.toLowerCase()}`}
+              key={item}
+            >
+              {item}
+            </a>
+          ))}
+        </nav>
 
         <section className="px-4 py-5 min-[600px]:px-6 lg:py-7">
           <div className="school-hero-banner overflow-hidden rounded-[1.25rem]">

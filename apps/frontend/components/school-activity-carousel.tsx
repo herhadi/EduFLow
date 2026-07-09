@@ -46,9 +46,11 @@ export function SchoolActivityCarousel({
   items: ActivityThumbnail[];
 }) {
   const intervalRef = useRef<number | null>(null);
+  const resetTimerRef = useRef<number | null>(null);
   const [renderedIndex, setRenderedIndex] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
+  const [isPageVisible, setIsPageVisible] = useState(true);
   const renderedItems = useMemo(() => {
     if (items.length <= 1) {
       return items;
@@ -61,20 +63,66 @@ export function SchoolActivityCarousel({
     items.length <= 1 ? 0 : (renderedIndex - 1 + items.length) % items.length;
 
   useEffect(() => {
-    if (items.length <= 1 || isPaused) {
+    if (items.length <= 1 || isPaused || !isPageVisible) {
       return;
     }
 
     intervalRef.current = window.setInterval(() => {
       setRenderedIndex((current) => current + 1);
-    }, 4000);
+    }, 4800);
 
     return () => {
       if (intervalRef.current) {
         window.clearInterval(intervalRef.current);
       }
     };
-  }, [isPaused, items.length]);
+  }, [isPageVisible, isPaused, items.length]);
+
+  useEffect(() => {
+    function handleVisibilityChange() {
+      const nextIsVisible = document.visibilityState === 'visible';
+      setIsPageVisible(nextIsVisible);
+
+      if (nextIsVisible && items.length > 1) {
+        setIsTransitioning(false);
+        setRenderedIndex((current) =>
+          ((current - 1 + items.length) % items.length) + 1,
+        );
+      }
+    }
+
+    handleVisibilityChange();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [items.length]);
+
+  useEffect(() => {
+    if (items.length <= 1) {
+      return;
+    }
+
+    if (resetTimerRef.current) {
+      window.clearTimeout(resetTimerRef.current);
+    }
+
+    if (renderedIndex > 0 && renderedIndex < items.length + 1) {
+      return;
+    }
+
+    resetTimerRef.current = window.setTimeout(() => {
+      setIsTransitioning(false);
+      setRenderedIndex(renderedIndex <= 0 ? items.length : 1);
+    }, 780);
+
+    return () => {
+      if (resetTimerRef.current) {
+        window.clearTimeout(resetTimerRef.current);
+      }
+    };
+  }, [items.length, renderedIndex]);
 
   useEffect(() => {
     if (isTransitioning) {
@@ -94,7 +142,10 @@ export function SchoolActivityCarousel({
 
   function moveSlide(direction: 'next' | 'previous') {
     setIsTransitioning(true);
-    setRenderedIndex((current) => current + (direction === 'next' ? 1 : -1));
+    setRenderedIndex((current) => {
+      const normalized = ((current - 1 + items.length) % items.length) + 1;
+      return normalized + (direction === 'next' ? 1 : -1);
+    });
   }
 
   function jumpToRealIndex(index: number) {

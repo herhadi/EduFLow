@@ -5,6 +5,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 ## 2026-07-09
 
 - Mengubah carousel landing page menjadi banner sorotan besar dengan overlay teks, kontrol panah, tab kategori, dan visual yang lebih dekat ke pola hero korporat seperti SIMCom.
+- Menstabilkan carousel landing agar infinite loop tetap mulus dan tidak blank setelah tab/browser dibiarkan lama.
 
 ## 2026-07-03
 

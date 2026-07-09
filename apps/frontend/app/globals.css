@@ -217,6 +217,11 @@
     background: transparent;
   }
 
+  .school-mobile-nav-row {
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface-solid) 88%, var(--primary-soft));
+  }
+
   .school-nav-link {
     display: inline-flex;
     align-items: center;
@@ -805,6 +810,10 @@
 
   [data-theme="dark"] .school-nav-strip {
     background: transparent;
+  }
+
+  [data-theme="dark"] .school-mobile-nav-row {
+    background: var(--surface-solid);
   }
 
   [data-theme="dark"] .school-hero-banner {
