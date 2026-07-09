@@ -4,8 +4,9 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 ## 2026-07-09
 
-- Mengubah carousel landing page menjadi banner sorotan besar dengan overlay teks, kontrol panah, tab kategori, dan visual yang lebih dekat ke pola hero korporat seperti SIMCom.
+- Mengubah carousel landing page menjadi banner sorotan besar dengan overlay teks, kontrol panah, tab kategori, dan visual yang lebih dekat ke pola hero korporat.
 - Menstabilkan carousel landing agar infinite loop tetap mulus dan tidak blank setelah tab/browser dibiarkan lama.
+- Menambahkan alur lupa password berbasis request: user mengirim username dari halaman login, request valid masuk ke Inbox root/operator, lalu admin mereset password ke default environment dan memaksa user mengganti password saat login berikutnya.
 
 ## 2026-07-03
 

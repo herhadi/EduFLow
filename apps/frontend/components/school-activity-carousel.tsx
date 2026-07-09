@@ -241,23 +241,21 @@ export function SchoolActivityCarousel({
         </div>
       </div>
 
-      <div className="school-carousel-tabs" role="tablist">
+      <div className="school-carousel-indicators" role="tablist">
         {items.map((item, index) => (
           <button
             aria-label={`Tampilkan ${item.title}`}
             aria-selected={index === activeIndex}
             className={
               index === activeIndex
-                ? 'school-carousel-tab school-carousel-tab-active'
-                : 'school-carousel-tab'
+                ? 'school-carousel-indicator school-carousel-indicator-active'
+                : 'school-carousel-indicator'
             }
             key={item.title}
             onClick={() => jumpToRealIndex(index)}
             role="tab"
             type="button"
-          >
-            <span>{item.category}</span>
-          </button>
+          />
         ))}
       </div>
     </section>

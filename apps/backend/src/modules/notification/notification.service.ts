@@ -202,6 +202,85 @@ export class NotificationService implements OnModuleInit {
     });
   }
 
+  async createPasswordResetRequestInbox(input: {
+    userId: string;
+    name: string;
+    username?: string | null;
+    email: string;
+    roles: string[];
+  }) {
+    const recipients = await this.prisma.user.findMany({
+      where: {
+        deletedAt: null,
+        roles: {
+          some: {
+            role: {
+              name: { in: ['root', 'operator_sekolah'] },
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        roles: { include: { role: true } },
+      },
+    });
+
+    if (!recipients.length) {
+      return;
+    }
+
+    const identity = input.username ?? input.email;
+    const roleText = input.roles.length ? input.roles.join(', ') : 'tanpa role';
+    const message = `${input.name} (${identity}) meminta reset password. Role: ${roleText}.`;
+
+    await Promise.all(
+      recipients.map((recipient) => {
+        const recipientRoles = recipient.roles.map(({ role }) => role.name);
+        const isRoot = recipientRoles.includes('root');
+        const isTeacherAccount = input.roles.some((role) =>
+          ['guru', 'wali_kelas'].includes(role),
+        );
+        const actionUrl = isRoot
+          ? '/admin/akses'
+          : isTeacherAccount
+            ? '/admin/guru'
+            : '/admin/notifications';
+
+        return this.prisma.notificationLog.upsert({
+          where: {
+            dedupeKey: `auth.password-reset.request.${input.userId}.${recipient.id}`,
+          },
+          update: {
+            readAt: null,
+            status: NotificationStatus.SENT,
+            message,
+            actionUrl,
+            sentAt: new Date(),
+          },
+          create: {
+            channel: 'IN_APP',
+            status: NotificationStatus.SENT,
+            recipient: recipient.email,
+            recipientUserId: recipient.id,
+            recipientName: recipient.name,
+            subject: 'Request reset password',
+            message,
+            templateKey: 'auth.password-reset.request',
+            dedupeKey: `auth.password-reset.request.${input.userId}.${recipient.id}`,
+            entityType: 'User',
+            entityId: input.userId,
+            actionUrl,
+            attempts: 1,
+            sentAt: new Date(),
+          },
+        });
+      }),
+    );
+  }
+
   async markEntityAsRead(userId: string, entityType: string, entityId: string) {
     await this.prisma.notificationLog.updateMany({
       where: { recipientUserId: userId, entityType, entityId, readAt: null },

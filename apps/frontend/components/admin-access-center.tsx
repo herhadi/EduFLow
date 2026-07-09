@@ -2,7 +2,6 @@
 
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { api, type AppUser, type Teacher } from '../lib/api';
-import { PasswordToggleIcon } from './ui/password-toggle-icon';
 import { useToast } from './ui/toast';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
@@ -92,10 +91,8 @@ export function AdminAccessCenter({
     email: '',
     username: '',
     name: '',
-    password: '',
     role: 'operator_sekolah',
   });
-  const [showNewUserPassword, setShowNewUserPassword] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -220,7 +217,6 @@ export function AdminAccessCenter({
         email: newUser.email.trim() || undefined,
         username: newUser.username.trim(),
         name: newUser.name.trim(),
-        password: newUser.password || undefined,
         roles: [newUser.role],
       });
       setUsers((currentUsers) => [response.data, ...currentUsers]);
@@ -228,7 +224,6 @@ export function AdminAccessCenter({
         email: '',
         username: '',
         name: '',
-        password: '',
         role: 'operator_sekolah',
       });
       setUserActionState('success');
@@ -273,6 +268,42 @@ export function AdminAccessCenter({
         error instanceof Error
           ? `Gagal menonaktifkan user: ${error.message}`
           : 'Gagal menonaktifkan user.';
+      setUserActionState('error');
+      setUserMessage(errorMessage);
+      toast.error(errorMessage, 'Aksi Gagal');
+    }
+  }
+
+  async function handleResetUserPassword(user: AppUser) {
+    const confirmed = window.confirm(
+      `Reset password ${user.username ?? user.email} ke password default? Semua sesi aktif user ini akan dicabut dan user wajib mengganti password saat login berikutnya.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setUserActionState('loading');
+    setUserMessage('');
+
+    try {
+      const response = await api.resetUserPassword(user.id);
+      setUsers((currentUsers) =>
+        currentUsers.map((currentUser) =>
+          currentUser.id === user.id ? response.data : currentUser,
+        ),
+      );
+      setUserActionState('success');
+      setUserMessage(response.message ?? 'Password user berhasil direset.');
+      toast.success(
+        response.message ?? 'Password user berhasil direset.',
+        'Password Direset',
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? `Gagal reset password user: ${error.message}`
+          : 'Gagal reset password user.';
       setUserActionState('error');
       setUserMessage(errorMessage);
       toast.error(errorMessage, 'Aksi Gagal');
@@ -331,12 +362,12 @@ export function AdminAccessCenter({
           </p>
           <h2 className="mt-1 text-2xl font-black text-ink">Root Menentukan Admin</h2>
           <p className="mt-1 text-sm leading-6 text-muted">
-            Buat user pertama untuk `operator_sekolah`. Setelah itu operator sekolah yang mengelola guru dan data operasional.
+            Buat user pertama untuk `operator_sekolah`. Password akun baru memakai default dari environment dan wajib diganti saat login pertama.
           </p>
         </div>
 
         <form className="mt-5 grid gap-3" onSubmit={handleCreateUser}>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-3">
             <input
               className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm outline-none transition focus:border-brand-600 focus:bg-white"
               onChange={(event) =>
@@ -367,37 +398,6 @@ export function AdminAccessCenter({
               type="email"
               value={newUser.email}
             />
-            <label className="grid gap-1">
-              <span className="text-xs font-black text-slate-500">
-                Password sementara
-              </span>
-              <span className="flex overflow-hidden rounded-2xl border border-blue-100 bg-blue-50/60 transition focus-within:border-brand-600 focus-within:bg-white">
-                <input
-                  className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm outline-none"
-                  maxLength={10}
-                  minLength={6}
-                  onChange={(event) =>
-                    setNewUser((current) => ({
-                      ...current,
-                      password: event.target.value,
-                    }))
-                  }
-                  placeholder="Kosongkan: default 123456"
-                  type={showNewUserPassword ? 'text' : 'password'}
-                  value={newUser.password}
-                />
-                <button
-                  aria-label={
-                    showNewUserPassword ? 'Sembunyikan password' : 'Tampilkan password'
-                  }
-                  className="grid place-items-center px-4 text-brand-700"
-                  onClick={() => setShowNewUserPassword((current) => !current)}
-                  type="button"
-                >
-                  <PasswordToggleIcon visible={showNewUserPassword} />
-                </button>
-              </span>
-            </label>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -419,9 +419,7 @@ export function AdminAccessCenter({
               disabled={
                 userActionState === 'loading' ||
                 !newUser.username.trim() ||
-                !newUser.name.trim() ||
-                (!!newUser.password &&
-                  (newUser.password.length < 6 || newUser.password.length > 10))
+                !newUser.name.trim()
               }
               type="submit"
             >
@@ -464,7 +462,15 @@ export function AdminAccessCenter({
                       </span>
                     ))}
                   </div>
-                  <div className="grid grid-cols-2 gap-2 sm:flex">
+                  <div className="grid grid-cols-3 gap-2 sm:flex">
+                    <button
+                      className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-black text-brand-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={userActionState === 'loading'}
+                      onClick={() => void handleResetUserPassword(user)}
+                      type="button"
+                    >
+                      Reset
+                    </button>
                     <button
                       className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-black text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
                       disabled={userActionState === 'loading'}

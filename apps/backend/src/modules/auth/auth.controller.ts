@@ -164,6 +164,12 @@ export class AuthController {
   }
 
   @RequirePermissions(PERMISSIONS.USER_MANAGE)
+  @Post('users/:id/reset-password')
+  resetUserPassword(@Param('id') id: string, @Req() request: RequestWithUser) {
+    return this.authService.resetUserPassword(id, request.user.id);
+  }
+
+  @RequirePermissions(PERMISSIONS.USER_MANAGE)
   @Patch('users/:id/deactivate')
   deactivateUser(@Param('id') id: string, @Req() request: RequestWithUser) {
     return this.authService.deactivateUser(id, request.user.id);

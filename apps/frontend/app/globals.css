@@ -612,36 +612,23 @@
     transform: translateY(-1px);
   }
 
-  .school-carousel-tabs {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 0.5rem;
+  .school-carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 0.45rem;
   }
 
-  .school-carousel-tab {
-    min-width: 0;
-    border-radius: 0.85rem;
-    border: 1px solid var(--border);
-    background: var(--surface-solid);
-    color: var(--muted);
-    font-size: 0.75rem;
-    font-weight: 900;
-    padding: 0.8rem 0.7rem;
-    text-align: left;
-    transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+  .school-carousel-indicator {
+    height: 0.45rem;
+    width: 0.45rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--primary) 24%, var(--surface-muted));
+    transition: background-color 160ms ease, width 160ms ease;
   }
 
-  .school-carousel-tab span {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .school-carousel-tab-active {
-    border-color: var(--primary);
-    background: var(--primary-soft);
-    color: var(--primary-strong);
+  .school-carousel-indicator-active {
+    width: 1.85rem;
+    background: var(--primary);
   }
 
   @media (max-width: 640px) {
@@ -685,8 +672,8 @@
       right: auto;
     }
 
-    .school-carousel-tabs {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .school-carousel-indicators {
+      gap: 0.4rem;
     }
   }
 

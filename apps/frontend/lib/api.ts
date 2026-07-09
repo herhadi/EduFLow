@@ -680,6 +680,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  requestPasswordReset: (payload: { username: string }) =>
+    request<{ message: string }>('/auth/password-reset/request', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   logout: (refreshToken: string) =>
     request<{ success: boolean }>('/auth/logout', {
       method: 'POST',
@@ -718,6 +723,10 @@ export const api = {
   deactivateUser: (id: string) =>
     request<ApiResponse<AppUser>>(`/auth/users/${id}/deactivate`, {
       method: 'PATCH',
+    }),
+  resetUserPassword: (id: string) =>
+    request<ApiResponse<AppUser>>(`/auth/users/${id}/reset-password`, {
+      method: 'POST',
     }),
   deleteUser: (id: string) =>
     request<ApiResponse<AppUser>>(`/auth/users/${id}`, {

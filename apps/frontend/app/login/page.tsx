@@ -17,7 +17,10 @@ export default function LoginPage() {
   const [repeatPassword, setRepeatPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRequestingReset, setIsRequestingReset] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [forgotPasswordMessage, setForgotPasswordMessage] = useState('');
+  const [showForgotPasswordHelp, setShowForgotPasswordHelp] = useState(false);
   const [pendingSession, setPendingSession] = useState<LoginResult | null>(null);
 
   useEffect(() => {
@@ -116,6 +119,34 @@ export default function LoginPage() {
     }
   }
 
+  async function handleRequestPasswordReset() {
+    const submittedUsername = username.trim();
+    setForgotPasswordMessage('');
+    setErrorMessage('');
+
+    if (!submittedUsername) {
+      setForgotPasswordMessage('Isi username atau email terlebih dahulu.');
+      return;
+    }
+
+    setIsRequestingReset(true);
+
+    try {
+      const response = await api.requestPasswordReset({
+        username: submittedUsername,
+      });
+      setForgotPasswordMessage(response.message);
+    } catch (error) {
+      setForgotPasswordMessage(
+        error instanceof Error
+          ? error.message
+          : 'Request reset password belum bisa dikirim.',
+      );
+    } finally {
+      setIsRequestingReset(false);
+    }
+  }
+
   return (
     <main className="app-backdrop min-h-dvh px-4 py-6">
       <div className="mx-auto flex min-h-[calc(100dvh-3rem)] max-w-md flex-col justify-center">
@@ -209,12 +240,39 @@ export default function LoginPage() {
                     <input className="size-4 accent-brand-600" type="checkbox" />
                     Ingat saya
                   </label>
-                  <Link className="font-bold text-brand-700" href="/login">
+                  <button
+                    className="font-bold text-brand-700"
+                    onClick={() => setShowForgotPasswordHelp((current) => !current)}
+                    type="button"
+                  >
                     Lupa password?
-                  </Link>
+                  </button>
                 </div>
               </>
             )}
+
+            {!pendingSession && showForgotPasswordHelp ? (
+              <div className="rounded-2xl border border-blue-100 bg-blue-50/80 p-4 text-sm leading-6 text-brand-900">
+                <p className="font-black">Reset password lewat operator sekolah.</p>
+                <p className="mt-1 font-semibold">
+                  Isi username atau email, lalu kirim request. Jika data valid,
+                  request akan masuk ke Inbox admin/root untuk ditindaklanjuti.
+                </p>
+                <button
+                  className="mt-3 rounded-2xl bg-brand-600 px-4 py-2 text-xs font-black text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+                  disabled={isRequestingReset}
+                  onClick={() => void handleRequestPasswordReset()}
+                  type="button"
+                >
+                  {isRequestingReset ? 'Mengirim...' : 'Kirim Request Reset'}
+                </button>
+                {forgotPasswordMessage ? (
+                  <p className="mt-3 rounded-xl bg-white/80 p-3 text-xs font-bold text-brand-800">
+                    {forgotPasswordMessage}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
 
             {pendingSession ? (
               <>

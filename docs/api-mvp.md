@@ -56,12 +56,26 @@ Aturan:
 
 `POST /api/auth/change-password` dipakai dari halaman Profil setelah user login. Request membawa `currentPassword`, `newPassword`, dan `repeatPassword`. Backend memvalidasi password lama, menolak password default, mengisi `passwordChangedAt`, lalu mencabut semua refresh token aktif agar user login ulang.
 
+### Request Lupa Password
+
+```http
+POST /api/auth/password-reset/request
+Content-Type: application/json
+
+{
+  "username": "bambangsan"
+}
+```
+
+Endpoint ini tidak membuat reset link publik. Jika username atau email valid, backend membuat notifikasi `IN_APP` dengan template `auth.password-reset.request` untuk root dan operator sekolah. Response tetap generik agar halaman login tidak membocorkan apakah username terdaftar.
+
 ### User Management
 
 ```http
 GET /api/auth/users
 POST /api/auth/users
 POST /api/auth/users/:id/roles
+POST /api/auth/users/:id/reset-password
 PATCH /api/auth/users/:id/deactivate
 DELETE /api/auth/users/:id
 ```
@@ -75,6 +89,7 @@ Root memakai endpoint ini untuk menentukan siapa `operator_sekolah`, `kepala_sek
 Aturan penghapusan:
 
 - akun sendiri tidak dapat dinonaktifkan atau dihapus,
+- reset password hanya dilakukan user berizin `user.manage`, mengembalikan password target ke `DEFAULT_USER_PASSWORD`, mencabut sesi aktif, membuka lock, dan membuat login berikutnya wajib ganti password,
 - minimal satu root harus tetap aktif,
 - hard delete akan ditolak jika user sudah dipakai histori operasional,
 - gunakan nonaktif untuk akun real yang pernah beraktivitas.

@@ -235,6 +235,8 @@ Aturan:
 - jika password user masih sama dengan `DEFAULT_USER_PASSWORD`, login wajib menampilkan form ganti password,
 - form ganti password meminta password baru dan ulangi password,
 - setelah password baru tersimpan, user langsung diarahkan ke dashboard sesuai role.
+- tidak ada pendaftaran akun publik dari halaman login; user dibuat dari data resmi sekolah oleh root/operator yang berwenang,
+- bila user lupa password, user mengisi username atau email di halaman login lalu mengirim request reset. Jika data valid, request masuk ke Inbox root/operator. Root/operator memakai tombol reset password pada manajemen user atau manajemen guru. Password kembali ke default environment, sesi aktif dicabut, dan user wajib mengganti password setelah login.
 
 Contoh konfigurasi:
 

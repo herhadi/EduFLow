@@ -14,6 +14,7 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
 import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationService } from '../notification/notification.service';
 import { ConfirmTelegramLinkDto } from './dto/confirm-telegram-link.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
@@ -32,7 +33,7 @@ type AuthRequestMeta = {
 };
 
 type RequestPasswordResetInput = {
-  email: string;
+  username: string;
 };
 
 type ResetPasswordInput = {
@@ -63,6 +64,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -399,34 +401,36 @@ export class AuthService {
   }
 
   async requestPasswordReset(dto: RequestPasswordResetInput) {
-    const email = dto.email.toLowerCase();
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const username = dto.username.trim().toLowerCase();
+    const user = await this.prisma.user.findFirst({
+      where: {
+        deletedAt: null,
+        OR: [
+          { username },
+          { email: username },
+        ],
+      },
+      include: { roles: { include: { role: true } } },
+    });
 
     if (!user || user.deletedAt) {
       return {
         message:
-          'Jika email terdaftar, instruksi reset password akan dikirim.',
+          'Jika username valid, request reset password akan diteruskan ke admin sekolah.',
       };
     }
 
-    const resetToken = randomBytes(48).toString('base64url');
-    const expiresAt = new Date();
-    expiresAt.setMinutes(
-      expiresAt.getMinutes() + PASSWORD_RESET_LIFETIME_MINUTES,
-    );
-
-    await this.prisma.passwordResetToken.create({
-      data: {
-        userId: user.id,
-        tokenHash: this.hashToken(resetToken),
-        expiresAt,
-      },
+    await this.notificationService.createPasswordResetRequestInbox({
+      userId: user.id,
+      name: user.name,
+      username: user.username,
+      email: user.email,
+      roles: user.roles.map(({ role }) => role.name),
     });
 
     return {
-      message: 'Token reset password berhasil dibuat.',
-      resetToken,
-      expiresAt,
+      message:
+        'Jika username valid, request reset password akan diteruskan ke admin sekolah.',
     };
   }
 
@@ -614,6 +618,62 @@ export class AuthService {
     return {
       data: { userId, roles: roles.map((role) => role.name) },
       message: 'Role user berhasil diperbarui.',
+    };
+  }
+
+  async resetUserPassword(userId: string, actorUserId: string) {
+    if (userId === actorUserId) {
+      throw new BadRequestException('Gunakan halaman Profil untuk mengganti password akun sendiri');
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+      include: { roles: { include: { role: true } } },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User tidak ditemukan');
+    }
+
+    const now = new Date();
+    const updatedUser = await this.prisma.$transaction(async (tx) => {
+      await tx.refreshToken.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: now, revokedReason: 'admin-password-reset' },
+      });
+      await tx.passwordResetToken.updateMany({
+        where: { userId, usedAt: null },
+        data: { usedAt: now },
+      });
+
+      return tx.user.update({
+        where: { id: userId },
+        data: {
+          password: await hash(this.getDefaultUserPassword(), 12),
+          passwordChangedAt: null,
+          failedLoginCount: 0,
+          lockedUntil: null,
+        },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          name: true,
+          lastLoginAt: true,
+          lockedUntil: true,
+          createdAt: true,
+          roles: { include: { role: true } },
+        },
+      });
+    });
+
+    return {
+      data: {
+        ...updatedUser,
+        roles: updatedUser.roles.map(({ role }) => role.name),
+      },
+      message:
+        'Password user direset ke password default. User wajib mengganti password saat login berikutnya.',
     };
   }
 
