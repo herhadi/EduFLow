@@ -2,6 +2,10 @@
 
 Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
+## 2026-07-09
+
+- Mengubah carousel landing page menjadi banner sorotan besar dengan overlay teks, kontrol panah, tab kategori, dan visual yang lebih dekat ke pola hero korporat seperti SIMCom.
+
 ## 2026-07-03
 
 - Menambahkan namespace route untuk wali kelas, orang tua, TU, dan BK agar navigasi tidak lagi bergantung pada route global seperti `/reports`, `/parent-portal`, `/master-data`, atau `/dashboard/bk`.

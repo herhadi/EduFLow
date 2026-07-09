@@ -1,7 +1,8 @@
 'use client';
 
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type ActivityThumbnail = {
   category: string;
@@ -10,11 +11,33 @@ type ActivityThumbnail = {
   tone: string;
 };
 
-function getThumbnailToneClass(tone: string) {
-  if (tone === 'green') return 'school-thumbnail-media school-thumbnail-media--green';
-  if (tone === 'amber') return 'school-thumbnail-media school-thumbnail-media--amber';
-  if (tone === 'rose') return 'school-thumbnail-media school-thumbnail-media--rose';
-  return 'school-thumbnail-media';
+const slideSummaries: Record<string, string> = {
+  Kegiatan:
+    'Aktivitas belajar, pembiasaan, dan dokumentasi kelas tampil sebagai wajah utama sekolah.',
+  'Info Terbaru':
+    'Pengumuman penting untuk siswa dan wali murid ditempatkan pada area yang mudah ditemukan.',
+  PPDB:
+    'Informasi penerimaan peserta didik baru bisa diarahkan ke halaman alur dan persyaratan.',
+  Prestasi:
+    'Capaian siswa, lomba, dan kegiatan pembinaan ditampilkan sebagai bukti perkembangan sekolah.',
+  Galeri:
+    'Foto kegiatan sekolah menjadi arsip publik yang rapi dan nyaman dibuka dari perangkat mobile.',
+};
+
+function getSlideClass(tone: string) {
+  if (tone === 'green') {
+    return 'school-carousel-slide school-carousel-slide--green';
+  }
+
+  if (tone === 'amber') {
+    return 'school-carousel-slide school-carousel-slide--amber';
+  }
+
+  if (tone === 'rose') {
+    return 'school-carousel-slide school-carousel-slide--rose';
+  }
+
+  return 'school-carousel-slide';
 }
 
 export function SchoolActivityCarousel({
@@ -22,196 +45,120 @@ export function SchoolActivityCarousel({
 }: {
   items: ActivityThumbnail[];
 }) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const resetTimerRef = useRef<number | null>(null);
-  const activeRenderedIndexRef = useRef(0);
-  const isPausedRef = useRef(false);
+  const intervalRef = useRef<number | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [activeRenderedIndex, setActiveRenderedIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  
-  // Buat 3 set items: [1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5]
-  const renderedItems = useMemo(() => {
-    if (items.length === 0) return [];
-    return [...items, ...items, ...items];
-  }, [items]);
 
-  const totalRealItems = items.length;
-  const startIndex = totalRealItems; // Mulai dari item pertama di set kedua
+  const activeItem = items[activeIndex];
 
   useEffect(() => {
-    isPausedRef.current = isPaused;
-  }, [isPaused]);
+    if (items.length <= 1 || isPaused) {
+      return;
+    }
 
-  // Inisialisasi posisi awal di set kedua
-  useEffect(() => {
-    if (renderedItems.length === 0) return;
-    
-    setTimeout(() => {
-      jumpToRenderedIndex(startIndex, false);
-    }, 50);
+    intervalRef.current = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % items.length);
+    }, 4800);
 
     return () => {
-      if (resetTimerRef.current) {
-        window.clearTimeout(resetTimerRef.current);
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
       }
     };
-  }, [renderedItems.length, startIndex]);
+  }, [isPaused, items.length]);
 
-  // Auto play
-  useEffect(() => {
-    if (items.length <= 1 || renderedItems.length === 0) {
-      return;
-    }
+  if (!activeItem) {
+    return null;
+  }
 
-    const interval = window.setInterval(() => {
-      if (isPausedRef.current) {
-        return;
+  function moveSlide(direction: 'next' | 'previous') {
+    setActiveIndex((current) => {
+      if (direction === 'next') {
+        return (current + 1) % items.length;
       }
-      scrollToRenderedIndex(activeRenderedIndexRef.current + 1);
-    }, 2800);
 
-    return () => window.clearInterval(interval);
-  }, [items.length, renderedItems.length]);
-
-  function jumpToRenderedIndex(index: number, smooth: boolean = true) {
-    const track = trackRef.current;
-    const target = track?.children[index] as HTMLElement | undefined;
-
-    if (!track || !target) {
-      return;
-    }
-
-    track.scrollTo({
-      behavior: smooth ? 'smooth' : 'auto',
-      left: target.offsetLeft - (track.clientWidth - target.clientWidth) / 2,
+      return (current - 1 + items.length) % items.length;
     });
-    
-    setRenderedIndex(index);
-  }
-
-  function scrollToRenderedIndex(index: number) {
-    const totalItems = renderedItems.length;
-    
-    // Jika sudah di ujung (set ketiga), pindah ke set kedua tanpa animasi
-    if (index >= totalItems - 1) {
-      jumpToRenderedIndex(index);
-      
-      if (resetTimerRef.current) {
-        window.clearTimeout(resetTimerRef.current);
-      }
-      resetTimerRef.current = window.setTimeout(() => {
-        // Pindah ke set kedua (index - totalRealItems)
-        jumpToRenderedIndex(index - totalRealItems, false);
-      }, 600);
-    } 
-    // Jika di awal (set pertama), pindah ke set kedua tanpa animasi
-    else if (index <= 0) {
-      jumpToRenderedIndex(index);
-      
-      if (resetTimerRef.current) {
-        window.clearTimeout(resetTimerRef.current);
-      }
-      resetTimerRef.current = window.setTimeout(() => {
-        // Pindah ke set kedua (index + totalRealItems)
-        jumpToRenderedIndex(index + totalRealItems, false);
-      }, 600);
-    } 
-    else {
-      jumpToRenderedIndex(index);
-    }
-  }
-
-  function setRenderedIndex(index: number) {
-    activeRenderedIndexRef.current = index;
-    setActiveRenderedIndex(index);
-    setActiveIndex(index % items.length);
-  }
-
-  function syncActiveIndex() {
-    const track = trackRef.current;
-
-    if (!track) {
-      return;
-    }
-
-    const children = Array.from(track.children) as HTMLElement[];
-    const trackCenter = track.scrollLeft + track.clientWidth / 2;
-    const nearestIndex = children.reduce(
-      (nearest, child, index) => {
-        const childCenter = child.offsetLeft + child.clientWidth / 2;
-        const distance = Math.abs(childCenter - trackCenter);
-        return distance < nearest.distance ? { distance, index } : nearest;
-      },
-      { distance: Number.POSITIVE_INFINITY, index: 0 },
-    ).index;
-
-    if (nearestIndex !== activeRenderedIndexRef.current) {
-      setRenderedIndex(nearestIndex);
-    }
   }
 
   return (
-    <div
+    <section
+      aria-label="Sorotan kegiatan sekolah"
       className="school-carousel"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div
-        className="school-carousel-track no-scrollbar flex gap-4 overflow-x-auto pb-1"
-        onScroll={() => {
-          syncActiveIndex();
-        }}
-        ref={trackRef}
-      >
-        {renderedItems.map((item, index) => (
-          <Link
-            aria-label={`Buka detail ${item.title}`}
-            className={
-              index === activeRenderedIndex
-                ? 'school-thumbnail-card school-thumbnail-card-active'
-                : 'school-thumbnail-card'
-            }
-            href={item.href}
-            onFocus={() => scrollToRenderedIndex(index)}
-            key={`${item.title}-${index}`}
-          >
-            <div className={getThumbnailToneClass(item.tone)}>
-              <img
-                alt=""
-                aria-hidden="true"
-                className="h-20 w-20 object-contain opacity-80"
-                src="/logo_sekolah.webp"
-              />
-            </div>
-            <div className="p-4">
-              <p className="school-news-date">{item.category}</p>
-              <h3 className="mt-1 text-base font-black leading-6 text-ink">
-                {item.title}
-              </h3>
-              <p className="mt-2 text-sm font-bold text-brand-700">
-                Lihat detail
-              </p>
-            </div>
+      <div className={getSlideClass(activeItem.tone)}>
+        <div className="school-carousel-visual" aria-hidden="true">
+          <div className="school-carousel-device school-carousel-device-main">
+            <img
+              alt=""
+              className="h-24 w-24 object-contain opacity-95"
+              src="/logo_sekolah.webp"
+            />
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="school-carousel-device school-carousel-device-side">
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
+
+        <div className="school-carousel-content">
+          <p className="school-carousel-kicker">{activeItem.category}</p>
+          <h3>{activeItem.title}</h3>
+          <p>
+            {slideSummaries[activeItem.category] ??
+              'Informasi sekolah ditampilkan ringkas, visual, dan mudah diakses.'}
+          </p>
+          <Link className="school-carousel-link" href={activeItem.href}>
+            Lihat detail
+            <ArrowRight aria-hidden="true" className="size-4" />
           </Link>
-        ))}
+        </div>
+
+        <div className="school-carousel-controls">
+          <button
+            aria-label="Slide sebelumnya"
+            className="school-carousel-arrow"
+            onClick={() => moveSlide('previous')}
+            type="button"
+          >
+            <ChevronLeft aria-hidden="true" className="size-5" />
+          </button>
+          <button
+            aria-label="Slide berikutnya"
+            className="school-carousel-arrow"
+            onClick={() => moveSlide('next')}
+            type="button"
+          >
+            <ChevronRight aria-hidden="true" className="size-5" />
+          </button>
+        </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-2">
+      <div className="school-carousel-tabs" role="tablist">
         {items.map((item, index) => (
           <button
             aria-label={`Tampilkan ${item.title}`}
+            aria-selected={index === activeIndex}
             className={
               index === activeIndex
-                ? 'school-carousel-dot school-carousel-dot-active'
-                : 'school-carousel-dot'
+                ? 'school-carousel-tab school-carousel-tab-active'
+                : 'school-carousel-tab'
             }
             key={item.title}
-            onClick={() => scrollToRenderedIndex(index + totalRealItems)}
+            onClick={() => setActiveIndex(index)}
+            role="tab"
             type="button"
-          />
+          >
+            <span>{item.category}</span>
+          </button>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

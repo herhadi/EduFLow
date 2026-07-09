@@ -359,12 +359,12 @@ export default function LandingPage() {
             <div>
               <p className="school-section-eyebrow">Kegiatan & Info Terbaru</p>
               <h2 className="school-section-title mt-2 text-2xl sm:text-3xl">
-                Thumbnail bergerak yang bisa diklik
+                Sorotan utama sekolah
               </h2>
             </div>
             <p className="max-w-md text-sm leading-6 text-muted">
-              Arahkan kursor untuk menghentikan gerakan, lalu klik thumbnail
-              menuju detail kegiatan atau pengumuman.
+              Banner bergerak untuk kegiatan, pengumuman, PPDB, prestasi,
+              dan galeri dengan navigasi yang lebih jelas.
             </p>
           </div>
 
