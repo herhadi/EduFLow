@@ -27,7 +27,7 @@ export class AttendanceService {
     const attendance = await this.prisma.attendance.findUnique({
       where: { id },
       include: {
-        agenda: { include: { class: true, subject: true, teacher: true } },
+        agenda: { include: { class: true, subject: true, teacher: true, substituteTeacher: true } },
         items: {
           include: {
             student: true,
@@ -42,7 +42,7 @@ export class AttendanceService {
       throw new NotFoundException('Attendance tidak ditemukan');
     }
 
-    await this.ensureTeacherOwnsAgenda(userId, attendance.agenda.teacher.id);
+    await this.ensureTeacherOwnsAgenda(userId, attendance.agenda);
 
     return { data: attendance };
   }
@@ -58,7 +58,7 @@ export class AttendanceService {
     }
 
 
-    await this.ensureTeacherOwnsAgenda(userId, agenda.teacherId);
+    await this.ensureTeacherOwnsAgenda(userId, agenda);
 
     const enrollments = await this.prisma.studentEnrollment.findMany({
       where: {
@@ -137,7 +137,7 @@ export class AttendanceService {
     }
 
 
-    await this.ensureTeacherOwnsAgenda(userId, attendance.agenda.teacherId);
+    await this.ensureTeacherOwnsAgenda(userId, attendance.agenda);
 
     if (attendance.state !== AttendanceState.DRAFT) {
       throw new BadRequestException('Attendance tidak dalam state DRAFT');
@@ -162,6 +162,11 @@ export class AttendanceService {
           submittedById: userId,
           endedAt: new Date(),
           notes: dto.notes,
+          teacherPresent: dto.teacherPresent ?? true,
+          studentAttendanceDone: dto.studentAttendanceDone ?? true,
+          materialFilled: dto.materialFilled ?? false,
+          classPhotoDone: dto.classPhotoDone ?? Boolean(attendance.classPhotoKey),
+          issueNotes: dto.issueNotes?.trim() || null,
         },
         include: { items: true },
       });
@@ -218,7 +223,7 @@ export class AttendanceService {
       include: { agenda: true },
     });
     if (!attendance) throw new NotFoundException('Attendance tidak ditemukan');
-    await this.ensureTeacherOwnsAgenda(userId, attendance.agenda.teacherId);
+    await this.ensureTeacherOwnsAgenda(userId, attendance.agenda);
     if (attendance.state !== AttendanceState.DRAFT) throw new BadRequestException('Foto kelas hanya dapat diunggah saat presensi dibuka');
 
     const key = `attendance/${attendance.agendaId}/${randomUUID()}${extname(file.originalname).toLowerCase()}`;
@@ -238,9 +243,17 @@ export class AttendanceService {
     return { data: updated, message: 'Foto kelas berhasil diunggah.' };
   }
 
-  private async ensureTeacherOwnsAgenda(userId: string, teacherId: string) {
+  private async ensureTeacherOwnsAgenda(
+    userId: string,
+    agenda: { teacherId: string; substituteTeacherId?: string | null },
+  ) {
     const teacher = await this.prisma.teacher.findFirst({
-      where: { id: teacherId, userId, deletedAt: null, isActive: true },
+      where: {
+        id: { in: [agenda.teacherId, agenda.substituteTeacherId].filter(Boolean) as string[] },
+        userId,
+        deletedAt: null,
+        isActive: true,
+      },
       select: { id: true },
     });
 

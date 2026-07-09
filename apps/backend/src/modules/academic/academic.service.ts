@@ -1410,11 +1410,18 @@ export class AcademicService {
 
     return {
       data: await this.prisma.dailyAgenda.findMany({
-        where: { teacherId: teacher.id, date: agendaDate },
+        where: {
+          date: agendaDate,
+          OR: [
+            { teacherId: teacher.id },
+            { substituteTeacherId: teacher.id },
+          ],
+        },
         include: {
           class: true,
           subject: true,
           teacher: true,
+          substituteTeacher: true,
           schedule: true,
           attendance: {
             include: { items: true },
@@ -1749,7 +1756,7 @@ export class AcademicService {
       for (const schedule of effectiveSchedules) {
         const existingAgenda = await this.prisma.dailyAgenda.findFirst({
           where: { scheduleId: schedule.id, date: agendaDate },
-          include: { class: true, subject: true, teacher: true, attendance: true },
+          include: { class: true, subject: true, teacher: true, substituteTeacher: true, attendance: true },
         });
 
         if (existingAgenda) {
@@ -1796,12 +1803,126 @@ export class AcademicService {
           class: true,
           subject: true,
           teacher: true,
+          substituteTeacher: true,
           attendance: {
             include: { items: true },
           },
         },
         orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
       }),
+    };
+  }
+
+  async assignSubstituteTeacher(id: string, teacherId: string | null) {
+    const agenda = await this.prisma.dailyAgenda.findUnique({ where: { id } });
+
+    if (!agenda) throw new NotFoundException('Agenda tidak ditemukan');
+    if (agenda.status === AgendaStatus.COMPLETED) {
+      throw new BadRequestException('Agenda yang sudah selesai tidak dapat diganti guru pengganti');
+    }
+
+    if (teacherId) {
+      const teacher = await this.prisma.teacher.findFirst({
+        where: { id: teacherId, deletedAt: null, isActive: true },
+      });
+      if (!teacher) throw new BadRequestException('Guru pengganti tidak ditemukan atau tidak aktif');
+      if (teacher.id === agenda.teacherId) throw new BadRequestException('Guru pengganti tidak boleh sama dengan guru utama');
+    }
+
+    const updated = await this.prisma.dailyAgenda.update({
+      where: { id },
+      data: { substituteTeacherId: teacherId },
+      include: { class: true, subject: true, teacher: true, substituteTeacher: true, schedule: true, attendance: true },
+    });
+
+    await this.auditService.record({
+      action: 'agenda.substitute-teacher.assigned',
+      entityType: 'DailyAgenda',
+      entityId: id,
+      before: { substituteTeacherId: agenda.substituteTeacherId },
+      after: { substituteTeacherId: teacherId },
+    });
+
+    return {
+      data: updated,
+      message: teacherId ? 'Guru pengganti berhasil ditetapkan.' : 'Guru pengganti dikosongkan.',
+    };
+  }
+
+  async getAgendaCoverage(input: {
+    schoolYearId?: string;
+    startsAt?: string;
+    endsAt?: string;
+    classId?: string;
+  }) {
+    if (!input.schoolYearId || !input.startsAt || !input.endsAt) {
+      throw new BadRequestException('Tahun ajaran, tanggal mulai, dan tanggal akhir wajib diisi');
+    }
+
+    const startsAt = this.toDateOnly(input.startsAt);
+    const endsAt = this.toDateOnly(input.endsAt);
+    if (endsAt < startsAt) throw new BadRequestException('Tanggal akhir tidak boleh lebih awal dari tanggal mulai');
+
+    const dates = this.getDateRange(startsAt, endsAt);
+    const blockedDates = await this.getBlockedAgendaDates(input.schoolYearId, startsAt, endsAt);
+    const schedules = await this.prisma.schedule.findMany({
+      where: {
+        schoolYearId: input.schoolYearId,
+        deletedAt: null,
+        isActive: true,
+        ...(input.classId ? { classId: input.classId } : {}),
+      },
+      include: { revisions: { orderBy: { effectiveFrom: 'asc' } } },
+    });
+    const existingAgendas = await this.prisma.dailyAgenda.findMany({
+      where: {
+        schoolYearId: input.schoolYearId,
+        date: { gte: startsAt, lte: endsAt },
+        ...(input.classId ? { classId: input.classId } : {}),
+      },
+      select: { scheduleId: true, date: true },
+    });
+    const agendaKeys = new Set(existingAgendas.map((agenda) => `${agenda.scheduleId}:${agenda.date.toISOString().slice(0, 10)}`));
+    const missing: Array<{ date: string; scheduleId: string; classId: string; subjectId: string; teacherId: string; startsAt: string; endsAt: string }> = [];
+    let expected = 0;
+    let blockedDateCount = 0;
+
+    for (const date of dates) {
+      const dateKey = date.toISOString().slice(0, 10);
+      if (blockedDates.has(dateKey)) {
+        blockedDateCount += 1;
+        continue;
+      }
+
+      const dayOfWeek = this.getDayOfWeek(date);
+      const effectiveSchedules = schedules
+        .map((schedule) => this.getScheduleSnapshotAtDate(schedule, date))
+        .filter((schedule) => schedule.dayOfWeek === dayOfWeek);
+
+      for (const schedule of effectiveSchedules) {
+        expected += 1;
+        if (!agendaKeys.has(`${schedule.id}:${dateKey}`)) {
+          missing.push({
+            date: dateKey,
+            scheduleId: schedule.id,
+            classId: schedule.classId,
+            subjectId: schedule.subjectId,
+            teacherId: schedule.teacherId,
+            startsAt: schedule.startsAt,
+            endsAt: schedule.endsAt,
+          });
+        }
+      }
+    }
+
+    return {
+      data: {
+        expected,
+        existing: expected - missing.length,
+        missing: missing.length,
+        blockedDates: blockedDateCount,
+        items: missing.slice(0, 50),
+      },
     };
   }
 
@@ -2071,6 +2192,7 @@ export class AcademicService {
         class: true,
         subject: true,
         teacher: true,
+        substituteTeacher: true,
         attendance: true,
       },
     });

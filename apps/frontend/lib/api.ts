@@ -209,13 +209,24 @@ export interface DailyAgenda {
   class: SchoolClass;
   subject: Subject;
   teacher: Teacher;
+  substituteTeacher?: Teacher | null;
   schedule?: Pick<Schedule, 'startsAt' | 'endsAt'> | null;
   attendance?: Attendance | null;
 }
 
 export type AttendanceStatus = 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT';
 export interface AttendanceItem { id: string; status: AttendanceStatus; notes?: string | null; student: Pick<Student, 'id' | 'name'>; }
-export interface Attendance { id: string; state: string; items: AttendanceItem[]; classPhotoName?: string | null; }
+export interface Attendance {
+  id: string;
+  state: string;
+  items: AttendanceItem[];
+  classPhotoName?: string | null;
+  teacherPresent?: boolean | null;
+  studentAttendanceDone?: boolean | null;
+  materialFilled?: boolean | null;
+  classPhotoDone?: boolean | null;
+  issueNotes?: string | null;
+}
 export interface AttendanceSummary {
   total: number;
   present: number;
@@ -862,7 +873,16 @@ export const api = {
   openClass: (agendaId: string) => request<ApiResponse<Attendance>>('/attendance/open-class', { method: 'POST', body: JSON.stringify({ agendaId }) }),
   getAttendance: (id: string) => request<ApiResponse<Attendance>>(`/attendance/${id}`),
   uploadAttendanceClassPhoto: (id: string, file: File) => upload<ApiResponse<Attendance>>(`/attendance/${id}/class-photo`, file),
-  submitAttendance: (payload: { attendanceId: string; notes?: string; items: Array<{ attendanceItemId: string; status: AttendanceStatus; notes?: string }> }) => request<ApiResponse<Attendance>>('/attendance/submit', { method: 'POST', body: JSON.stringify(payload) }),
+  submitAttendance: (payload: {
+    attendanceId: string;
+    notes?: string;
+    teacherPresent?: boolean;
+    studentAttendanceDone?: boolean;
+    materialFilled?: boolean;
+    classPhotoDone?: boolean;
+    issueNotes?: string;
+    items: Array<{ attendanceItemId: string; status: AttendanceStatus; notes?: string }>;
+  }) => request<ApiResponse<Attendance>>('/attendance/submit', { method: 'POST', body: JSON.stringify(payload) }),
   getMySubjects: () => request<ApiResponse<Subject[]>>('/academic/me/subjects'),
   getMyHomeroom: () => request<ApiResponse<HomeroomOverview>>('/academic/me/homeroom'),
   getMyTeachingPlans: () => request<ApiResponse<TeachingPlan[]>>('/academic-planning/mine'),
@@ -976,6 +996,20 @@ export const api = {
     request<ApiResponse<DailyAgenda[]>>('/academic/agendas/generate', {
       method: 'POST',
       body: JSON.stringify(payload),
+    }),
+  getAgendaCoverage: (payload: { schoolYearId: string; startsAt: string; endsAt: string; classId?: string }) => {
+    const params = new URLSearchParams({
+      schoolYearId: payload.schoolYearId,
+      startsAt: payload.startsAt,
+      endsAt: payload.endsAt,
+      ...(payload.classId ? { classId: payload.classId } : {}),
+    });
+    return request<ApiResponse<{ expected: number; existing: number; missing: number; blockedDates: number; items: Array<{ date: string; scheduleId: string; classId: string; subjectId: string; teacherId: string; startsAt: string; endsAt: string }> }>>(`/academic/agendas/coverage?${params.toString()}`);
+  },
+  assignSubstituteTeacher: (id: string, teacherId?: string | null) =>
+    request<ApiResponse<DailyAgenda>>(`/academic/agendas/${id}/substitute-teacher`, {
+      method: 'PATCH',
+      body: JSON.stringify({ teacherId }),
     }),
   getSentNotifications: () =>
     request<ApiResponse<NotificationLog[]>>('/notifications/sent'),

@@ -13,6 +13,13 @@
 
 Payload review perangkat ajar menerima `status`, `reviewNote`, `reviewSection`, dan `reviewPriority`. `reviewPriority` bernilai `HIGH`, `MEDIUM`, atau `LOW`; saat KS meminta revisi dan prioritas tidak dikirim, backend menyimpan default `MEDIUM`.
 
+Agenda harian mendukung:
+
+- `GET /api/academic/agendas/coverage` untuk mengecek jadwal efektif yang belum memiliki `DailyAgenda`,
+- `PATCH /api/academic/agendas/:id/substitute-teacher` untuk menetapkan atau mengosongkan guru pengganti.
+
+Submit presensi menerima checklist KBM opsional: `teacherPresent`, `studentAttendanceDone`, `materialFilled`, `classPhotoDone`, dan `issueNotes`.
+
 Endpoint berikut bersifat dasar untuk memvalidasi flow backend sebelum frontend lengkap dibuat.
 
 ## Auth API

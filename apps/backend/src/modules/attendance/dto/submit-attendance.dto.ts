@@ -2,6 +2,7 @@ import { AttendanceStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsEnum,
   IsOptional,
   IsString,
@@ -29,9 +30,28 @@ export class SubmitAttendanceDto {
   @IsString()
   notes?: string;
 
+  @IsOptional()
+  @IsBoolean()
+  teacherPresent?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  studentAttendanceDone?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  materialFilled?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  classPhotoDone?: boolean;
+
+  @IsOptional()
+  @IsString()
+  issueNotes?: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => SubmitAttendanceItemDto)
   items!: SubmitAttendanceItemDto[];
 }
-

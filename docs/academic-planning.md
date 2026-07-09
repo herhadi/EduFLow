@@ -226,6 +226,22 @@ Operator sekolah membuat kalender pendidikan
   -> Rapor siap diterbitkan
 ```
 
+## Kontrol KBM Harian
+
+Agenda harian menjadi pusat realisasi jadwal. Setelah jadwal dibuat, operator wajib memastikan agenda untuk rentang tanggal berjalan sudah tersedia. Halaman jadwal menyediakan cek coverage agenda untuk membandingkan jadwal efektif dengan `DailyAgenda` yang sudah dibuat, sehingga operator mendapat peringatan bila masih ada sesi yang belum digenerate.
+
+Presensi guru dilengkapi checklist KBM harian:
+
+- guru hadir,
+- presensi siswa selesai,
+- materi atau catatan KBM terisi,
+- foto kelas tersedia,
+- catatan kendala bila ada.
+
+Checklist disimpan pada `Attendance` agar laporan KBM tidak hanya berisi status hadir siswa, tetapi juga kondisi operasional kelas.
+
+Jika guru utama berhalangan, operator dapat menetapkan guru pengganti pada `DailyAgenda`. Guru pengganti dapat membuka dan submit presensi agenda tersebut tanpa mengubah baseline jadwal tahunan. Data agenda tetap menyimpan guru utama dan guru pengganti agar laporan dapat membedakan tanggung jawab jadwal dan realisasi pengganti.
+
 ## Catatan Implementasi
 
 ## Implementasi Perangkat Ajar Tahap Awal

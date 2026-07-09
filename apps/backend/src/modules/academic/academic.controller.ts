@@ -21,6 +21,7 @@ import { CreateSubjectDto } from './dto/create-subject.dto';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { GenerateAgendaDto } from './dto/generate-agenda.dto';
 import { GenerateBulkAgendaDto } from './dto/generate-bulk-agenda.dto';
+import { AssignSubstituteTeacherDto } from './dto/assign-substitute-teacher.dto';
 import { SetClassHomeroomTeacherDto } from './dto/set-class-homeroom-teacher.dto';
 import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
 import { SetTeacherSchoolYearAssignmentDto } from './dto/set-teacher-school-year-assignment.dto';
@@ -347,5 +348,25 @@ export class AcademicController {
   @RequirePermissions(PERMISSIONS.AGENDA_READ)
   getAgendas(@Query('date') date?: string) {
     return this.academicService.getAgendas(date);
+  }
+
+  @Get('agendas/coverage')
+  @RequirePermissions(PERMISSIONS.AGENDA_READ)
+  getAgendaCoverage(
+    @Query('schoolYearId') schoolYearId: string,
+    @Query('startsAt') startsAt: string,
+    @Query('endsAt') endsAt: string,
+    @Query('classId') classId?: string,
+  ) {
+    return this.academicService.getAgendaCoverage({ schoolYearId, startsAt, endsAt, classId });
+  }
+
+  @Patch('agendas/:id/substitute-teacher')
+  @RequirePermissions(PERMISSIONS.AGENDA_GENERATE)
+  assignSubstituteTeacher(
+    @Param('id') id: string,
+    @Body() dto: AssignSubstituteTeacherDto,
+  ) {
+    return this.academicService.assignSubstituteTeacher(id, dto.teacherId ?? null);
   }
 }

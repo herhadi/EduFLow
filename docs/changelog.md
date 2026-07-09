@@ -8,6 +8,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menstabilkan carousel landing agar infinite loop tetap mulus dan tidak blank setelah tab/browser dibiarkan lama.
 - Menambahkan alur lupa password berbasis request: user mengirim username dari halaman login, request valid masuk ke Inbox root/operator, lalu admin mereset password ke default environment dan memaksa user mengganti password saat login berikutnya.
 - Menambahkan penanda revisi perangkat ajar untuk Kepala Sekolah berupa bagian/halaman dan prioritas `Tinggi`, `Sedang`, atau `Rendah`, lalu menampilkannya pada halaman perangkat ajar guru.
+- Menambahkan kontrol KBM harian: cek coverage agenda yang belum digenerate, checklist KBM pada submit presensi, dan guru pengganti per agenda harian tanpa mengubah baseline jadwal.
 
 ## 2026-07-03
 

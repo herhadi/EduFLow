@@ -439,6 +439,7 @@ model Teacher {
   schedules         Schedule[]
   scheduleRevisions ScheduleRevision[]
   agendas           DailyAgenda[]
+  substituteAgendas DailyAgenda[]                 @relation("DailyAgendaSubstituteTeacher")
   user              User?                         @relation(fields: [userId], references: [id])
   subjects          TeacherSubject[]
   homeroomClasses   Class[]                       @relation("ClassHomeroomTeacher")
@@ -670,63 +671,71 @@ model ScheduleRevision {
 }
 
 model DailyAgenda {
-  id           String       @id @default(uuid()) @db.Uuid
-  scheduleId   String?      @db.Uuid
-  schoolYearId String       @db.Uuid
-  semesterId   String       @db.Uuid
-  classId      String       @db.Uuid
-  subjectId    String       @db.Uuid
-  teacherId    String       @db.Uuid
-  date         DateTime     @db.Date
-  status       AgendaStatus @default(SCHEDULED)
-  schedule     Schedule?    @relation(fields: [scheduleId], references: [id])
-  schoolYear   SchoolYear   @relation(fields: [schoolYearId], references: [id])
-  semester     Semester     @relation(fields: [semesterId], references: [id])
-  class        Class        @relation(fields: [classId], references: [id])
-  subject      Subject      @relation(fields: [subjectId], references: [id])
-  teacher      Teacher      @relation(fields: [teacherId], references: [id])
-  attendance   Attendance?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id                  String       @id @default(uuid()) @db.Uuid
+  scheduleId          String?      @db.Uuid
+  schoolYearId        String       @db.Uuid
+  semesterId          String       @db.Uuid
+  classId             String       @db.Uuid
+  subjectId           String       @db.Uuid
+  teacherId           String       @db.Uuid
+  substituteTeacherId String?      @db.Uuid
+  date                DateTime     @db.Date
+  status              AgendaStatus @default(SCHEDULED)
+  schedule            Schedule?    @relation(fields: [scheduleId], references: [id])
+  schoolYear          SchoolYear   @relation(fields: [schoolYearId], references: [id])
+  semester            Semester     @relation(fields: [semesterId], references: [id])
+  class               Class        @relation(fields: [classId], references: [id])
+  subject             Subject      @relation(fields: [subjectId], references: [id])
+  teacher             Teacher      @relation(fields: [teacherId], references: [id])
+  substituteTeacher   Teacher?     @relation("DailyAgendaSubstituteTeacher", fields: [substituteTeacherId], references: [id])
+  attendance          Attendance?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
 
   @@unique([scheduleId, date])
   @@index([date, status])
   @@index([schoolYearId, semesterId])
   @@index([classId, date])
   @@index([teacherId, date])
+  @@index([substituteTeacherId, date])
 }
 
 model Attendance {
-  id                   String           @id @default(uuid()) @db.Uuid
-  agendaId             String           @unique @db.Uuid
-  classId              String           @db.Uuid
-  state                AttendanceState  @default(DRAFT)
-  startedAt            DateTime?
-  submittedAt          DateTime?
-  submittedById        String?          @db.Uuid
-  approvedAt           DateTime?
-  approvedById         String?          @db.Uuid
-  correctionAt         DateTime?
-  correctedById        String?          @db.Uuid
-  lockedAt             DateTime?
-  lockedById           String?          @db.Uuid
-  endedAt              DateTime?
-  notes                String?
-  classPhotoKey        String?
-  classPhotoName       String?
-  classPhotoMimeType   String?
-  classPhotoSize       Int?
-  classPhotoUploadedAt DateTime?
-  correctionNote       String?
-  agenda               DailyAgenda      @relation(fields: [agendaId], references: [id])
-  class                Class            @relation(fields: [classId], references: [id])
-  submittedBy          User?            @relation("AttendanceSubmittedBy", fields: [submittedById], references: [id])
-  approvedBy           User?            @relation("AttendanceApprovedBy", fields: [approvedById], references: [id])
-  correctedBy          User?            @relation("AttendanceCorrectedBy", fields: [correctedById], references: [id])
-  lockedBy             User?            @relation("AttendanceLockedBy", fields: [lockedById], references: [id])
-  items                AttendanceItem[]
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  id                    String           @id @default(uuid()) @db.Uuid
+  agendaId              String           @unique @db.Uuid
+  classId               String           @db.Uuid
+  state                 AttendanceState  @default(DRAFT)
+  startedAt             DateTime?
+  submittedAt           DateTime?
+  submittedById         String?          @db.Uuid
+  approvedAt            DateTime?
+  approvedById          String?          @db.Uuid
+  correctionAt          DateTime?
+  correctedById         String?          @db.Uuid
+  lockedAt              DateTime?
+  lockedById            String?          @db.Uuid
+  endedAt               DateTime?
+  notes                 String?
+  teacherPresent        Boolean?
+  studentAttendanceDone Boolean?
+  materialFilled        Boolean?
+  classPhotoDone        Boolean?
+  issueNotes            String?
+  classPhotoKey         String?
+  classPhotoName        String?
+  classPhotoMimeType    String?
+  classPhotoSize        Int?
+  classPhotoUploadedAt  DateTime?
+  correctionNote        String?
+  agenda                DailyAgenda      @relation(fields: [agendaId], references: [id])
+  class                 Class            @relation(fields: [classId], references: [id])
+  submittedBy           User?            @relation("AttendanceSubmittedBy", fields: [submittedById], references: [id])
+  approvedBy            User?            @relation("AttendanceApprovedBy", fields: [approvedById], references: [id])
+  correctedBy           User?            @relation("AttendanceCorrectedBy", fields: [correctedById], references: [id])
+  lockedBy              User?            @relation("AttendanceLockedBy", fields: [lockedById], references: [id])
+  items                 AttendanceItem[]
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
 
   @@index([classId])
   @@index([state])

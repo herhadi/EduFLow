@@ -52,6 +52,12 @@ export function ScheduleManagement() {
   const [generateEndsAt, setGenerateEndsAt] = useState(getToday());
   const [viewDate, setViewDate] = useState(getToday());
   const [generatedAgendas, setGeneratedAgendas] = useState<DailyAgenda[]>([]);
+  const [agendaCoverage, setAgendaCoverage] = useState<{
+    expected: number;
+    existing: number;
+    missing: number;
+    blockedDates: number;
+  } | null>(null);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
@@ -385,6 +391,39 @@ export function ScheduleManagement() {
       toast.error(errorMessage, 'Generate Agenda Gagal');
     } finally {
       setSubmitState('idle');
+    }
+  }
+
+  async function checkAgendaCoverage(classId?: string) {
+    if (!form.schoolYearId) return;
+
+    try {
+      const response = await api.getAgendaCoverage({
+        schoolYearId: form.schoolYearId,
+        startsAt: generateStartsAt,
+        endsAt: generateEndsAt,
+        classId,
+      });
+      setAgendaCoverage(response.data);
+      if (response.data.missing > 0) {
+        toast.warning(`${response.data.missing} agenda belum dibuat.`, 'Cek Agenda');
+      } else {
+        toast.success('Semua agenda pada rentang ini sudah tersedia.', 'Cek Agenda');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Cek agenda gagal.', 'Cek Agenda');
+    }
+  }
+
+  async function assignSubstitute(agenda: DailyAgenda, teacherId: string) {
+    try {
+      const response = await api.assignSubstituteTeacher(agenda.id, teacherId || null);
+      setGeneratedAgendas((current) =>
+        current.map((item) => (item.id === agenda.id ? response.data : item)),
+      );
+      toast.success(response.message ?? 'Guru pengganti diperbarui.', 'Guru Pengganti');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Guru pengganti gagal disimpan.', 'Guru Pengganti');
     }
   }
 
@@ -925,6 +964,13 @@ export function ScheduleManagement() {
               </div>
               <div className="mt-3 flex flex-wrap gap-3">
                 <button
+                  className="h-12 rounded-xl border border-amber-300 bg-amber-50 px-4 text-sm font-black text-amber-800 transition hover:bg-amber-100"
+                  onClick={() => void checkAgendaCoverage(scheduleClassId || undefined)}
+                  type="button"
+                >
+                  Cek Agenda Kelas
+                </button>
+                <button
                   className="h-12 rounded-xl bg-emerald-600 px-4 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={!scheduleClassId || !form.schoolYearId || submitState === 'loading'}
                   onClick={() => void handleGenerateAgendas({ classId: scheduleClassId })}
@@ -941,13 +987,39 @@ export function ScheduleManagement() {
                   Generate Semua Kelas VII-IX
                 </button>
               </div>
+              {agendaCoverage ? (
+                <div className="mt-4 rounded-2xl border border-white/70 bg-white/80 p-3 text-sm font-bold text-slate-700">
+                  Agenda tersedia: {agendaCoverage.existing}/{agendaCoverage.expected}. Belum dibuat: {agendaCoverage.missing}. Hari diblokir Kaldik: {agendaCoverage.blockedDates}.
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
 
         {canGenerateAgenda && generatedAgendas.length ? (
           <div className="rounded-2xl border border-brand-100 bg-brand-50 p-5 text-sm text-brand-700">
-            Agenda: <strong>{generatedAgendas.length}</strong> sesi untuk {formatDateDisplay(generateStartsAt)} sampai {formatDateDisplay(generateEndsAt)} sudah diproses.
+            <p>Agenda: <strong>{generatedAgendas.length}</strong> sesi untuk {formatDateDisplay(generateStartsAt)} sampai {formatDateDisplay(generateEndsAt)} sudah diproses.</p>
+            <div className="mt-3 grid gap-2">
+              {generatedAgendas.slice(0, 8).map((agenda) => (
+                <div className="rounded-xl bg-white p-3" key={agenda.id}>
+                  <p className="font-black text-slate-800">{agenda.class.name} · {agenda.subject.name}</p>
+                  <p className="mt-1 text-xs font-semibold text-muted">
+                    {formatDateDisplay(agenda.date)} · Guru utama: {agenda.teacher.name}
+                    {agenda.substituteTeacher ? ` · Pengganti: ${agenda.substituteTeacher.name}` : ''}
+                  </p>
+                  <select
+                    className="mt-2 w-full rounded-xl border border-blue-100 px-3 py-2 text-xs font-bold text-slate-700"
+                    onChange={(event) => void assignSubstitute(agenda, event.target.value)}
+                    value={agenda.substituteTeacher?.id ?? ''}
+                  >
+                    <option value="">Tanpa guru pengganti</option>
+                    {teachers.filter((teacher) => teacher.id !== agenda.teacher.id).map((teacher) => (
+                      <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
           </div>
         ) : null}
       </div>
