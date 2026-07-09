@@ -2,7 +2,7 @@
 
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type ActivityThumbnail = {
   category: string;
@@ -46,10 +46,19 @@ export function SchoolActivityCarousel({
   items: ActivityThumbnail[];
 }) {
   const intervalRef = useRef<number | null>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [renderedIndex, setRenderedIndex] = useState(1);
+  const [isTransitioning, setIsTransitioning] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
+  const renderedItems = useMemo(() => {
+    if (items.length <= 1) {
+      return items;
+    }
 
-  const activeItem = items[activeIndex];
+    return [items[items.length - 1], ...items, items[0]];
+  }, [items]);
+
+  const activeIndex =
+    items.length <= 1 ? 0 : (renderedIndex - 1 + items.length) % items.length;
 
   useEffect(() => {
     if (items.length <= 1 || isPaused) {
@@ -57,8 +66,8 @@ export function SchoolActivityCarousel({
     }
 
     intervalRef.current = window.setInterval(() => {
-      setActiveIndex((current) => (current + 1) % items.length);
-    }, 4800);
+      setRenderedIndex((current) => current + 1);
+    }, 4000);
 
     return () => {
       if (intervalRef.current) {
@@ -67,18 +76,47 @@ export function SchoolActivityCarousel({
     };
   }, [isPaused, items.length]);
 
-  if (!activeItem) {
+  useEffect(() => {
+    if (isTransitioning) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setIsTransitioning(true);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [isTransitioning]);
+
+  if (items.length === 0) {
     return null;
   }
 
   function moveSlide(direction: 'next' | 'previous') {
-    setActiveIndex((current) => {
-      if (direction === 'next') {
-        return (current + 1) % items.length;
-      }
+    setIsTransitioning(true);
+    setRenderedIndex((current) => current + (direction === 'next' ? 1 : -1));
+  }
 
-      return (current - 1 + items.length) % items.length;
-    });
+  function jumpToRealIndex(index: number) {
+    setIsTransitioning(true);
+    setRenderedIndex(items.length <= 1 ? index : index + 1);
+  }
+
+  function handleTransitionEnd() {
+    if (items.length <= 1) {
+      return;
+    }
+
+    if (renderedIndex === 0) {
+      setIsTransitioning(false);
+      setRenderedIndex(items.length);
+      return;
+    }
+
+    if (renderedIndex === items.length + 1) {
+      setIsTransitioning(false);
+      setRenderedIndex(1);
+    }
   }
 
   return (
@@ -88,38 +126,50 @@ export function SchoolActivityCarousel({
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className={getSlideClass(activeItem.tone)}>
-        <div className="school-carousel-visual" aria-hidden="true">
-          <div className="school-carousel-device school-carousel-device-main">
-            <img
-              alt=""
-              className="h-24 w-24 object-contain opacity-95"
-              src="/logo_sekolah.webp"
-            />
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="school-carousel-device school-carousel-device-side">
-            <span />
-            <span />
-            <span />
-          </div>
-        </div>
+      <div className="school-carousel-viewport">
+        <div
+          className="school-carousel-track"
+          onTransitionEnd={handleTransitionEnd}
+          style={{
+            transform: `translateX(-${renderedIndex * 100}%)`,
+            transition: isTransitioning ? undefined : 'none',
+          }}
+        >
+          {renderedItems.map((item, index) => (
+            <div className={getSlideClass(item.tone)} key={`${item.title}-${index}`}>
+              <div className="school-carousel-visual" aria-hidden="true">
+                <div className="school-carousel-device school-carousel-device-main">
+                  <img
+                    alt=""
+                    className="h-24 w-24 object-contain opacity-95"
+                    src="/logo_sekolah.webp"
+                  />
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <div className="school-carousel-device school-carousel-device-side">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </div>
 
-        <div className="school-carousel-content">
-          <p className="school-carousel-kicker">{activeItem.category}</p>
-          <h3>{activeItem.title}</h3>
-          <p>
-            {slideSummaries[activeItem.category] ??
-              'Informasi sekolah ditampilkan ringkas, visual, dan mudah diakses.'}
-          </p>
-          <Link className="school-carousel-link" href={activeItem.href}>
-            Lihat detail
-            <ArrowRight aria-hidden="true" className="size-4" />
-          </Link>
+              <div className="school-carousel-content">
+                <p className="school-carousel-kicker">{item.category}</p>
+                <h3>{item.title}</h3>
+                <p>
+                  {slideSummaries[item.category] ??
+                    'Informasi sekolah ditampilkan ringkas, visual, dan mudah diakses.'}
+                </p>
+                <Link className="school-carousel-link" href={item.href}>
+                  Lihat detail
+                  <ArrowRight aria-hidden="true" className="size-4" />
+                </Link>
+              </div>
+            </div>
+          ))}
         </div>
-
         <div className="school-carousel-controls">
           <button
             aria-label="Slide sebelumnya"
@@ -151,7 +201,7 @@ export function SchoolActivityCarousel({
                 : 'school-carousel-tab'
             }
             key={item.title}
-            onClick={() => setActiveIndex(index)}
+            onClick={() => jumpToRealIndex(index)}
             role="tab"
             type="button"
           >

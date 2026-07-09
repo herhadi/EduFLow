@@ -410,6 +410,19 @@
     gap: 0.85rem;
   }
 
+  .school-carousel-viewport {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    box-shadow: var(--shadow);
+  }
+
+  .school-carousel-track {
+    display: flex;
+    transition: transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
   .school-marquee-track {
     display: flex;
     width: max-content;
@@ -423,14 +436,14 @@
 
   .school-carousel-slide {
     position: relative;
-    min-height: 24rem;
+    flex: 0 0 100%;
+    min-height: 21rem;
     overflow: hidden;
-    border-radius: 1.25rem;
     border: 1px solid var(--border);
+    border-radius: 0;
     background:
       linear-gradient(90deg, rgba(7, 23, 52, 0.86), rgba(7, 23, 52, 0.58) 48%, rgba(7, 23, 52, 0.2)),
       linear-gradient(135deg, #1d4ed8, #0ea5e9);
-    box-shadow: var(--shadow);
     color: #ffffff;
   }
 
@@ -466,11 +479,11 @@
     position: relative;
     z-index: 2;
     display: flex;
-    min-height: 24rem;
+    min-height: 21rem;
     max-width: 45rem;
     flex-direction: column;
     justify-content: center;
-    padding: 2rem;
+    padding: 1.6rem;
   }
 
   .school-carousel-kicker {
@@ -489,9 +502,9 @@
   .school-carousel-content h3 {
     margin-top: 1rem;
     max-width: 42rem;
-    font-size: 4rem;
+    font-size: 3.25rem;
     font-weight: 900;
-    line-height: 1;
+    line-height: 1.03;
   }
 
   .school-carousel-content p:not(.school-carousel-kicker) {
@@ -629,35 +642,36 @@
   @media (max-width: 640px) {
     .school-carousel-slide,
     .school-carousel-content {
-      min-height: 28rem;
+      min-height: 23.5rem;
     }
 
     .school-carousel-content {
       justify-content: flex-end;
       padding: 1.2rem;
-      padding-bottom: 4.6rem;
+      padding-bottom: 4.25rem;
     }
 
     .school-carousel-content h3 {
-      font-size: 2.2rem;
+      font-size: 1.8rem;
+      line-height: 1.08;
     }
 
     .school-carousel-content p:not(.school-carousel-kicker) {
-      font-size: 0.92rem;
-      line-height: 1.65;
+      font-size: 0.86rem;
+      line-height: 1.55;
     }
 
     .school-carousel-device-main {
       right: -1.5rem;
       top: 1.25rem;
-      width: 11rem;
+      width: 9.5rem;
     }
 
     .school-carousel-device-side {
-      right: 7rem;
-      top: 7.5rem;
+      right: 6rem;
+      top: 6.85rem;
       bottom: auto;
-      width: 8rem;
+      width: 7rem;
     }
 
     .school-carousel-controls {
@@ -673,7 +687,7 @@
 
   @media (min-width: 641px) and (max-width: 1024px) {
     .school-carousel-content h3 {
-      font-size: 3rem;
+      font-size: 2.65rem;
     }
   }
 
