@@ -533,6 +533,47 @@ export interface TeacherPerformanceDashboard {
   teachers: TeacherPerformanceItem[];
 }
 
+export interface StudentReportItem {
+  studentId: string;
+  studentName: string;
+  nis?: string | null;
+  nisn?: string | null;
+  classId?: string | null;
+  className?: string | null;
+  guardianName?: string | null;
+  guardianContact?: string | null;
+  summary: AttendanceSummary;
+  riskLevel: 'HIGH' | 'MEDIUM' | 'LOW';
+  riskReason: string;
+  dailyGrades: {
+    available: boolean;
+    averageScore?: number | null;
+    latestScore?: number | null;
+    records: unknown[];
+  };
+  latestRecords: Array<{
+    id: string;
+    date: string;
+    className: string;
+    subjectName: string;
+    teacherName: string;
+    status: AttendanceStatus;
+    notes?: string | null;
+  }>;
+}
+
+export interface StudentReportDashboard {
+  from: string;
+  to: string;
+  classId?: string | null;
+  status?: AttendanceStatus | null;
+  summary: AttendanceSummary & {
+    highRisk: number;
+    mediumRisk: number;
+  };
+  students: StudentReportItem[];
+}
+
 export interface SchedulePayload {
   schoolYearId: string;
   semesterId: string;
@@ -1080,6 +1121,34 @@ export const api = {
 
     return request<ApiResponse<TeacherPerformanceDashboard>>(
       `/reporting/teacher-performance${params.size ? `?${params}` : ''}`,
+    );
+  },
+  getStudentReport: (payload: {
+    from?: string;
+    to?: string;
+    classId?: string;
+    status?: AttendanceStatus | '';
+  }) => {
+    const params = new URLSearchParams();
+
+    if (payload.from) {
+      params.set('from', payload.from);
+    }
+
+    if (payload.to) {
+      params.set('to', payload.to);
+    }
+
+    if (payload.classId) {
+      params.set('classId', payload.classId);
+    }
+
+    if (payload.status) {
+      params.set('status', payload.status);
+    }
+
+    return request<ApiResponse<StudentReportDashboard>>(
+      `/reporting/students${params.size ? `?${params}` : ''}`,
     );
   },
   getActivityTrail: () => request<ApiResponse<ActivityTrailItem[]>>('/audit/activity'),

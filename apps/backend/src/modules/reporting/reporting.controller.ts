@@ -21,6 +21,16 @@ export class ReportingController {
     return this.reportingService.getTeacherPerformance({ from, to });
   }
 
+  @Get('students')
+  getStudentReport(
+    @Query('from') from: string | undefined,
+    @Query('to') to: string | undefined,
+    @Query('classId') classId: string | undefined,
+    @Query('status') status: string | undefined,
+  ) {
+    return this.reportingService.getStudentReport({ classId, from, status, to });
+  }
+
   @Get('exports/:reportType')
   async exportReport(
     @Param('reportType') reportType: string,

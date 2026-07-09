@@ -10,6 +10,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan penanda revisi perangkat ajar untuk Kepala Sekolah berupa bagian/halaman dan prioritas `Tinggi`, `Sedang`, atau `Rendah`, lalu menampilkannya pada halaman perangkat ajar guru.
 - Menambahkan kontrol KBM harian: cek coverage agenda yang belum digenerate, checklist KBM pada submit presensi, dan guru pengganti per agenda harian tanpa mengubah baseline jadwal.
 - Menampilkan ringkasan Kendali KBM pada dashboard operasional: checklist, kendala, agenda yang perlu tindak lanjut, dan guru pengganti hari ini.
+- Menambahkan Report Siswa pada halaman laporan Kepala Sekolah dengan filter kelas/rentang/status, indikator risiko presensi, detail presensi terbaru, serta slot nilai harian untuk modul penilaian berikutnya.
 
 ## 2026-07-03
 

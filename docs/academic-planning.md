@@ -244,6 +244,12 @@ Jika guru utama berhalangan, operator dapat menetapkan guru pengganti pada `Dail
 
 Dashboard operasional menampilkan ringkasan Kendali KBM harian dari `DailyAgenda` dan `Attendance`: checklist yang sudah lengkap, catatan kendala, kelas yang perlu tindak lanjut, serta daftar guru pengganti. Ringkasan ini dipakai operator dan monitoring sekolah agar masalah KBM hari itu terlihat tanpa membuka tiap agenda satu per satu.
 
+## Report Siswa
+
+Report siswa membaca `AttendanceItem` sebagai sumber presensi per siswa, mapel, guru, dan tanggal. Halaman laporan Kepala Sekolah menampilkan filter kelas, rentang tanggal, status presensi, ringkasan hadir/sakit/izin/alpha, indikator risiko, serta detail presensi terbaru per siswa.
+
+Nilai harian belum memiliki entity implementasi. Saat modul penilaian dibuat, nilai harian harus terhubung ke `StudentEnrollment`, `Subject`, `Teacher`, `SchoolYear`, dan `Semester`, lalu dapat ditampilkan di detail report siswa sebagai rata-rata nilai, nilai terbaru, dan riwayat penilaian per mapel.
+
 ## Catatan Implementasi
 
 ## Implementasi Perangkat Ajar Tahap Awal

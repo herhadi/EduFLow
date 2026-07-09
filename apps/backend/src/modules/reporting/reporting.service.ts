@@ -9,6 +9,13 @@ type ReportType =
   | 'teacher-teaching'
   | 'empty-classes'
   | 'student-attendance';
+type AttendanceSummaryReport = {
+  total: number;
+  present: number;
+  sick: number;
+  excused: number;
+  absent: number;
+};
 
 @Injectable()
 export class ReportingService {
@@ -394,6 +401,228 @@ export class ReportingService {
     };
   }
 
+  async getStudentReport({
+    classId,
+    from,
+    status,
+    to,
+  }: {
+    classId?: string;
+    from?: string;
+    status?: string;
+    to?: string;
+  }) {
+    const { startOfDay, endOfDay } = this.getReportRange(from, to, 30);
+    const normalizedStatus = this.normalizeAttendanceStatus(status);
+    const [items, enrolledStudents] = await Promise.all([
+      this.prisma.attendanceItem.findMany({
+        where: {
+          ...(normalizedStatus ? { status: normalizedStatus } : {}),
+          attendance: {
+            agenda: {
+              date: { gte: startOfDay, lt: endOfDay },
+            },
+            ...(classId ? { classId } : {}),
+          },
+        },
+        include: {
+          student: {
+            include: {
+              guardians: {
+                where: { deletedAt: null },
+                include: { guardian: true },
+              },
+            },
+          },
+          attendance: {
+            include: {
+              agenda: {
+                include: { class: true, subject: true, teacher: true },
+              },
+            },
+          },
+        },
+        orderBy: [
+          { student: { name: 'asc' } },
+          { attendance: { agenda: { date: 'desc' } } },
+        ],
+      }),
+      classId
+        ? this.prisma.student.findMany({
+            where: {
+              deletedAt: null,
+              enrollments: {
+                some: { classId, isActive: true, deletedAt: null },
+              },
+            },
+            include: {
+              guardians: {
+                where: { deletedAt: null },
+                include: { guardian: true },
+              },
+              enrollments: {
+                where: { classId, isActive: true, deletedAt: null },
+                include: { class: true, schoolYear: true },
+              },
+            },
+            orderBy: { name: 'asc' },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    const studentMap = new Map<
+      string,
+      {
+        studentId: string;
+        studentName: string;
+        nis: string | null;
+        nisn: string | null;
+        classId: string | null;
+        className: string | null;
+        guardianName: string | null;
+        guardianContact: string | null;
+        summary: AttendanceSummaryReport;
+        riskLevel: 'HIGH' | 'MEDIUM' | 'LOW';
+        riskReason: string;
+        dailyGrades: {
+          available: boolean;
+          averageScore: number | null;
+          latestScore: number | null;
+          records: Array<unknown>;
+        };
+        latestRecords: Array<{
+          id: string;
+          date: string;
+          className: string;
+          subjectName: string;
+          teacherName: string;
+          status: AttendanceStatus;
+          notes: string | null;
+        }>;
+      }
+    >();
+
+    for (const item of items) {
+      const guardian = item.student.guardians.find((entry) => entry.isPrimary) ?? item.student.guardians[0];
+      const current = studentMap.get(item.studentId) ?? {
+        studentId: item.studentId,
+        studentName: item.student.name,
+        nis: item.student.nis,
+        nisn: item.student.nisn,
+        classId: item.attendance.agenda.classId,
+        className: item.attendance.agenda.class.name,
+        guardianName: guardian?.guardian.name ?? null,
+        guardianContact: guardian?.guardian.phone ?? guardian?.guardian.email ?? null,
+        summary: this.emptyAttendanceSummary(),
+        riskLevel: 'LOW' as const,
+        riskReason: 'Kehadiran relatif aman',
+        dailyGrades: {
+          available: false,
+          averageScore: null,
+          latestScore: null,
+          records: [],
+        },
+        latestRecords: [],
+      };
+
+      this.addAttendanceStatus(current.summary, item.status);
+
+      if (current.latestRecords.length < 5) {
+        current.latestRecords.push({
+          id: item.id,
+          date: this.formatDateOnly(item.attendance.agenda.date),
+          className: item.attendance.agenda.class.name,
+          subjectName: item.attendance.agenda.subject.name,
+          teacherName: item.attendance.agenda.teacher.name,
+          status: item.status,
+          notes: item.notes,
+        });
+      }
+
+      studentMap.set(item.studentId, current);
+    }
+
+    for (const student of enrolledStudents) {
+      if (studentMap.has(student.id)) {
+        continue;
+      }
+
+      const guardian = student.guardians.find((entry) => entry.isPrimary) ?? student.guardians[0];
+      const enrollment = student.enrollments[0];
+      studentMap.set(student.id, {
+        studentId: student.id,
+        studentName: student.name,
+        nis: student.nis,
+        nisn: student.nisn,
+        classId: enrollment?.classId ?? classId ?? null,
+        className: enrollment?.class.name ?? null,
+        guardianName: guardian?.guardian.name ?? null,
+        guardianContact: guardian?.guardian.phone ?? guardian?.guardian.email ?? null,
+        summary: this.emptyAttendanceSummary(),
+        riskLevel: 'LOW',
+        riskReason: 'Belum ada presensi pada rentang ini',
+        dailyGrades: {
+          available: false,
+          averageScore: null,
+          latestScore: null,
+          records: [],
+        },
+        latestRecords: [],
+      });
+    }
+
+    const students = Array.from(studentMap.values()).map((student) => ({
+      ...student,
+      summary: {
+        ...student.summary,
+        total:
+          student.summary.present +
+          student.summary.sick +
+          student.summary.excused +
+          student.summary.absent,
+      },
+      ...this.getStudentRisk(student.summary),
+    }));
+    const summary = students.reduce(
+      (total, student) => {
+        total.present += student.summary.present;
+        total.sick += student.summary.sick;
+        total.excused += student.summary.excused;
+        total.absent += student.summary.absent;
+        total.total += student.summary.total;
+        total.highRisk += student.riskLevel === 'HIGH' ? 1 : 0;
+        total.mediumRisk += student.riskLevel === 'MEDIUM' ? 1 : 0;
+        return total;
+      },
+      {
+        total: 0,
+        present: 0,
+        sick: 0,
+        excused: 0,
+        absent: 0,
+        highRisk: 0,
+        mediumRisk: 0,
+      },
+    );
+
+    return {
+      data: {
+        from: this.formatDateOnly(startOfDay),
+        to: this.formatDateOnly(new Date(endOfDay.getTime() - 1)),
+        classId: classId ?? null,
+        status: normalizedStatus ?? null,
+        summary,
+        students: students.sort((left, right) => {
+          if (right.summary.absent !== left.summary.absent) {
+            return right.summary.absent - left.summary.absent;
+          }
+
+          return left.studentName.localeCompare(right.studentName);
+        }),
+      },
+    };
+  }
+
   private async getReportRows(reportType: ReportType, date: Date) {
     if (reportType === 'attendance-summary') {
       return this.getAttendanceSummaryRows(date);
@@ -526,31 +755,88 @@ export class ReportingService {
   private countAttendanceItems(items: Array<{ status: AttendanceStatus }>) {
     return items.reduce(
       (summary, item) => {
-        if (item.status === AttendanceStatus.PRESENT) {
-          summary.present += 1;
-        }
-
-        if (item.status === AttendanceStatus.SICK) {
-          summary.sick += 1;
-        }
-
-        if (item.status === AttendanceStatus.EXCUSED) {
-          summary.excused += 1;
-        }
-
-        if (item.status === AttendanceStatus.ABSENT) {
-          summary.absent += 1;
-        }
+        this.addAttendanceStatus(summary, item.status);
 
         return summary;
       },
-      {
-        present: 0,
-        sick: 0,
-        excused: 0,
-        absent: 0,
-      },
+      this.emptyAttendanceSummary(),
     );
+  }
+
+  private emptyAttendanceSummary(): AttendanceSummaryReport {
+    return {
+      total: 0,
+      present: 0,
+      sick: 0,
+      excused: 0,
+      absent: 0,
+    };
+  }
+
+  private addAttendanceStatus(
+    summary: AttendanceSummaryReport,
+    status: AttendanceStatus,
+  ) {
+    summary.total += 1;
+
+    if (status === AttendanceStatus.PRESENT) {
+      summary.present += 1;
+    }
+
+    if (status === AttendanceStatus.SICK) {
+      summary.sick += 1;
+    }
+
+    if (status === AttendanceStatus.EXCUSED) {
+      summary.excused += 1;
+    }
+
+    if (status === AttendanceStatus.ABSENT) {
+      summary.absent += 1;
+    }
+  }
+
+  private getStudentRisk(summary: AttendanceSummaryReport) {
+    if (summary.absent >= 3) {
+      return {
+        riskLevel: 'HIGH' as const,
+        riskReason: `Alpha ${summary.absent} kali pada rentang ini`,
+      };
+    }
+
+    if (summary.absent >= 1 || summary.sick + summary.excused >= 4) {
+      return {
+        riskLevel: 'MEDIUM' as const,
+        riskReason:
+          summary.absent >= 1
+            ? `Alpha ${summary.absent} kali pada rentang ini`
+            : `Sakit/izin ${summary.sick + summary.excused} kali pada rentang ini`,
+      };
+    }
+
+    return {
+      riskLevel: 'LOW' as const,
+      riskReason: summary.total > 0 ? 'Kehadiran relatif aman' : 'Belum ada presensi pada rentang ini',
+    };
+  }
+
+  private normalizeAttendanceStatus(status?: string) {
+    if (!status) {
+      return null;
+    }
+
+    const allowedStatuses: AttendanceStatus[] = [
+      AttendanceStatus.PRESENT,
+      AttendanceStatus.SICK,
+      AttendanceStatus.EXCUSED,
+      AttendanceStatus.ABSENT,
+    ];
+
+    if (!allowedStatuses.includes(status as AttendanceStatus)) {
+      throw new BadRequestException('Status presensi tidak valid');
+    }
+
+    return status as AttendanceStatus;
   }
 
   private getTodayRange() {

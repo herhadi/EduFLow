@@ -672,6 +672,24 @@ Definisi MVP:
 - `Kelas Kosong` dihitung dari `DailyAgenda.status = EMPTY`.
 - Jika query tanggal tidak dikirim, periode default adalah 30 hari terakhir.
 
+## Student Report Dashboard API
+
+```http
+GET /api/reporting/students
+GET /api/reporting/students?from=2026-07-01&to=2026-07-31&classId=:classId
+GET /api/reporting/students?from=2026-07-01&to=2026-07-31&status=ABSENT
+```
+
+Mengembalikan ringkasan presensi siswa untuk dashboard laporan:
+
+- total hadir, sakit, izin, alpha,
+- daftar siswa beserta kelas, NIS/NISN, wali murid, dan kontak,
+- indikator risiko `HIGH`, `MEDIUM`, atau `LOW`,
+- riwayat presensi terbaru per siswa,
+- slot `dailyGrades` untuk nilai harian ketika modul penilaian siswa sudah aktif.
+
+Jika `classId` dikirim, siswa aktif pada kelas tersebut tetap muncul meskipun belum memiliki presensi pada rentang laporan.
+
 ## Export & Reporting API
 
 ```http
