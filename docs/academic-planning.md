@@ -242,6 +242,8 @@ Checklist disimpan pada `Attendance` agar laporan KBM tidak hanya berisi status 
 
 Jika guru utama berhalangan, operator dapat menetapkan guru pengganti pada `DailyAgenda`. Guru pengganti dapat membuka dan submit presensi agenda tersebut tanpa mengubah baseline jadwal tahunan. Data agenda tetap menyimpan guru utama dan guru pengganti agar laporan dapat membedakan tanggung jawab jadwal dan realisasi pengganti.
 
+Dashboard operasional menampilkan ringkasan Kendali KBM harian dari `DailyAgenda` dan `Attendance`: checklist yang sudah lengkap, catatan kendala, kelas yang perlu tindak lanjut, serta daftar guru pengganti. Ringkasan ini dipakai operator dan monitoring sekolah agar masalah KBM hari itu terlihat tanpa membuka tiap agenda satu per satu.
+
 ## Catatan Implementasi
 
 ## Implementasi Perangkat Ajar Tahap Awal

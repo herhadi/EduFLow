@@ -646,6 +646,7 @@ Mengembalikan ringkasan hari ini untuk operator dan kepala sekolah:
 - total guru mengajar, sudah submit, dan belum submit,
 - siswa hadir, sakit, izin, dan alpha,
 - reminder terkirim, summary terkirim, dan notifikasi gagal.
+- kendali KBM harian: checklist guru, presensi siswa, materi, foto kelas, catatan kendala, guru pengganti, dan agenda yang perlu tindak lanjut.
 
 ## Teacher Performance Dashboard API
 

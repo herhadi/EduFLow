@@ -37,10 +37,16 @@ export class ReportingService {
           },
         },
         include: {
+          class: true,
+          subject: true,
+          teacher: true,
+          substituteTeacher: true,
+          schedule: true,
           attendance: {
             include: { items: true },
           },
         },
+        orderBy: [{ class: { name: 'asc' } }, { schedule: { startsAt: 'asc' } }],
       }),
       this.prisma.dailyAgenda.findMany({
         where: {
@@ -126,6 +132,42 @@ export class ReportingService {
 
       return !submittedStates.includes(agenda.attendance.state);
     }).length;
+    const checklistMissing = agendas.filter((agenda) => {
+      if (!agenda.attendance || !submittedStates.includes(agenda.attendance.state)) {
+        return false;
+      }
+
+      return (
+        agenda.attendance.teacherPresent !== true ||
+        agenda.attendance.studentAttendanceDone !== true ||
+        agenda.attendance.materialFilled !== true ||
+        agenda.attendance.classPhotoDone !== true
+      );
+    });
+    const withIssueNotes = agendas.filter((agenda) => agenda.attendance?.issueNotes);
+    const substituteAgendas = agendas.filter((agenda) => agenda.substituteTeacher);
+    const followUpItems = agendas
+      .filter(
+        (agenda) =>
+          agenda.status === AgendaStatus.EMPTY ||
+          !agenda.attendance ||
+          !submittedStates.includes(agenda.attendance.state) ||
+          checklistMissing.some((item) => item.id === agenda.id) ||
+          Boolean(agenda.attendance?.issueNotes),
+      )
+      .slice(0, 8)
+      .map((agenda) => ({
+        agendaId: agenda.id,
+        className: agenda.class.name,
+        subjectName: agenda.subject.name,
+        teacherName: agenda.teacher.name,
+        substituteTeacherName: agenda.substituteTeacher?.name ?? null,
+        startsAt: agenda.schedule?.startsAt ?? null,
+        endsAt: agenda.schedule?.endsAt ?? null,
+        status: agenda.status,
+        attendanceState: agenda.attendance?.state ?? null,
+        issueNotes: agenda.attendance?.issueNotes ?? null,
+      }));
 
     const studentAttendance = this.countAttendanceItems(attendanceItems);
     const totalTeachers = totalTeachingTeachers.length;
@@ -151,6 +193,37 @@ export class ReportingService {
           reminderSent,
           summarySent,
           failed: failedNotifications,
+        },
+        kbm: {
+          checklist: {
+            teacherPresent: agendas.filter(
+              (agenda) => agenda.attendance?.teacherPresent === true,
+            ).length,
+            studentAttendanceDone: agendas.filter(
+              (agenda) => agenda.attendance?.studentAttendanceDone === true,
+            ).length,
+            materialFilled: agendas.filter(
+              (agenda) => agenda.attendance?.materialFilled === true,
+            ).length,
+            classPhotoDone: agendas.filter(
+              (agenda) => agenda.attendance?.classPhotoDone === true,
+            ).length,
+            missing: checklistMissing.length,
+            withIssueNotes: withIssueNotes.length,
+          },
+          substitutes: {
+            total: substituteAgendas.length,
+            items: substituteAgendas.slice(0, 5).map((agenda) => ({
+              agendaId: agenda.id,
+              className: agenda.class.name,
+              subjectName: agenda.subject.name,
+              teacherName: agenda.teacher.name,
+              substituteTeacherName: agenda.substituteTeacher?.name ?? null,
+              startsAt: agenda.schedule?.startsAt ?? null,
+              endsAt: agenda.schedule?.endsAt ?? null,
+            })),
+          },
+          followUpItems,
         },
       },
     };

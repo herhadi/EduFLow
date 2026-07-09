@@ -340,6 +340,40 @@ export interface OperationalDashboardSummary {
     summarySent: number;
     failed: number;
   };
+  kbm?: {
+    checklist: {
+      teacherPresent: number;
+      studentAttendanceDone: number;
+      materialFilled: number;
+      classPhotoDone: number;
+      missing: number;
+      withIssueNotes: number;
+    };
+    substitutes: {
+      total: number;
+      items: Array<{
+        agendaId: string;
+        className: string;
+        subjectName: string;
+        teacherName: string;
+        substituteTeacherName?: string | null;
+        startsAt?: string | null;
+        endsAt?: string | null;
+      }>;
+    };
+    followUpItems: Array<{
+      agendaId: string;
+      className: string;
+      subjectName: string;
+      teacherName: string;
+      substituteTeacherName?: string | null;
+      startsAt?: string | null;
+      endsAt?: string | null;
+      status: string;
+      attendanceState?: string | null;
+      issueNotes?: string | null;
+    }>;
+  };
 }
 
 export interface ActivityTrailItem {
