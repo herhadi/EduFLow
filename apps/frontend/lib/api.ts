@@ -549,7 +549,18 @@ export interface StudentReportItem {
     available: boolean;
     averageScore?: number | null;
     latestScore?: number | null;
-    records: unknown[];
+    records: Array<{
+      id: string;
+      date: string;
+      title: string;
+      type: string;
+      className: string;
+      subjectName: string;
+      teacherName: string;
+      score: number;
+      maxScore: number;
+      notes?: string | null;
+    }>;
   };
   latestRecords: Array<{
     id: string;
@@ -636,6 +647,49 @@ export interface TeachingPlan {
   schoolYear: SchoolYear;
   semester?: Semester | null;
   teacher?: Teacher;
+}
+
+export type AssessmentType =
+  | 'DAILY_TASK'
+  | 'QUIZ'
+  | 'DAILY_TEST'
+  | 'PRACTICE'
+  | 'PROJECT'
+  | 'PORTFOLIO'
+  | 'OBSERVATION'
+  | 'OTHER';
+export type AssessmentStatus = 'DRAFT' | 'SUBMITTED' | 'LOCKED' | 'REVISION_REQUESTED';
+
+export interface AssessmentScore {
+  id: string;
+  assessmentId: string;
+  studentId: string;
+  enrollmentId: string;
+  score?: string | number | null;
+  notes?: string | null;
+  student: Pick<Student, 'id' | 'name' | 'nis' | 'nisn'>;
+}
+
+export interface Assessment {
+  id: string;
+  teacherId: string;
+  schoolYearId: string;
+  semesterId: string;
+  classId: string;
+  subjectId: string;
+  title: string;
+  type: AssessmentType;
+  assessmentDate: string;
+  maxScore: string | number;
+  weight: string | number;
+  status: AssessmentStatus;
+  submittedAt?: string | null;
+  notes?: string | null;
+  class: SchoolClass;
+  subject: Subject;
+  schoolYear: SchoolYear;
+  semester: Semester;
+  scores?: AssessmentScore[];
 }
 
 export interface AppUser {
@@ -981,6 +1035,53 @@ export const api = {
     }),
   submitTeachingPlan: (id: string) =>
     request<ApiResponse<TeachingPlan>>(`/academic-planning/${id}/submit`, { method: 'POST' }),
+  getMyAssessments: (payload?: { classId?: string; subjectId?: string; semesterId?: string }) => {
+    const params = new URLSearchParams();
+
+    if (payload?.classId) {
+      params.set('classId', payload.classId);
+    }
+
+    if (payload?.subjectId) {
+      params.set('subjectId', payload.subjectId);
+    }
+
+    if (payload?.semesterId) {
+      params.set('semesterId', payload.semesterId);
+    }
+
+    return request<ApiResponse<Assessment[]>>(
+      `/student-grades/assessments/mine${params.size ? `?${params}` : ''}`,
+    );
+  },
+  getAssessment: (id: string) =>
+    request<ApiResponse<Assessment>>(`/student-grades/assessments/${id}`),
+  createAssessment: (payload: {
+    schoolYearId: string;
+    semesterId: string;
+    classId: string;
+    subjectId: string;
+    title: string;
+    type: AssessmentType;
+    assessmentDate: string;
+    maxScore?: number;
+    weight?: number;
+    notes?: string;
+  }) =>
+    request<ApiResponse<Assessment>>('/student-grades/assessments', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  saveAssessmentScores: (
+    id: string,
+    payload: { scores: Array<{ scoreId: string; score?: number | null; notes?: string | null }> },
+  ) =>
+    request<ApiResponse<Assessment>>(`/student-grades/assessments/${id}/scores`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  submitAssessment: (id: string) =>
+    request<ApiResponse<Assessment>>(`/student-grades/assessments/${id}/submit`, { method: 'POST' }),
   getAcademicTimeSlots: (schoolYearId?: string) =>
     request<ApiResponse<AcademicTimeSlot[]>>(
       `/academic/time-slots${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,

@@ -272,6 +272,7 @@ function TeacherHome({
           />
           <TeacherCard
             description="Input dan pantau nilai siswa untuk kelas serta mapel yang diampu."
+            href="/teacher/assessments"
             label="Penilaian"
           />
           {isHomeroom ? (

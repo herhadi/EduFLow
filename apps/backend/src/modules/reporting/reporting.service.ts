@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { AgendaStatus, AttendanceState, AttendanceStatus } from '@prisma/client';
+import { AgendaStatus, AssessmentStatus, AttendanceState, AttendanceStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ReportExportService } from './report-export.service';
 
@@ -414,7 +414,7 @@ export class ReportingService {
   }) {
     const { startOfDay, endOfDay } = this.getReportRange(from, to, 30);
     const normalizedStatus = this.normalizeAttendanceStatus(status);
-    const [items, enrolledStudents] = await Promise.all([
+    const [items, enrolledStudents, gradeScores] = await Promise.all([
       this.prisma.attendanceItem.findMany({
         where: {
           ...(normalizedStatus ? { status: normalizedStatus } : {}),
@@ -468,6 +468,35 @@ export class ReportingService {
             orderBy: { name: 'asc' },
           })
         : Promise.resolve([]),
+      this.prisma.assessmentScore.findMany({
+        where: {
+          score: { not: null },
+          assessment: {
+            assessmentDate: { gte: startOfDay, lt: endOfDay },
+            status: { in: [AssessmentStatus.SUBMITTED, AssessmentStatus.LOCKED] },
+            deletedAt: null,
+            ...(classId ? { classId } : {}),
+          },
+        },
+        include: {
+          assessment: {
+            include: {
+              class: true,
+              subject: true,
+              teacher: true,
+            },
+          },
+          student: {
+            include: {
+              guardians: {
+                where: { deletedAt: null },
+                include: { guardian: true },
+              },
+            },
+          },
+        },
+        orderBy: [{ assessment: { assessmentDate: 'desc' } }],
+      }),
     ]);
 
     const studentMap = new Map<
@@ -540,6 +569,65 @@ export class ReportingService {
       }
 
       studentMap.set(item.studentId, current);
+    }
+
+    for (const score of gradeScores) {
+      const guardian = score.student.guardians.find((entry) => entry.isPrimary) ?? score.student.guardians[0];
+      const current = studentMap.get(score.studentId) ?? {
+        studentId: score.studentId,
+        studentName: score.student.name,
+        nis: score.student.nis,
+        nisn: score.student.nisn,
+        classId: score.assessment.classId,
+        className: score.assessment.class.name,
+        guardianName: guardian?.guardian.name ?? null,
+        guardianContact: guardian?.guardian.phone ?? guardian?.guardian.email ?? null,
+        summary: this.emptyAttendanceSummary(),
+        riskLevel: 'LOW' as const,
+        riskReason: 'Kehadiran relatif aman',
+        dailyGrades: {
+          available: false,
+          averageScore: null,
+          latestScore: null,
+          records: [],
+        },
+        latestRecords: [],
+      };
+      const numericScore = Number(score.score);
+      const gradeRecords = current.dailyGrades.records as Array<{
+        id: string;
+        date: string;
+        title: string;
+        type: string;
+        className: string;
+        subjectName: string;
+        teacherName: string;
+        score: number;
+        maxScore: number;
+        notes: string | null;
+      }>;
+
+      gradeRecords.push({
+        id: score.id,
+        date: this.formatDateOnly(score.assessment.assessmentDate),
+        title: score.assessment.title,
+        type: score.assessment.type,
+        className: score.assessment.class.name,
+        subjectName: score.assessment.subject.name,
+        teacherName: score.assessment.teacher.name,
+        score: numericScore,
+        maxScore: Number(score.assessment.maxScore),
+        notes: score.notes,
+      });
+
+      const totalScore = gradeRecords.reduce((total, record) => total + record.score, 0);
+      current.dailyGrades = {
+        available: true,
+        averageScore: gradeRecords.length ? Math.round((totalScore / gradeRecords.length) * 100) / 100 : null,
+        latestScore: gradeRecords[0]?.score ?? null,
+        records: gradeRecords.slice(0, 5),
+      };
+      studentMap.set(score.studentId, current);
     }
 
     for (const student of enrolledStudents) {

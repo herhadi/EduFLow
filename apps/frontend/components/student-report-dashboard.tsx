@@ -303,10 +303,33 @@ function StudentReportRow({
           </div>
           <div className="rounded-xl bg-white p-3">
             <p className="text-xs font-black text-slate-900">Nilai Harian</p>
-            <p className="mt-2 text-xs font-semibold leading-5 text-muted">
-              Belum tersedia. Nanti bagian ini menampilkan rata-rata nilai harian,
-              nilai terbaru, dan daftar penilaian per mapel untuk siswa ini.
-            </p>
+            {student.dailyGrades.available ? (
+              <>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <MiniStat label="Rata-rata" value={student.dailyGrades.averageScore ?? 0} />
+                  <MiniStat label="Terbaru" value={student.dailyGrades.latestScore ?? 0} />
+                </div>
+                <div className="mt-2 space-y-2">
+                  {student.dailyGrades.records.map((record) => (
+                    <div className="rounded-lg border border-slate-100 p-2 text-xs" key={record.id}>
+                      <p className="font-black text-slate-800">
+                        {record.title} · {record.subjectName}
+                      </p>
+                      <p className="mt-0.5 text-muted">
+                        {formatReadableDate(record.date)} · {record.teacherName}
+                      </p>
+                      <p className="mt-1 font-black text-brand-700">
+                        {record.score}/{record.maxScore}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="mt-2 text-xs font-semibold leading-5 text-muted">
+                Belum ada nilai harian yang disubmit pada rentang laporan ini.
+              </p>
+            )}
             <p className="mt-3 rounded-lg bg-blue-50 p-2 text-xs font-black text-brand-700">
               {student.riskReason}
             </p>

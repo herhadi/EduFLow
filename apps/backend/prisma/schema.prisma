@@ -65,6 +65,24 @@ enum TeachingPlanRevisionPriority {
   LOW
 }
 
+enum AssessmentType {
+  DAILY_TASK
+  QUIZ
+  DAILY_TEST
+  PRACTICE
+  PROJECT
+  PORTFOLIO
+  OBSERVATION
+  OTHER
+}
+
+enum AssessmentStatus {
+  DRAFT
+  SUBMITTED
+  LOCKED
+  REVISION_REQUESTED
+}
+
 enum AgendaStatus {
   SCHEDULED
   IN_PROGRESS
@@ -185,6 +203,7 @@ model User {
   receivedPayments      Payment[]            @relation("PaymentReceivedBy")
   teacherProfile        Teacher?
   reviewedTeachingPlans TeachingPlan[]       @relation("TeachingPlanReviewedBy")
+  submittedAssessments  Assessment[]         @relation("AssessmentSubmittedBy")
   notifications         NotificationLog[]
 
   @@index([lockedUntil])
@@ -293,6 +312,7 @@ model SchoolYear {
   feeTypes           FeeType[]
   invoices           Invoice[]
   teachingPlans      TeachingPlan[]
+  assessments        Assessment[]
   calendarEvents     AcademicCalendarEvent[]
   teacherAssignments TeacherSchoolYearAssignment[]
   createdAt          DateTime                      @default(now())
@@ -350,6 +370,7 @@ model Semester {
   scheduleRevisions ScheduleRevision[]
   agendas           DailyAgenda[]
   teachingPlans     TeachingPlan[]
+  assessments       Assessment[]
   calendarEvents    AcademicCalendarEvent[]
   createdAt         DateTime                @default(now())
   updatedAt         DateTime                @updatedAt
@@ -373,6 +394,7 @@ model Class {
   scheduleRevisions  ScheduleRevision[]
   agendas            DailyAgenda[]
   attendances        Attendance[]
+  assessments        Assessment[]
   timeSlotActivities ClassTimeSlotActivity[]
   createdAt          DateTime                @default(now())
   updatedAt          DateTime                @updatedAt
@@ -416,6 +438,7 @@ model Subject {
   teachers          TeacherSubject[]
   yearAssignments   TeacherSchoolYearSubject[]
   teachingPlans     TeachingPlan[]
+  assessments       Assessment[]
   createdAt         DateTime                   @default(now())
   updatedAt         DateTime                   @updatedAt
   deletedAt         DateTime?
@@ -440,6 +463,7 @@ model Teacher {
   scheduleRevisions ScheduleRevision[]
   agendas           DailyAgenda[]
   substituteAgendas DailyAgenda[]                 @relation("DailyAgendaSubstituteTeacher")
+  assessments       Assessment[]
   user              User?                         @relation(fields: [userId], references: [id])
   subjects          TeacherSubject[]
   homeroomClasses   Class[]                       @relation("ClassHomeroomTeacher")
@@ -529,23 +553,75 @@ model TeachingPlan {
   @@index([reviewedById])
 }
 
+model Assessment {
+  id             String            @id @default(uuid()) @db.Uuid
+  teacherId      String            @db.Uuid
+  schoolYearId   String            @db.Uuid
+  semesterId     String            @db.Uuid
+  classId        String            @db.Uuid
+  subjectId      String            @db.Uuid
+  title          String
+  type           AssessmentType
+  assessmentDate DateTime          @db.Date
+  maxScore       Decimal           @default(100) @db.Decimal(5, 2)
+  weight         Decimal           @default(1) @db.Decimal(5, 2)
+  status         AssessmentStatus  @default(DRAFT)
+  submittedAt    DateTime?
+  submittedById  String?           @db.Uuid
+  lockedAt       DateTime?
+  notes          String?
+  teacher        Teacher           @relation(fields: [teacherId], references: [id])
+  schoolYear     SchoolYear        @relation(fields: [schoolYearId], references: [id])
+  semester       Semester          @relation(fields: [semesterId], references: [id])
+  class          Class             @relation(fields: [classId], references: [id])
+  subject        Subject           @relation(fields: [subjectId], references: [id])
+  submittedBy    User?             @relation("AssessmentSubmittedBy", fields: [submittedById], references: [id])
+  scores         AssessmentScore[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+
+  @@index([teacherId, schoolYearId, semesterId])
+  @@index([classId, subjectId, assessmentDate])
+  @@index([status])
+}
+
+model AssessmentScore {
+  id           String            @id @default(uuid()) @db.Uuid
+  assessmentId String            @db.Uuid
+  studentId    String            @db.Uuid
+  enrollmentId String            @db.Uuid
+  score        Decimal?          @db.Decimal(5, 2)
+  notes        String?
+  assessment   Assessment        @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  student      Student           @relation(fields: [studentId], references: [id])
+  enrollment   StudentEnrollment @relation(fields: [enrollmentId], references: [id])
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([assessmentId, enrollmentId])
+  @@index([studentId])
+  @@index([enrollmentId])
+}
+
 model Student {
-  id              String              @id @default(uuid()) @db.Uuid
-  name            String
-  nis             String?             @unique
-  nisn            String?             @unique
-  gender          Gender?
-  birthDate       DateTime?           @db.Date
-  phone           String?
-  isActive        Boolean             @default(true)
-  enrollments     StudentEnrollment[]
-  guardians       StudentGuardian[]
-  attendanceItems AttendanceItem[]
-  invoices        Invoice[]
-  payments        Payment[]
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  deletedAt       DateTime?
+  id               String              @id @default(uuid()) @db.Uuid
+  name             String
+  nis              String?             @unique
+  nisn             String?             @unique
+  gender           Gender?
+  birthDate        DateTime?           @db.Date
+  phone            String?
+  isActive         Boolean             @default(true)
+  enrollments      StudentEnrollment[]
+  guardians        StudentGuardian[]
+  attendanceItems  AttendanceItem[]
+  assessmentScores AssessmentScore[]
+  invoices         Invoice[]
+  payments         Payment[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  deletedAt        DateTime?
 
   @@index([phone])
   @@index([isActive])
@@ -590,20 +666,21 @@ model StudentGuardian {
 }
 
 model StudentEnrollment {
-  id              String           @id @default(uuid()) @db.Uuid
-  studentId       String           @db.Uuid
-  classId         String           @db.Uuid
-  schoolYearId    String           @db.Uuid
-  isActive        Boolean          @default(true)
-  startedAt       DateTime         @default(now())
-  endedAt         DateTime?
-  student         Student          @relation(fields: [studentId], references: [id])
-  class           Class            @relation(fields: [classId], references: [id])
-  schoolYear      SchoolYear       @relation(fields: [schoolYearId], references: [id])
-  attendanceItems AttendanceItem[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  deletedAt       DateTime?
+  id               String            @id @default(uuid()) @db.Uuid
+  studentId        String            @db.Uuid
+  classId          String            @db.Uuid
+  schoolYearId     String            @db.Uuid
+  isActive         Boolean           @default(true)
+  startedAt        DateTime          @default(now())
+  endedAt          DateTime?
+  student          Student           @relation(fields: [studentId], references: [id])
+  class            Class             @relation(fields: [classId], references: [id])
+  schoolYear       SchoolYear        @relation(fields: [schoolYearId], references: [id])
+  attendanceItems  AttendanceItem[]
+  assessmentScores AssessmentScore[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
 
   @@unique([studentId, classId, schoolYearId])
   @@index([studentId, schoolYearId])

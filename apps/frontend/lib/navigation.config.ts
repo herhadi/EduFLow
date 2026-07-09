@@ -48,6 +48,7 @@ const teacherNavigation: NavigationItem[] = [
   { href: '/teacher/dashboard', label: 'Hari Ini', icon: '⌂' },
   { href: '/teacher/schedules', label: 'Jadwal', icon: '▦' },
   { href: '/teacher/attendance', label: 'Presensi', icon: '✓' },
+  { href: '/teacher/assessments', label: 'Nilai', icon: '▣' },
   { href: '/teacher/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
   { href: '/teacher/profile', label: 'Profil', icon: '👤' },
 ];
@@ -56,6 +57,7 @@ const homeroomNavigation: NavigationItem[] = [
   { href: '/teacher/dashboard', label: 'Hari Ini', icon: '⌂' },
   { href: '/teacher/schedules', label: 'Jadwal', icon: '▦' },
   { href: '/teacher/attendance', label: 'Presensi', icon: '✓' },
+  { href: '/teacher/assessments', label: 'Nilai', icon: '▣' },
   { href: '/homeroom/students', label: 'Binaan', icon: '☷' },
   { href: '/teacher/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
   { href: '/teacher/profile', label: 'Profil', icon: '👤' },
@@ -116,6 +118,7 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'profile', href: '/notifications', label: 'Notifikasi' },
   { section: 'teacher', href: '/teacher/schedules', label: 'Jadwal Saya' },
   { section: 'teacher', href: '/teacher/attendance', label: 'Presensi' },
+  { section: 'teacher', href: '/teacher/assessments', label: 'Penilaian' },
   { section: 'teacher', href: '/teacher/teaching-plans', label: 'Perangkat Ajar' },
   { section: 'teacher', href: '/teacher/dashboard', label: 'Hari Ini' },
   { section: 'teacher', href: '/teacher/notifications', label: 'Notifikasi' },

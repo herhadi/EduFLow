@@ -424,16 +424,20 @@ Kepala sekolah memakai endpoint approval/revisi untuk memonitor kelengkapan pera
 ### Nilai Siswa
 
 ```http
-GET /api/academic/grades
-POST /api/academic/grades
-PATCH /api/academic/grades/:id
+GET /api/student-grades/assessments/mine
+GET /api/student-grades/assessments/:id
+POST /api/student-grades/assessments
+PATCH /api/student-grades/assessments/:id/scores
+POST /api/student-grades/assessments/:id/submit
 POST /api/academic/grades/semester-submissions
 POST /api/academic/grades/semester-submissions/:id/approve
 POST /api/academic/grades/semester-submissions/:id/request-revision
 POST /api/academic/grades/semester-submissions/:id/lock
 ```
 
-Nilai siswa harus mengacu ke `StudentEnrollment`, `Subject`, `Teacher`, `SchoolYear`, dan `Semester` agar histori akademik tetap aman.
+Nilai harian memakai `Assessment` sebagai komponen nilai dan `AssessmentScore` sebagai skor per siswa. `AssessmentScore` wajib mengacu ke `StudentEnrollment`, bukan hanya `Student`, agar histori kelas/tahun ajaran tetap aman.
+
+Guru hanya dapat membuat assessment untuk mapel yang ditugaskan aktif pada tahun ajaran tersebut. Saat assessment dibuat, sistem membuat baris skor untuk seluruh enrollment aktif di kelas. Guru dapat menyimpan draft skor dan submit setelah semua siswa memiliki nilai.
 
 Nilai semester harus disubmit guru dan di-approve kepala sekolah sebelum dikunci untuk rapor.
 
@@ -686,7 +690,7 @@ Mengembalikan ringkasan presensi siswa untuk dashboard laporan:
 - daftar siswa beserta kelas, NIS/NISN, wali murid, dan kontak,
 - indikator risiko `HIGH`, `MEDIUM`, atau `LOW`,
 - riwayat presensi terbaru per siswa,
-- slot `dailyGrades` untuk nilai harian ketika modul penilaian siswa sudah aktif.
+- `dailyGrades` dari `AssessmentScore` yang sudah disubmit atau dikunci.
 
 Jika `classId` dikirim, siswa aktif pada kelas tersebut tetap muncul meskipun belum memiliki presensi pada rentang laporan.
 

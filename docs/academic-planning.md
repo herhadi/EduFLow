@@ -195,7 +195,8 @@ Domain ini masih bagian dari academic, tetapi sebaiknya dipisah sebagai subdomai
 | `Kktp` | Kriteria Ketercapaian Tujuan Pembelajaran |
 | `LessonPlan` | Perencanaan pembelajaran guru |
 | `TeachingBook` | Buku atau referensi yang digunakan untuk KBM |
-| `StudentGrade` | Nilai siswa per mapel, kelas, semester, dan komponen penilaian |
+| `Assessment` | Komponen nilai harian/formatif guru per kelas, mapel, semester, dan tanggal |
+| `AssessmentScore` | Skor siswa per `StudentEnrollment` untuk setiap komponen nilai |
 | `AcademicPlanningAttachment` | File dokumen perangkat ajar yang diunggah guru |
 | `AcademicPlanningReview` | Catatan review, approval, dan revisi perangkat ajar |
 | `GradeApproval` | Approval nilai semester oleh kepala sekolah |
@@ -210,6 +211,7 @@ Domain ini masih bagian dari academic, tetapi sebaiknya dipisah sebagai subdomai
 - Riwayat penugasan guru disimpan per `SchoolYear`, mencakup status aktif, cuti, pindah, pensiun, atau tidak aktif beserta mapel ampu dan catatan. Jadwal tahun ajaran yang memiliki penugasan tersebut hanya boleh memakai guru aktif dengan mapel yang tercatat pada tahun ajaran itu.
 - Wali kelas harus tetap memiliki mapel ampu; wali kelas adalah tugas tambahan pada kelas, bukan jenis guru terpisah.
 - Dokumen perangkat ajar wajib menyimpan `status`, `submittedAt`, `reviewedAt`, `reviewedById`, `reviewNote`, serta penanda revisi sederhana seperti `reviewSection` dan `reviewPriority`.
+- Nilai harian memakai `Assessment` dan `AssessmentScore`; guru dapat menyimpan draft skor lalu submit. Nilai yang sudah submit dibaca oleh Report Siswa sebagai rata-rata, nilai terbaru, dan riwayat penilaian.
 - Nilai semester wajib menyimpan `approvedAt`, `approvedById`, dan `lockedAt` setelah disetujui.
 
 ## Workflow Umum
@@ -248,7 +250,7 @@ Dashboard operasional menampilkan ringkasan Kendali KBM harian dari `DailyAgenda
 
 Report siswa membaca `AttendanceItem` sebagai sumber presensi per siswa, mapel, guru, dan tanggal. Halaman laporan Kepala Sekolah menampilkan filter kelas, rentang tanggal, status presensi, ringkasan hadir/sakit/izin/alpha, indikator risiko, serta detail presensi terbaru per siswa.
 
-Nilai harian belum memiliki entity implementasi. Saat modul penilaian dibuat, nilai harian harus terhubung ke `StudentEnrollment`, `Subject`, `Teacher`, `SchoolYear`, dan `Semester`, lalu dapat ditampilkan di detail report siswa sebagai rata-rata nilai, nilai terbaru, dan riwayat penilaian per mapel.
+Nilai harian membaca `AssessmentScore` yang sudah disubmit. Detail report siswa menampilkan rata-rata nilai, nilai terbaru, dan riwayat singkat penilaian per mapel. Approval nilai semester tetap menjadi tahap lanjutan setelah input nilai harian stabil.
 
 ## Catatan Implementasi
 
