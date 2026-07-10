@@ -1032,6 +1032,14 @@
   .no-scrollbar { scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .mobile-app-content main { @apply py-3; }
+  .mobile-app-content :where(section, article, aside, form, fieldset, header, footer, nav, .surface-card, .school-panel) {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .mobile-app-content :where(pre, code) {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
 }
 
 /* Compatibility layer: seluruh halaman lama ikut tema tanpa migrasi class sekaligus. */

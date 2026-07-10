@@ -171,7 +171,6 @@ export class OperationsService {
         config: {
           botTokenConfigured: this.telegramBotService.isConfigured(),
           botUsername: this.configService.get<string>('TELEGRAM_BOT_USERNAME')?.trim() || null,
-          backendPublicUrl: this.configService.get<string>('BACKEND_PUBLIC_URL')?.trim() || null,
           botUrlConfigured: Boolean(this.configService.get<string>('TELEGRAM_BOT_URL')?.trim()),
           webhookSecretConfigured: Boolean(this.getTelegramWebhookSecret()),
           webhookUrl,
@@ -433,12 +432,6 @@ export class OperationsService {
 
     if (explicitUrl) {
       return explicitUrl;
-    }
-
-    const backendPublicUrl = this.configService.get<string>('BACKEND_PUBLIC_URL')?.trim();
-
-    if (backendPublicUrl) {
-      return `${backendPublicUrl.replace(/\/$/, '')}/api/auth/telegram/webhook`;
     }
 
     const frontendUrl = this.configService.get<string>('FRONTEND_URL')?.trim();

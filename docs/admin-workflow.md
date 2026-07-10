@@ -73,7 +73,7 @@ Item `Inbox` memakai icon pesan dan memiliki badge/dot jika ada notifikasi priba
 
 Halaman Profil dipakai oleh semua role untuk melihat identitas login, mengunggah foto dari file lokal perangkat, melihat status Telegram, mengganti akun Telegram, mengubah password, melihat sesi aktif, dan keluar dari semua perangkat. Telegram tidak diketik manual; UI meminta token aktivasi ke backend lalu membuka bot Telegram. Setelah user membuka bot dengan `/start <token>`, webhook Telegram EduFlow mengonfirmasi token dan menyimpan `User.telegramId` otomatis. Jika user belum mengaktifkan Telegram, dashboard role menampilkan peringatan dengan tombol aktivasi langsung ke bot sampai `User.telegramId` tersimpan.
 
-Catatan integrasi Telegram: root mengelola webhook dari `/admin/telegram`. Environment wajib untuk webhook adalah `TELEGRAM_BOT_TOKEN` dan `BACKEND_PUBLIC_URL`; opsional `TELEGRAM_WEBHOOK_SECRET` dan `TELEGRAM_BOT_USERNAME`. Jika `TELEGRAM_WEBHOOK_URL` diisi, nilai itu menjadi override URL webhook. Halaman `/admin/telegram` dipakai untuk melihat status konfigurasi, memasang/menghapus webhook, dan membaca response `getWebhookInfo` tanpa menampilkan token bot ke browser.
+Catatan integrasi Telegram: root mengelola webhook dari `/admin/telegram`. Environment wajib untuk webhook adalah `TELEGRAM_BOT_TOKEN` dan `TELEGRAM_WEBHOOK_URL`; opsional `TELEGRAM_WEBHOOK_SECRET` dan `TELEGRAM_BOT_USERNAME`. Halaman `/admin/telegram` dipakai untuk melihat status konfigurasi, memasang/menghapus webhook, dan membaca response `getWebhookInfo` tanpa menampilkan token bot ke browser.
 
 `Ops` hanya muncul untuk `root` karena berisi health check, queue monitoring, failed jobs, dan tindakan teknis operasional sistem.
 
@@ -325,6 +325,11 @@ Catatan UI `/admin/schedules`:
 - card form dan card tabel wajib memakai `min-w-0` di dalam grid agar tampilan mobile tidak terpotong,
 - tabel jadwal boleh horizontal scroll di dalam card, tetapi card tidak boleh melebar keluar viewport,
 - date picker pada `Lihat kondisi jadwal`, `Berlaku mulai`, `Generate mulai`, dan `Generate sampai` mengikuti pola global `.date-picker-control`.
+
+Catatan UI mobile admin:
+
+- setiap card, panel, form, dan grid di mobile wajib aman terhadap teks panjang dengan `min-w-0`, `max-w-full`, dan wrapping/scroll internal,
+- URL, JSON, token label, NIP, atau kode teknis panjang tidak boleh membuat frame utama melebar keluar viewport.
 
 ## Manajemen User
 

@@ -74,10 +74,10 @@ REDIS_PORT=6379
 JWT_SECRET=ganti-dengan-secret-production
 FRONTEND_URL=https://domain-frontend-atau-ip-server
 FRONTEND_ALLOWED_ORIGINS=https://domain-frontend-atau-ip-server
-BACKEND_PUBLIC_URL=https://domain-backend-atau-ip-server
 TELEGRAM_BOT_USERNAME=nama_bot
 TELEGRAM_BOT_TOKEN=token_dari_botfather
 TELEGRAM_WEBHOOK_SECRET=secret-random
+TELEGRAM_WEBHOOK_URL=https://domain-backend-atau-frontend/api/auth/telegram/webhook
 ```
 
 `NEXT_PUBLIC_API_URL` masuk ke bundle frontend saat image dibuild. Jika nilainya berubah, rebuild image frontend:

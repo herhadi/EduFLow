@@ -12,8 +12,10 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan aksi ganti akun Telegram di halaman Profil untuk user yang sudah terhubung.
 - Merapikan panel `/admin/telegram` menjadi mode teknis khusus root: tombol Refresh/Set/Hapus webhook, daftar variabel backend, URL webhook final, dan response JSON `getWebhookInfo`.
 - Mengubah balasan sukses bot Telegram menjadi sapaan personal sesuai nama akun EduFlow.
-- Menambahkan dukungan `BACKEND_PUBLIC_URL` dan aksi hapus webhook Telegram dari panel root.
+- Menambahkan aksi hapus webhook Telegram dari panel root dan menyederhanakan tampilan variabel backend agar mengikuti `TELEGRAM_WEBHOOK_URL`.
 - Memperbaiki overflow form create jadwal di mobile dengan grid tingkat/rombel responsif, field `min-width` aman, dan teks slot yang tidak memaksa lebar card.
+- Menambahkan command `/help` pada bot Telegram untuk menampilkan panduan aktivasi dan daftar perintah dasar.
+- Memperbaiki overflow panel `/admin/telegram` di mobile dan menambahkan guard global agar card/form/panel mobile memakai `min-width` aman saat menampilkan URL, JSON, atau label teknis panjang.
 
 ## 2026-07-09
 

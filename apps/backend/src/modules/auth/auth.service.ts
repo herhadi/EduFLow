@@ -413,12 +413,20 @@ export class AuthService {
       return { ok: true, ignored: true };
     }
 
+    if (this.isTelegramCommand(message.text, '/help')) {
+      await this.telegramBotService.sendMessage(
+        String(message.chatId),
+        this.getTelegramHelpMessage(),
+      ).catch(() => undefined);
+      return { ok: true };
+    }
+
     const token = this.extractTelegramStartToken(message.text);
 
     if (!token) {
       await this.telegramBotService.sendMessage(
         String(message.chatId),
-        'Buka halaman Profil EduFlow, klik Aktivasi Telegram, lalu tekan tombol masuk ke bot.',
+        'Halo. Bot EduFlow aktif.\n\nKetik /help untuk melihat panduan. Untuk menghubungkan akun, buka EduFlow lalu klik Aktivasi Telegram dari beranda atau Profil.',
       ).catch(() => undefined);
       return { ok: true, ignored: true };
     }
@@ -978,6 +986,28 @@ export class AuthService {
     }
 
     return token;
+  }
+
+  private isTelegramCommand(text: string, expectedCommand: string) {
+    const [command] = text.trim().split(/\s+/, 1);
+    return command.split('@')[0] === expectedCommand;
+  }
+
+  private getTelegramHelpMessage() {
+    return [
+      '<b>EduFlow Bot</b>',
+      '',
+      'Perintah yang tersedia:',
+      '/help - Menampilkan panduan bot.',
+      '/start - Mengecek status bot.',
+      '',
+      'Untuk aktivasi akun:',
+      '1. Login ke EduFlow.',
+      '2. Klik Aktivasi Telegram di beranda atau Profil.',
+      '3. Tekan Start pada bot yang terbuka.',
+      '',
+      'Setelah terhubung, reminder dan notifikasi sekolah akan dikirim ke chat ini.',
+    ].join('\n');
   }
 
   private escapeTelegramHtml(value: string) {

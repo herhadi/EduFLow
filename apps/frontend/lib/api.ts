@@ -434,7 +434,6 @@ export interface TelegramOperationsStatus {
   config: {
     botTokenConfigured: boolean;
     botUsername?: string | null;
-    backendPublicUrl?: string | null;
     botUrlConfigured: boolean;
     webhookSecretConfigured: boolean;
     webhookUrl?: string | null;
