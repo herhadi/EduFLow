@@ -71,9 +71,9 @@ Item paling kanan selalu `Profil` untuk kebutuhan personal seperti ganti passwor
 
 Item `Inbox` memakai icon pesan dan memiliki badge/dot jika ada notifikasi pribadi yang belum dibaca. Status operasional seperti `PENDING` atau `FAILED` tetap ditampilkan di tab notifikasi operasional, tetapi tidak mengunci badge unread. Item `Profil` memakai icon orang.
 
-Halaman Profil dipakai oleh semua role untuk melihat identitas login, mengunggah foto dari file lokal perangkat, mengaktifkan Telegram, mengubah password, melihat sesi aktif, dan keluar dari semua perangkat. Telegram tidak diketik manual; UI meminta token aktivasi ke backend lalu membuka bot Telegram. Setelah bot menerima token dan mengirim konfirmasi ke `POST /api/auth/telegram/link/confirm`, `User.telegramId` tersimpan otomatis.
+Halaman Profil dipakai oleh semua role untuk melihat identitas login, mengunggah foto dari file lokal perangkat, mengaktifkan Telegram, mengubah password, melihat sesi aktif, dan keluar dari semua perangkat. Telegram tidak diketik manual; UI meminta token aktivasi ke backend lalu membuka bot Telegram. Setelah user membuka bot dengan `/start <token>`, webhook Telegram EduFlow mengonfirmasi token dan menyimpan `User.telegramId` otomatis.
 
-Catatan integrasi Telegram: EduFlow sudah menyediakan endpoint token dan endpoint confirm. Bot Telegram tetap perlu dikonfigurasi agar saat user membuka bot dari Profil dan mengirim `/start <token>`, bot memanggil endpoint confirm dengan token tersebut serta Telegram ID pengirim.
+Catatan integrasi Telegram: isi `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, dan opsional `TELEGRAM_WEBHOOK_SECRET`. Set webhook bot ke `POST /api/auth/telegram/webhook`; jika memakai secret, kirim `secret_token` yang sama saat `setWebhook`.
 
 `Ops` hanya muncul untuk `root` karena berisi health check, queue monitoring, failed jobs, dan tindakan teknis operasional sistem.
 

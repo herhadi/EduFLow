@@ -13,9 +13,13 @@ import { PageHeader } from './ui/page-header';
 import { UserAvatar } from './ui/user-avatar';
 
 type CurrentUser = {
+  id?: string;
+  email?: string;
   name?: string;
   photoUrl?: string | null;
   roles?: string[];
+  telegramId?: string | null;
+  telegramLinkedAt?: string | null;
   username?: string | null;
 };
 
@@ -28,12 +32,14 @@ export function RoleDashboard({
   const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
+  const [profileChecked, setProfileChecked] = useState(false);
   const [teacherPhotoUrl, setTeacherPhotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
 
     if (!storedUser) {
+      setProfileChecked(true);
       return;
     }
 
@@ -49,9 +55,11 @@ export function RoleDashboard({
           setTeacherPhotoUrl(response.data.photoUrl ?? null);
           localStorage.setItem('currentUser', JSON.stringify({ ...user, ...response.data }));
         })
-        .catch(() => undefined);
+        .catch(() => undefined)
+        .finally(() => setProfileChecked(true));
     } catch {
       localStorage.removeItem('currentUser');
+      setProfileChecked(true);
     }
   }, []);
 
@@ -87,36 +95,86 @@ export function RoleDashboard({
 
   if (activeRole === 'guru' || activeRole === 'wali_kelas') {
     return (
-      <TeacherHome
+      <DashboardWithTelegramPrompt
+        activeRole={activeRole}
         currentUser={currentUser}
-        isHomeroom={currentUser?.roles?.includes('wali_kelas') ?? activeRole === 'wali_kelas'}
-        photoUrl={teacherPhotoUrl}
-      />
+        profileChecked={profileChecked}
+      >
+        <TeacherHome
+          currentUser={currentUser}
+          isHomeroom={currentUser?.roles?.includes('wali_kelas') ?? activeRole === 'wali_kelas'}
+          photoUrl={teacherPhotoUrl}
+        />
+      </DashboardWithTelegramPrompt>
     );
   }
 
   if (activeRole === 'operator_sekolah') {
-    return <OperatorHome currentUser={currentUser} />;
+    return (
+      <DashboardWithTelegramPrompt
+        activeRole={activeRole}
+        currentUser={currentUser}
+        profileChecked={profileChecked}
+      >
+        <OperatorHome currentUser={currentUser} />
+      </DashboardWithTelegramPrompt>
+    );
   }
 
   if (activeRole === 'kepala_sekolah') {
-    return <PrincipalHome currentUser={currentUser} />;
+    return (
+      <DashboardWithTelegramPrompt
+        activeRole={activeRole}
+        currentUser={currentUser}
+        profileChecked={profileChecked}
+      >
+        <PrincipalHome currentUser={currentUser} />
+      </DashboardWithTelegramPrompt>
+    );
   }
 
   if (activeRole === 'orang_tua') {
-    return <ParentHome currentUser={currentUser} />;
+    return (
+      <DashboardWithTelegramPrompt
+        activeRole={activeRole}
+        currentUser={currentUser}
+        profileChecked={profileChecked}
+      >
+        <ParentHome currentUser={currentUser} />
+      </DashboardWithTelegramPrompt>
+    );
   }
 
   if (activeRole === 'tu') {
-    return <StaffHome currentUser={currentUser} />;
+    return (
+      <DashboardWithTelegramPrompt
+        activeRole={activeRole}
+        currentUser={currentUser}
+        profileChecked={profileChecked}
+      >
+        <StaffHome currentUser={currentUser} />
+      </DashboardWithTelegramPrompt>
+    );
   }
 
   if (activeRole === 'bk') {
-    return <CounselingHome currentUser={currentUser} />;
+    return (
+      <DashboardWithTelegramPrompt
+        activeRole={activeRole}
+        currentUser={currentUser}
+        profileChecked={profileChecked}
+      >
+        <CounselingHome currentUser={currentUser} />
+      </DashboardWithTelegramPrompt>
+    );
   }
 
   return (
-    <>
+    <DashboardWithTelegramPrompt
+      activeRole={activeRole}
+      currentUser={currentUser}
+      profileChecked={profileChecked}
+    >
       <PageHeader
         description={getMonitoringDescription(activeRole)}
         eyebrow="EduFlow"
@@ -124,8 +182,70 @@ export function RoleDashboard({
         title={getMonitoringTitle(activeRole)}
       />
       <OperationalDashboard />
+    </DashboardWithTelegramPrompt>
+  );
+}
+
+function DashboardWithTelegramPrompt({
+  activeRole,
+  children,
+  currentUser,
+  profileChecked,
+}: {
+  activeRole: UserRole;
+  children: ReactNode;
+  currentUser: CurrentUser | null;
+  profileChecked: boolean;
+}) {
+  return (
+    <>
+      {profileChecked && !currentUser?.telegramId ? (
+        <TelegramActivationPrompt activeRole={activeRole} />
+      ) : null}
+      {children}
     </>
   );
+}
+
+function TelegramActivationPrompt({ activeRole }: { activeRole: UserRole }) {
+  return (
+    <section className="mb-5 rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-sm shadow-amber-100/60 dark:border-amber-400/25 dark:bg-amber-500/15 dark:text-amber-100">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.12em] text-amber-700 dark:text-amber-200">
+            Aktivasi Telegram
+          </p>
+          <h2 className="mt-1 text-base font-black text-slate-900 dark:text-amber-50">
+            Aktifkan Telegram agar reminder dan notifikasi penting masuk.
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-amber-800 dark:text-amber-100/80">
+            Peringatan ini akan hilang setelah akun Telegram berhasil terhubung dari halaman Profil.
+          </p>
+        </div>
+        <Link
+          className="inline-flex w-full items-center justify-center rounded-2xl bg-amber-700 px-4 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-amber-800 sm:w-auto"
+          href={getProfilePathForRole(activeRole)}
+        >
+          Aktifkan di Profil
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function getProfilePathForRole(role: UserRole) {
+  const paths: Record<UserRole, string> = {
+    root: '/system/profile',
+    operator_sekolah: '/admin/profile',
+    kepala_sekolah: '/principal/profile',
+    wali_kelas: '/teacher/profile',
+    guru: '/teacher/profile',
+    tu: '/tu/profile',
+    bk: '/bk/profile',
+    orang_tua: '/parent/profile',
+  };
+
+  return paths[role];
 }
 
 function OperatorHome({ currentUser }: { currentUser: CurrentUser | null }) {

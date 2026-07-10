@@ -2,6 +2,12 @@
 
 Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
+## 2026-07-10
+
+- Mengaktifkan integrasi Telegram bot: backend menerima webhook `/api/auth/telegram/webhook`, memproses `/start <token>` dari halaman Profil, menyimpan `User.telegramId`, dan worker notifikasi mengirim pesan melalui Telegram Bot API.
+- Menambahkan konfigurasi `TELEGRAM_BOT_TOKEN` dan `TELEGRAM_WEBHOOK_SECRET` pada environment example, serta memperjelas dokumentasi aktivasi Telegram dan retry notifikasi.
+- Menambahkan peringatan aktivasi Telegram pada beranda setiap role; peringatan hilang otomatis setelah `User.telegramId` tersimpan.
+
 ## 2026-07-09
 
 - Mengubah carousel landing page menjadi banner sorotan besar dengan overlay teks, kontrol panah, tab kategori, dan visual yang lebih dekat ke pola hero korporat.

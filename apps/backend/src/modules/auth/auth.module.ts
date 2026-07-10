@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { StorageModule } from '../../infrastructure/storage/storage.module';
+import { TelegramModule } from '../../infrastructure/telegram/telegram.module';
 import { NotificationModule } from '../notification/notification.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -9,6 +10,7 @@ import { AuthService } from './auth.service';
 @Module({
   imports: [
     StorageModule,
+    TelegramModule,
     NotificationModule,
     JwtModule.registerAsync({
       global: true,

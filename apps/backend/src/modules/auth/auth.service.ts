@@ -13,6 +13,7 @@ import { compare, hash } from 'bcryptjs';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
 import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
+import { TelegramBotService } from '../../infrastructure/telegram/telegram-bot.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../notification/notification.service';
 import { ConfirmTelegramLinkDto } from './dto/confirm-telegram-link.dto';
@@ -65,6 +66,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
     private readonly notificationService: NotificationService,
+    private readonly telegramBotService: TelegramBotService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -398,6 +400,48 @@ export class AuthService {
     });
 
     return { data: await this.toProfileUser(user), message: 'Telegram berhasil diaktifkan.' };
+  }
+
+  async handleTelegramWebhook(update: unknown, secretToken?: string | string[]) {
+    if (!this.telegramBotService.verifyWebhookSecret(secretToken)) {
+      throw new UnauthorizedException('Telegram webhook secret tidak valid');
+    }
+
+    const message = this.getTelegramMessage(update);
+
+    if (!message) {
+      return { ok: true, ignored: true };
+    }
+
+    const token = this.extractTelegramStartToken(message.text);
+
+    if (!token) {
+      await this.telegramBotService.sendMessage(
+        String(message.chatId),
+        'Buka halaman Profil EduFlow, klik Aktivasi Telegram, lalu tekan tombol masuk ke bot.',
+      ).catch(() => undefined);
+      return { ok: true, ignored: true };
+    }
+
+    try {
+      await this.confirmTelegramLink({
+        telegramId: String(message.fromId ?? message.chatId),
+        token,
+      });
+      await this.telegramBotService.sendMessage(
+        String(message.chatId),
+        'Telegram berhasil diaktifkan untuk akun EduFlow Anda.',
+      ).catch(() => undefined);
+    } catch (error) {
+      await this.telegramBotService.sendMessage(
+        String(message.chatId),
+        error instanceof Error
+          ? `Aktivasi Telegram gagal: ${error.message}`
+          : 'Aktivasi Telegram gagal.',
+      ).catch(() => undefined);
+    }
+
+    return { ok: true };
   }
 
   async requestPasswordReset(dto: RequestPasswordResetInput) {
@@ -897,6 +941,43 @@ export class AuthService {
     }
 
     return null;
+  }
+
+  private getTelegramMessage(update: unknown) {
+    if (!update || typeof update !== 'object') {
+      return null;
+    }
+
+    const message = (update as { message?: unknown }).message;
+
+    if (!message || typeof message !== 'object') {
+      return null;
+    }
+
+    const text = (message as { text?: unknown }).text;
+    const chat = (message as { chat?: { id?: unknown } }).chat;
+    const from = (message as { from?: { id?: unknown } }).from;
+
+    if (typeof text !== 'string' || (typeof chat?.id !== 'string' && typeof chat?.id !== 'number')) {
+      return null;
+    }
+
+    return {
+      chatId: chat.id,
+      fromId: from?.id,
+      text,
+    };
+  }
+
+  private extractTelegramStartToken(text: string) {
+    const [command, token] = text.trim().split(/\s+/, 2);
+    const commandName = command.split('@')[0];
+
+    if (commandName !== '/start' || !token) {
+      return null;
+    }
+
+    return token;
   }
 
   private async isDefaultPassword(passwordHash: string) {

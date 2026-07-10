@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Headers, Param, Patch, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PERMISSIONS } from '../../common/constants/permissions';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
@@ -140,6 +140,15 @@ export class AuthController {
   @Post('telegram/link/confirm')
   confirmTelegramLink(@Body() dto: ConfirmTelegramLinkDto) {
     return this.authService.confirmTelegramLink(dto);
+  }
+
+  @Public()
+  @Post('telegram/webhook')
+  handleTelegramWebhook(
+    @Body() update: unknown,
+    @Headers('x-telegram-bot-api-secret-token') secretToken?: string,
+  ) {
+    return this.authService.handleTelegramWebhook(update, secretToken);
   }
 
   @RequirePermissions(PERMISSIONS.USER_MANAGE)
