@@ -105,6 +105,47 @@
       linear-gradient(145deg, var(--app-bg-deep), var(--app-bg));
   }
 
+  .login-page {
+    background: #dbeafe;
+  }
+
+  .login-backdrop {
+    background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 42%, #dcfce7 100%);
+  }
+
+  .login-pattern {
+    background-image:
+      linear-gradient(rgba(37, 99, 235, 0.09) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37, 99, 235, 0.09) 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: linear-gradient(120deg, black 0%, black 60%, transparent 88%);
+    opacity: 0.55;
+  }
+
+  .login-glow {
+    background:
+      radial-gradient(circle at 20% 12%, rgba(37, 99, 235, 0.2), transparent 34%),
+      radial-gradient(circle at 82% 10%, rgba(16, 185, 129, 0.18), transparent 30%);
+  }
+
+  [data-theme="dark"] .login-page {
+    background: #020617;
+  }
+
+  [data-theme="dark"] .login-backdrop {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 48%, #064e3b 100%);
+  }
+
+  [data-theme="dark"] .login-pattern {
+    opacity: 0.25;
+  }
+
+  [data-theme="dark"] .login-glow {
+    background:
+      radial-gradient(circle at 22% 14%, rgba(56, 189, 248, 0.18), transparent 32%),
+      radial-gradient(circle at 78% 10%, rgba(20, 184, 166, 0.16), transparent 28%);
+  }
+
   .school-backdrop {
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--primary-soft) 64%, var(--surface-solid)), var(--app-bg-deep));

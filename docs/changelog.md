@@ -12,6 +12,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menampilkan ringkasan Kendali KBM pada dashboard operasional: checklist, kendala, agenda yang perlu tindak lanjut, dan guru pengganti hari ini.
 - Menambahkan Report Siswa pada halaman laporan Kepala Sekolah dengan filter kelas/rentang/status, indikator risiko presensi, detail presensi terbaru, serta slot nilai harian untuk modul penilaian berikutnya.
 - Menambahkan modul nilai harian guru: model `Assessment`/`AssessmentScore`, endpoint `/api/student-grades/assessments`, halaman `/teacher/assessments`, draft skor siswa, submit nilai, dan integrasi nilai harian ke detail Report Siswa.
+- Merapikan halaman login dengan background tone app yang lebih hidup, dukungan dark mode, header atas yang lebih rapi, serta panel lupa password yang lebih kontras namun tetap ringan.
 
 ## 2026-07-03
 

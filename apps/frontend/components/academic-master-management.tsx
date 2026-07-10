@@ -635,9 +635,9 @@ export function AcademicMasterManagement() {
                 <h3 className="font-black text-slate-800">Kelas {group.grade}</h3>
                 <span className="rounded-full bg-brand-50 px-2 py-1 text-xs font-black text-brand-700">{group.classes.length}</span>
               </div>
-              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {group.classes.map((schoolClass) => (
-                  <div className="flex items-center justify-between gap-2 rounded-2xl border border-blue-50 bg-slate-50 p-3" key={schoolClass.id}>
+                  <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-blue-50 bg-slate-50 px-3 py-2.5" key={schoolClass.id}>
                     <span className="truncate text-sm font-black text-slate-800">{schoolClass.name}</span>
                     <button
                       className="rounded-full bg-rose-50 px-2 py-1 text-xs font-black text-rose-700 hover:bg-rose-100"
@@ -751,9 +751,9 @@ export function AcademicMasterManagement() {
           </button>
         </form>
 
-        <div className="mt-5 grid gap-2">
+        <div className="mt-5 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
           {subjects.sort((a, b) => a.name.localeCompare(b.name)).map((subject) => (
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-blue-50 bg-slate-50 p-3" key={subject.id}>
+            <div className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-blue-50 bg-slate-50 px-3 py-2.5" key={subject.id}>
               <div className="min-w-0">
                 <p className="truncate text-sm font-black text-slate-900">{subject.name}</p>
                 <p className="mt-1 text-xs font-bold text-muted">{subject.code ?? 'Tanpa kode'}</p>

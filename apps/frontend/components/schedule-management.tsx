@@ -514,21 +514,21 @@ export function ScheduleManagement() {
   }
 
   return (
-    <section className="mt-10 grid min-w-0 gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+    <section className="mt-6 grid min-w-0 gap-5 sm:mt-10 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
       <form
-        className="min-w-0 rounded-2xl border border-slate-200 bg-white p-6"
+        className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 sm:p-6"
         onSubmit={handleSubmit}
       >
         <div>
           <p className="text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
             {editingId ? 'Edit Jadwal' : 'Create Jadwal'}
           </p>
-          <h2 className="mt-1 text-2xl font-bold">
+          <h2 className="mt-1 text-xl font-bold sm:text-2xl">
             {editingId ? 'Ubah Jadwal' : 'Tambah Jadwal'}
           </h2>
         </div>
 
-        <div className="mt-6 grid gap-4">
+        <div className="mt-5 grid min-w-0 gap-3 sm:mt-6 sm:gap-4">
           <SelectField
             label="Tahun Ajaran"
             onChange={(value) => {
@@ -637,17 +637,17 @@ export function ScheduleManagement() {
                 : ''
             }
           />
-          <p className="-mt-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs font-semibold leading-5 text-brand-700">
+          <p className="-mt-1 rounded-2xl bg-blue-50 px-3 py-2.5 text-xs font-semibold leading-5 text-brand-700 sm:-mt-2 sm:px-4 sm:py-3">
             Mata pelajaran mengikuti pilihan guru pengampu. Guru dengan dua mapel tampil sebagai dua opsi terpisah.
           </p>
 
-          <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+          <div className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 sm:p-4">
             <p className="text-sm font-black text-slate-800">Pilih Kelas</p>
             <p className="mt-1 text-xs font-semibold text-muted">Pilih tingkat. Rombel A, B, C, dan seterusnya dipilih pada setiap jam.</p>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {availableGrades.map((grade) => (
                 <button
-                  className={selectedGrade === grade ? 'rounded-xl bg-brand-600 px-3 py-3 text-sm font-black text-white' : 'rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm font-black text-brand-700'}
+                  className={selectedGrade === grade ? 'min-w-0 rounded-xl bg-brand-600 px-2 py-2.5 text-sm font-black text-white sm:px-3 sm:py-3' : 'min-w-0 rounded-xl border border-blue-100 bg-white px-2 py-2.5 text-sm font-black text-brand-700 sm:px-3 sm:py-3'}
                   key={grade}
                   onClick={() => {
                     setSelectedGrade(grade);
@@ -676,7 +676,7 @@ export function ScheduleManagement() {
             }))}
             value={String(form.dayOfWeek)}
           />
-          <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+          <div className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 sm:p-4">
             <p className="text-xs font-black tracking-[0.1em] text-brand-700 uppercase">
               Susunan Hari Ini
             </p>
@@ -710,21 +710,21 @@ export function ScheduleManagement() {
                   )}
                 </div>
               ) : (
-                <div className="rounded-xl bg-white p-3" key={slot.id}>
+                <div className="min-w-0 rounded-xl bg-white p-3" key={slot.id}>
                   <button
-                    className="flex w-full items-center justify-between gap-3 text-left text-xs font-bold text-slate-700"
+                    className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 text-left text-xs font-bold text-slate-700"
                     disabled={!slot.isAssignable}
                     onClick={() => toggleTimeSlotPanel(slot.id)}
                     type="button"
                   >
-                    <span>{slot.name}</span>
-                    <span className="flex items-center gap-2">
+                    <span className="min-w-0 truncate">{slot.name}</span>
+                    <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
                       {slot.startsAt}-{slot.endsAt}
                       <span className="text-brand-700">{expandedTimeSlotIds.includes(slot.id) ? '−' : '+'}</span>
                     </span>
                   </button>
                   {slot.isAssignable && expandedTimeSlotIds.includes(slot.id) ? (
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-3 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
                       {gradeClasses.map((schoolClass) => {
                         const active = (slotClassIds[slot.id] ?? []).includes(schoolClass.id);
                         const rombel = schoolClass.name
@@ -732,7 +732,7 @@ export function ScheduleManagement() {
                           .replace(/^[\s-]+/, '') || schoolClass.name;
                         return (
                           <button
-                            className={active ? 'min-w-11 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-black text-white' : 'min-w-11 rounded-lg border border-blue-100 bg-blue-50/50 px-3 py-2 text-xs font-black text-slate-700'}
+                            className={active ? 'min-w-0 rounded-lg bg-emerald-600 px-2 py-2 text-xs font-black text-white sm:min-w-11 sm:px-3' : 'min-w-0 rounded-lg border border-blue-100 bg-blue-50/50 px-2 py-2 text-xs font-black text-slate-700 sm:min-w-11 sm:px-3'}
                             key={schoolClass.id}
                             onClick={() => toggleSlotClass(slot, schoolClass.id)}
                             type="button"
@@ -757,9 +757,9 @@ export function ScheduleManagement() {
           </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="mt-5 grid gap-2 sm:mt-6 sm:flex sm:flex-wrap sm:gap-3">
           <button
-            className="rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             disabled={
               submitState === 'loading' ||
               !form.teacherId ||
@@ -777,7 +777,7 @@ export function ScheduleManagement() {
           </button>
           {editingId ? (
             <button
-              className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700"
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 sm:w-auto"
               onClick={() => {
                 setEditingId(null);
                 setForm(emptyForm);
@@ -858,7 +858,7 @@ export function ScheduleManagement() {
           ) : null}
 
           <div className="mt-5 flex justify-end">
-            <label className="grid w-full max-w-xs gap-1 text-sm font-semibold text-slate-700 sm:w-56">
+            <label className="grid w-full gap-1 text-sm font-semibold text-slate-700 sm:w-56">
               Filter hari
               <select
                 className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal outline-none focus:border-brand-600"
@@ -873,8 +873,8 @@ export function ScheduleManagement() {
             </label>
           </div>
 
-	          <div className="mt-3 max-w-full overflow-x-auto rounded-2xl border border-slate-100">
-            <table className="w-full min-w-[640px] border-collapse bg-white text-left text-sm sm:min-w-[720px]">
+          <div className="mt-3 max-w-full overflow-x-auto rounded-2xl border border-slate-100">
+            <table className="w-full min-w-[560px] border-collapse bg-white text-left text-sm sm:min-w-[720px]">
               <thead className="bg-slate-50 text-xs font-black tracking-[0.08em] text-slate-500 uppercase">
                 <tr>
                   <th className="px-4 py-3">Hari</th>
@@ -900,20 +900,20 @@ export function ScheduleManagement() {
                     <td className="px-4 py-3 text-slate-600">{schedule.teacher.name}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                      <button
-                        className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-black text-brand-700"
-                        onClick={() => startEdit(schedule)}
-                        type="button"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-black text-red-700 transition hover:bg-red-100"
-                        onClick={() => void handleDelete(schedule)}
-                        type="button"
-                      >
-                        Hapus
-                      </button>
+                        <button
+                          className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-black text-brand-700"
+                          onClick={() => startEdit(schedule)}
+                          type="button"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-black text-red-700 transition hover:bg-red-100"
+                          onClick={() => void handleDelete(schedule)}
+                          type="button"
+                        >
+                          Hapus
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -935,8 +935,8 @@ export function ScheduleManagement() {
                   </tr>
                 ) : null}
               </tbody>
-	            </table>
-	          </div>
+            </table>
+          </div>
 
           {canGenerateAgenda ? (
             <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
@@ -962,16 +962,16 @@ export function ScheduleManagement() {
                   value={generateEndsAt}
                 />
               </div>
-              <div className="mt-3 flex flex-wrap gap-3">
+              <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
                 <button
-                  className="h-12 rounded-xl border border-amber-300 bg-amber-50 px-4 text-sm font-black text-amber-800 transition hover:bg-amber-100"
+                  className="min-h-12 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-black text-amber-800 transition hover:bg-amber-100"
                   onClick={() => void checkAgendaCoverage(scheduleClassId || undefined)}
                   type="button"
                 >
                   Cek Agenda Kelas
                 </button>
                 <button
-                  className="h-12 rounded-xl bg-emerald-600 px-4 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="min-h-12 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={!scheduleClassId || !form.schoolYearId || submitState === 'loading'}
                   onClick={() => void handleGenerateAgendas({ classId: scheduleClassId })}
                   type="button"
@@ -979,7 +979,7 @@ export function ScheduleManagement() {
                   Generate Agenda Kelas
                 </button>
                 <button
-                  className="h-12 rounded-xl border border-emerald-600 bg-white px-4 text-sm font-black text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="min-h-12 rounded-xl border border-emerald-600 bg-white px-4 py-3 text-sm font-black text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={!agendaClassIds.length || !form.schoolYearId || submitState === 'loading'}
                   onClick={() => void handleGenerateAgendas({ classIds: agendaClassIds })}
                   type="button"

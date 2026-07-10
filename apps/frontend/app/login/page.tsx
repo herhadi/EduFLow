@@ -148,22 +148,34 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="app-backdrop min-h-dvh px-4 py-6">
-      <div className="mx-auto flex min-h-[calc(100dvh-3rem)] max-w-md flex-col justify-center">
+    <main className="login-page relative isolate min-h-dvh overflow-hidden px-4 py-5 text-slate-900 sm:py-6">
+      <div
+        aria-hidden="true"
+        className="login-backdrop absolute inset-0 -z-20"
+      />
+      <div
+        aria-hidden="true"
+        className="login-pattern absolute inset-0 -z-10"
+      />
+      <div
+        aria-hidden="true"
+        className="login-glow absolute inset-x-0 top-0 -z-10 h-72"
+      />
+      <div className="mx-auto flex min-h-[calc(100dvh-2.5rem)] max-w-5xl flex-col sm:min-h-[calc(100dvh-3rem)]">
         <div className="mb-6 flex items-center justify-between gap-3 sm:mb-8">
-          <Link className="flex items-center gap-3" href="/">
-            <span className="grid size-11 place-items-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1">
+          <Link className="flex min-w-0 items-center gap-3" href="/">
+            <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/50 bg-white p-1 shadow-sm shadow-blue-950/20">
               <img
                 alt="Logo sekolah"
                 className="h-full w-full object-contain"
                 src="/logo_sekolah.webp"
               />
             </span>
-            <span>
-              <span className="block text-lg font-black leading-none text-ink">
+            <span className="min-w-0">
+              <span className="block truncate text-lg font-black leading-none text-slate-900 dark:text-white">
                 EduFlow
               </span>
-              <span className="mt-1 block text-xs font-semibold text-muted">
+              <span className="mt-1 block text-xs font-semibold text-brand-700 dark:text-blue-100">
                 Login Sistem
               </span>
             </span>
@@ -171,12 +183,37 @@ export default function LoginPage() {
 
           <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle compact />
-            <Link className="secondary-button shrink-0 rounded-full px-3 py-2 text-xs font-black sm:px-4" href="/">
+            <Link className="rounded-full border border-brand-200 bg-white/70 px-3 py-2 text-xs font-black text-brand-700 shadow-sm shadow-blue-100/50 backdrop-blur transition hover:bg-white dark:border-white/30 dark:bg-white/15 dark:text-white dark:shadow-none dark:hover:bg-white/25 sm:px-4" href="/">
               ← Landing
             </Link>
           </div>
         </div>
 
+        <div className="grid flex-1 items-center gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(380px,460px)]">
+        <aside className="hidden min-w-0 lg:block">
+          <div className="max-w-xl">
+            <h2 className="text-5xl font-black leading-tight tracking-tight text-slate-950 dark:text-white">
+              Monitoring KBM yang lebih tenang dan tertata.
+            </h2>
+            <p className="mt-4 max-w-lg text-base font-semibold leading-8 text-slate-600 dark:text-blue-100/90">
+              Jadwal, agenda harian, presensi, perangkat ajar, nilai, dan laporan sekolah dalam satu ruang kerja.
+            </p>
+            <div className="mt-8 grid max-w-lg grid-cols-3 gap-3">
+              {[
+                ['Jadwal', 'Agenda efektif'],
+                ['Presensi', 'KBM harian'],
+                ['Laporan', 'Pantauan siswa'],
+              ].map(([title, description]) => (
+                <div className="rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm shadow-blue-100/60 backdrop-blur dark:border-white/20 dark:bg-white/12 dark:shadow-blue-950/20" key={title}>
+                  <p className="text-sm font-black text-slate-900 dark:text-white">{title}</p>
+                  <p className="mt-1 text-xs font-semibold leading-5 text-slate-500 dark:text-blue-100/85">{description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        <div className="mx-auto flex w-full max-w-md flex-col justify-center lg:mx-0 lg:justify-self-end">
         <section className="surface-card rounded-[2rem] p-5 sm:p-7">
           <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
             {pendingSession ? 'Password Default' : 'Login Sistem'}
@@ -241,7 +278,7 @@ export default function LoginPage() {
                     Ingat saya
                   </label>
                   <button
-                    className="font-bold text-brand-700"
+                    className="cursor-pointer font-bold text-brand-700 underline-offset-4 transition hover:text-brand-800 hover:underline"
                     onClick={() => setShowForgotPasswordHelp((current) => !current)}
                     type="button"
                   >
@@ -252,14 +289,14 @@ export default function LoginPage() {
             )}
 
             {!pendingSession && showForgotPasswordHelp ? (
-              <div className="rounded-2xl border border-blue-100 bg-blue-50/80 p-4 text-sm leading-6 text-brand-900">
+              <div className="rounded-2xl border border-orange-200 bg-orange-50/90 p-4 text-sm leading-6 text-orange-950 shadow-sm shadow-orange-100">
                 <p className="font-black">Reset password lewat operator sekolah.</p>
-                <p className="mt-1 font-semibold">
+                <p className="mt-1 font-semibold text-orange-900">
                   Isi username atau email, lalu kirim request. Jika data valid,
                   request akan masuk ke Inbox admin/root untuk ditindaklanjuti.
                 </p>
                 <button
-                  className="mt-3 rounded-2xl bg-brand-600 px-4 py-2 text-xs font-black text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+                  className="mt-3 rounded-2xl border border-amber-300 bg-amber-100 px-4 py-2 text-xs font-black text-amber-900 transition hover:border-amber-400 hover:bg-amber-200 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
                   disabled={isRequestingReset}
                   onClick={() => void handleRequestPasswordReset()}
                   type="button"
@@ -267,7 +304,7 @@ export default function LoginPage() {
                   {isRequestingReset ? 'Mengirim...' : 'Kirim Request Reset'}
                 </button>
                 {forgotPasswordMessage ? (
-                  <p className="mt-3 rounded-xl bg-white/80 p-3 text-xs font-bold text-brand-800">
+                  <p className="mt-3 rounded-xl border border-orange-100 bg-white/90 p-3 text-xs font-bold text-orange-900">
                     {forgotPasswordMessage}
                   </p>
                 ) : null}
@@ -314,8 +351,10 @@ export default function LoginPage() {
         </section>
 
         <p className="mt-5 text-center text-xs leading-5 text-muted">
-          Ada saran atau ide di halaman inikah? :D
+          &copy; 2026 herhadi@yahoo.com. All Rights Reserved.
         </p>
+        </div>
+        </div>
       </div>
     </main>
   );
