@@ -430,6 +430,46 @@ export interface OperationsDashboard {
 }
 export interface BackupFile { filename: string; size: number; createdAt: string; }
 export interface OperationsBackups { daily: BackupFile[]; academicYears: SchoolYear[]; }
+export interface TelegramOperationsStatus {
+  config: {
+    botTokenConfigured: boolean;
+    botUsername?: string | null;
+    botUrlConfigured: boolean;
+    webhookSecretConfigured: boolean;
+    webhookUrl?: string | null;
+  };
+  provider: {
+    reachable: boolean;
+    webhookUrl?: string | null;
+    pendingUpdateCount?: number | null;
+    lastErrorMessage?: string | null;
+    lastErrorAt?: string | null;
+    maxConnections?: number | null;
+  };
+  usage: {
+    linkedUsers: number;
+    logs: {
+      total: number;
+      sent: number;
+      pending: number;
+      failed: number;
+    };
+  };
+  recentLogs: Array<Pick<
+    NotificationLog,
+    | 'id'
+    | 'status'
+    | 'recipient'
+    | 'recipientName'
+    | 'subject'
+    | 'templateKey'
+    | 'attempts'
+    | 'lastError'
+    | 'sentAt'
+    | 'failedAt'
+    | 'createdAt'
+  >>;
+}
 
 export type ImportType = 'teachers' | 'students';
 
@@ -1255,6 +1295,12 @@ export const api = {
   getActivityTrail: () => request<ApiResponse<ActivityTrailItem[]>>('/audit/activity'),
   getOperationsDashboard: () =>
     request<ApiResponse<OperationsDashboard>>('/operations/dashboard'),
+  getOperationsTelegram: () =>
+    request<ApiResponse<TelegramOperationsStatus>>('/operations/telegram'),
+  setOperationsTelegramWebhook: () =>
+    request<ApiResponse<TelegramOperationsStatus>>('/operations/telegram/webhook', {
+      method: 'POST',
+    }),
   getOperationsBackups: () => request<ApiResponse<OperationsBackups>>('/operations/backups'),
   createDailyBackup: () => download('/operations/backups/daily'),
   restoreDailyBackup: (file: File) => restoreBackup(file),

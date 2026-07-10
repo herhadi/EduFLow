@@ -16,6 +16,18 @@ export class OperationsController {
     return this.operationsService.getDashboard();
   }
 
+  @Get('telegram')
+  @RequirePermissions(PERMISSIONS.NOTIFICATION_MANAGE)
+  getTelegramStatus() {
+    return this.operationsService.getTelegramStatus();
+  }
+
+  @Post('telegram/webhook')
+  @RequirePermissions(PERMISSIONS.NOTIFICATION_MANAGE)
+  setTelegramWebhook(@Req() request: RequestWithUser) {
+    return this.operationsService.setTelegramWebhook(request.user.id);
+  }
+
   @Get('backups')
   @RequirePermissions(PERMISSIONS.SYSTEM_RECOVERY_MANAGE)
   getBackups() { return this.operationsService.getBackups(); }

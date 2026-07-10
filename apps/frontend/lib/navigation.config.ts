@@ -104,6 +104,7 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'admin', href: '/admin/akses', label: 'Akses', roles: ['root'] },
   { section: 'admin', href: '/admin/import-data', label: 'Import' },
   { section: 'admin', href: '/admin/audit', label: 'Audit' },
+  { section: 'admin', href: '/admin/telegram', label: 'Telegram' },
   { section: 'schedules', href: '/admin/schedules', label: 'Setup Jadwal' },
   { section: 'schedules', href: '/admin/guru', label: 'Mapel Guru' },
   { section: 'schedules', href: '/admin/akademik', label: 'Kelas & Mapel' },

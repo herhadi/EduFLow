@@ -5,8 +5,9 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 ## 2026-07-10
 
 - Mengaktifkan integrasi Telegram bot: backend menerima webhook `/api/auth/telegram/webhook`, memproses `/start <token>` dari halaman Profil, menyimpan `User.telegramId`, dan worker notifikasi mengirim pesan melalui Telegram Bot API.
-- Menambahkan konfigurasi `TELEGRAM_BOT_TOKEN` dan `TELEGRAM_WEBHOOK_SECRET` pada environment example, serta memperjelas dokumentasi aktivasi Telegram dan retry notifikasi.
+- Menambahkan konfigurasi `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, dan `TELEGRAM_WEBHOOK_URL` pada environment example, serta memperjelas dokumentasi aktivasi Telegram dan retry notifikasi.
 - Menambahkan peringatan aktivasi Telegram pada beranda setiap role; peringatan hilang otomatis setelah `User.telegramId` tersimpan.
+- Menambahkan halaman `/admin/telegram` untuk melihat status konfigurasi bot, memasang webhook dari UI, memantau user yang sudah link Telegram, dan membaca log notifikasi Telegram terbaru.
 
 ## 2026-07-09
 

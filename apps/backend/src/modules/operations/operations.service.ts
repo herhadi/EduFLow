@@ -1,5 +1,6 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { spawn } from 'node:child_process';
 import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -8,6 +9,7 @@ import { Job, Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
+import { TelegramBotService } from '../../infrastructure/telegram/telegram-bot.service';
 
 type HealthStatus = 'Healthy' | 'Unhealthy';
 
@@ -23,6 +25,8 @@ export class OperationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
+    private readonly configService: ConfigService,
+    private readonly telegramBotService: TelegramBotService,
     @InjectQueue(QUEUES.TEACHER_REMINDER)
     private readonly teacherReminderQueue: Queue,
     @InjectQueue(QUEUES.ATTENDANCE_SUMMARY)
@@ -114,6 +118,101 @@ export class OperationsService {
         queues,
         failedJobs,
       },
+    };
+  }
+
+  async getTelegramStatus() {
+    const webhookUrl = this.getTelegramWebhookUrl();
+    const [
+      linkedUsers,
+      sent,
+      pending,
+      failed,
+      total,
+      recentLogs,
+      provider,
+    ] = await Promise.all([
+      this.prisma.user.count({
+        where: { deletedAt: null, telegramId: { not: null } },
+      }),
+      this.prisma.notificationLog.count({
+        where: { channel: 'TELEGRAM', status: 'SENT' },
+      }),
+      this.prisma.notificationLog.count({
+        where: { channel: 'TELEGRAM', status: 'PENDING' },
+      }),
+      this.prisma.notificationLog.count({
+        where: { channel: 'TELEGRAM', status: 'FAILED' },
+      }),
+      this.prisma.notificationLog.count({ where: { channel: 'TELEGRAM' } }),
+      this.prisma.notificationLog.findMany({
+        where: { channel: 'TELEGRAM' },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: {
+          id: true,
+          status: true,
+          recipient: true,
+          recipientName: true,
+          subject: true,
+          templateKey: true,
+          attempts: true,
+          lastError: true,
+          sentAt: true,
+          failedAt: true,
+          createdAt: true,
+        },
+      }),
+      this.getTelegramProviderStatus(),
+    ]);
+
+    return {
+      data: {
+        config: {
+          botTokenConfigured: this.telegramBotService.isConfigured(),
+          botUsername: this.configService.get<string>('TELEGRAM_BOT_USERNAME')?.trim() || null,
+          botUrlConfigured: Boolean(this.configService.get<string>('TELEGRAM_BOT_URL')?.trim()),
+          webhookSecretConfigured: Boolean(this.getTelegramWebhookSecret()),
+          webhookUrl,
+        },
+        provider,
+        usage: {
+          linkedUsers,
+          logs: {
+            total,
+            sent,
+            pending,
+            failed,
+          },
+        },
+        recentLogs,
+      },
+    };
+  }
+
+  async setTelegramWebhook(userId: string) {
+    const webhookUrl = this.getTelegramWebhookUrl();
+
+    if (!webhookUrl) {
+      throw new BadRequestException('TELEGRAM_WEBHOOK_URL atau FRONTEND_URL wajib diisi');
+    }
+
+    const result = await this.telegramBotService.setWebhook(
+      webhookUrl,
+      this.getTelegramWebhookSecret(),
+    );
+
+    await this.auditService.record({
+      userId,
+      action: 'telegram.webhook.set',
+      entityType: 'Telegram',
+      entityId: webhookUrl,
+      after: { webhookUrl, ok: result.ok },
+    });
+
+    return {
+      data: await this.getTelegramStatus().then((response) => response.data),
+      message: 'Webhook Telegram berhasil dipasang.',
     };
   }
 
@@ -267,5 +366,61 @@ export class OperationsService {
 
   private toHealth(isHealthy: boolean): HealthStatus {
     return isHealthy ? 'Healthy' : 'Unhealthy';
+  }
+
+  private async getTelegramProviderStatus() {
+    if (!this.telegramBotService.isConfigured()) {
+      return {
+        reachable: false,
+        webhookUrl: null,
+        pendingUpdateCount: null,
+        lastErrorMessage: 'TELEGRAM_BOT_TOKEN belum dikonfigurasi',
+        lastErrorAt: null,
+        maxConnections: null,
+      };
+    }
+
+    try {
+      const info = await this.telegramBotService.getWebhookInfo();
+      return {
+        reachable: true,
+        webhookUrl: info.url || null,
+        pendingUpdateCount: info.pending_update_count ?? 0,
+        lastErrorMessage: info.last_error_message ?? null,
+        lastErrorAt: info.last_error_date
+          ? new Date(info.last_error_date * 1000).toISOString()
+          : null,
+        maxConnections: info.max_connections ?? null,
+      };
+    } catch (error) {
+      return {
+        reachable: false,
+        webhookUrl: null,
+        pendingUpdateCount: null,
+        lastErrorMessage: error instanceof Error ? error.message : 'Telegram tidak dapat diakses',
+        lastErrorAt: null,
+        maxConnections: null,
+      };
+    }
+  }
+
+  private getTelegramWebhookUrl() {
+    const explicitUrl = this.configService.get<string>('TELEGRAM_WEBHOOK_URL')?.trim();
+
+    if (explicitUrl) {
+      return explicitUrl;
+    }
+
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL')?.trim();
+
+    if (!frontendUrl) {
+      return null;
+    }
+
+    return `${frontendUrl.replace(/\/$/, '')}/api/auth/telegram/webhook`;
+  }
+
+  private getTelegramWebhookSecret() {
+    return this.configService.get<string>('TELEGRAM_WEBHOOK_SECRET')?.trim() || undefined;
   }
 }

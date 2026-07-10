@@ -607,6 +607,15 @@ POST /api/auth/telegram/webhook
 
 Backend menyediakan endpoint aktivasi langsung dan webhook Telegram. Jika bot diset memakai webhook `POST /api/auth/telegram/webhook`, pesan `/start <token>` akan diproses otomatis dan backend menyimpan Telegram ID user. Jika memakai service bot terpisah, service tersebut tetap dapat memanggil `POST /api/auth/telegram/link/confirm`.
 
+Operasional Telegram untuk root/operator:
+
+```txt
+GET /api/operations/telegram
+POST /api/operations/telegram/webhook
+```
+
+Endpoint operations Telegram tidak mengembalikan token bot. Response hanya berisi status konfigurasi, URL webhook, status `getWebhookInfo`, jumlah user yang sudah terhubung Telegram, dan log `NotificationLog` channel Telegram terbaru. `POST /api/operations/telegram/webhook` memasang webhook Telegram memakai token dan secret dari environment backend.
+
 ## Notification Center API
 
 ### Inbox Personal Guru dan Kepala Sekolah

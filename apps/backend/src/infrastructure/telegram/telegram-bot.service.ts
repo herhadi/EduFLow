@@ -40,6 +40,65 @@ export class TelegramBotService {
     return body;
   }
 
+  async getWebhookInfo() {
+    const botToken = this.getBotToken();
+
+    if (!botToken) {
+      throw new ServiceUnavailableException('TELEGRAM_BOT_TOKEN belum dikonfigurasi');
+    }
+
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/getWebhookInfo`);
+    const body = await response.json().catch(() => null) as {
+      ok?: boolean;
+      description?: string;
+      result?: {
+        url?: string;
+        pending_update_count?: number;
+        last_error_date?: number;
+        last_error_message?: string;
+        max_connections?: number;
+      };
+    } | null;
+
+    if (!response.ok || !body?.ok) {
+      const message = body?.description ?? `Telegram API error ${response.status}`;
+      this.logger.warn(`Telegram getWebhookInfo gagal: ${message}`);
+      throw new ServiceUnavailableException(message);
+    }
+
+    return body.result ?? {};
+  }
+
+  async setWebhook(url: string, secretToken?: string) {
+    const botToken = this.getBotToken();
+
+    if (!botToken) {
+      throw new ServiceUnavailableException('TELEGRAM_BOT_TOKEN belum dikonfigurasi');
+    }
+
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url,
+        ...(secretToken ? { secret_token: secretToken } : {}),
+      }),
+    });
+    const body = await response.json().catch(() => null) as {
+      ok?: boolean;
+      description?: string;
+      result?: boolean;
+    } | null;
+
+    if (!response.ok || !body?.ok) {
+      const message = body?.description ?? `Telegram API error ${response.status}`;
+      this.logger.warn(`Telegram setWebhook gagal: ${message}`);
+      throw new ServiceUnavailableException(message);
+    }
+
+    return body;
+  }
+
   verifyWebhookSecret(secretToken?: string | string[]) {
     const expectedSecret = this.configService.get<string>('TELEGRAM_WEBHOOK_SECRET');
 

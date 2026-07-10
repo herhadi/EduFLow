@@ -45,6 +45,12 @@ const adminMenus = [
     description: 'Pantau perubahan penting oleh pengguna sistem.',
     icon: 'L',
   },
+  {
+    href: '/admin/telegram',
+    title: 'Telegram',
+    description: 'Setting webhook, cek koneksi bot, dan pantau log notifikasi Telegram.',
+    icon: 'T',
+  },
 ];
 
 export default function AdminPage() {

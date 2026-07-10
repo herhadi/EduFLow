@@ -71,9 +71,9 @@ Item paling kanan selalu `Profil` untuk kebutuhan personal seperti ganti passwor
 
 Item `Inbox` memakai icon pesan dan memiliki badge/dot jika ada notifikasi pribadi yang belum dibaca. Status operasional seperti `PENDING` atau `FAILED` tetap ditampilkan di tab notifikasi operasional, tetapi tidak mengunci badge unread. Item `Profil` memakai icon orang.
 
-Halaman Profil dipakai oleh semua role untuk melihat identitas login, mengunggah foto dari file lokal perangkat, mengaktifkan Telegram, mengubah password, melihat sesi aktif, dan keluar dari semua perangkat. Telegram tidak diketik manual; UI meminta token aktivasi ke backend lalu membuka bot Telegram. Setelah user membuka bot dengan `/start <token>`, webhook Telegram EduFlow mengonfirmasi token dan menyimpan `User.telegramId` otomatis.
+Halaman Profil dipakai oleh semua role untuk melihat identitas login, mengunggah foto dari file lokal perangkat, mengaktifkan Telegram, mengubah password, melihat sesi aktif, dan keluar dari semua perangkat. Telegram tidak diketik manual; UI meminta token aktivasi ke backend lalu membuka bot Telegram. Setelah user membuka bot dengan `/start <token>`, webhook Telegram EduFlow mengonfirmasi token dan menyimpan `User.telegramId` otomatis. Jika user belum mengaktifkan Telegram, dashboard role menampilkan peringatan aktivasi sampai `User.telegramId` tersimpan.
 
-Catatan integrasi Telegram: isi `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, dan opsional `TELEGRAM_WEBHOOK_SECRET`. Set webhook bot ke `POST /api/auth/telegram/webhook`; jika memakai secret, kirim `secret_token` yang sama saat `setWebhook`.
+Catatan integrasi Telegram: isi `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, dan opsional `TELEGRAM_WEBHOOK_SECRET`. `TELEGRAM_WEBHOOK_URL` boleh diisi jika URL publik webhook berbeda dari `FRONTEND_URL + /api/auth/telegram/webhook`. Halaman `/admin/telegram` dipakai untuk melihat status konfigurasi, memasang webhook, dan memantau log notifikasi Telegram tanpa menampilkan token bot ke browser.
 
 `Ops` hanya muncul untuk `root` karena berisi health check, queue monitoring, failed jobs, dan tindakan teknis operasional sistem.
 
