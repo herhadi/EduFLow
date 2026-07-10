@@ -10,8 +10,9 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan halaman `/admin/telegram` untuk melihat status konfigurasi bot, memasang webhook dari UI, memantau user yang sudah link Telegram, dan membaca log notifikasi Telegram terbaru.
 - Menyesuaikan Docker Compose agar backend membaca secret dari `apps/backend/.env`, tetapi tetap mengunci koneksi container seperti database dan Redis melalui blok `environment`.
 - Menambahkan aksi ganti akun Telegram di halaman Profil untuk user yang sudah terhubung.
-- Menambahkan tombol aktivasi webhook langsung pada bagian status `Webhook Aktif di Telegram`.
+- Merapikan panel `/admin/telegram`: tombol set webhook tetap di pojok kanan, card webhook berisi status aktif, target, pending update, dan error terakhir.
 - Mengubah balasan sukses bot Telegram menjadi sapaan personal sesuai nama akun EduFlow.
+- Membetulkan default URL publik webhook Telegram pada pola frontend-proxy menjadi `/api/backend/auth/telegram/webhook`.
 
 ## 2026-07-09
 

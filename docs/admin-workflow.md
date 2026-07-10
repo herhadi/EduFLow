@@ -73,7 +73,7 @@ Item `Inbox` memakai icon pesan dan memiliki badge/dot jika ada notifikasi priba
 
 Halaman Profil dipakai oleh semua role untuk melihat identitas login, mengunggah foto dari file lokal perangkat, melihat status Telegram, mengganti akun Telegram, mengubah password, melihat sesi aktif, dan keluar dari semua perangkat. Telegram tidak diketik manual; UI meminta token aktivasi ke backend lalu membuka bot Telegram. Setelah user membuka bot dengan `/start <token>`, webhook Telegram EduFlow mengonfirmasi token dan menyimpan `User.telegramId` otomatis. Jika user belum mengaktifkan Telegram, dashboard role menampilkan peringatan dengan tombol aktivasi langsung ke bot sampai `User.telegramId` tersimpan.
 
-Catatan integrasi Telegram: isi `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, dan opsional `TELEGRAM_WEBHOOK_SECRET`. `TELEGRAM_WEBHOOK_URL` boleh diisi jika URL publik webhook berbeda dari `FRONTEND_URL + /api/auth/telegram/webhook`. Halaman `/admin/telegram` dipakai untuk melihat status konfigurasi, memasang webhook, dan memantau log notifikasi Telegram tanpa menampilkan token bot ke browser.
+Catatan integrasi Telegram: isi `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, dan opsional `TELEGRAM_WEBHOOK_SECRET`. Pada pola satu stack frontend-proxy, URL publik webhook adalah `FRONTEND_URL + /api/backend/auth/telegram/webhook`. `TELEGRAM_WEBHOOK_URL` boleh diisi jika URL publik webhook berbeda. Halaman `/admin/telegram` dipakai untuk melihat status konfigurasi, memasang webhook, dan memantau log notifikasi Telegram tanpa menampilkan token bot ke browser.
 
 `Ops` hanya muncul untuk `root` karena berisi health check, queue monitoring, failed jobs, dan tindakan teknis operasional sistem.
 

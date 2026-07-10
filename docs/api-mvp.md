@@ -605,7 +605,7 @@ POST /api/auth/telegram/webhook
 
 `POST /api/auth/me/profile/photo` menerima multipart field `file` dengan format JPEG, PNG, atau WebP maksimal 2 MB. File disimpan melalui storage provider, sedangkan database menyimpan key dan metadata pada `User`. `telegramId` tidak diisi manual dari UI profil; UI membuat token aktivasi dan membuka bot Telegram dengan parameter `start`. Telegram mengirim update `/start <token>` ke webhook agar backend dapat menyimpan `User.telegramId` otomatis.
 
-Backend menyediakan endpoint aktivasi langsung dan webhook Telegram. Jika bot diset memakai webhook `POST /api/auth/telegram/webhook`, pesan `/start <token>` akan diproses otomatis dan backend menyimpan Telegram ID user. Jika memakai service bot terpisah, service tersebut tetap dapat memanggil `POST /api/auth/telegram/link/confirm`.
+Backend menyediakan endpoint aktivasi langsung dan webhook Telegram. Jika bot diset memakai webhook publik `POST /api/backend/auth/telegram/webhook` pada pola frontend-proxy, pesan `/start <token>` akan diproses otomatis dan backend menyimpan Telegram ID user. Jika memakai service bot terpisah, service tersebut tetap dapat memanggil `POST /api/auth/telegram/link/confirm` langsung ke backend.
 
 Operasional Telegram untuk root/operator:
 

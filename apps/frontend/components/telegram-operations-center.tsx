@@ -173,23 +173,28 @@ export function TelegramOperationsCenter() {
             <p className="mt-2 break-all text-sm text-slate-700">
               {status.provider.webhookUrl || 'Belum ada webhook aktif.'}
             </p>
-            {!status.provider.webhookUrl ? (
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <button
-                  className="school-primary-button rounded-2xl px-4 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={actionState === 'loading' || !status.config.botTokenConfigured || !status.config.webhookUrl}
-                  onClick={() => void handleSetWebhook()}
-                  type="button"
-                >
-                  {actionState === 'loading' ? 'Memasang...' : 'Aktifkan Webhook'}
-                </button>
-                {!status.config.botTokenConfigured || !status.config.webhookUrl ? (
-                  <p className="text-xs font-bold text-amber-700">
-                    Lengkapi Bot Token dan Webhook EduFlow lebih dulu.
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <WebhookStatusPill
+                label="Status"
+                tone={status.provider.webhookUrl ? 'success' : 'warning'}
+                value={status.provider.webhookUrl ? 'Webhook aktif' : 'Belum aktif'}
+              />
+              <WebhookStatusPill
+                label="Target"
+                tone={status.provider.webhookUrl === status.config.webhookUrl ? 'success' : 'warning'}
+                value={status.provider.webhookUrl === status.config.webhookUrl ? 'Sesuai EduFlow' : 'Perlu set ulang'}
+              />
+              <WebhookStatusPill
+                label="Pending Update"
+                tone={(status.provider.pendingUpdateCount ?? 0) > 0 ? 'warning' : 'success'}
+                value={String(status.provider.pendingUpdateCount ?? 0)}
+              />
+              <WebhookStatusPill
+                label="Error Terakhir"
+                tone={status.provider.lastErrorMessage ? 'danger' : 'success'}
+                value={status.provider.lastErrorMessage ?? 'Tidak ada'}
+              />
+            </div>
             {webhookCommand ? (
               <div className="mt-4">
                 <div className="flex items-center justify-between gap-3">
@@ -297,6 +302,31 @@ function StatusCard({
       <p className="text-xs font-black uppercase tracking-[0.1em] opacity-80">{label}</p>
       <p className="mt-2 text-lg font-black">{status}</p>
       <p className="mt-1 text-xs font-bold opacity-80">{value}</p>
+    </div>
+  );
+}
+
+function WebhookStatusPill({
+  label,
+  tone,
+  value,
+}: {
+  label: string;
+  tone: 'success' | 'warning' | 'danger';
+  value: string;
+}) {
+  const toneClass = {
+    success: 'border-emerald-100 bg-emerald-50 text-emerald-700',
+    warning: 'border-amber-100 bg-amber-50 text-amber-700',
+    danger: 'border-rose-100 bg-rose-50 text-rose-700',
+  }[tone];
+
+  return (
+    <div className={`rounded-2xl border p-3 ${toneClass}`}>
+      <p className="text-[0.65rem] font-black uppercase tracking-[0.08em] opacity-80">
+        {label}
+      </p>
+      <p className="mt-1 break-words text-xs font-black">{value}</p>
     </div>
   );
 }

@@ -105,7 +105,7 @@ Worker mengambil data terbaru dari PostgreSQL. Jangan membawa object besar dalam
 
 Job `notification:send:telegram` membaca `NotificationLog` terbaru dari PostgreSQL lalu mengirim pesan melalui Telegram Bot API. Worker membutuhkan `TELEGRAM_BOT_TOKEN`; jika token kosong, Telegram API gagal, atau chat tujuan tidak valid, status log diubah menjadi `FAILED` dan error disimpan di `NotificationLog.lastError` agar bisa diretry dari panel notifikasi.
 
-Aktivasi chat Telegram user dilakukan dari halaman Profil. Backend membuat token aktivasi, bot menerima `/start <token>` melalui webhook `POST /api/auth/telegram/webhook`, lalu menyimpan `User.telegramId`. Setelah itu notifikasi Telegram memakai `User.telegramId` sebagai recipient.
+Aktivasi chat Telegram user dilakukan dari halaman Profil atau peringatan dashboard. Backend membuat token aktivasi, bot menerima `/start <token>` melalui webhook publik `POST /api/backend/auth/telegram/webhook` pada pola frontend-proxy, lalu menyimpan `User.telegramId`. Setelah itu notifikasi Telegram memakai `User.telegramId` sebagai recipient.
 
 ## Batas Tanggung Jawab
 

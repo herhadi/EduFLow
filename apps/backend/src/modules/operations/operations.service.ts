@@ -417,7 +417,7 @@ export class OperationsService {
       return null;
     }
 
-    return `${frontendUrl.replace(/\/$/, '')}/api/auth/telegram/webhook`;
+    return `${frontendUrl.replace(/\/$/, '')}/api/backend/auth/telegram/webhook`;
   }
 
   private getTelegramWebhookSecret() {
