@@ -75,6 +75,8 @@ Halaman Profil dipakai oleh semua role untuk melihat identitas login, mengunggah
 
 Catatan integrasi Telegram: root mengelola webhook dari `/admin/telegram`. Environment wajib untuk webhook adalah `TELEGRAM_BOT_TOKEN` dan `TELEGRAM_WEBHOOK_URL`; opsional `TELEGRAM_WEBHOOK_SECRET` dan `TELEGRAM_BOT_USERNAME`. Halaman `/admin/telegram` dipakai untuk melihat status konfigurasi, memasang/menghapus webhook, dan membaca response `getWebhookInfo` tanpa menampilkan token bot ke browser.
 
+Command Telegram untuk monitoring sekolah dibuat on-demand agar tidak spam. Kepala Sekolah, root, dan operator sekolah yang sudah mengaktifkan Telegram dapat memakai `/kbm` atau `/today` untuk ringkasan KBM hari ini, serta `/review` untuk antrean perangkat ajar dan nilai yang menunggu review. Command ini tidak membuat `NotificationLog` baru dan tidak menambah badge Inbox.
+
 `Ops` hanya muncul untuk `root` karena berisi health check, queue monitoring, failed jobs, dan tindakan teknis operasional sistem.
 
 `Master` pada bottom navigation operator berarti pusat data administrasi akademik di namespace `/admin/data`, bukan root teknis.

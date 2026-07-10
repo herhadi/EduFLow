@@ -607,6 +607,14 @@ POST /api/auth/telegram/webhook
 
 Backend menyediakan endpoint aktivasi langsung dan webhook Telegram. Jika bot diset memakai webhook publik `POST /api/backend/auth/telegram/webhook` pada pola frontend-proxy, pesan `/start <token>` akan diproses otomatis dan backend menyimpan Telegram ID user. Jika memakai service bot terpisah, service tersebut tetap dapat memanggil `POST /api/auth/telegram/link/confirm` langsung ke backend.
 
+Command bot yang diproses webhook:
+
+- `/help`: panduan bot dan command yang boleh dipakai user tersebut,
+- `/kbm` atau `/today`: ringkasan KBM hari ini untuk akun Telegram dengan role `kepala_sekolah`, `root`, atau `operator_sekolah`,
+- `/review`: antrean review perangkat ajar dan nilai untuk role yang sama.
+
+Command monitoring bersifat on-demand. Backend membalas langsung melalui Bot API, tidak membuat `NotificationLog`, tidak masuk queue, dan tidak menambah badge Inbox.
+
 Operasional Telegram untuk root/operator:
 
 ```txt

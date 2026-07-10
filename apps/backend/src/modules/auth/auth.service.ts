@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { LoginAuditStatus } from '@prisma/client';
+import { AssessmentStatus, LoginAuditStatus, TeachingPlanStatus } from '@prisma/client';
 import { compare, hash } from 'bcryptjs';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
@@ -16,6 +16,7 @@ import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/
 import { TelegramBotService } from '../../infrastructure/telegram/telegram-bot.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../notification/notification.service';
+import { ReportingService } from '../reporting/reporting.service';
 import { ConfirmTelegramLinkDto } from './dto/confirm-telegram-link.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
@@ -27,6 +28,7 @@ const PASSWORD_RESET_LIFETIME_MINUTES = 30;
 const TELEGRAM_LINK_LIFETIME_MINUTES = 15;
 const MAX_FAILED_LOGIN_ATTEMPTS = 5;
 const ACCOUNT_LOCK_MINUTES = 15;
+const TELEGRAM_MONITORING_ROLES = ['kepala_sekolah', 'root', 'operator_sekolah'];
 
 type AuthRequestMeta = {
   ipAddress?: string;
@@ -67,6 +69,7 @@ export class AuthService {
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
     private readonly notificationService: NotificationService,
     private readonly telegramBotService: TelegramBotService,
+    private readonly reportingService: ReportingService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -414,10 +417,20 @@ export class AuthService {
     }
 
     if (this.isTelegramCommand(message.text, '/help')) {
+      const linkedUser = await this.getTelegramLinkedUser(message);
       await this.telegramBotService.sendMessage(
         String(message.chatId),
-        this.getTelegramHelpMessage(),
+        this.getTelegramHelpMessage(linkedUser?.roles ?? []),
       ).catch(() => undefined);
+      return { ok: true };
+    }
+
+    if (
+      this.isTelegramCommand(message.text, '/kbm') ||
+      this.isTelegramCommand(message.text, '/today') ||
+      this.isTelegramCommand(message.text, '/review')
+    ) {
+      await this.handleTelegramMonitoringCommand(message);
       return { ok: true };
     }
 
@@ -993,13 +1006,177 @@ export class AuthService {
     return command.split('@')[0] === expectedCommand;
   }
 
-  private getTelegramHelpMessage() {
-    return [
+  private async handleTelegramMonitoringCommand(message: { chatId: string | number; fromId?: unknown; text: string }) {
+    const linkedUser = await this.getTelegramLinkedUser(message);
+
+    if (!linkedUser) {
+      await this.telegramBotService.sendMessage(
+        String(message.chatId),
+        'Telegram belum terhubung ke akun EduFlow. Login ke EduFlow lalu klik Aktivasi Telegram dari beranda atau Profil.',
+      ).catch(() => undefined);
+      return;
+    }
+
+    if (!this.canUseTelegramMonitoring(linkedUser.roles)) {
+      await this.telegramBotService.sendMessage(
+        String(message.chatId),
+        'Command ini hanya untuk Kepala Sekolah, root, atau operator sekolah.',
+      ).catch(() => undefined);
+      return;
+    }
+
+    const response = this.isTelegramCommand(message.text, '/review')
+      ? await this.getTelegramReviewMessage()
+      : await this.getTelegramKbmMessage();
+
+    await this.telegramBotService.sendMessage(String(message.chatId), response).catch(() => undefined);
+  }
+
+  private async getTelegramLinkedUser(message: { chatId: string | number; fromId?: unknown }) {
+    const telegramId = String(message.fromId ?? message.chatId);
+    const user = await this.prisma.user.findFirst({
+      where: { deletedAt: null, telegramId },
+      select: {
+        id: true,
+        name: true,
+        roles: { include: { role: true } },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      roles: user.roles.map(({ role }) => role.name),
+    };
+  }
+
+  private canUseTelegramMonitoring(roles: string[]) {
+    return roles.some((role) => TELEGRAM_MONITORING_ROLES.includes(role));
+  }
+
+  private async getTelegramKbmMessage() {
+    const { data } = await this.reportingService.getOperationalToday();
+    const followUpItems = data.kbm.followUpItems.slice(0, 5);
+    const substituteItems = data.kbm.substitutes.items.slice(0, 3);
+    const lines = [
+      `<b>Ringkasan KBM ${this.escapeTelegramHtml(data.date)}</b>`,
+      '',
+      `Agenda: ${data.classes.totalToday}`,
+      `Berjalan: ${data.classes.inProgress}`,
+      `Selesai: ${data.classes.completed}`,
+      `Belum submit: ${data.classes.notSubmitted}`,
+      `Kelas kosong: ${data.classes.empty}`,
+      '',
+      `Guru mengajar: ${data.teachers.totalTeaching}`,
+      `Guru sudah submit: ${data.teachers.submitted}`,
+      `Guru belum submit: ${data.teachers.notSubmitted}`,
+      '',
+      `Checklist kurang: ${data.kbm.checklist.missing}`,
+      `Catatan kendala: ${data.kbm.checklist.withIssueNotes}`,
+      `Guru pengganti: ${data.kbm.substitutes.total}`,
+    ];
+
+    if (substituteItems.length) {
+      lines.push('', '<b>Guru pengganti</b>');
+      lines.push(...substituteItems.map((item) =>
+        `- ${this.escapeTelegramHtml(item.className)} ${this.escapeTelegramHtml(item.subjectName)}: ${this.escapeTelegramHtml(item.substituteTeacherName ?? '-')}`,
+      ));
+    }
+
+    if (followUpItems.length) {
+      lines.push('', '<b>Perlu perhatian</b>');
+      lines.push(...followUpItems.map((item) =>
+        `- ${this.escapeTelegramHtml(item.startsAt ?? '-')}: ${this.escapeTelegramHtml(item.className)} ${this.escapeTelegramHtml(item.subjectName)} (${this.escapeTelegramHtml(item.status)})`,
+      ));
+    }
+
+    lines.push('', 'Command ini hanya membalas saat diminta, tidak broadcast otomatis.');
+    return lines.join('\n');
+  }
+
+  private async getTelegramReviewMessage() {
+    const [teachingPlanItems, assessmentItems, teachingPlanCount, assessmentCount] = await Promise.all([
+      this.prisma.teachingPlan.findMany({
+        where: { status: TeachingPlanStatus.SUBMITTED, deletedAt: null },
+        include: { teacher: true, subject: true },
+        orderBy: { submittedAt: 'asc' },
+        take: 5,
+      }),
+      this.prisma.assessment.findMany({
+        where: { status: AssessmentStatus.SUBMITTED, deletedAt: null },
+        include: { teacher: true, class: true, subject: true },
+        orderBy: { submittedAt: 'asc' },
+        take: 5,
+      }),
+      this.prisma.teachingPlan.count({
+        where: { status: TeachingPlanStatus.SUBMITTED, deletedAt: null },
+      }),
+      this.prisma.assessment.count({
+        where: { status: AssessmentStatus.SUBMITTED, deletedAt: null },
+      }),
+    ]);
+    const lines = [
+      '<b>Antrean Review KS</b>',
+      '',
+      `Perangkat ajar: ${teachingPlanCount}`,
+      `Nilai harian: ${assessmentCount}`,
+    ];
+
+    if (teachingPlanItems.length) {
+      lines.push('', '<b>Perangkat ajar teratas</b>');
+      lines.push(...teachingPlanItems.map((item) =>
+        `- ${this.escapeTelegramHtml(item.teacher.name)}: ${this.escapeTelegramHtml(item.title)} (${this.escapeTelegramHtml(item.subject.name)})`,
+      ));
+    }
+
+    if (assessmentItems.length) {
+      lines.push('', '<b>Nilai teratas</b>');
+      lines.push(...assessmentItems.map((item) =>
+        `- ${this.escapeTelegramHtml(item.teacher.name)}: ${this.escapeTelegramHtml(item.class.name)} ${this.escapeTelegramHtml(item.subject.name)} - ${this.escapeTelegramHtml(item.title)}`,
+      ));
+    }
+
+    const reviewUrl = this.getFrontendUrl('/principal/review');
+    if (reviewUrl) {
+      lines.push('', `Buka review: ${this.escapeTelegramHtml(reviewUrl)}`);
+    }
+
+    lines.push('', 'Command ini on-demand agar tidak spam.');
+    return lines.join('\n');
+  }
+
+  private getFrontendUrl(path: string) {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL')?.trim();
+
+    if (!frontendUrl) {
+      return null;
+    }
+
+    return `${frontendUrl.replace(/\/$/, '')}${path}`;
+  }
+
+  private getTelegramHelpMessage(roles: string[] = []) {
+    const lines = [
       '<b>EduFlow Bot</b>',
       '',
       'Perintah yang tersedia:',
       '/help - Menampilkan panduan bot.',
       '/start - Mengecek status bot.',
+    ];
+
+    if (this.canUseTelegramMonitoring(roles)) {
+      lines.push(
+        '/kbm - Ringkasan KBM hari ini untuk KS/operator.',
+        '/today - Alias ringkasan KBM hari ini.',
+        '/review - Antrean review perangkat ajar dan nilai.',
+      );
+    }
+
+    lines.push(
       '',
       'Untuk aktivasi akun:',
       '1. Login ke EduFlow.',
@@ -1007,7 +1184,9 @@ export class AuthService {
       '3. Tekan Start pada bot yang terbuka.',
       '',
       'Setelah terhubung, reminder dan notifikasi sekolah akan dikirim ke chat ini.',
-    ].join('\n');
+    );
+
+    return lines.join('\n');
   }
 
   private escapeTelegramHtml(value: string) {

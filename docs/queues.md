@@ -107,6 +107,8 @@ Job `notification:send:telegram` membaca `NotificationLog` terbaru dari PostgreS
 
 Aktivasi chat Telegram user dilakukan dari halaman Profil atau peringatan dashboard. Backend membuat token aktivasi, bot menerima `/start <token>` melalui webhook publik `POST /api/backend/auth/telegram/webhook` pada pola frontend-proxy, lalu menyimpan `User.telegramId`. Setelah itu notifikasi Telegram memakai `User.telegramId` sebagai recipient.
 
+Command monitoring untuk Kepala Sekolah bersifat on-demand dan tidak masuk queue: `/kbm` atau `/today` membalas ringkasan KBM hari ini, sedangkan `/review` membalas antrean review perangkat ajar dan nilai. Command dibatasi untuk akun Telegram yang terhubung ke role `kepala_sekolah`, `root`, atau `operator_sekolah` agar bot tidak melakukan broadcast berulang dan tidak menambah badge Inbox.
+
 ## Reminder Guru
 
 Job `teacher:reminder:before-class` dibuat saat `DailyAgenda` digenerate dan juga disiapkan ulang untuk agenda 14 hari ke depan ketika backend start. Job berjalan 5 menit sebelum jam mulai agenda berdasarkan zona waktu sekolah (`SCHOOL_TIMEZONE_OFFSET_MINUTES`, default `420` untuk WIB).

@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { StorageModule } from '../../infrastructure/storage/storage.module';
 import { TelegramModule } from '../../infrastructure/telegram/telegram.module';
 import { NotificationModule } from '../notification/notification.module';
+import { ReportingModule } from '../reporting/reporting.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
@@ -12,6 +13,7 @@ import { AuthService } from './auth.service';
     StorageModule,
     TelegramModule,
     NotificationModule,
+    ReportingModule,
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],
