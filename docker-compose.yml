@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
+    env_file:
+      - apps/backend/.env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://eduflow:eduflow@postgres:5432/eduflow?schema=public}
       REDIS_HOST: ${REDIS_HOST:-redis}

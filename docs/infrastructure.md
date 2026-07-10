@@ -83,6 +83,8 @@ FRONTEND_URL=https://domain-production
 FRONTEND_ALLOWED_ORIGINS=https://domain-production
 ```
 
+Docker Compose membaca `apps/backend/.env` sebagai `env_file` untuk secret backend. Variabel koneksi yang sensitif terhadap network container tetap dioverride oleh blok `environment` compose agar production tidak memakai `localhost`.
+
 `NEXT_PUBLIC_API_URL` dipakai saat build image frontend. Jika nilainya berubah, image frontend wajib dibuild ulang.
 
 ## Log Operasional

@@ -51,7 +51,7 @@ Deployment production wajib menyediakan environment variable secara aman dan men
 
 - Backend NestJS memakai `apps/backend/.env`.
 - Frontend Next.js memakai `apps/frontend/.env.local`.
-- Root `.env` tidak dipakai untuk runtime aplikasi agar konfigurasi backend dan frontend tidak tercampur.
+- Docker Compose membaca `apps/backend/.env` sebagai `env_file` untuk secret backend seperti R2, Cloudflare, dan Telegram. Nilai koneksi container seperti `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT`, `FRONTEND_URL`, dan `FRONTEND_ALLOWED_ORIGINS` tetap dioverride oleh blok `environment` compose agar container memakai hostname Docker seperti `postgres` dan `redis`, bukan `localhost` dari konfigurasi lokal.
 - Frontend wajib mengisi `NEXT_PUBLIC_API_URL`; runtime frontend tidak menyediakan fallback ke `localhost:3001` agar production tidak salah target backend.
 - Jika frontend memakai proxy `/api/backend`, `BACKEND_INTERNAL_API_URL` juga wajib diisi dan tidak memiliki fallback localhost.
 - Pola Docker/VPS satu stack: `NEXT_PUBLIC_API_URL=/api/backend` dan `BACKEND_INTERNAL_API_URL=http://backend:3001/api`.
@@ -74,6 +74,9 @@ REDIS_PORT=6379
 JWT_SECRET=ganti-dengan-secret-production
 FRONTEND_URL=https://domain-frontend-atau-ip-server
 FRONTEND_ALLOWED_ORIGINS=https://domain-frontend-atau-ip-server
+TELEGRAM_BOT_USERNAME=nama_bot
+TELEGRAM_BOT_TOKEN=token_dari_botfather
+TELEGRAM_WEBHOOK_SECRET=secret-random
 ```
 
 `NEXT_PUBLIC_API_URL` masuk ke bundle frontend saat image dibuild. Jika nilainya berubah, rebuild image frontend:
