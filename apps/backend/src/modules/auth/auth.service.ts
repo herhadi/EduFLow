@@ -418,10 +418,10 @@ export class AuthService {
 
     if (this.isTelegramCommand(message.text, '/help')) {
       const linkedUser = await this.getTelegramLinkedUser(message);
-      await this.telegramBotService.sendMessage(
-        String(message.chatId),
+      this.sendTelegramReply(
+        message.chatId,
         this.getTelegramHelpMessage(linkedUser?.roles ?? []),
-      ).catch(() => undefined);
+      );
       return { ok: true };
     }
 
@@ -437,10 +437,14 @@ export class AuthService {
     const token = this.extractTelegramStartToken(message.text);
 
     if (!token) {
-      await this.telegramBotService.sendMessage(
-        String(message.chatId),
-        'Halo. Bot EduFlow aktif.\n\nKetik /help untuk melihat panduan. Untuk menghubungkan akun, buka EduFlow lalu klik Aktivasi Telegram dari beranda atau Profil.',
-      ).catch(() => undefined);
+      const linkedUser = await this.getTelegramLinkedUser(message);
+
+      this.sendTelegramReply(
+        message.chatId,
+        linkedUser
+          ? `Halo, ${this.escapeTelegramHtml(linkedUser.name)}.\n\nTelegram sudah terhubung dengan akun EduFlow Anda. Ketik /help untuk melihat command yang tersedia.`
+          : 'Halo. Bot EduFlow aktif.\n\nKetik /help untuk melihat panduan. Untuk menghubungkan akun, buka EduFlow lalu klik Aktivasi Telegram dari beranda atau Profil.',
+      );
       return { ok: true, ignored: true };
     }
 
@@ -449,17 +453,17 @@ export class AuthService {
         telegramId: String(message.fromId ?? message.chatId),
         token,
       });
-      await this.telegramBotService.sendMessage(
-        String(message.chatId),
+      this.sendTelegramReply(
+        message.chatId,
         `Halo, ${this.escapeTelegramHtml(confirmation.data.name)}.\n\nTelegram berhasil terhubung dengan akun EduFlow Anda. Mulai sekarang reminder dan notifikasi sekolah akan dikirim ke sini.`,
-      ).catch(() => undefined);
+      );
     } catch (error) {
-      await this.telegramBotService.sendMessage(
-        String(message.chatId),
+      this.sendTelegramReply(
+        message.chatId,
         error instanceof Error
           ? `Aktivasi Telegram gagal: ${error.message}`
           : 'Aktivasi Telegram gagal.',
-      ).catch(() => undefined);
+      );
     }
 
     return { ok: true };
@@ -1010,18 +1014,18 @@ export class AuthService {
     const linkedUser = await this.getTelegramLinkedUser(message);
 
     if (!linkedUser) {
-      await this.telegramBotService.sendMessage(
-        String(message.chatId),
+      this.sendTelegramReply(
+        message.chatId,
         'Telegram belum terhubung ke akun EduFlow. Login ke EduFlow lalu klik Aktivasi Telegram dari beranda atau Profil.',
-      ).catch(() => undefined);
+      );
       return;
     }
 
     if (!this.canUseTelegramMonitoring(linkedUser.roles)) {
-      await this.telegramBotService.sendMessage(
-        String(message.chatId),
+      this.sendTelegramReply(
+        message.chatId,
         'Command ini hanya untuk Kepala Sekolah, root, atau operator sekolah.',
-      ).catch(() => undefined);
+      );
       return;
     }
 
@@ -1029,7 +1033,11 @@ export class AuthService {
       ? await this.getTelegramReviewMessage()
       : await this.getTelegramKbmMessage();
 
-    await this.telegramBotService.sendMessage(String(message.chatId), response).catch(() => undefined);
+    this.sendTelegramReply(message.chatId, response);
+  }
+
+  private sendTelegramReply(chatId: string | number, text: string) {
+    void this.telegramBotService.sendMessage(String(chatId), text).catch(() => undefined);
   }
 
   private async getTelegramLinkedUser(message: { chatId: string | number; fromId?: unknown }) {
