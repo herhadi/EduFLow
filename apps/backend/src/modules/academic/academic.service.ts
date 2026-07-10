@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AcademicCalendarEventType, AgendaStatus, SemesterType, TeacherAssignmentStatus } from '@prisma/client';
 import { hash } from 'bcryptjs';
@@ -8,6 +8,7 @@ import { Inject } from '@nestjs/common';
 import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
 import { sortSchoolClasses } from '@eduflow/shared';
 import { PrismaService } from '../../prisma/prisma.service';
+import { QueueProducerService } from '../../queue/queue-producer.service';
 import { AuditService } from '../audit/audit.service';
 import { CloneSchoolYearMasterDto } from './dto/clone-school-year-master.dto';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
@@ -32,10 +33,15 @@ import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
 @Injectable()
 export class AcademicService {
+  private readonly logger = new Logger(AcademicService.name);
+  private readonly reminderOffsetMinutes = 5;
+  private readonly defaultTimezoneOffsetMinutes = 7 * 60;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     private readonly configService: ConfigService,
+    private readonly queueProducer: QueueProducerService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
@@ -2173,11 +2179,12 @@ export class AcademicService {
       classId: string;
       subjectId: string;
       teacherId: string;
+      startsAt: string;
     },
     semesterId: string,
     agendaDate: Date,
   ) {
-    return this.prisma.dailyAgenda.create({
+    const agenda = await this.prisma.dailyAgenda.create({
       data: {
         scheduleId: schedule.id,
         schoolYearId: schedule.schoolYearId,
@@ -2196,6 +2203,55 @@ export class AcademicService {
         attendance: true,
       },
     });
+
+    await this.enqueueTeacherReminderBeforeClass(agenda.id, agenda.date, schedule.startsAt);
+
+    return agenda;
+  }
+
+  private async enqueueTeacherReminderBeforeClass(agendaId: string, agendaDate: Date, startsAt: string) {
+    try {
+      const reminderAt = this.getReminderDateTime(agendaDate, startsAt);
+      const classStartsAt = new Date(reminderAt.getTime() + (this.reminderOffsetMinutes * 60_000));
+
+      if (classStartsAt.getTime() <= Date.now()) {
+        return;
+      }
+
+      const delay = Math.max(0, reminderAt.getTime() - Date.now());
+
+      await this.queueProducer.addTeacherReminderBeforeClass(
+        { agendaId },
+        delay,
+        `teacher-reminder-before-class:${agendaId}`,
+      );
+    } catch (error) {
+      this.logger.warn(
+        JSON.stringify({
+          event: 'teacher.reminder.enqueue.failed',
+          agendaId,
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      );
+    }
+  }
+
+  private getReminderDateTime(date: Date, startsAt: string) {
+    const [hoursText, minutesText] = startsAt.split(':');
+    const hours = Number(hoursText);
+    const minutes = Number(minutesText);
+    const timezoneOffsetMinutes = Number(
+      this.configService.get<string>('SCHOOL_TIMEZONE_OFFSET_MINUTES') ?? this.defaultTimezoneOffsetMinutes,
+    );
+    const localStartUtcMs = Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      hours,
+      minutes,
+    ) - (timezoneOffsetMinutes * 60_000);
+
+    return new Date(localStartUtcMs - (this.reminderOffsetMinutes * 60_000));
   }
 
   private getEffectiveScheduleRevision(

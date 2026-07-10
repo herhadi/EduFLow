@@ -17,6 +17,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan command `/help` pada bot Telegram untuk menampilkan panduan aktivasi dan daftar perintah dasar.
 - Memperbaiki overflow panel `/admin/telegram` di mobile dan menambahkan guard global agar card/form/panel mobile memakai `min-width` aman saat menampilkan URL, JSON, atau label teknis panjang.
 - Menyederhanakan card variabel `/admin/telegram`: `TELEGRAM_WEBHOOK_URL` hanya menampilkan status tersedia, sedangkan URL lengkap ditampilkan di card webhook.
+- Menambahkan reminder Telegram guru 5 menit sebelum agenda pertama guru pada hari tersebut, termasuk dedupe agar jadwal berurutan hanya mengirim satu pengingat dan guru pengganti menerima reminder jika agenda digantikan.
 
 ## 2026-07-09
 

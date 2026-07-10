@@ -16,11 +16,11 @@ export class QueueProducerService {
     private readonly notificationSendQueue: Queue,
   ) {}
 
-  async addTeacherReminderBeforeClass(data: Record<string, unknown>, delay?: number) {
+  async addTeacherReminderBeforeClass(data: Record<string, unknown>, delay?: number, jobId?: string) {
     const job = await this.teacherReminderQueue.add(
       QUEUE_JOBS.TEACHER_REMINDER_BEFORE_CLASS,
       data,
-      { delay },
+      { delay, jobId },
     );
 
     this.logEnqueued(job, QUEUES.TEACHER_REMINDER);

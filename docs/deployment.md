@@ -74,6 +74,7 @@ REDIS_PORT=6379
 JWT_SECRET=ganti-dengan-secret-production
 FRONTEND_URL=https://domain-frontend-atau-ip-server
 FRONTEND_ALLOWED_ORIGINS=https://domain-frontend-atau-ip-server
+SCHOOL_TIMEZONE_OFFSET_MINUTES=420
 TELEGRAM_BOT_USERNAME=nama_bot
 TELEGRAM_BOT_TOKEN=token_dari_botfather
 TELEGRAM_WEBHOOK_SECRET=secret-random

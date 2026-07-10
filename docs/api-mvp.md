@@ -950,6 +950,6 @@ Catatan:
 - Kelas, mata pelajaran, jadwal, role guru, mapel ampu, dan wali kelas diatur lewat halaman admin.
 - Data siswa membutuhkan kelas dan tahun ajaran sudah tersedia.
 - `status` menerima nilai aktif secara default. Nilai `nonaktif`, `inactive`, `false`, `0`, atau `tidak` dianggap nonaktif.
-- Reminder guru memakai `Teacher.phone` atau `User.telegramId`.
+- Reminder guru memakai `User.telegramId` dari aktivasi Telegram. Reminder jam pelajaran dikirim 5 menit sebelum agenda pertama guru pada tanggal tersebut; jadwal berurutan untuk guru yang sama hanya menghasilkan satu reminder.
 - Notifikasi wali murid memakai `Guardian.phone`, `Guardian.email`, atau `User.telegramId` pada akun orang tua yang sudah aktivasi Telegram dari Profil.
 - Semua import menghasilkan ringkasan `created`, `updated`, `skipped`, dan `errors`.
