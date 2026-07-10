@@ -136,7 +136,7 @@ export function TelegramOperationsCenter() {
             <p className="break-words"><strong>Opsional:</strong> TELEGRAM_WEBHOOK_SECRET, TELEGRAM_BOT_USERNAME</p>
           </div>
           <div className="mt-4 grid gap-2">
-            <InfoRow label="TELEGRAM_WEBHOOK_URL" value={status.config.webhookUrl ?? '-'} />
+            <InfoRow label="TELEGRAM_WEBHOOK_URL" value={status.config.webhookUrl ? 'Ada' : 'Kosong'} />
             <InfoRow label="Secret webhook" value={status.config.webhookSecretConfigured ? 'Ada' : 'Kosong'} />
             <InfoRow label="Bot username env" value={status.config.botUsername ? 'Ada' : 'Kosong'} />
             <InfoRow label="Bot token" value={status.config.botTokenConfigured ? 'Ada' : 'Kosong'} />
@@ -147,13 +147,6 @@ export function TelegramOperationsCenter() {
           <p className="text-sm font-black text-slate-900">Webhook URL</p>
           <p className="mt-2 break-all text-sm font-bold text-slate-700">
             {status.config.webhookUrl ?? 'Belum tersedia'}
-          </p>
-          <p className="mt-2 text-xs font-semibold leading-5 text-muted">
-            Isi dari env TELEGRAM_WEBHOOK_URL. Untuk domain backend publik biasanya:
-            {' '}
-            <span className="break-all font-black text-slate-700">
-              https://domain-kamu/api/auth/telegram/webhook
-            </span>
           </p>
           {status.provider.lastErrorMessage ? (
             <p className="mt-3 rounded-xl border border-rose-100 bg-rose-50 p-3 text-xs font-bold text-rose-700">

@@ -16,6 +16,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memperbaiki overflow form create jadwal di mobile dengan grid tingkat/rombel responsif, field `min-width` aman, dan teks slot yang tidak memaksa lebar card.
 - Menambahkan command `/help` pada bot Telegram untuk menampilkan panduan aktivasi dan daftar perintah dasar.
 - Memperbaiki overflow panel `/admin/telegram` di mobile dan menambahkan guard global agar card/form/panel mobile memakai `min-width` aman saat menampilkan URL, JSON, atau label teknis panjang.
+- Menyederhanakan card variabel `/admin/telegram`: `TELEGRAM_WEBHOOK_URL` hanya menampilkan status tersedia, sedangkan URL lengkap ditampilkan di card webhook.
 
 ## 2026-07-09
 
