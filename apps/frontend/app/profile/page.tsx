@@ -127,7 +127,9 @@ export default function ProfilePage() {
       window.open(response.data.botUrl, '_blank', 'noopener,noreferrer');
       setStatus({
         tone: 'info',
-        text: 'Telegram dibuka. Setelah klik Start di bot, kembali ke halaman ini dan refresh status profil.',
+        text: telegramId
+          ? 'Telegram dibuka. Klik Start di bot untuk mengganti akun Telegram, lalu refresh status profil.'
+          : 'Telegram dibuka. Setelah klik Start di bot, kembali ke halaman ini dan refresh status profil.',
       });
     } catch (error) {
       setStatus({
@@ -246,7 +248,7 @@ export default function ProfilePage() {
                 <p className="text-sm font-black text-slate-900">Telegram</p>
                 <p className="mt-1 text-xs font-semibold leading-5 text-muted">
                   {telegramId
-                    ? `Terhubung dengan Telegram ID ${telegramId}.`
+                    ? `Terhubung dengan Telegram ID ${telegramId}. Jika ingin memakai akun Telegram lain, klik tombol ganti akun lalu tekan Start di bot.`
                     : 'Belum terhubung. Aktivasi dilakukan dari bot agar ID tersimpan otomatis, bukan diketik manual.'}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -254,16 +256,19 @@ export default function ProfilePage() {
                     <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
                       Aktif
                     </span>
-                  ) : (
-                    <button
-                      className="rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-xs font-black text-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
-                      disabled={linkingTelegram}
-                      onClick={() => void handleTelegramActivation()}
-                      type="button"
-                    >
-                      {linkingTelegram ? 'Membuat Token...' : 'Aktivasi Telegram'}
-                    </button>
-                  )}
+                  ) : null}
+                  <button
+                    className="rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-xs font-black text-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={linkingTelegram}
+                    onClick={() => void handleTelegramActivation()}
+                    type="button"
+                  >
+                    {linkingTelegram
+                      ? 'Membuat Token...'
+                      : telegramId
+                        ? 'Ganti Akun Telegram'
+                        : 'Aktivasi Telegram'}
+                  </button>
                   <button
                     className="rounded-2xl border border-slate-200 px-4 py-3 text-xs font-black text-slate-700"
                     onClick={() => void loadProfile()}

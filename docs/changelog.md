@@ -6,9 +6,10 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 - Mengaktifkan integrasi Telegram bot: backend menerima webhook `/api/auth/telegram/webhook`, memproses `/start <token>` dari halaman Profil, menyimpan `User.telegramId`, dan worker notifikasi mengirim pesan melalui Telegram Bot API.
 - Menambahkan konfigurasi `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, dan `TELEGRAM_WEBHOOK_URL` pada environment example, serta memperjelas dokumentasi aktivasi Telegram dan retry notifikasi.
-- Menambahkan peringatan aktivasi Telegram pada beranda setiap role; peringatan hilang otomatis setelah `User.telegramId` tersimpan.
+- Menambahkan peringatan aktivasi Telegram pada beranda setiap role; tombolnya langsung membuka bot Telegram dan peringatan hilang otomatis setelah `User.telegramId` tersimpan.
 - Menambahkan halaman `/admin/telegram` untuk melihat status konfigurasi bot, memasang webhook dari UI, memantau user yang sudah link Telegram, dan membaca log notifikasi Telegram terbaru.
 - Menyesuaikan Docker Compose agar backend membaca secret dari `apps/backend/.env`, tetapi tetap mengunci koneksi container seperti database dan Redis melalui blok `environment`.
+- Menambahkan aksi ganti akun Telegram di halaman Profil untuk user yang sudah terhubung.
 
 ## 2026-07-09
 
