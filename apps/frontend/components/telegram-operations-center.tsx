@@ -173,6 +173,23 @@ export function TelegramOperationsCenter() {
             <p className="mt-2 break-all text-sm text-slate-700">
               {status.provider.webhookUrl || 'Belum ada webhook aktif.'}
             </p>
+            {!status.provider.webhookUrl ? (
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <button
+                  className="school-primary-button rounded-2xl px-4 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={actionState === 'loading' || !status.config.botTokenConfigured || !status.config.webhookUrl}
+                  onClick={() => void handleSetWebhook()}
+                  type="button"
+                >
+                  {actionState === 'loading' ? 'Memasang...' : 'Aktifkan Webhook'}
+                </button>
+                {!status.config.botTokenConfigured || !status.config.webhookUrl ? (
+                  <p className="text-xs font-bold text-amber-700">
+                    Lengkapi Bot Token dan Webhook EduFlow lebih dulu.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
             {webhookCommand ? (
               <div className="mt-4">
                 <div className="flex items-center justify-between gap-3">

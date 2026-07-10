@@ -424,13 +424,13 @@ export class AuthService {
     }
 
     try {
-      await this.confirmTelegramLink({
+      const confirmation = await this.confirmTelegramLink({
         telegramId: String(message.fromId ?? message.chatId),
         token,
       });
       await this.telegramBotService.sendMessage(
         String(message.chatId),
-        'Telegram berhasil diaktifkan untuk akun EduFlow Anda.',
+        `Halo, ${this.escapeTelegramHtml(confirmation.data.name)}.\n\nTelegram berhasil terhubung dengan akun EduFlow Anda. Mulai sekarang reminder dan notifikasi sekolah akan dikirim ke sini.`,
       ).catch(() => undefined);
     } catch (error) {
       await this.telegramBotService.sendMessage(
@@ -978,6 +978,13 @@ export class AuthService {
     }
 
     return token;
+  }
+
+  private escapeTelegramHtml(value: string) {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
   }
 
   private async isDefaultPassword(passwordHash: string) {
