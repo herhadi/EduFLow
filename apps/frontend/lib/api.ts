@@ -434,17 +434,21 @@ export interface TelegramOperationsStatus {
   config: {
     botTokenConfigured: boolean;
     botUsername?: string | null;
+    backendPublicUrl?: string | null;
     botUrlConfigured: boolean;
     webhookSecretConfigured: boolean;
     webhookUrl?: string | null;
   };
   provider: {
     reachable: boolean;
+    info?: Record<string, unknown> | null;
     webhookUrl?: string | null;
+    hasCustomCertificate?: boolean | null;
     pendingUpdateCount?: number | null;
     lastErrorMessage?: string | null;
     lastErrorAt?: string | null;
     maxConnections?: number | null;
+    ipAddress?: string | null;
   };
   usage: {
     linkedUsers: number;
@@ -1299,6 +1303,10 @@ export const api = {
     request<ApiResponse<TelegramOperationsStatus>>('/operations/telegram'),
   setOperationsTelegramWebhook: () =>
     request<ApiResponse<TelegramOperationsStatus>>('/operations/telegram/webhook', {
+      method: 'POST',
+    }),
+  deleteOperationsTelegramWebhook: () =>
+    request<ApiResponse<TelegramOperationsStatus>>('/operations/telegram/webhook/delete', {
       method: 'POST',
     }),
   getOperationsBackups: () => request<ApiResponse<OperationsBackups>>('/operations/backups'),

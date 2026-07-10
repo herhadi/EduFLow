@@ -514,9 +514,9 @@ export function ScheduleManagement() {
   }
 
   return (
-    <section className="mt-6 grid min-w-0 gap-5 sm:mt-10 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+    <section className="mt-6 grid w-full min-w-0 max-w-full gap-5 sm:mt-10 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
       <form
-        className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 sm:p-6"
+        className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 sm:p-6"
         onSubmit={handleSubmit}
       >
         <div>
@@ -644,7 +644,7 @@ export function ScheduleManagement() {
           <div className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 sm:p-4">
             <p className="text-sm font-black text-slate-800">Pilih Kelas</p>
             <p className="mt-1 text-xs font-semibold text-muted">Pilih tingkat. Rombel A, B, C, dan seterusnya dipilih pada setiap jam.</p>
-            <div className="mt-3 grid grid-cols-3 gap-2">
+            <div className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(4.25rem,1fr))] gap-2">
               {availableGrades.map((grade) => (
                 <button
                   className={selectedGrade === grade ? 'min-w-0 rounded-xl bg-brand-600 px-2 py-2.5 text-sm font-black text-white sm:px-3 sm:py-3' : 'min-w-0 rounded-xl border border-blue-100 bg-white px-2 py-2.5 text-sm font-black text-brand-700 sm:px-3 sm:py-3'}
@@ -683,9 +683,9 @@ export function ScheduleManagement() {
             <div className="mt-3 space-y-2">
               {dayTimeSlots.map((slot) => slot.type === 'BREAK' || slot.type === 'RELIGIOUS' ? (
                 <div className="rounded-xl bg-amber-50 p-3" key={slot.id}>
-                  <div className="flex items-center justify-between gap-3 text-xs font-bold text-amber-900">
-                    <span>{slot.startsAt}-{slot.endsAt}</span>
-                    <span>{slot.type === 'RELIGIOUS' ? 'Jeda kedua' : 'Istirahat'}</span>
+                  <div className="flex min-w-0 items-center justify-between gap-3 text-xs font-bold text-amber-900">
+                    <span className="shrink-0">{slot.startsAt}-{slot.endsAt}</span>
+                    <span className="min-w-0 text-right">{slot.type === 'RELIGIOUS' ? 'Jeda kedua' : 'Istirahat'}</span>
                   </div>
                   {slot.type === 'RELIGIOUS' ? <div className="mt-2 grid gap-2 sm:grid-cols-2">
                     {(['BREAK', 'RELIGIOUS'] as const).map((type) => {
@@ -694,7 +694,7 @@ export function ScheduleManagement() {
                       )?.type ?? 'BREAK';
                       return (
                         <button
-                          className={`rounded-lg px-2 py-2 text-[11px] font-bold ${currentType === type ? 'bg-brand-600 text-white' : 'bg-white text-slate-700'}`}
+                          className={`min-w-0 rounded-lg px-2 py-2 text-[11px] font-bold leading-4 ${currentType === type ? 'bg-brand-600 text-white' : 'bg-white text-slate-700'}`}
                           key={type}
                           onClick={() => void setBreakActivity(slot, type)}
                           type="button"
@@ -712,19 +712,19 @@ export function ScheduleManagement() {
               ) : (
                 <div className="min-w-0 rounded-xl bg-white p-3" key={slot.id}>
                   <button
-                    className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 text-left text-xs font-bold text-slate-700"
+                    className="grid w-full min-w-0 grid-cols-1 items-center gap-1 text-left text-xs font-bold text-slate-700 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-2"
                     disabled={!slot.isAssignable}
                     onClick={() => toggleTimeSlotPanel(slot.id)}
                     type="button"
                   >
                     <span className="min-w-0 truncate">{slot.name}</span>
-                    <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+                    <span className="flex min-w-0 items-center gap-2 text-xs text-slate-500 sm:shrink-0 sm:whitespace-nowrap">
                       {slot.startsAt}-{slot.endsAt}
                       <span className="text-brand-700">{expandedTimeSlotIds.includes(slot.id) ? '−' : '+'}</span>
                     </span>
                   </button>
                   {slot.isAssignable && expandedTimeSlotIds.includes(slot.id) ? (
-                    <div className="mt-3 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
+                    <div className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(3rem,1fr))] gap-2 sm:flex sm:flex-wrap">
                       {gradeClasses.map((schoolClass) => {
                         const active = (slotClassIds[slot.id] ?? []).includes(schoolClass.id);
                         const rombel = schoolClass.name
@@ -737,7 +737,7 @@ export function ScheduleManagement() {
                             onClick={() => toggleSlotClass(slot, schoolClass.id)}
                             type="button"
                           >
-                            {active ? '✓ ' : ''}{rombel}
+                            <span className="block truncate">{active ? '✓ ' : ''}{rombel}</span>
                           </button>
                         );
                       })}
@@ -1039,10 +1039,10 @@ function SelectField({
   value: string;
 }) {
   return (
-    <label className="grid gap-1 text-sm font-semibold text-slate-700">
-      {label}
+    <label className="grid min-w-0 gap-1 text-sm font-semibold text-slate-700">
+      <span className="min-w-0 truncate">{label}</span>
       <select
-        className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-brand-600"
+        className="w-full min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-brand-600"
         onChange={(event) => onChange(event.target.value)}
         required
         value={value}
@@ -1088,11 +1088,11 @@ function InputField({
   }
 
   return (
-    <label className="grid gap-1 text-sm font-semibold text-slate-700">
-      {label}
+    <label className="grid min-w-0 gap-1 text-sm font-semibold text-slate-700">
+      <span className="min-w-0 truncate">{label}</span>
       {isDate ? (
         <span
-          className="date-picker-control grid grid-cols-[minmax(0,1fr)_2rem] items-center gap-1 rounded-xl py-1 pl-3 pr-1"
+          className="date-picker-control grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-center gap-1 rounded-xl py-1 pl-3 pr-1"
           onClick={openDatePicker}
         >
           <span aria-hidden="true" className="date-picker-control__value truncate text-sm font-normal">
@@ -1121,7 +1121,7 @@ function InputField({
         </span>
       ) : (
         <input
-          className="rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600"
+          className="w-full min-w-0 max-w-full rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600"
           onChange={(event) => onChange(event.target.value)}
           required={required}
           type={type}

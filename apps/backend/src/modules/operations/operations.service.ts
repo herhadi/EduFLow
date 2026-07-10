@@ -171,6 +171,7 @@ export class OperationsService {
         config: {
           botTokenConfigured: this.telegramBotService.isConfigured(),
           botUsername: this.configService.get<string>('TELEGRAM_BOT_USERNAME')?.trim() || null,
+          backendPublicUrl: this.configService.get<string>('BACKEND_PUBLIC_URL')?.trim() || null,
           botUrlConfigured: Boolean(this.configService.get<string>('TELEGRAM_BOT_URL')?.trim()),
           webhookSecretConfigured: Boolean(this.getTelegramWebhookSecret()),
           webhookUrl,
@@ -213,6 +214,23 @@ export class OperationsService {
     return {
       data: await this.getTelegramStatus().then((response) => response.data),
       message: 'Webhook Telegram berhasil dipasang.',
+    };
+  }
+
+  async deleteTelegramWebhook(userId: string) {
+    const result = await this.telegramBotService.deleteWebhook();
+
+    await this.auditService.record({
+      userId,
+      action: 'telegram.webhook.delete',
+      entityType: 'Telegram',
+      entityId: 'telegram-webhook',
+      after: { ok: result.ok },
+    });
+
+    return {
+      data: await this.getTelegramStatus().then((response) => response.data),
+      message: 'Webhook Telegram berhasil dihapus.',
     };
   }
 
@@ -384,22 +402,28 @@ export class OperationsService {
       const info = await this.telegramBotService.getWebhookInfo();
       return {
         reachable: true,
+        info,
         webhookUrl: info.url || null,
+        hasCustomCertificate: info.has_custom_certificate ?? false,
         pendingUpdateCount: info.pending_update_count ?? 0,
         lastErrorMessage: info.last_error_message ?? null,
         lastErrorAt: info.last_error_date
           ? new Date(info.last_error_date * 1000).toISOString()
           : null,
         maxConnections: info.max_connections ?? null,
+        ipAddress: info.ip_address ?? null,
       };
     } catch (error) {
       return {
         reachable: false,
+        info: null,
         webhookUrl: null,
+        hasCustomCertificate: null,
         pendingUpdateCount: null,
         lastErrorMessage: error instanceof Error ? error.message : 'Telegram tidak dapat diakses',
         lastErrorAt: null,
         maxConnections: null,
+        ipAddress: null,
       };
     }
   }
@@ -409,6 +433,12 @@ export class OperationsService {
 
     if (explicitUrl) {
       return explicitUrl;
+    }
+
+    const backendPublicUrl = this.configService.get<string>('BACKEND_PUBLIC_URL')?.trim();
+
+    if (backendPublicUrl) {
+      return `${backendPublicUrl.replace(/\/$/, '')}/api/auth/telegram/webhook`;
     }
 
     const frontendUrl = this.configService.get<string>('FRONTEND_URL')?.trim();

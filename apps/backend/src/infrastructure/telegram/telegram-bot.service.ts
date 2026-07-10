@@ -53,10 +53,12 @@ export class TelegramBotService {
       description?: string;
       result?: {
         url?: string;
+        has_custom_certificate?: boolean;
         pending_update_count?: number;
         last_error_date?: number;
         last_error_message?: string;
         max_connections?: number;
+        ip_address?: string;
       };
     } | null;
 
@@ -67,6 +69,33 @@ export class TelegramBotService {
     }
 
     return body.result ?? {};
+  }
+
+  async deleteWebhook() {
+    const botToken = this.getBotToken();
+
+    if (!botToken) {
+      throw new ServiceUnavailableException('TELEGRAM_BOT_TOKEN belum dikonfigurasi');
+    }
+
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/deleteWebhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ drop_pending_updates: false }),
+    });
+    const body = await response.json().catch(() => null) as {
+      ok?: boolean;
+      description?: string;
+      result?: boolean;
+    } | null;
+
+    if (!response.ok || !body?.ok) {
+      const message = body?.description ?? `Telegram API error ${response.status}`;
+      this.logger.warn(`Telegram deleteWebhook gagal: ${message}`);
+      throw new ServiceUnavailableException(message);
+    }
+
+    return body;
   }
 
   async setWebhook(url: string, secretToken?: string) {

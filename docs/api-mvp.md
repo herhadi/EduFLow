@@ -612,9 +612,10 @@ Operasional Telegram untuk root/operator:
 ```txt
 GET /api/operations/telegram
 POST /api/operations/telegram/webhook
+POST /api/operations/telegram/webhook/delete
 ```
 
-Endpoint operations Telegram tidak mengembalikan token bot. Response hanya berisi status konfigurasi, URL webhook, status `getWebhookInfo`, jumlah user yang sudah terhubung Telegram, dan log `NotificationLog` channel Telegram terbaru. `POST /api/operations/telegram/webhook` memasang webhook Telegram memakai token dan secret dari environment backend.
+Endpoint operations Telegram khusus root dan tidak mengembalikan token bot. Response berisi status konfigurasi, URL webhook, response `getWebhookInfo`, jumlah user yang sudah terhubung Telegram, dan log `NotificationLog` channel Telegram terbaru. `POST /api/operations/telegram/webhook` memasang webhook Telegram memakai token dan secret dari environment backend, sedangkan `/delete` menghapus webhook aktif.
 
 ## Notification Center API
 

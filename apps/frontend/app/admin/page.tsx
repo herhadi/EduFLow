@@ -50,6 +50,7 @@ const adminMenus = [
     title: 'Telegram',
     description: 'Setting webhook, cek koneksi bot, dan pantau log notifikasi Telegram.',
     icon: 'T',
+    roles: ['root'] as UserRole[],
   },
 ];
 

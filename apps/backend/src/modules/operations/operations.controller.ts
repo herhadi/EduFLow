@@ -17,15 +17,21 @@ export class OperationsController {
   }
 
   @Get('telegram')
-  @RequirePermissions(PERMISSIONS.NOTIFICATION_MANAGE)
+  @RequirePermissions(PERMISSIONS.SYSTEM_RECOVERY_MANAGE)
   getTelegramStatus() {
     return this.operationsService.getTelegramStatus();
   }
 
   @Post('telegram/webhook')
-  @RequirePermissions(PERMISSIONS.NOTIFICATION_MANAGE)
+  @RequirePermissions(PERMISSIONS.SYSTEM_RECOVERY_MANAGE)
   setTelegramWebhook(@Req() request: RequestWithUser) {
     return this.operationsService.setTelegramWebhook(request.user.id);
+  }
+
+  @Post('telegram/webhook/delete')
+  @RequirePermissions(PERMISSIONS.SYSTEM_RECOVERY_MANAGE)
+  deleteTelegramWebhook(@Req() request: RequestWithUser) {
+    return this.operationsService.deleteTelegramWebhook(request.user.id);
   }
 
   @Get('backups')
