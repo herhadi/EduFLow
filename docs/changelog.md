@@ -20,6 +20,11 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Mengoptimalkan `/principal/reports` untuk jumlah siswa besar dengan filter risiko, ringkasan hasil filter, pagination global 10 siswa per halaman, dan detail siswa tetap expand/collapse.
 - Menyiapkan UAT parent: seed membuat akun `uat.parent1`, dashboard parent otomatis membuka ringkasan berdasarkan email wali murid, dan query parent memakai tanggal kalender sekolah.
 - Memperbaiki tombol presensi guru agar agenda `COMPLETED` ikut dianggap sudah submitted sehingga tombol `Buka Presensi` otomatis nonaktif setelah presensi selesai.
+- Mengunci ulang alur presensi guru berdasarkan `submittedAt` selain state, sehingga data lama yang terlanjur `DRAFT` tetapi sudah pernah submit tidak bisa dibuka/submit ulang dan dashboard KS tetap menghitungnya sebagai submitted.
+- Merapikan navigasi wali murid dengan menghapus menu `Info` yang masih menduplikasi `Riwayat`, sehingga navbar parent hanya menampilkan halaman yang punya fungsi jelas.
+- Memisahkan portal wali murid menjadi dashboard `Anak`, halaman `Riwayat` untuk presensi dan nilai harian yang sudah disubmit guru, serta halaman `Izin` sebagai alur persiapan pengajuan izin/sakit sebelum model approval diaktifkan.
+- Membedakan tampilan `/parent/dashboard` dan `/parent/reports`: dashboard parent kini hanya menonjolkan status anak hari ini, sedangkan report fokus pada riwayat presensi dan nilai.
+- Menyesuaikan seed UAT parent agar akun `uat.parent1` memiliki dua anak (`UAT Siswa 01` dan `UAT Siswa 02`) untuk menguji tampilan multi-anak.
 
 ## 2026-07-10
 

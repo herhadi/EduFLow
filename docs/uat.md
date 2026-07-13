@@ -19,6 +19,7 @@ Script ini idempotent dan membuat data berprefix `UAT`:
 - akun wali murid: `uat.parent1`,
 - kelas `VII UAT`,
 - 8 siswa `UAT Siswa 01` sampai `UAT Siswa 08`,
+- `uat.parent1` terhubung ke `UAT Siswa 01` dan `UAT Siswa 02` untuk menguji wali murid dengan lebih dari satu anak,
 - jadwal dan agenda hari ini,
 - antrean review perangkat ajar,
 - nilai harian submitted.
@@ -84,7 +85,10 @@ Login sebagai `uat.parent1`, buka `/parent/dashboard`, lalu pastikan:
 
 - ringkasan kehadiran anak langsung tampil tanpa input kontak manual,
 - data anak `UAT Siswa 01` tampil dengan kelas aktif,
+- data anak `UAT Siswa 02` juga tampil pada akun yang sama,
 - ringkasan hari ini dan riwayat presensi terbaca setelah presensi UAT disubmit.
+- buka `/parent/reports` untuk memastikan riwayat presensi dan nilai harian UAT tampil,
+- buka `/parent/permits` untuk memastikan menu pengajuan izin/sakit sudah terpisah dari riwayat dan masih ditandai belum aktif sampai approval dibuat.
 
 ## Catatan
 

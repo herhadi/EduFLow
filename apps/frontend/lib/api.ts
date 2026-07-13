@@ -219,6 +219,7 @@ export interface AttendanceItem { id: string; status: AttendanceStatus; notes?: 
 export interface Attendance {
   id: string;
   state: string;
+  submittedAt?: string | null;
   notes?: string | null;
   items: AttendanceItem[];
   classPhotoName?: string | null;
@@ -513,6 +514,26 @@ export interface ParentAttendanceRecord {
   notes?: string | null;
 }
 
+export interface ParentGradeRecord {
+  id: string;
+  date: string;
+  title: string;
+  type: string;
+  className: string;
+  subjectName: string;
+  teacherName: string;
+  score: number;
+  maxScore: number;
+  notes?: string | null;
+}
+
+export interface ParentGradeSummary {
+  available: boolean;
+  averageScore?: number | null;
+  latestScore?: number | null;
+  records: ParentGradeRecord[];
+}
+
 export interface ParentPortalStudent {
   id: string;
   name: string;
@@ -529,6 +550,7 @@ export interface ParentPortalStudent {
   todaySummary: ParentAttendanceSummary;
   dailySummary: ParentAttendanceRecord[];
   history: ParentAttendanceRecord[];
+  grades?: ParentGradeSummary;
 }
 
 export interface ParentPortalSummary {

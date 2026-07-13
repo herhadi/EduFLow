@@ -256,6 +256,7 @@ async function main() {
       teachingPlanReviewQueue: 1,
       assessmentSubmitted: 1,
       students: enrollments.length,
+      parentChildren: 2,
     },
   }, null, 2));
 }
@@ -499,21 +500,23 @@ async function ensureStudents(schoolYearId: string, classId: string) {
         birthDate: new Date(2013, index % 12, index),
       },
     });
-    const guardianId = await getGuardianId(student.id, number);
+    const guardianNumber = index <= 2 ? '01' : number;
+    const guardianEmail = `uat.wali${guardianNumber}@eduflow.local`;
+    const guardianId = await getGuardianId(guardianEmail);
     const guardian = await prisma.guardian.upsert({
       where: { id: guardianId },
       update: {
-        name: `UAT Wali ${number}`,
-        phone: `08120000${number}`,
-        email: `uat.wali${number}@eduflow.local`,
+        name: `UAT Wali ${guardianNumber}`,
+        phone: `08120000${guardianNumber}`,
+        email: guardianEmail,
         isActive: true,
         deletedAt: null,
       },
       create: {
         id: guardianId,
-        name: `UAT Wali ${number}`,
-        phone: `08120000${number}`,
-        email: `uat.wali${number}@eduflow.local`,
+        name: `UAT Wali ${guardianNumber}`,
+        phone: `08120000${guardianNumber}`,
+        email: guardianEmail,
         isActive: true,
       },
     });
@@ -540,13 +543,14 @@ async function ensureStudents(schoolYearId: string, classId: string) {
   return enrollments;
 }
 
-async function getGuardianId(studentId: string, number: string) {
-  const existing = await prisma.studentGuardian.findFirst({
-    where: { studentId, guardian: { email: `uat.wali${number}@eduflow.local` } },
-    select: { guardianId: true },
+async function getGuardianId(email: string) {
+  const existing = await prisma.guardian.findFirst({
+    where: { email, deletedAt: null },
+    orderBy: { createdAt: 'asc' },
+    select: { id: true },
   });
 
-  return existing?.guardianId ?? randomUUID();
+  return existing?.id ?? randomUUID();
 }
 
 async function ensureSchedule(input: {

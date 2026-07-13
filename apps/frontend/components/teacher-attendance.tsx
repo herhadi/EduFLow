@@ -265,6 +265,7 @@ function AgendaCard({
 }) {
   const isSubmitted =
     agenda.status === 'COMPLETED' ||
+    Boolean(agenda.attendance?.submittedAt) ||
     ['SUBMITTED', 'APPROVED', 'CORRECTED', 'LOCKED'].includes(agenda.attendance?.state ?? '');
 
   return (

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { AttendanceStatus } from '@prisma/client';
+import { AssessmentStatus, AttendanceStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 
 type AttendanceSummary = {
@@ -21,7 +21,7 @@ export class ParentPortalService {
       throw new NotFoundException('Kontak wali murid tidak ditemukan');
     }
 
-    const guardian = await this.prisma.guardian.findFirst({
+    const guardians = await this.prisma.guardian.findMany({
       where: {
         deletedAt: null,
         isActive: true,
@@ -30,6 +30,7 @@ export class ParentPortalService {
           { email: normalizedContact },
         ],
       },
+      orderBy: { createdAt: 'asc' },
       include: {
         students: {
           where: { deletedAt: null },
@@ -49,15 +50,27 @@ export class ParentPortalService {
       },
     });
 
+    const guardian = guardians[0];
+
     if (!guardian) {
       throw new NotFoundException('Data wali murid tidak ditemukan');
     }
 
-    const studentIds = guardian.students.map((relation) => relation.studentId);
+    const guardianStudents = guardians.flatMap((entry) => entry.students);
+    const uniqueStudentRelations = Array.from(
+      new Map(guardianStudents.map((relation) => [relation.studentId, relation])).values(),
+    ).sort((left, right) => {
+      if (left.isPrimary !== right.isPrimary) {
+        return left.isPrimary ? -1 : 1;
+      }
+
+      return left.createdAt.getTime() - right.createdAt.getTime();
+    });
+    const studentIds = uniqueStudentRelations.map((relation) => relation.studentId);
     const today = this.getSchoolTodayRange();
     const historyRange = this.getSchoolHistoryRange(30);
 
-    const [todayItems, historyItems] = await Promise.all([
+    const [todayItems, historyItems, gradeScores] = await Promise.all([
       this.prisma.attendanceItem.findMany({
         where: {
           studentId: { in: studentIds },
@@ -97,14 +110,38 @@ export class ParentPortalService {
         orderBy: [{ createdAt: 'desc' }],
         take: 100,
       }),
+      this.prisma.assessmentScore.findMany({
+        where: {
+          studentId: { in: studentIds },
+          score: { not: null },
+          assessment: {
+            status: { in: [AssessmentStatus.SUBMITTED, AssessmentStatus.LOCKED] },
+            deletedAt: null,
+          },
+        },
+        include: {
+          assessment: {
+            include: {
+              class: true,
+              subject: true,
+              teacher: true,
+            },
+          },
+        },
+        orderBy: [{ assessment: { assessmentDate: 'desc' } }],
+        take: 100,
+      }),
     ]);
 
-    const students = guardian.students.map((relation) => {
+    const students = uniqueStudentRelations.map((relation) => {
       const studentTodayItems = todayItems.filter(
         (item) => item.studentId === relation.studentId,
       );
       const studentHistoryItems = historyItems.filter(
         (item) => item.studentId === relation.studentId,
+      );
+      const studentGradeScores = gradeScores.filter(
+        (score) => score.studentId === relation.studentId,
       );
       const activeEnrollment = relation.student.enrollments[0] ?? null;
 
@@ -128,6 +165,7 @@ export class ParentPortalService {
           this.toAttendanceRecord(item),
         ),
         history: studentHistoryItems.map((item) => this.toAttendanceRecord(item)),
+        grades: this.toGradeSummary(studentGradeScores),
       };
     });
 
@@ -200,6 +238,46 @@ export class ParentPortalService {
       },
       { present: 0, sick: 0, excused: 0, absent: 0, total: 0 },
     );
+  }
+
+  private toGradeSummary(
+    scores: Array<{
+      id: string;
+      score: unknown;
+      notes: string | null;
+      assessment: {
+        title: string;
+        type: string;
+        assessmentDate: Date;
+        maxScore: unknown;
+        class: { name: string };
+        subject: { name: string };
+        teacher: { name: string };
+      };
+    }>,
+  ) {
+    const records = scores.map((score) => ({
+      id: score.id,
+      date: this.formatDateOnly(score.assessment.assessmentDate),
+      title: score.assessment.title,
+      type: score.assessment.type,
+      className: score.assessment.class.name,
+      subjectName: score.assessment.subject.name,
+      teacherName: score.assessment.teacher.name,
+      score: Number(score.score),
+      maxScore: Number(score.assessment.maxScore),
+      notes: score.notes,
+    }));
+    const averageScore = records.length
+      ? Math.round((records.reduce((total, record) => total + record.score, 0) / records.length) * 100) / 100
+      : null;
+
+    return {
+      available: records.length > 0,
+      averageScore,
+      latestScore: records[0]?.score ?? null,
+      records: records.slice(0, 10),
+    };
   }
 
   private getSchoolTodayRange() {

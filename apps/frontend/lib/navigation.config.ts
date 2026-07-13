@@ -65,9 +65,9 @@ const homeroomNavigation: NavigationItem[] = [
 
 const parentNavigation: NavigationItem[] = [
   { href: '/parent/dashboard', label: 'Anak', icon: '⌂' },
-  { href: '/parent/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
   { href: '/parent/reports', label: 'Riwayat', icon: '▣' },
-  { href: '/parent/info', label: 'Info', icon: '☷' },
+  { href: '/parent/permits', label: 'Izin', icon: '✓' },
+  { href: '/parent/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
   { href: '/parent/profile', label: 'Profil', icon: '👤' },
 ];
 
@@ -134,7 +134,7 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'principal', href: '/principal/audit', label: 'Jejak Aktivitas' },
   { section: 'parent', href: '/parent/dashboard', label: 'Anak' },
   { section: 'parent', href: '/parent/reports', label: 'Riwayat' },
-  { section: 'parent', href: '/parent/info', label: 'Info' },
+  { section: 'parent', href: '/parent/permits', label: 'Izin' },
   { section: 'parent', href: '/parent/notifications', label: 'Notifikasi' },
   { section: 'tu', href: '/tu/dashboard', label: 'Home' },
   { section: 'tu', href: '/tu/data', label: 'Data' },

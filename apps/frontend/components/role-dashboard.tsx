@@ -581,6 +581,7 @@ function ParentHome({ currentUser }: { currentUser: CurrentUser | null }) {
       />
       <ParentPortal
         initialContact={currentUser?.email ?? currentUser?.username ?? ''}
+        mode="overview"
         title="Ringkasan Kehadiran Anak"
       />
     </>

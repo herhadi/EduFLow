@@ -124,16 +124,19 @@ export class ReportingService {
       AttendanceState.CORRECTED,
       AttendanceState.LOCKED,
     ];
+    const isSubmittedAttendance = (attendance?: { state: AttendanceState; submittedAt: Date | null } | null) =>
+      Boolean(attendance?.submittedAt) ||
+      Boolean(attendance && submittedStates.includes(attendance.state));
 
     const notSubmitted = agendas.filter((agenda) => {
       if (!agenda.attendance) {
         return agenda.status !== AgendaStatus.COMPLETED;
       }
 
-      return !submittedStates.includes(agenda.attendance.state);
+      return !isSubmittedAttendance(agenda.attendance);
     }).length;
     const checklistMissing = agendas.filter((agenda) => {
-      if (!agenda.attendance || !submittedStates.includes(agenda.attendance.state)) {
+      if (!agenda.attendance || !isSubmittedAttendance(agenda.attendance)) {
         return false;
       }
 
@@ -151,7 +154,7 @@ export class ReportingService {
         (agenda) =>
           agenda.status === AgendaStatus.EMPTY ||
           !agenda.attendance ||
-          !submittedStates.includes(agenda.attendance.state) ||
+          !isSubmittedAttendance(agenda.attendance) ||
           checklistMissing.some((item) => item.id === agenda.id) ||
           Boolean(agenda.attendance?.issueNotes),
       )

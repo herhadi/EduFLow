@@ -57,8 +57,11 @@ export class AttendanceService {
       throw new NotFoundException('Agenda tidak ditemukan');
     }
 
-
     await this.ensureTeacherOwnsAgenda(userId, agenda);
+
+    if (agenda.attendance?.submittedAt || this.isSubmittedState(agenda.attendance?.state)) {
+      throw new BadRequestException('Presensi agenda ini sudah disubmit');
+    }
 
     const enrollments = await this.prisma.studentEnrollment.findMany({
       where: {
@@ -136,8 +139,11 @@ export class AttendanceService {
       throw new NotFoundException('Attendance tidak ditemukan');
     }
 
-
     await this.ensureTeacherOwnsAgenda(userId, attendance.agenda);
+
+    if (attendance.submittedAt || this.isSubmittedState(attendance.state)) {
+      throw new BadRequestException('Attendance sudah pernah disubmit');
+    }
 
     if (attendance.state !== AttendanceState.DRAFT) {
       throw new BadRequestException('Attendance tidak dalam state DRAFT');
@@ -260,5 +266,16 @@ export class AttendanceService {
     if (!teacher) {
       throw new BadRequestException('Agenda ini bukan milik guru yang sedang login');
     }
+  }
+
+  private isSubmittedState(state?: AttendanceState | null) {
+    const submittedStates: AttendanceState[] = [
+      AttendanceState.SUBMITTED,
+      AttendanceState.APPROVED,
+      AttendanceState.CORRECTED,
+      AttendanceState.LOCKED,
+    ];
+
+    return Boolean(state && submittedStates.includes(state));
   }
 }
