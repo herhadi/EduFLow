@@ -120,6 +120,13 @@ export function TeacherAttendance() {
 
   if (attendance) {
     const selectedItem = attendance.items.find((item) => item.id === selectedItemId) ?? attendance.items[0];
+    const canSubmit = Boolean(
+      !saving &&
+      checklist.teacherPresent &&
+      checklist.studentAttendanceDone &&
+      checklist.classPhotoDone &&
+      checklist.materialNotes.trim(),
+    );
 
     return (
       <section className="mt-6 space-y-4">
@@ -218,13 +225,18 @@ export function TeacherAttendance() {
           <AttendanceSummary attendance={attendance} />
 
           <button
-            className="mt-4 w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white disabled:opacity-50"
-            disabled={saving}
+            className="mt-4 w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+            disabled={!canSubmit}
             onClick={() => void submit()}
             type="button"
           >
             {saving ? 'Menyimpan...' : 'Selesaikan Presensi'}
           </button>
+          {!canSubmit ? (
+            <p className="mt-2 text-xs font-bold text-amber-700">
+              Lengkapi checklist wajib dan Materi/Catatan KBM. Catatan Kendala boleh kosong.
+            </p>
+          ) : null}
         </section>
       </section>
     );
@@ -233,9 +245,29 @@ export function TeacherAttendance() {
   return (
     <section className="mt-6 grid gap-3">
       {agendas.map((agenda) => (
+        <AgendaCard agenda={agenda} key={agenda.id} onOpen={open} />
+      ))}
+      {!agendas.length ? (
+        <p className="surface-card rounded-2xl p-5 text-sm text-muted">
+          Tidak ada agenda mengajar hari ini.
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function AgendaCard({
+  agenda,
+  onOpen,
+}: {
+  agenda: DailyAgenda;
+  onOpen: (agenda: DailyAgenda) => void;
+}) {
+  const isSubmitted = ['SUBMITTED', 'APPROVED', 'CORRECTED', 'LOCKED'].includes(agenda.attendance?.state ?? '');
+
+  return (
         <article
           className="surface-card flex flex-wrap items-center justify-between gap-3 rounded-[2rem] p-5"
-          key={agenda.id}
         >
           <div>
             <p className="text-xs font-black text-brand-700">
@@ -247,22 +279,21 @@ export function TeacherAttendance() {
                 Guru pengganti: {agenda.substituteTeacher.name}
               </p>
             ) : null}
+            {isSubmitted ? (
+              <p className="mt-2 w-fit rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+                Presensi sudah selesai
+              </p>
+            ) : null}
           </div>
           <button
-            className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white"
-            onClick={() => void open(agenda)}
+            className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+            disabled={isSubmitted}
+            onClick={() => void onOpen(agenda)}
             type="button"
           >
-            Buka Presensi
+            {isSubmitted ? 'Sudah Submit' : 'Buka Presensi'}
           </button>
         </article>
-      ))}
-      {!agendas.length ? (
-        <p className="surface-card rounded-2xl p-5 text-sm text-muted">
-          Tidak ada agenda mengajar hari ini.
-        </p>
-      ) : null}
-    </section>
   );
 }
 

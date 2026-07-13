@@ -1,12 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { api, type OperationalDashboardSummary } from '../lib/api';
 import { formatNumber, formatReadableDate } from '../lib/format';
 import { MetricCard } from './ui/metric-card';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
+type PrincipalPriorityKey = 'all' | 'empty' | 'notSubmitted' | 'issues' | 'missing' | 'substitutes';
 
 const emptySummary: OperationalDashboardSummary = {
   date: new Date().toISOString().slice(0, 10),
@@ -140,6 +140,7 @@ export function OperationalDashboard({
         </MetricSection>
 
         <MetricSection
+          badge={`${formatNumber(summary.teachers.totalTeaching)} guru`}
           compact={audience === 'principal'}
           description="Ringkasan guru yang mengajar dan submit presensi."
           title="Guru"
@@ -162,8 +163,11 @@ export function OperationalDashboard({
       </div>
 
       <MetricSection
+        badge={`${formatNumber(getStudentTotal(summary))} catatan`}
         compact={audience === 'principal'}
-        description="Akumulasi AttendanceItem dari presensi yang sudah submit."
+        description={audience === 'principal'
+          ? 'Akumulasi siswa pada agenda hari ini yang presensinya sudah submit, bukan total seluruh siswa sekolah.'
+          : 'Akumulasi AttendanceItem dari presensi yang sudah submit.'}
         title="Siswa"
       >
         <MetricCard label="Hadir" tone="good" value={summary.students.present} />
@@ -230,32 +234,38 @@ export function OperationalDashboard({
 
 function PrincipalPriorityPanel({ summary }: { summary: OperationalDashboardSummary }) {
   const kbm = summary.kbm ?? emptySummary.kbm!;
+  const [activeDetail, setActiveDetail] = useState<PrincipalPriorityKey>('all');
   const urgentItems = [
     {
+      key: 'empty',
       label: 'Kelas kosong',
       value: summary.classes.empty,
       description: 'Perlu keputusan cepat agar kelas tidak tanpa pendamping.',
       tone: summary.classes.empty > 0 ? 'danger' : 'good',
     },
     {
+      key: 'notSubmitted',
       label: 'Belum submit',
       value: summary.classes.notSubmitted,
       description: 'Presensi atau laporan KBM belum masuk dari guru.',
       tone: summary.classes.notSubmitted > 0 ? 'warning' : 'good',
     },
     {
+      key: 'issues',
       label: 'Kendala KBM',
       value: kbm.checklist.withIssueNotes,
       description: 'Catatan kendala dari kelas yang sudah berjalan.',
       tone: kbm.checklist.withIssueNotes > 0 ? 'danger' : 'good',
     },
     {
+      key: 'missing',
       label: 'Checklist kurang',
       value: kbm.checklist.missing,
       description: 'Presensi, materi, atau foto kelas belum lengkap.',
       tone: kbm.checklist.missing > 0 ? 'warning' : 'good',
     },
     {
+      key: 'substitutes',
       label: 'Guru pengganti',
       value: kbm.substitutes.total,
       description: 'Informasi perubahan pengajar hari ini.',
@@ -263,11 +273,17 @@ function PrincipalPriorityPanel({ summary }: { summary: OperationalDashboardSumm
     },
   ] satisfies Array<{
     description: string;
+    key: PrincipalPriorityKey;
     label: string;
     tone: 'danger' | 'good' | 'info' | 'warning';
     value: number;
   }>;
-  const followUpItems = kbm.followUpItems.slice(0, 4);
+  const filteredFollowUpItems = kbm.followUpItems
+    .filter((item) => matchesPriority(item, activeDetail))
+    .slice(0, 6);
+  const activeLabel = activeDetail === 'all'
+    ? 'Semua perhatian'
+    : urgentItems.find((item) => item.key === activeDetail)?.label ?? 'Detail';
 
   return (
     <section className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
@@ -283,20 +299,16 @@ function PrincipalPriorityPanel({ summary }: { summary: OperationalDashboardSumm
             Urutan ini menempatkan kelas kosong, presensi belum submit, dan kendala KBM sebelum statistik umum.
           </p>
         </div>
-        <Link
-          className="inline-flex w-full items-center justify-center rounded-xl bg-brand-600 px-3 py-2 text-xs font-black text-white transition hover:bg-brand-700 sm:w-auto sm:rounded-2xl sm:px-4 sm:py-2.5 sm:text-sm"
-          href="/principal/review"
-        >
-          Buka Review
-        </Link>
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
         {urgentItems.map((item) => (
           <PrincipalPriorityCard
+            active={activeDetail === item.key}
             description={item.description}
             key={item.label}
             label={item.label}
+            onClick={() => setActiveDetail((current) => current === item.key ? 'all' : item.key)}
             tone={item.tone}
             value={item.value}
           />
@@ -306,13 +318,18 @@ function PrincipalPriorityPanel({ summary }: { summary: OperationalDashboardSumm
       <div className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3 sm:p-4">
         <div className="flex items-center justify-between gap-3">
           <h4 className="text-sm font-black text-slate-900">Daftar Perhatian Teratas</h4>
-          <span className="rounded-full bg-white px-2.5 py-1 text-xs font-black text-slate-600">
-            {formatNumber(kbm.followUpItems.length)}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-black text-slate-600">
+              {activeLabel}
+            </span>
+            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-black text-slate-600">
+              {formatNumber(filteredFollowUpItems.length)}
+            </span>
+          </div>
         </div>
         <div className="mt-2 grid gap-2 lg:grid-cols-2">
-          {followUpItems.length > 0 ? (
-            followUpItems.map((item) => (
+          {filteredFollowUpItems.length > 0 ? (
+            filteredFollowUpItems.map((item) => (
               <AgendaFollowUpItem item={item} key={item.agendaId} />
             ))
           ) : (
@@ -327,13 +344,17 @@ function PrincipalPriorityPanel({ summary }: { summary: OperationalDashboardSumm
 }
 
 function PrincipalPriorityCard({
+  active,
   description,
   label,
+  onClick,
   tone,
   value,
 }: {
+  active: boolean;
   description: string;
   label: string;
+  onClick: () => void;
   tone: 'danger' | 'good' | 'info' | 'warning';
   value: number;
 }) {
@@ -345,11 +366,15 @@ function PrincipalPriorityCard({
   }[tone];
 
   return (
-    <article className={`min-w-0 rounded-xl border p-3 sm:rounded-2xl sm:p-4 ${toneClass}`}>
+    <button
+      className={`min-w-0 rounded-xl border p-3 text-left transition hover:-translate-y-0.5 sm:rounded-2xl sm:p-4 ${toneClass} ${active ? 'ring-2 ring-brand-500 ring-offset-2' : ''}`}
+      onClick={onClick}
+      type="button"
+    >
       <p className="text-xl font-black sm:text-2xl">{formatNumber(value)}</p>
       <h4 className="mt-1 text-xs font-black text-slate-900 sm:mt-2 sm:text-sm">{label}</h4>
       <p className="mt-1 hidden text-xs font-semibold leading-5 opacity-80 sm:block">{description}</p>
-    </article>
+    </button>
   );
 }
 
@@ -368,7 +393,7 @@ function PrincipalKbmStrip({ summary }: { summary: OperationalDashboardSummary }
         <div>
           <h3 className="text-sm font-black text-slate-900 sm:text-base">Kendali KBM</h3>
           <p className="mt-0.5 text-xs font-semibold text-muted">
-            Checklist inti hari ini
+            Cek kualitas laporan guru: hadir, presensi siswa, materi, dan foto kelas.
           </p>
         </div>
         <span className="rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-black text-brand-700">
@@ -543,12 +568,33 @@ function getAgendaStatusClass(status: string) {
   return 'bg-amber-50 text-amber-700';
 }
 
+function matchesPriority(
+  item: NonNullable<OperationalDashboardSummary['kbm']>['followUpItems'][number],
+  priority: PrincipalPriorityKey,
+) {
+  const submittedStates = ['SUBMITTED', 'APPROVED', 'CORRECTED', 'LOCKED'];
+
+  if (priority === 'all') return true;
+  if (priority === 'empty') return item.status === 'EMPTY';
+  if (priority === 'notSubmitted') return !submittedStates.includes(item.attendanceState ?? '');
+  if (priority === 'issues') return Boolean(item.issueNotes);
+  if (priority === 'substitutes') return Boolean(item.substituteTeacherName);
+
+  return submittedStates.includes(item.attendanceState ?? '') && !item.issueNotes;
+}
+
+function getStudentTotal(summary: OperationalDashboardSummary) {
+  return summary.students.present + summary.students.sick + summary.students.excused + summary.students.absent;
+}
+
 function MetricSection({
+  badge,
   children,
   compact = false,
   description,
   title,
 }: {
+  badge?: string;
   children: React.ReactNode;
   compact?: boolean;
   description: string;
@@ -556,9 +602,16 @@ function MetricSection({
 }) {
   return (
     <section className={compact ? 'rounded-[1.25rem] border border-blue-100 bg-white p-3 shadow-sm shadow-blue-100/60 sm:rounded-[2rem] sm:p-4' : 'rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6'}>
-      <div className={compact ? 'mb-2' : 'mb-4'}>
-        <h3 className={compact ? 'text-base font-black sm:text-lg' : 'text-xl font-bold'}>{title}</h3>
-        <p className={compact ? 'hidden text-sm text-muted sm:mt-1 sm:block' : 'mt-1 text-sm text-muted'}>{description}</p>
+      <div className={compact ? 'mb-2 flex items-start justify-between gap-3' : 'mb-4 flex items-start justify-between gap-3'}>
+        <div>
+          <h3 className={compact ? 'text-base font-black sm:text-lg' : 'text-xl font-bold'}>{title}</h3>
+          <p className={compact ? 'hidden text-sm text-muted sm:mt-1 sm:block' : 'mt-1 text-sm text-muted'}>{description}</p>
+        </div>
+        {badge ? (
+          <span className="shrink-0 rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">
+            {badge}
+          </span>
+        ) : null}
       </div>
       <div className={compact ? 'grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5' : 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5'}>
         {children}

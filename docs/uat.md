@@ -54,6 +54,8 @@ Login sebagai `uat.guru1`, buka `/teacher/dashboard` dan `/teacher/attendance`, 
 - guru dapat melihat agenda hari ini,
 - presensi memiliki dua mode input siswa: `List` 2 kolom dengan pagination 10 baris dan `Dropdown` siswa/status,
 - `Materi/Catatan KBM` wajib diisi sebelum submit karena menjadi dasar checklist materi terisi,
+- tombol `Selesaikan Presensi` baru aktif setelah checklist wajib dan materi/catatan KBM lengkap; catatan kendala bersifat opsional,
+- agenda yang sudah submitted menampilkan tombol presensi nonaktif agar tidak diinput ulang,
 - akun guru/wali kelas tetap masuk dashboard guru,
 - kelas binaan tersedia untuk akun yang memiliki role wali kelas.
 

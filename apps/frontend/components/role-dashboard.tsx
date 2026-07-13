@@ -277,47 +277,6 @@ function OperatorHome({ currentUser }: { currentUser: CurrentUser | null }) {
         eyebrow="Operator Sekolah"
         title={`Selamat bekerja, ${displayName}`}
       />
-      <section className="mt-7">
-        <div className="mb-4">
-          <h2 className="text-xl font-black tracking-tight text-slate-900">
-            Ruang Kerja Admin
-          </h2>
-          <p className="mt-1 text-sm text-muted">
-            Fokus pengecekan data sebelum aktivitas KBM berjalan penuh.
-          </p>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <AdminInsightCard
-            description="Pastikan tahun ajaran, semester, kelas, dan mapel aktif sudah benar."
-            href="/admin/akademik"
-            label="Kesiapan Data Akademik"
-            status="Fondasi"
-            tone="primary"
-          />
-          <AdminInsightCard
-            description="Cek jadwal yang belum lengkap, bentrok guru, atau slot kelas kosong."
-            href="/admin/schedules"
-            label="Validasi Jadwal"
-            status="Harian"
-            tone="warning"
-          />
-          <AdminInsightCard
-            description="Tinjau akun guru, role wali kelas, dan mapel ampu yang belum terhubung."
-            href="/admin/guru"
-            label="Kelengkapan Guru"
-            status="Akses"
-            tone="primary"
-          />
-          <AdminInsightCard
-            description="Lihat notifikasi gagal, perubahan data penting, dan laporan yang perlu diekspor."
-            href="/admin/notifications"
-            label="Kesehatan Operasional"
-            status="Monitoring"
-            tone="danger"
-          />
-        </div>
-      </section>
-
       <section className="mt-7 rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -338,6 +297,12 @@ function OperatorHome({ currentUser }: { currentUser: CurrentUser | null }) {
           <AdminChecklistItem label="Notifikasi dan audit dipantau" />
         </div>
       </section>
+      <RoleSection description="Akses yang tidak tampil di navbar utama operator." title="Akses Pendukung">
+        <RoleActionCard href="/admin/guru" label="Pengaturan Guru" description="Atur data guru, akun, role, mapel ampu, dan wali kelas." />
+        <RoleActionCard href="/admin/akademik" label="Admin Akademik" description="Kelola rombel, mata pelajaran, jam pelajaran, dan master akademik." />
+        <RoleActionCard href="/admin/import-data" label="Import Data" description="Upload data guru dan siswa dari file sekolah." />
+        <RoleActionCard href="/admin/audit" label="Audit Aktivitas" description="Telusuri perubahan data penting oleh operator." />
+      </RoleSection>
     </>
   );
 }
@@ -363,14 +328,9 @@ function PrincipalHome({ currentUser }: { currentUser: CurrentUser | null }) {
         </div>
         <OperationalDashboard audience="principal" className="mt-0" />
       </section>
-      <RoleSection description="Hal yang membutuhkan perhatian dan keputusan kepala sekolah." title="Perlu Tindakan">
-        <RoleActionCard href="/principal/review" icon="✓" label="Pusat Review" description="Review perangkat ajar dan penilaian semester yang diajukan guru." priority />
-        <RoleActionCard href="/principal/notifications" icon="✦" label="Inbox Kepala Sekolah" description="Lihat kelas kosong, guru belum submit, koreksi, dan pengajuan approval." />
-      </RoleSection>
-      <RoleSection description="Ringkasan untuk evaluasi dan pengambilan keputusan." title="Monitoring Sekolah">
-        <RoleActionCard href="/principal/teacher-performance" icon="◈" label="Performa Guru" description="Bandingkan sesi mengajar, keterlambatan submit, dan kelas kosong." />
-        <RoleActionCard href="/principal/reports" icon="▣" label="Laporan Sekolah" description="Lihat dan export rekap kehadiran serta kegiatan belajar mengajar." />
-        <RoleActionCard href="/principal/audit" icon="◇" label="Jejak Aktivitas" description="Telusuri aktivitas penting untuk kebutuhan supervisi." />
+      <RoleSection description="Akses yang tidak tampil di navbar utama Kepala Sekolah." title="Akses Lanjutan">
+        <RoleActionCard href="/principal/reports" label="Laporan Sekolah" description="Lihat report siswa, presensi, dan rekap sekolah." />
+        <RoleActionCard href="/principal/audit" label="Jejak Aktivitas" description="Telusuri aktivitas penting untuk kebutuhan supervisi." />
       </RoleSection>
     </>
   );
@@ -386,7 +346,6 @@ function TeacherHome({
   photoUrl?: string | null;
 }) {
   const displayName = currentUser?.name ?? currentUser?.username ?? 'Guru';
-  const basePath = '/teacher';
 
   return (
     <>
@@ -402,33 +361,9 @@ function TeacherHome({
       </section>
 
       <TeacherDashboardSummary isHomeroom={isHomeroom} />
-
-      <section className="mt-7 space-y-4">
-        <RoleSection description="Menu personal berdasarkan kelas dan mata pelajaran yang Anda ampu." title="Pekerjaan Saya">
-          <TeacherCard
-            description="Program Tahunan, Program Semester, KKTP, perencanaan pembelajaran, dan buku KBM."
-            href="/teacher/teaching-plans"
-            label="Perangkat Ajar"
-          />
-          <TeacherCard
-            description="Input dan pantau nilai siswa untuk kelas serta mapel yang diampu."
-            href="/teacher/assessments"
-            label="Penilaian"
-          />
-          {isHomeroom ? (
-            <TeacherCard
-              description="Pantau presensi, ringkasan, dan tindak lanjut siswa kelas binaan."
-              href="/homeroom/students"
-              label="Kelas Binaan"
-            />
-          ) : null}
-          <TeacherCard
-            description="Lihat pengumuman, reminder kelas, dan permintaan revisi."
-            href={`${basePath}/notifications`}
-            label="Notifikasi"
-          />
-        </RoleSection>
-      </section>
+      <RoleSection description="Akses akademik guru yang tidak tampil di navbar utama." title="Akses Pendukung">
+        <RoleActionCard href="/teacher/teaching-plans" label="Perangkat Ajar" description="Kelola program, modul ajar, KKTP, dan buku KBM." />
+      </RoleSection>
     </>
   );
 }
@@ -489,7 +424,6 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
   const waitingPlans = plans.filter((plan) => plan.status === 'SUBMITTED');
   const approvedPlans = plans.filter((plan) => plan.status === 'APPROVED');
   const draftAssessments = assessments.filter((assessment) => assessment.status === 'DRAFT' || assessment.status === 'REVISION_REQUESTED');
-  const submittedAssessments = assessments.filter((assessment) => assessment.status === 'SUBMITTED' || assessment.status === 'LOCKED');
 
   return (
     <section className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
@@ -516,7 +450,7 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
           </p>
         ) : null}
 
-        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem]">
+        <div className="mt-4">
           <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-3">
             <p className="text-xs font-black text-brand-700">Prioritas berikutnya</p>
             {nextAgenda ? (
@@ -537,11 +471,6 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
               </p>
             )}
           </div>
-
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
-            <TeacherAction href="/teacher/attendance" label="Buka Presensi" />
-            <TeacherAction href="/teacher/schedules" label="Jadwal Saya" />
-          </div>
         </div>
       </div>
 
@@ -552,9 +481,9 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
             <h2 className="mt-1 text-lg font-black text-slate-900">Yang perlu dipantau</h2>
           </div>
           {isHomeroom ? (
-            <Link className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700" href="/homeroom/students">
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
               Wali kelas
-            </Link>
+            </span>
           ) : null}
         </div>
 
@@ -563,11 +492,6 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
           <TeacherMiniStat label="Disetujui" value={approvedPlans.length} tone="success" />
           <TeacherMiniStat label="Menunggu KS" value={waitingPlans.length} tone={waitingPlans.length ? 'primary' : 'neutral'} />
           <TeacherMiniStat label="Draft nilai" value={draftAssessments.length} tone={draftAssessments.length ? 'warning' : 'neutral'} />
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <TeacherAction href="/teacher/teaching-plans" label="Perangkat Ajar" />
-          <TeacherAction href="/teacher/assessments" label={`Nilai (${submittedAssessments.length})`} />
         </div>
       </div>
     </section>
@@ -614,52 +538,23 @@ function RoleSection({ children, description, title }: { children: ReactNode; de
   );
 }
 
-function RoleActionCard({ description, href, icon, label, priority = false }: { description: string; href: string; icon: string; label: string; priority?: boolean }) {
-  return (
-    <Link className={priority ? 'group rounded-[1.75rem] bg-gradient-to-br from-brand-700 to-brand-600 p-5 text-white shadow-xl shadow-blue-200 transition hover:-translate-y-0.5' : 'group rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60 transition hover:-translate-y-0.5 hover:border-brand-600 hover:shadow-lg'} href={href}>
-      <span className={priority ? 'grid size-11 place-items-center rounded-2xl bg-white/15 text-xl' : 'grid size-11 place-items-center rounded-2xl bg-brand-50 text-xl text-brand-700'}>{icon}</span>
-      <h3 className={priority ? 'mt-4 text-lg font-black text-white' : 'mt-4 text-lg font-black text-slate-900'}>{label}</h3>
-      <p className={priority ? 'mt-2 text-sm leading-6 text-blue-100' : 'mt-2 text-sm leading-6 text-muted'}>{description}</p>
-      <span className={priority ? 'mt-4 inline-flex text-xs font-black text-white' : 'mt-4 inline-flex text-xs font-black text-brand-700'}>Buka menu →</span>
-    </Link>
-  );
-}
-
-function AdminInsightCard({
+function RoleActionCard({
   description,
   href,
   label,
-  status,
-  tone,
 }: {
   description: string;
   href: string;
   label: string;
-  status: string;
-  tone: 'primary' | 'warning' | 'danger';
 }) {
-  const toneClass = {
-    primary:
-      'border-blue-100 bg-white text-brand-700 dark:border-blue-400/20 dark:bg-[var(--surface-soft)] dark:text-blue-200',
-    warning:
-      'border-amber-100 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-200',
-    danger:
-      'border-red-100 bg-red-50 text-red-700 dark:border-red-400/20 dark:bg-red-500/15 dark:text-red-200',
-  }[tone];
-
   return (
     <Link
-      className={`group rounded-[1.75rem] border p-5 shadow-sm shadow-blue-100/60 transition hover:-translate-y-0.5 hover:shadow-lg dark:shadow-black/20 ${toneClass}`}
+      className="rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60 transition hover:-translate-y-0.5 hover:border-brand-600 hover:shadow-lg"
       href={href}
     >
-      <span className="inline-flex rounded-full bg-white/70 px-3 py-1 text-xs font-black dark:bg-white/10">
-        {status}
-      </span>
-      <h3 className="mt-4 text-lg font-black text-slate-900 dark:text-[var(--text)]">
-        {label}
-      </h3>
+      <h3 className="text-lg font-black text-slate-900">{label}</h3>
       <p className="mt-2 text-sm leading-6 text-muted">{description}</p>
-      <span className="mt-4 inline-flex text-xs font-black">Tinjau data →</span>
+      <span className="mt-4 inline-flex text-xs font-black text-brand-700">Buka halaman</span>
     </Link>
   );
 }
@@ -683,9 +578,6 @@ function ParentHome({ currentUser }: { currentUser: CurrentUser | null }) {
         showBackLink={false}
         title={`Halo, ${currentUser?.name ?? 'Wali Murid'}`}
       />
-      <div className="mt-6">
-        <TeacherAction href="/parent/info" label="Lihat Data Anak" />
-      </div>
     </>
   );
 }
@@ -700,12 +592,6 @@ function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) {
         eyebrow="Tata Usaha"
         title={`Selamat bekerja, ${displayName}`}
       />
-      <RoleSection description="Ruang kerja administratif harian." title="Administrasi Sekolah">
-        <RoleActionCard href="/tu/data" icon="☷" label="Data Akademik" description="Lihat kelas, mata pelajaran, tahun ajaran, dan struktur data akademik." priority />
-        <RoleActionCard href="/tu/import-data" icon="⇧" label="Import Data" description="Upload data guru dan siswa dari Excel sesuai format sekolah." />
-        <RoleActionCard href="/tu/reports" icon="▣" label="Laporan" description="Export rekap operasional untuk kebutuhan administrasi." />
-        <RoleActionCard href="/tu/notifications" icon="✉" label="Inbox" description="Pantau pemberitahuan administratif yang perlu ditindaklanjuti." />
-      </RoleSection>
     </>
   );
 }
@@ -720,53 +606,7 @@ function CounselingHome({ currentUser }: { currentUser: CurrentUser | null }) {
         eyebrow="Bimbingan Konseling"
         title={`Selamat bekerja, ${displayName}`}
       />
-      <RoleSection description="Fokus pada monitoring siswa dan tindak lanjut pembinaan." title="Monitoring BK">
-        <RoleActionCard href="/bk/students" icon="☷" label="Data Siswa" description="Lihat data siswa, kelas, dan wali murid sebagai dasar pembinaan." priority />
-        <RoleActionCard href="/bk/reports" icon="▣" label="Laporan Presensi" description="Tinjau rekap presensi dan siswa yang perlu perhatian." />
-        <RoleActionCard href="/bk/notifications" icon="✉" label="Inbox" description="Pantau notifikasi kelas kosong, presensi, dan tindak lanjut siswa." />
-      </RoleSection>
     </>
-  );
-}
-
-function TeacherAction({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      className="rounded-2xl bg-brand-600 px-4 py-3 text-center text-sm font-black text-white shadow-sm transition hover:bg-brand-700"
-      href={href}
-    >
-      {label}
-    </Link>
-  );
-}
-
-function TeacherCard({
-  description,
-  href,
-  label,
-}: {
-  description: string;
-  href?: string;
-  label: string;
-}) {
-  const content = (
-    <>
-      <h2 className="text-lg font-black text-slate-900">{label}</h2>
-      <p className="mt-2 text-sm leading-6 text-muted">{description}</p>
-    </>
-  );
-
-  return href ? (
-    <Link
-      className="rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60 transition hover:border-brand-600"
-      href={href}
-    >
-      {content}
-    </Link>
-  ) : (
-    <article className="rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
-      {content}
-    </article>
   );
 }
 

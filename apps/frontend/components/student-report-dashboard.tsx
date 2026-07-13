@@ -10,6 +10,7 @@ import {
 } from '../lib/api';
 import { formatReadableDate } from '../lib/format';
 import { MetricCard } from './ui/metric-card';
+import { Pagination } from './ui/pagination';
 
 const statusLabels: Record<AttendanceStatus, string> = {
   PRESENT: 'Hadir',
@@ -29,6 +30,7 @@ const riskClass: Record<StudentReportItem['riskLevel'], string> = {
   MEDIUM: 'border-amber-100 bg-amber-50 text-amber-700',
   LOW: 'border-emerald-100 bg-emerald-50 text-emerald-700',
 };
+const pageSize = 10;
 
 function getMonthRange() {
   const now = new Date();
@@ -48,7 +50,9 @@ export function StudentReportDashboard() {
   const [from, setFrom] = useState(defaultRange.from);
   const [to, setTo] = useState(defaultRange.to);
   const [status, setStatus] = useState<AttendanceStatus | ''>('');
+  const [risk, setRisk] = useState<StudentReportItem['riskLevel'] | ''>('');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [report, setReport] = useState<StudentReportData | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loadState, setLoadState] = useState<'loading' | 'success' | 'error'>('loading');
@@ -87,16 +91,35 @@ export function StudentReportDashboard() {
       return [];
     }
 
-    if (!normalizedSearch) {
-      return report.students;
-    }
+    return report.students.filter((student) => {
+      const matchesRisk = risk ? student.riskLevel === risk : true;
+      const matchesSearch = normalizedSearch
+        ? [student.studentName, student.nis, student.nisn, student.className]
+            .filter(Boolean)
+            .some((value) => String(value).toLowerCase().includes(normalizedSearch))
+        : true;
 
-    return report.students.filter((student) =>
-      [student.studentName, student.nis, student.nisn, student.className]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(normalizedSearch)),
-    );
-  }, [report, search]);
+      return matchesRisk && matchesSearch;
+    });
+  }, [report, risk, search]);
+  const paginatedStudents = useMemo(
+    () => filteredStudents.slice((page - 1) * pageSize, page * pageSize),
+    [filteredStudents, page],
+  );
+  const filteredSummary = useMemo(() => summarizeStudents(filteredStudents), [filteredStudents]);
+
+  useEffect(() => {
+    setPage(1);
+    setExpandedId(null);
+  }, [classId, from, risk, search, status, to]);
+
+  useEffect(() => {
+    const totalPages = Math.max(Math.ceil(filteredStudents.length / pageSize), 1);
+
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [filteredStudents.length, page]);
 
   return (
     <section className="mt-8 space-y-5">
@@ -122,7 +145,7 @@ export function StudentReportDashboard() {
           </button>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-5">
+        <div className="mt-5 grid gap-3 md:grid-cols-6">
           <label className="grid gap-2 text-xs font-black text-slate-700 md:col-span-2">
             Kelas
             <select
@@ -170,6 +193,19 @@ export function StudentReportDashboard() {
               <option value="ABSENT">Alpha</option>
             </select>
           </label>
+          <label className="grid gap-2 text-xs font-black text-slate-700">
+            Risiko
+            <select
+              className="min-w-0 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600"
+              onChange={(event) => setRisk(event.target.value as StudentReportItem['riskLevel'] | '')}
+              value={risk}
+            >
+              <option value="">Semua</option>
+              <option value="HIGH">Tinggi</option>
+              <option value="MEDIUM">Sedang</option>
+              <option value="LOW">Rendah</option>
+            </select>
+          </label>
         </div>
       </div>
 
@@ -196,7 +232,7 @@ export function StudentReportDashboard() {
               <div>
                 <h3 className="text-lg font-black text-slate-900">Daftar Siswa</h3>
                 <p className="mt-1 text-sm text-muted">
-                  {formatReadableDate(report.from)} - {formatReadableDate(report.to)}
+                  {formatReadableDate(report.from)} - {formatReadableDate(report.to)} · {filteredStudents.length} siswa sesuai filter
                 </p>
               </div>
               <input
@@ -207,8 +243,16 @@ export function StudentReportDashboard() {
               />
             </div>
 
+            <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-5">
+              <ReportFilterStat label="Siswa" value={filteredSummary.students} />
+              <ReportFilterStat label="Hadir" tone="good" value={filteredSummary.present} />
+              <ReportFilterStat label="Sakit/Izin" tone="warning" value={filteredSummary.sick + filteredSummary.excused} />
+              <ReportFilterStat label="Alpha" tone="danger" value={filteredSummary.absent} />
+              <ReportFilterStat label="Risiko tinggi" tone="danger" value={filteredSummary.highRisk} />
+            </div>
+
             <div className="mt-4 space-y-2">
-              {filteredStudents.map((student) => (
+              {paginatedStudents.map((student) => (
                 <StudentReportRow
                   expanded={expandedId === student.studentId}
                   key={student.studentId}
@@ -226,10 +270,54 @@ export function StudentReportDashboard() {
                 </p>
               ) : null}
             </div>
+            <Pagination
+              onPageChange={setPage}
+              page={page}
+              pageSize={pageSize}
+              totalItems={filteredStudents.length}
+            />
           </div>
         </>
       ) : null}
     </section>
+  );
+}
+
+function summarizeStudents(students: StudentReportItem[]) {
+  return students.reduce(
+    (summary, student) => ({
+      students: summary.students + 1,
+      present: summary.present + student.summary.present,
+      sick: summary.sick + student.summary.sick,
+      excused: summary.excused + student.summary.excused,
+      absent: summary.absent + student.summary.absent,
+      highRisk: summary.highRisk + (student.riskLevel === 'HIGH' ? 1 : 0),
+    }),
+    { absent: 0, excused: 0, highRisk: 0, present: 0, sick: 0, students: 0 },
+  );
+}
+
+function ReportFilterStat({
+  label,
+  tone = 'neutral',
+  value,
+}: {
+  label: string;
+  tone?: 'danger' | 'good' | 'neutral' | 'warning';
+  value: number;
+}) {
+  const toneClass = {
+    danger: 'border-red-100 bg-red-50 text-red-700',
+    good: 'border-emerald-100 bg-emerald-50 text-emerald-700',
+    neutral: 'border-slate-100 bg-slate-50 text-slate-700',
+    warning: 'border-amber-100 bg-amber-50 text-amber-700',
+  }[tone];
+
+  return (
+    <div className={`rounded-2xl border px-3 py-2 ${toneClass}`}>
+      <p className="text-xl font-black">{value}</p>
+      <p className="text-[11px] font-black">{label}</p>
+    </div>
   );
 }
 

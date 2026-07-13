@@ -15,6 +15,9 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Mewajibkan lampiran sebelum perangkat ajar dikirim ke Kepala Sekolah, memperjelas pesan upload gagal, dan menonjolkan lampiran pada antrean review KS.
 - Menambahkan dukungan lampiran PDF untuk perangkat ajar; PDF dibuka inline melalui signed URL R2, sedangkan DOCX diarahkan ke Microsoft Office Online Viewer agar bisa dibaca online bila viewer dapat mengakses URL sementara.
 - Merapikan input presensi guru: materi/catatan KBM wajib diisi, list siswa memiliki mode 2 kolom dengan pagination 10 baris, tersedia mode dropdown siswa/status, dan komponen pagination global siap dipakai modul lain.
+- Menyempurnakan UAT dashboard KS dan presensi guru: tombol presensi agenda yang sudah submitted menjadi nonaktif, submit presensi terkunci sampai checklist wajib dan materi terisi, kartu prioritas KS dapat diklik untuk melihat detail, serta card Guru/Siswa diberi konteks jumlah.
+- Menghapus kartu/tombol shortcut beranda yang menduplikasi menu navbar dan mempertahankan akses pendukung yang tidak ada di navbar utama, seperti laporan/audit KS, perangkat ajar guru, serta halaman pendukung operator.
+- Mengoptimalkan `/principal/reports` untuk jumlah siswa besar dengan filter risiko, ringkasan hasil filter, pagination global 10 siswa per halaman, dan detail siswa tetap expand/collapse.
 
 ## 2026-07-10
 
