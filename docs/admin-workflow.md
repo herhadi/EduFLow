@@ -104,7 +104,7 @@ Dashboard wajib menampilkan information architecture sesuai actor:
 
 - Operator Sekolah melihat ruang kerja admin seperti kesiapan data akademik, validasi jadwal, kelengkapan guru, kesehatan operasional, dan checklist sebelum KBM. Jangan mengisi dashboard admin dengan daftar akses cepat yang menduplikasi bottom navigation.
 - Guru melihat agenda hari ini, jadwal pribadi, presensi, perangkat ajar, penilaian, notifikasi, serta kelas binaan jika menjadi wali kelas.
-- Kepala Sekolah melihat pusat review, inbox keputusan, performa guru, laporan sekolah, dan jejak aktivitas supervisi.
+- Kepala Sekolah melihat pusat review, inbox keputusan, performa guru, laporan sekolah, jejak aktivitas supervisi, serta ringkasan KBM hari ini langsung di `/principal/dashboard`.
 
 Catatan jadwal:
 

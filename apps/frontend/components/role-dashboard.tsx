@@ -360,6 +360,17 @@ function PrincipalHome({ currentUser }: { currentUser: CurrentUser | null }) {
         <RoleActionCard href="/principal/reports" icon="▣" label="Laporan Sekolah" description="Lihat dan export rekap kehadiran serta kegiatan belajar mengajar." />
         <RoleActionCard href="/principal/audit" icon="◇" label="Jejak Aktivitas" description="Telusuri aktivitas penting untuk kebutuhan supervisi." />
       </RoleSection>
+      <section className="mt-7">
+        <div className="mb-4">
+          <h2 className="text-xl font-black tracking-tight text-slate-900">
+            Kondisi KBM Hari Ini
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            Ringkasan kelas berjalan, presensi, checklist KBM, guru pengganti, dan agenda yang perlu perhatian.
+          </p>
+        </div>
+        <OperationalDashboard className="mt-0" />
+      </section>
     </>
   );
 }

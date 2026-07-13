@@ -49,7 +49,7 @@ const emptySummary: OperationalDashboardSummary = {
   },
 };
 
-export function OperationalDashboard() {
+export function OperationalDashboard({ className = 'mt-8' }: { className?: string } = {}) {
   const [summary, setSummary] =
     useState<OperationalDashboardSummary>(emptySummary);
   const [loadState, setLoadState] = useState<LoadState>('idle');
@@ -71,7 +71,7 @@ export function OperationalDashboard() {
   }, []);
 
   return (
-    <section className="mt-8 space-y-6">
+    <section className={`${className} space-y-6`}>
       <div className="rounded-[2rem] bg-gradient-to-br from-brand-700 to-brand-600 p-5 text-white shadow-xl shadow-blue-200 sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>

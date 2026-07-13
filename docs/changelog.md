@@ -20,6 +20,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan reminder Telegram guru 5 menit sebelum agenda pertama guru pada hari tersebut, termasuk dedupe agar jadwal berurutan hanya mengirim satu pengingat dan guru pengganti menerima reminder jika agenda digantikan.
 - Menambahkan command Telegram on-demand untuk Kepala Sekolah/root/operator: `/kbm` atau `/today` menampilkan ringkasan KBM hari ini dan `/review` menampilkan antrean review, tanpa broadcast otomatis atau penambahan badge Inbox.
 - Mempercepat respons webhook Telegram dengan balasan fire-and-forget serta mengembalikan `/start` tanpa token menjadi status personal jika akun Telegram sudah terhubung.
+- Menambahkan ringkasan KBM harian langsung pada `/principal/dashboard` agar Kepala Sekolah melihat kelas berjalan, presensi, checklist KBM, guru pengganti, dan agenda perlu perhatian tanpa membuka laporan terpisah.
 
 ## 2026-07-09
 
