@@ -50,6 +50,7 @@ Buka `/principal/review`, lalu pastikan:
 
 Login sebagai `uat.guru1`, buka `/teacher/dashboard` dan `/teacher/attendance`, lalu pastikan:
 
+- dashboard guru menampilkan ringkasan agenda hari ini, jumlah presensi sudah/belum submit, prioritas agenda berikutnya, status perangkat ajar, dan ringkasan nilai,
 - guru dapat melihat agenda hari ini,
 - akun guru/wali kelas tetap masuk dashboard guru,
 - kelas binaan tersedia untuk akun yang memiliki role wali kelas.

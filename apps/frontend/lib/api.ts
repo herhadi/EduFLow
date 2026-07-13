@@ -805,7 +805,22 @@ async function upload<T>(path: string, file: File): Promise<T> {
   }
 
   if (!response.ok) {
-    throw new Error(`API upload failed: ${response.status}`);
+    let message = `API upload failed: ${response.status}`;
+
+    try {
+      const body = (await response.json()) as { message?: string | string[] };
+      const responseMessage = Array.isArray(body.message)
+        ? body.message.join(', ')
+        : body.message;
+
+      if (responseMessage) {
+        message = responseMessage;
+      }
+    } catch {
+      // Biarkan fallback status dipakai jika response bukan JSON.
+    }
+
+    throw new Error(message);
   }
 
   return response.json() as Promise<T>;

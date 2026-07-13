@@ -35,12 +35,16 @@ export class R2StorageProvider implements StorageProvider {
     return { key: input.key, name: input.name, mimeType: input.mimeType, size: input.buffer.length };
   }
 
-  async createDownloadUrl(key: string, downloadName: string) {
+  async createDownloadUrl(key: string, downloadName: string, options?: {
+    contentType?: string | null;
+    disposition?: 'attachment' | 'inline';
+  }) {
     const { bucket, client } = this.connection();
     return getSignedUrl(client, new GetObjectCommand({
       Bucket: bucket,
       Key: key,
-      ResponseContentDisposition: this.contentDisposition(downloadName),
+      ResponseContentDisposition: this.contentDisposition(downloadName, options?.disposition ?? 'attachment'),
+      ...(options?.contentType ? { ResponseContentType: options.contentType } : {}),
     }), { expiresIn: this.downloadUrlExpiresIn });
   }
 
@@ -119,8 +123,8 @@ export class R2StorageProvider implements StorageProvider {
     };
   }
 
-  private contentDisposition(name: string) {
+  private contentDisposition(name: string, disposition: 'attachment' | 'inline' = 'attachment') {
     const safeName = name.replace(/["\\\r\n]/g, '_');
-    return `attachment; filename="${safeName}"`;
+    return `${disposition}; filename="${safeName}"`;
   }
 }

@@ -8,6 +8,7 @@ import { CreateTeachingPlanDto } from './dto/create-teaching-plan.dto';
 import { ReviewTeachingPlanDto } from './dto/review-teaching-plan.dto';
 
 const DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const PDF_MIME_TYPE = 'application/pdf';
 const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 @Controller('academic-planning')
@@ -28,9 +29,10 @@ export class AcademicPlanningController {
     limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (_request, file, callback) => {
       const isDocx = file.originalname.toLowerCase().endsWith('.docx') && file.mimetype === DOCX_MIME_TYPE;
+      const isPdf = file.originalname.toLowerCase().endsWith('.pdf') && file.mimetype === PDF_MIME_TYPE;
       const isBookPhoto = IMAGE_MIME_TYPES.includes(file.mimetype);
-      const isSupported = isDocx || isBookPhoto;
-      callback(isSupported ? null : new BadRequestException('File harus DOCX, JPEG, PNG, atau WebP'), isSupported);
+      const isSupported = isDocx || isPdf || isBookPhoto;
+      callback(isSupported ? null : new BadRequestException('File harus DOCX, PDF, JPEG, PNG, atau WebP'), isSupported);
     },
   }))
   uploadAttachment(

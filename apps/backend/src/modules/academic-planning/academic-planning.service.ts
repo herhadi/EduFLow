@@ -11,6 +11,7 @@ import { CreateTeachingPlanDto } from './dto/create-teaching-plan.dto';
 import { ReviewTeachingPlanDto } from './dto/review-teaching-plan.dto';
 
 const DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const PDF_MIME_TYPE = 'application/pdf';
 const BOOK_PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 @Injectable()
@@ -53,6 +54,9 @@ export class AcademicPlanningService {
     const existing = await this.prisma.teachingPlan.findFirst({ where: { id, teacherId: teacher.id, deletedAt: null } });
     if (!existing) throw new NotFoundException('Perangkat ajar tidak ditemukan');
     if (!['DRAFT', 'REVISION_REQUESTED'].includes(existing.status)) throw new BadRequestException('Perangkat ajar tidak dapat disubmit pada status ini');
+    if (!existing.attachmentKey && !existing.attachmentUrl) {
+      throw new BadRequestException('Lampiran perangkat ajar wajib diunggah sebelum dikirim ke Kepala Sekolah');
+    }
     if (existing.type === 'TEACHING_BOOK' && !this.isBookPhoto(existing.attachmentMimeType)) {
       throw new BadRequestException('Foto buku KBM wajib diunggah sebelum perangkat ajar dikirim');
     }
@@ -81,8 +85,8 @@ export class AcademicPlanningService {
     if (existing.type === 'TEACHING_BOOK' && !this.isBookPhoto(file.mimetype)) {
       throw new BadRequestException('Buku KBM harus menggunakan foto JPEG, PNG, atau WebP');
     }
-    if (existing.type !== 'TEACHING_BOOK' && file.mimetype !== DOCX_MIME_TYPE) {
-      throw new BadRequestException('Perangkat ajar selain Buku KBM harus menggunakan dokumen DOCX');
+    if (existing.type !== 'TEACHING_BOOK' && !this.isDocumentFile(file.mimetype)) {
+      throw new BadRequestException('Perangkat ajar selain Buku KBM harus menggunakan dokumen DOCX atau PDF');
     }
 
     const extension = extname(file.originalname).toLowerCase();
@@ -114,7 +118,7 @@ export class AcademicPlanningService {
       data: plan,
       message: existing.type === 'TEACHING_BOOK'
         ? 'Foto buku KBM berhasil diunggah.'
-        : 'Dokumen DOCX berhasil diunggah.',
+        : 'Dokumen berhasil diunggah.',
     };
   }
 
@@ -129,7 +133,14 @@ export class AcademicPlanningService {
     }
 
     if (plan.attachmentKey && plan.attachmentName) {
-      return { data: { url: await this.storage.createDownloadUrl(plan.attachmentKey, plan.attachmentName) } };
+      return {
+        data: {
+          url: await this.storage.createDownloadUrl(plan.attachmentKey, plan.attachmentName, {
+            contentType: plan.attachmentMimeType,
+            disposition: 'inline',
+          }),
+        },
+      };
     }
     if (plan.attachmentUrl) return { data: { url: plan.attachmentUrl } };
     throw new NotFoundException('Dokumen belum tersedia');
@@ -188,5 +199,9 @@ export class AcademicPlanningService {
 
   private isBookPhoto(mimeType?: string | null) {
     return Boolean(mimeType && BOOK_PHOTO_MIME_TYPES.includes(mimeType));
+  }
+
+  private isDocumentFile(mimeType?: string | null) {
+    return mimeType === DOCX_MIME_TYPE || mimeType === PDF_MIME_TYPE;
   }
 }

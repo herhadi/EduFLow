@@ -8,6 +8,12 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan dokumen `docs/uat.md` berisi akun test dan skenario UAT dashboard KS, review, dashboard guru, report siswa, serta Telegram.
 - Memperbaiki pembacaan tanggal dashboard operasional/Kepala Sekolah agar `DailyAgenda.date` mengikuti tanggal kalender sekolah, dan angka guru/siswa dihitung dari agenda pada tanggal tersebut supaya tidak tercampur dengan presensi agenda lain yang disubmit hari ini.
 - Menyesuaikan seed UAT agar tanggal agenda mengikuti `SCHOOL_TIMEZONE_OFFSET_MINUTES`, sehingga hasil dashboard KS konsisten di lokal maupun Debian.
+- Merapikan dashboard guru menjadi lebih informatif: ringkasan agenda hari ini, status submit presensi, prioritas agenda berikutnya, perangkat ajar revisi/disetujui, dan draft nilai tampil sebelum kartu menu.
+- Mengubah halaman perangkat ajar guru agar daftar dokumen menjadi fokus utama, sementara form `Buat Draft` hanya tampil saat guru menekan tombol.
+- Menampilkan lampiran perangkat ajar langsung pada list guru, termasuk nama file, ukuran, dan tombol buka dokumen/foto.
+- Menambahkan aksi upload/ganti lampiran langsung pada item perangkat ajar berstatus Draft atau Perlu Revisi, sehingga guru dapat melengkapi dokumen setelah draft dibuat.
+- Mewajibkan lampiran sebelum perangkat ajar dikirim ke Kepala Sekolah, memperjelas pesan upload gagal, dan menonjolkan lampiran pada antrean review KS.
+- Menambahkan dukungan lampiran PDF untuk perangkat ajar; PDF dibuka inline melalui signed URL R2, sedangkan DOCX diarahkan ke Microsoft Office Online Viewer agar bisa dibaca online bila viewer dapat mengakses URL sementara.
 
 ## 2026-07-10
 

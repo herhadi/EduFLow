@@ -101,9 +101,34 @@ export function PrincipalTeachingPlanReview() {
             </div>
 
             {plan.description ? <p className="mt-4 rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-700 dark:bg-slate-900 dark:text-slate-200">{plan.description}</p> : null}
-            <div className="mt-4 flex flex-wrap gap-2">
-              {plan.attachmentKey || plan.attachmentUrl ? <button className="secondary-button rounded-xl px-3 py-2 text-xs font-black" onClick={() => void openAttachment(plan)} type="button">{plan.type === 'TEACHING_BOOK' ? 'Lihat Foto Buku' : 'Buka Dokumen'}{plan.attachmentName ? ` · ${plan.attachmentName}` : ''}</button> : <span className="text-xs font-bold text-amber-700">Lampiran belum tersedia</span>}
-            </div>
+            {plan.attachmentKey || plan.attachmentUrl ? (
+              <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-[0.1em] text-brand-700">
+                    Lampiran Guru
+                  </p>
+                  <p className="mt-1 truncate text-sm font-bold text-slate-900">
+                    {plan.attachmentName ?? (plan.type === 'TEACHING_BOOK' ? 'Foto Buku KBM' : 'Dokumen perangkat ajar')}
+                  </p>
+                  {plan.attachmentSize ? (
+                    <p className="mt-0.5 text-xs font-semibold text-muted">
+                      {formatFileSize(plan.attachmentSize)}
+                    </p>
+                  ) : null}
+                </div>
+                <button
+                  className="rounded-2xl bg-white px-4 py-2.5 text-sm font-black text-brand-700 shadow-sm transition hover:bg-brand-600 hover:text-white"
+                  onClick={() => void openAttachment(plan)}
+                  type="button"
+                >
+                  {plan.type === 'TEACHING_BOOK' ? 'Buka Foto' : 'Buka Dokumen'}
+                </button>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-800">
+                Lampiran belum tersedia. Minta revisi agar guru mengunggah dokumen sebelum disetujui.
+              </div>
+            )}
 
             <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_0.55fr]">
               <label className="grid gap-2 text-sm font-bold">
@@ -146,4 +171,8 @@ export function PrincipalTeachingPlanReview() {
       {!loading && plans.length === 0 ? <div className="surface-card rounded-3xl p-5 text-sm text-muted">Tidak ada perangkat ajar yang menunggu review.</div> : null}
     </section>
   );
+}
+
+function formatFileSize(size: number) {
+  return size < 1024 * 1024 ? `${Math.ceil(size / 1024)} KB` : `${(size / 1024 / 1024).toFixed(1)} MB`;
 }

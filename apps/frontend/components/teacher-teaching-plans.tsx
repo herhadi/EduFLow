@@ -14,7 +14,7 @@ const planTypes: Array<{ value: TeachingPlanType; label: string }> = [
   { value: 'LESSON_PLAN', label: 'Perencanaan Pembelajaran' },
   { value: 'TEACHING_BOOK', label: 'Buku KBM' },
 ];
-const documentAccept = '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const documentAccept = '.docx,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf';
 const bookPhotoAccept = 'image/jpeg,image/png,image/webp';
 
 export function TeacherTeachingPlans() {
@@ -25,6 +25,8 @@ export function TeacherTeachingPlans() {
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingPlanId, setUploadingPlanId] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [attachment, setAttachment] = useState<File | null>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -56,6 +58,7 @@ export function TeacherTeachingPlans() {
       setPlans((current) => [savedPlan, ...current]);
       setForm((current) => ({ ...current, title: '', description: '' }));
       setAttachment(null);
+      setShowCreateForm(false);
       toast.success(attachment ? 'Draft dan dokumen berhasil disimpan.' : response.message ?? 'Draft berhasil disimpan.');
     } catch (error) { toast.error(error instanceof Error ? error.message : 'Draft gagal disimpan.'); }
     finally { setSaving(false); }
@@ -78,6 +81,21 @@ export function TeacherTeachingPlans() {
     }
   }
 
+  async function uploadExistingAttachment(plan: TeachingPlan, file?: File | null) {
+    if (!file) return;
+
+    setUploadingPlanId(plan.id);
+    try {
+      const response = await api.uploadTeachingPlanAttachment(plan.id, file);
+      setPlans((current) => current.map((item) => item.id === plan.id ? response.data : item));
+      toast.success(response.message ?? 'Lampiran berhasil diunggah.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Lampiran gagal diunggah.');
+    } finally {
+      setUploadingPlanId(null);
+    }
+  }
+
   function selectBookPhoto(event: ChangeEvent<HTMLInputElement>) {
     setAttachment(event.target.files?.[0] ?? null);
   }
@@ -86,66 +104,92 @@ export function TeacherTeachingPlans() {
   const isTeachingBook = form.type === 'TEACHING_BOOK';
 
   return (
-    <section className="mt-7 grid gap-5 xl:grid-cols-[minmax(320px,0.8fr)_minmax(0,1.2fr)]">
-      <form className="surface-card rounded-[2rem] p-5" onSubmit={handleSubmit}>
-        <h2 className="text-xl font-black">Buat Draft</h2>
-        <p className="mt-1 text-sm text-muted">Unggah dokumen DOCX maksimal 10 MB. Buku KBM menggunakan foto buku dari kamera atau galeri.</p>
-        <div className="mt-5 grid gap-3">
-          <Select label="Jenis" value={form.type} onChange={(value) => { setForm({ ...form, type: value as TeachingPlanType }); setAttachment(null); }} options={planTypes} />
-          <Select label="Mata Pelajaran" value={form.subjectId} onChange={(value) => setForm({ ...form, subjectId: value })} options={subjects.map((subject) => ({ value: subject.id, label: subject.name }))} />
-          <Select label="Tahun Ajaran" value={form.schoolYearId} onChange={(value) => setForm({ ...form, schoolYearId: value, semesterId: '' })} options={schoolYears.map((item) => ({ value: item.id, label: item.name }))} />
-          <Select label="Semester (opsional)" value={form.semesterId} onChange={(value) => setForm({ ...form, semesterId: value })} options={[{ value: '', label: 'Tidak spesifik semester' }, ...filteredSemesters.map((item) => ({ value: item.id, label: item.type === 'ODD' ? 'Ganjil' : 'Genap' }))]} />
-          <Field label="Judul" value={form.title} onChange={(value) => setForm({ ...form, title: value })} required />
-          {isTeachingBook ? (
-            <div className="grid gap-2">
-              <p className="text-sm font-bold">Foto Buku KBM</p>
-              <div className="grid grid-cols-2 gap-2">
-                <CameraCaptureButton onClick={() => cameraInputRef.current?.click()}>
-                  Buka Kamera
-                </CameraCaptureButton>
-                <button
-                  className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-black text-brand-700"
-                  onClick={() => galleryInputRef.current?.click()}
-                  type="button"
-                >
-                  Pilih Galeri
-                </button>
-              </div>
-              <input
-                accept={bookPhotoAccept}
-                capture="environment"
-                className="sr-only"
-                onChange={selectBookPhoto}
-                ref={cameraInputRef}
-                type="file"
-              />
-              <input
-                accept={bookPhotoAccept}
-                className="sr-only"
-                onChange={selectBookPhoto}
-                ref={galleryInputRef}
-                type="file"
-              />
-            </div>
-          ) : (
-            <label className="grid gap-2 text-sm font-bold">
-              Dokumen DOCX (opsional)
-              <input
-                accept={documentAccept}
-                className="rounded-2xl border bg-white px-4 py-3 text-sm font-normal outline-none file:mr-3 file:rounded-xl file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:font-black file:text-brand-700"
-                onChange={(event) => setAttachment(event.target.files?.[0] ?? null)}
-                type="file"
-              />
-            </label>
-          )}
-          {attachment ? <p className="text-xs font-semibold text-muted">{attachment.name} · {formatFileSize(attachment.size)}</p> : null}
-          <label className="grid gap-2 text-sm font-bold">Keterangan<textarea className="min-h-24 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
+    <section className="mt-7 space-y-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-xl font-black tracking-tight text-slate-900">Perangkat Ajar Saya</h2>
+          <p className="mt-1 text-sm text-muted">Pantau draft, pengajuan, revisi, dan persetujuan sebelum membuat dokumen baru.</p>
         </div>
-        <button className="mt-5 w-full rounded-2xl bg-brand-600 px-5 py-4 text-sm font-black text-white disabled:opacity-50" disabled={saving || !form.title || !form.subjectId || !form.schoolYearId || (isTeachingBook && !attachment)}>{saving ? 'Menyimpan...' : 'Simpan Draft'}</button>
-      </form>
+        <button
+          className="w-full rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-brand-700 sm:w-auto"
+          onClick={() => setShowCreateForm((current) => !current)}
+          type="button"
+        >
+          {showCreateForm ? 'Tutup Form' : 'Buat Draft'}
+        </button>
+      </div>
+
+      {showCreateForm ? (
+        <form className="surface-card rounded-[2rem] p-5" onSubmit={handleSubmit}>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-lg font-black">Buat Draft Baru</h2>
+              <p className="mt-1 text-sm text-muted">Unggah dokumen DOCX/PDF maksimal 10 MB. Buku KBM menggunakan foto buku dari kamera atau galeri.</p>
+            </div>
+            <button
+              className="w-fit rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-muted transition hover:border-brand-600 hover:text-brand-700"
+              onClick={() => setShowCreateForm(false)}
+              type="button"
+            >
+              Tutup
+            </button>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <Select label="Jenis" value={form.type} onChange={(value) => { setForm({ ...form, type: value as TeachingPlanType }); setAttachment(null); }} options={planTypes} />
+            <Select label="Mata Pelajaran" value={form.subjectId} onChange={(value) => setForm({ ...form, subjectId: value })} options={subjects.map((subject) => ({ value: subject.id, label: subject.name }))} />
+            <Select label="Tahun Ajaran" value={form.schoolYearId} onChange={(value) => setForm({ ...form, schoolYearId: value, semesterId: '' })} options={schoolYears.map((item) => ({ value: item.id, label: item.name }))} />
+            <Select label="Semester (opsional)" value={form.semesterId} onChange={(value) => setForm({ ...form, semesterId: value })} options={[{ value: '', label: 'Tidak spesifik semester' }, ...filteredSemesters.map((item) => ({ value: item.id, label: item.type === 'ODD' ? 'Ganjil' : 'Genap' }))]} />
+            <Field label="Judul" value={form.title} onChange={(value) => setForm({ ...form, title: value })} required />
+            {isTeachingBook ? (
+              <div className="grid gap-2">
+                <p className="text-sm font-bold">Foto Buku KBM</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <CameraCaptureButton onClick={() => cameraInputRef.current?.click()}>
+                    Buka Kamera
+                  </CameraCaptureButton>
+                  <button
+                    className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-black text-brand-700"
+                    onClick={() => galleryInputRef.current?.click()}
+                    type="button"
+                  >
+                    Pilih Galeri
+                  </button>
+                </div>
+                <input
+                  accept={bookPhotoAccept}
+                  capture="environment"
+                  className="sr-only"
+                  onChange={selectBookPhoto}
+                  ref={cameraInputRef}
+                  type="file"
+                />
+                <input
+                  accept={bookPhotoAccept}
+                  className="sr-only"
+                  onChange={selectBookPhoto}
+                  ref={galleryInputRef}
+                  type="file"
+                />
+              </div>
+            ) : (
+              <label className="grid gap-2 text-sm font-bold">
+                Dokumen DOCX/PDF (opsional)
+                <input
+                  accept={documentAccept}
+                  className="min-w-0 rounded-2xl border bg-white px-4 py-3 text-sm font-normal outline-none file:mr-3 file:rounded-xl file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:font-black file:text-brand-700"
+                  onChange={(event) => setAttachment(event.target.files?.[0] ?? null)}
+                  type="file"
+                />
+              </label>
+            )}
+          </div>
+          {attachment ? <p className="mt-3 text-xs font-semibold text-muted">{attachment.name} · {formatFileSize(attachment.size)}</p> : null}
+          <label className="mt-3 grid gap-2 text-sm font-bold">Keterangan<textarea className="min-h-20 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
+          <button className="mt-5 w-full rounded-2xl bg-brand-600 px-5 py-4 text-sm font-black text-white disabled:opacity-50 sm:w-auto" disabled={saving || !form.title || !form.subjectId || !form.schoolYearId || (isTeachingBook && !attachment)}>{saving ? 'Menyimpan...' : 'Simpan Draft'}</button>
+        </form>
+      ) : null}
 
       <div className="space-y-3">
-        <div><h2 className="text-xl font-black">Perangkat Ajar Saya</h2><p className="mt-1 text-sm text-muted">Pantau draft, pengajuan, revisi, dan persetujuan.</p></div>
         {loading ? <div className="surface-card rounded-3xl p-5 text-sm text-muted">Memuat perangkat ajar...</div> : null}
         {plans.map((plan) => (
           <article className="surface-card rounded-[1.75rem] p-5" key={plan.id}>
@@ -153,6 +197,34 @@ export function TeacherTeachingPlans() {
               <div><p className="text-xs font-black text-brand-700">{planTypes.find((item) => item.value === plan.type)?.label}</p><h3 className="mt-1 text-lg font-black">{plan.title}</h3><p className="mt-1 text-sm text-muted">{plan.subject.name} · {plan.schoolYear.name}{plan.semester ? ` · ${plan.semester.type === 'ODD' ? 'Ganjil' : 'Genap'}` : ''}</p></div>
               <Status status={plan.status} />
             </div>
+            {plan.attachmentKey || plan.attachmentUrl ? (
+              <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-[0.1em] text-brand-700">
+                    Dokumen Terlampir
+                  </p>
+                  <p className="mt-1 truncate text-sm font-bold text-slate-900">
+                    {plan.attachmentName ?? (plan.type === 'TEACHING_BOOK' ? 'Foto Buku KBM' : 'Dokumen perangkat ajar')}
+                  </p>
+                  {plan.attachmentSize ? (
+                    <p className="mt-0.5 text-xs font-semibold text-muted">
+                      {formatFileSize(plan.attachmentSize)}
+                    </p>
+                  ) : null}
+                </div>
+                <button
+                  className="rounded-2xl bg-white px-4 py-2.5 text-sm font-black text-brand-700 shadow-sm transition hover:bg-brand-600 hover:text-white"
+                  onClick={() => void openAttachment(plan)}
+                  type="button"
+                >
+                  {plan.type === 'TEACHING_BOOK' ? 'Buka Foto' : 'Buka Dokumen'}
+                </button>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-muted">
+                Belum ada dokumen terlampir.
+              </div>
+            )}
             {plan.reviewNote ? (
               <div className="mt-4 rounded-2xl bg-amber-50 p-3 text-sm font-semibold text-amber-900">
                 <div className="flex flex-wrap gap-2">
@@ -169,12 +241,40 @@ export function TeacherTeachingPlans() {
               </div>
             ) : null}
             <div className="mt-4 flex flex-wrap gap-2">
-              {plan.attachmentKey || plan.attachmentUrl ? <button className="secondary-button rounded-xl px-3 py-2 text-xs font-black" onClick={() => void openAttachment(plan)} type="button">{plan.type === 'TEACHING_BOOK' ? 'Lihat Foto Buku' : 'Buka Dokumen'}{plan.attachmentName ? ` · ${plan.attachmentName}` : ''}</button> : null}
-              {plan.status === 'DRAFT' || plan.status === 'REVISION_REQUESTED' ? <button className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-black text-white" onClick={() => void submitPlan(plan)} type="button">Kirim ke KS</button> : null}
+              {plan.status === 'DRAFT' || plan.status === 'REVISION_REQUESTED' ? (
+                <label className="cursor-pointer rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-black text-brand-700 transition hover:border-brand-600">
+                  {uploadingPlanId === plan.id ? 'Mengunggah...' : plan.attachmentKey || plan.attachmentUrl ? 'Ganti Lampiran' : 'Upload Lampiran'}
+                  <input
+                    accept={getAttachmentAccept(plan.type)}
+                    className="sr-only"
+                    disabled={uploadingPlanId === plan.id}
+                    onChange={(event) => {
+                      void uploadExistingAttachment(plan, event.target.files?.[0]);
+                      event.currentTarget.value = '';
+                    }}
+                    type="file"
+                  />
+                </label>
+              ) : null}
+              {plan.status === 'DRAFT' || plan.status === 'REVISION_REQUESTED' ? (
+                <button
+                  className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!hasPlanAttachment(plan)}
+                  onClick={() => void submitPlan(plan)}
+                  type="button"
+                >
+                  Kirim ke KS
+                </button>
+              ) : null}
             </div>
+            {(plan.status === 'DRAFT' || plan.status === 'REVISION_REQUESTED') && !hasPlanAttachment(plan) ? (
+              <p className="mt-2 text-xs font-bold text-amber-700">
+                Upload lampiran terlebih dahulu sebelum dikirim ke Kepala Sekolah.
+              </p>
+            ) : null}
           </article>
         ))}
-        {!loading && !plans.length ? <div className="surface-card rounded-3xl p-5 text-sm text-muted">Belum ada perangkat ajar. Buat draft pertama dari form.</div> : null}
+        {!loading && !plans.length ? <div className="surface-card rounded-3xl p-5 text-sm text-muted">Belum ada perangkat ajar. Klik Buat Draft untuk membuat dokumen pertama.</div> : null}
       </div>
     </section>
   );
@@ -199,3 +299,9 @@ function getRevisionPriorityLabel(priority: TeachingPlan['reviewPriority']) {
   return 'Sedang';
 }
 function formatFileSize(size: number) { return size < 1024 * 1024 ? `${Math.ceil(size / 1024)} KB` : `${(size / 1024 / 1024).toFixed(1)} MB`; }
+function getAttachmentAccept(type: TeachingPlanType) {
+  return type === 'TEACHING_BOOK' ? bookPhotoAccept : documentAccept;
+}
+function hasPlanAttachment(plan: TeachingPlan) {
+  return Boolean(plan.attachmentKey || plan.attachmentUrl);
+}

@@ -264,7 +264,7 @@ Domain `academic-planning` sudah menyediakan workflow awal:
 - `GET /api/academic-planning/review-queue` untuk antrean review Kepala Sekolah.
 - `PATCH /api/academic-planning/:id/review` untuk approve atau meminta revisi.
 
-Halaman guru berada di `/teacher/teaching-plans`. Lampiran DOCX maupun foto Buku KBM disimpan pada bucket privat Cloudflare R2 melalui `StorageProvider` di infrastructure layer. Domain menyimpan object key, nama asli, MIME type, ukuran, dan waktu upload; URL unduhan dibuat sementara saat pengguna berhak membuka lampiran.
+Halaman guru berada di `/teacher/teaching-plans`. Lampiran DOCX/PDF maupun foto Buku KBM disimpan pada bucket privat Cloudflare R2 melalui `StorageProvider` di infrastructure layer. Domain menyimpan object key, nama asli, MIME type, ukuran, dan waktu upload; URL preview dibuat sementara saat pengguna berhak membuka lampiran.
 
 Konfigurasi backend yang wajib tersedia:
 
@@ -274,7 +274,7 @@ Konfigurasi backend yang wajib tersedia:
 - `R2_BUCKET_NAME`
 - `R2_DOWNLOAD_URL_EXPIRES_IN` (default 900 detik)
 
-File dibatasi maksimal 10 MB. Untuk `Program Tahunan`, `Program Semester`, `KKTP`, dan `Perencanaan Pembelajaran`, lampiran wajib berformat DOCX. Untuk `Buku KBM`, form menyediakan aksi `Buka Kamera` dan `Pilih Galeri` untuk foto JPEG, PNG, atau WebP; aksi kamera meminta kamera belakang pada perangkat yang mendukungnya. Foto buku wajib tersedia sebelum pengajuan dapat dikirim kepada Kepala Sekolah. Guru hanya dapat mengganti lampiran ketika status masih `DRAFT` atau `REVISION_REQUESTED`.
+File dibatasi maksimal 10 MB. Untuk `Program Tahunan`, `Program Semester`, `KKTP`, dan `Perencanaan Pembelajaran`, lampiran wajib berformat DOCX atau PDF. Untuk `Buku KBM`, form menyediakan aksi `Buka Kamera` dan `Pilih Galeri` untuk foto JPEG, PNG, atau WebP; aksi kamera meminta kamera belakang pada perangkat yang mendukungnya. Lampiran wajib tersedia sebelum pengajuan dapat dikirim kepada Kepala Sekolah. Guru hanya dapat mengganti lampiran ketika status masih `DRAFT` atau `REVISION_REQUESTED`.
 
 Kepala Sekolah membuka `/principal/review` untuk melihat antrean `SUBMITTED`, membuka dokumen melalui signed URL R2, menyetujui perangkat ajar, atau meminta revisi dengan catatan wajib. Saat meminta revisi, KS dapat mengisi bagian/halaman yang perlu diperbaiki dan memilih prioritas `Tinggi`, `Sedang`, atau `Rendah`.
 
@@ -282,7 +282,7 @@ Saat guru submit, sistem membuat notifikasi `IN_APP` untuk setiap akun Kepala Se
 
 Hasil review membuat notifikasi inbox untuk guru. Status `REVISION_REQUESTED` menggunakan indikator kuning dan status `APPROVED` menggunakan indikator hijau. Pada status revisi, guru melihat catatan KS, bagian/halaman yang ditandai bila ada, dan prioritas revisi. Keputusan KS menandai notifikasi pengajuan terkait sebagai sudah dibaca sehingga badge langsung berkurang.
 
-Badge pada daftar perangkat ajar juga menggunakan kuning untuk revisi dan hijau untuk disetujui. Pembukaan DOCX memakai helper frontend bersama: desktop diarahkan ke Microsoft Office Online Viewer, sedangkan perangkat mobile membuka signed URL sementara langsung dan menyerahkan penanganan file kepada browser atau sistem operasi. Web browser tidak dapat memaksa dialog pemilihan aplikasi secara konsisten.
+Badge pada daftar perangkat ajar juga menggunakan kuning untuk revisi dan hijau untuk disetujui. Pembukaan PDF memakai signed URL R2 `inline` sehingga browser dapat menampilkan preview langsung. Pembukaan DOCX memakai helper frontend bersama yang diarahkan ke Microsoft Office Online Viewer; jika viewer eksternal tidak dapat membaca signed URL yang sedang berlaku, user masih dapat membuka/unduh dari URL lampiran sementara sesuai perilaku browser.
 
 Pilihan mata pelajaran pada halaman tersebut dibaca dari `GET /api/academic/me/subjects`, sehingga guru hanya dapat membuat perangkat ajar untuk mata pelajaran yang sudah ditugaskan kepadanya melalui `TeacherSubject`.
 

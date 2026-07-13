@@ -23,7 +23,10 @@ export interface StorageUsageSummary {
 
 export interface StorageProvider {
   upload(input: UploadFileInput): Promise<StoredFile>;
-  createDownloadUrl(key: string, downloadName: string): Promise<string>;
+  createDownloadUrl(key: string, downloadName: string, options?: {
+    contentType?: string | null;
+    disposition?: 'attachment' | 'inline';
+  }): Promise<string>;
   delete(key: string): Promise<void>;
   healthCheck(): Promise<void>;
   getUsageSummary(): Promise<StorageUsageSummary>;
