@@ -2,6 +2,11 @@
 
 Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
+## 2026-07-13
+
+- Menambahkan script data UAT `npm run prisma:uat --workspace backend` untuk membuat akun KS, guru, guru pengganti, kelas, siswa, jadwal, agenda, presensi, perangkat ajar, dan nilai harian berprefix `UAT`.
+- Menambahkan dokumen `docs/uat.md` berisi akun test dan skenario UAT dashboard KS, review, dashboard guru, report siswa, serta Telegram.
+
 ## 2026-07-10
 
 - Mengaktifkan integrasi Telegram bot: backend menerima webhook `/api/auth/telegram/webhook`, memproses `/start <token>` dari halaman Profil, menyimpan `User.telegramId`, dan worker notifikasi mengirim pesan melalui Telegram Bot API.

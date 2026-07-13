@@ -7,7 +7,8 @@
     "start:dev": "nest start --watch",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:uat": "node --import tsx prisma/uat-seed.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1068.0",
