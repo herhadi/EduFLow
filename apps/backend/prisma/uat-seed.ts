@@ -61,6 +61,13 @@ async function main() {
     roleIds: [roles.guru.id],
     username: 'uat.guru3',
   });
+  const parentUser = await ensureUser({
+    email: 'uat.wali01@eduflow.local',
+    name: 'UAT Wali 01',
+    password,
+    roleIds: [roles.orang_tua.id],
+    username: 'uat.parent1',
+  });
 
   const teacher = await ensureTeacher({
     email: teacherUser.email,
@@ -237,6 +244,7 @@ async function main() {
       { username: teacherUser.username, role: 'guru + wali_kelas', password: defaultPassword },
       { username: teacherTwoUser.username, role: 'guru', password: defaultPassword },
       { username: substituteUser.username, role: 'guru pengganti', password: defaultPassword },
+      { username: parentUser.username, role: 'orang_tua', password: defaultPassword },
     ],
     date: today.toISOString().slice(0, 10),
     className,

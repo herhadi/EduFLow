@@ -18,6 +18,8 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menyempurnakan UAT dashboard KS dan presensi guru: tombol presensi agenda yang sudah submitted menjadi nonaktif, submit presensi terkunci sampai checklist wajib dan materi terisi, kartu prioritas KS dapat diklik untuk melihat detail, serta card Guru/Siswa diberi konteks jumlah.
 - Menghapus kartu/tombol shortcut beranda yang menduplikasi menu navbar dan mempertahankan akses pendukung yang tidak ada di navbar utama, seperti laporan/audit KS, perangkat ajar guru, serta halaman pendukung operator.
 - Mengoptimalkan `/principal/reports` untuk jumlah siswa besar dengan filter risiko, ringkasan hasil filter, pagination global 10 siswa per halaman, dan detail siswa tetap expand/collapse.
+- Menyiapkan UAT parent: seed membuat akun `uat.parent1`, dashboard parent otomatis membuka ringkasan berdasarkan email wali murid, dan query parent memakai tanggal kalender sekolah.
+- Memperbaiki tombol presensi guru agar agenda `COMPLETED` ikut dianggap sudah submitted sehingga tombol `Buka Presensi` otomatis nonaktif setelah presensi selesai.
 
 ## 2026-07-10
 

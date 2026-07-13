@@ -16,6 +16,7 @@ Script ini idempotent dan membuat data berprefix `UAT`:
 - akun guru/wali kelas: `uat.guru1`,
 - akun guru mapel: `uat.guru2`,
 - akun guru pengganti: `uat.guru3`,
+- akun wali murid: `uat.parent1`,
 - kelas `VII UAT`,
 - 8 siswa `UAT Siswa 01` sampai `UAT Siswa 08`,
 - jadwal dan agenda hari ini,
@@ -76,6 +77,14 @@ Jika bot sudah dikonfigurasi:
 - kirim `/kbm` atau `/today` dan pastikan ringkasan KBM sama dengan dashboard KS,
 - kirim `/review` dan pastikan antrean review muncul,
 - aktivasi Telegram pada `uat.guru1` lalu pastikan reminder guru tidak dobel untuk jadwal berurutan.
+
+### Portal Orang Tua
+
+Login sebagai `uat.parent1`, buka `/parent/dashboard`, lalu pastikan:
+
+- ringkasan kehadiran anak langsung tampil tanpa input kontak manual,
+- data anak `UAT Siswa 01` tampil dengan kelas aktif,
+- ringkasan hari ini dan riwayat presensi terbaca setelah presensi UAT disubmit.
 
 ## Catatan
 

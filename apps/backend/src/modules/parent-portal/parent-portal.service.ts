@@ -54,15 +54,15 @@ export class ParentPortalService {
     }
 
     const studentIds = guardian.students.map((relation) => relation.studentId);
-    const today = this.getTodayRange();
-    const historyRange = this.getHistoryRange(30);
+    const today = this.getSchoolTodayRange();
+    const historyRange = this.getSchoolHistoryRange(30);
 
     const [todayItems, historyItems] = await Promise.all([
       this.prisma.attendanceItem.findMany({
         where: {
           studentId: { in: studentIds },
           attendance: {
-            agenda: { date: { gte: today.startOfDay, lt: today.endOfDay } },
+            agenda: { date: { gte: today.dateOnly, lt: today.nextDateOnly } },
           },
         },
         include: {
@@ -81,7 +81,7 @@ export class ParentPortalService {
           studentId: { in: studentIds },
           attendance: {
             agenda: {
-              date: { gte: historyRange.startOfDay, lt: historyRange.endOfDay },
+              date: { gte: historyRange.startDateOnly, lt: historyRange.nextDateOnly },
             },
           },
         },
@@ -139,7 +139,7 @@ export class ParentPortalService {
           phone: guardian.phone,
           email: guardian.email,
         },
-        date: this.formatDateOnly(today.startOfDay),
+        date: this.formatUtcDateOnly(today.dateOnly),
         summary: this.countAttendanceItems(todayItems),
         students,
       },
@@ -202,31 +202,46 @@ export class ParentPortalService {
     );
   }
 
-  private getTodayRange() {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+  private getSchoolTodayRange() {
+    const timezoneOffsetMinutes = this.getSchoolTimezoneOffsetMinutes();
+    const localNow = new Date(Date.now() + timezoneOffsetMinutes * 60_000);
+    const dateOnly = new Date(Date.UTC(
+      localNow.getUTCFullYear(),
+      localNow.getUTCMonth(),
+      localNow.getUTCDate(),
+    ));
+    const nextDateOnly = new Date(dateOnly);
+    nextDateOnly.setUTCDate(nextDateOnly.getUTCDate() + 1);
 
-    const endOfDay = new Date(startOfDay);
-    endOfDay.setDate(endOfDay.getDate() + 1);
-
-    return { startOfDay, endOfDay };
+    return { dateOnly, nextDateOnly };
   }
 
-  private getHistoryRange(days: number) {
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+  private getSchoolHistoryRange(days: number) {
+    const { dateOnly, nextDateOnly } = this.getSchoolTodayRange();
+    const startDateOnly = new Date(dateOnly);
+    startDateOnly.setUTCDate(startDateOnly.getUTCDate() - days + 1);
 
-    const startOfDay = new Date(endOfDay);
-    startOfDay.setDate(startOfDay.getDate() - days);
-    startOfDay.setHours(0, 0, 0, 0);
+    return { startDateOnly, nextDateOnly };
+  }
 
-    return { startOfDay, endOfDay };
+  private getSchoolTimezoneOffsetMinutes() {
+    const configuredOffset = Number(process.env.SCHOOL_TIMEZONE_OFFSET_MINUTES ?? 420);
+
+    return Number.isFinite(configuredOffset) ? configuredOffset : 420;
   }
 
   private formatDateOnly(date: Date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private formatUtcDateOnly(date: Date) {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
   }

@@ -263,7 +263,9 @@ function AgendaCard({
   agenda: DailyAgenda;
   onOpen: (agenda: DailyAgenda) => void;
 }) {
-  const isSubmitted = ['SUBMITTED', 'APPROVED', 'CORRECTED', 'LOCKED'].includes(agenda.attendance?.state ?? '');
+  const isSubmitted =
+    agenda.status === 'COMPLETED' ||
+    ['SUBMITTED', 'APPROVED', 'CORRECTED', 'LOCKED'].includes(agenda.attendance?.state ?? '');
 
   return (
         <article

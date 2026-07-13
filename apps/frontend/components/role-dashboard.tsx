@@ -10,6 +10,7 @@ import {
 } from '../lib/navigation.config';
 import { api, type Assessment, type DailyAgenda, type Schedule, type TeachingPlan } from '../lib/api';
 import { OperationalDashboard } from './operational-dashboard';
+import { ParentPortal } from './parent-portal';
 import { PageHeader } from './ui/page-header';
 import { UserAvatar } from './ui/user-avatar';
 
@@ -577,6 +578,10 @@ function ParentHome({ currentUser }: { currentUser: CurrentUser | null }) {
         eyebrow="Portal Orang Tua"
         showBackLink={false}
         title={`Halo, ${currentUser?.name ?? 'Wali Murid'}`}
+      />
+      <ParentPortal
+        initialContact={currentUser?.email ?? currentUser?.username ?? ''}
+        title="Ringkasan Kehadiran Anak"
       />
     </>
   );

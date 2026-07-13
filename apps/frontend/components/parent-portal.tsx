@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   api,
   type ParentAttendanceRecord,
@@ -25,16 +25,27 @@ const statusTone: Record<ParentAttendanceRecord['status'], string> = {
   ABSENT: 'bg-rose-50 text-rose-700',
 };
 
-export function ParentPortal() {
-  const [contact, setContact] = useState('');
+export function ParentPortal({
+  initialContact = '',
+  title = 'Pantau Kehadiran Anak',
+}: {
+  initialContact?: string;
+  title?: string;
+}) {
+  const [contact, setContact] = useState(initialContact);
   const [summary, setSummary] = useState<ParentPortalSummary | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('idle');
 
-  async function loadPortal() {
+  async function loadPortal(contactValue = contact) {
+    if (!contactValue.trim()) {
+      setLoadState('idle');
+      return;
+    }
+
     setLoadState('loading');
 
     try {
-      const response = await api.getParentPortalSummary(contact);
+      const response = await api.getParentPortalSummary(contactValue);
       setSummary(response.data);
       setLoadState('success');
     } catch {
@@ -43,12 +54,19 @@ export function ParentPortal() {
     }
   }
 
+  useEffect(() => {
+    if (initialContact) {
+      void loadPortal(initialContact);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialContact]);
+
   return (
     <section className="mt-8 space-y-6">
       <div className="rounded-[2rem] bg-gradient-to-br from-brand-700 to-brand-600 p-5 text-white shadow-xl shadow-blue-200 sm:p-7">
         <p className="text-sm font-semibold text-blue-100">Parent Portal</p>
         <h2 className="mt-1 text-2xl font-bold sm:text-3xl">
-          Pantau Kehadiran Anak
+          {title}
         </h2>
         <p className="mt-2 text-sm leading-6 text-blue-100">
           Masukkan nomor HP atau email wali murid untuk melihat
