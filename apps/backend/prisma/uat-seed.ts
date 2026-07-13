@@ -22,7 +22,8 @@ const prisma = new PrismaClient();
 const defaultPassword = process.env.DEFAULT_USER_PASSWORD ?? '123456';
 const schoolYearName = process.env.UAT_SCHOOL_YEAR ?? '2026/2027';
 const className = 'VII UAT';
-const today = toDateOnly(new Date());
+const timezoneOffsetMinutes = Number(process.env.SCHOOL_TIMEZONE_OFFSET_MINUTES ?? 420);
+const today = toSchoolDateOnly(new Date());
 const dayOfWeek = getDayOfWeek(today);
 
 async function main() {
@@ -760,14 +761,19 @@ async function ensureAssessment(input: {
   ));
 }
 
-function toDateOnly(value: Date) {
-  const date = new Date(value);
-  date.setHours(0, 0, 0, 0);
-  return date;
+function toSchoolDateOnly(value: Date) {
+  const safeOffset = Number.isFinite(timezoneOffsetMinutes) ? timezoneOffsetMinutes : 420;
+  const localDate = new Date(value.getTime() + safeOffset * 60_000);
+
+  return new Date(Date.UTC(
+    localDate.getUTCFullYear(),
+    localDate.getUTCMonth(),
+    localDate.getUTCDate(),
+  ));
 }
 
 function getDayOfWeek(value: Date) {
-  const day = value.getDay();
+  const day = value.getUTCDay();
   return day === 0 ? 7 : day;
 }
 

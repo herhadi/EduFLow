@@ -23,6 +23,7 @@ Script ini idempotent dan membuat data berprefix `UAT`:
 - nilai harian submitted.
 
 Password mengikuti `DEFAULT_USER_PASSWORD` pada `apps/backend/.env`, default `123456`.
+Tanggal agenda UAT mengikuti `SCHOOL_TIMEZONE_OFFSET_MINUTES` agar dashboard membaca hari sekolah yang sama di lokal dan Debian.
 
 ## Skenario Uji
 
@@ -74,5 +75,6 @@ Jika bot sudah dikonfigurasi:
 ## Catatan
 
 - Data UAT tidak menghapus data asli.
+- Jika angka dashboard KS pernah menunjukkan presensi ada tetapi `Kelas Hari Ini` masih `0`, deploy perubahan terbaru lalu jalankan ulang `npm run prisma:uat --workspace backend` supaya agenda UAT dibuat ulang pada tanggal sekolah yang benar.
 - Jika perlu membersihkan data UAT, hapus data dengan prefix `UAT` dari tabel terkait secara hati-hati atau reset database lokal.
 - Jalankan `npm run prisma:seed --workspace backend` terlebih dahulu bila role dan permission dasar belum tersedia.

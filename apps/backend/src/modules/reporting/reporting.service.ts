@@ -25,7 +25,11 @@ export class ReportingService {
   ) {}
 
   async getOperationalToday() {
-    const { startOfDay, endOfDay } = this.getTodayRange();
+    const { dateOnly, nextDateOnly, startOfDay, endOfDay } = this.getSchoolTodayRange();
+    const agendaDateWhere = {
+      gte: dateOnly,
+      lt: nextDateOnly,
+    };
 
     const [
       agendas,
@@ -38,10 +42,7 @@ export class ReportingService {
     ] = await Promise.all([
       this.prisma.dailyAgenda.findMany({
         where: {
-          date: {
-            gte: startOfDay,
-            lt: endOfDay,
-          },
+          date: agendaDateWhere,
         },
         include: {
           class: true,
@@ -57,20 +58,14 @@ export class ReportingService {
       }),
       this.prisma.dailyAgenda.findMany({
         where: {
-          date: {
-            gte: startOfDay,
-            lt: endOfDay,
-          },
+          date: agendaDateWhere,
         },
         distinct: ['teacherId'],
         select: { teacherId: true },
       }),
       this.prisma.attendance.findMany({
         where: {
-          submittedAt: {
-            gte: startOfDay,
-            lt: endOfDay,
-          },
+          agenda: { date: agendaDateWhere },
           submittedById: { not: null },
         },
         distinct: ['submittedById'],
@@ -79,10 +74,8 @@ export class ReportingService {
       this.prisma.attendanceItem.findMany({
         where: {
           attendance: {
-            submittedAt: {
-              gte: startOfDay,
-              lt: endOfDay,
-            },
+            agenda: { date: agendaDateWhere },
+            submittedAt: { not: null },
           },
         },
         select: { status: true },
@@ -182,7 +175,7 @@ export class ReportingService {
 
     return {
       data: {
-        date: this.formatDateOnly(startOfDay),
+        date: this.formatUtcDateOnly(dateOnly),
         classes: {
           totalToday: agendas.length,
           inProgress,
@@ -937,6 +930,29 @@ export class ReportingService {
     return { startOfDay, endOfDay };
   }
 
+  private getSchoolTodayRange() {
+    const timezoneOffsetMinutes = this.getSchoolTimezoneOffsetMinutes();
+    const localNow = new Date(Date.now() + timezoneOffsetMinutes * 60_000);
+    const dateOnly = new Date(Date.UTC(
+      localNow.getUTCFullYear(),
+      localNow.getUTCMonth(),
+      localNow.getUTCDate(),
+    ));
+    const nextDateOnly = new Date(dateOnly);
+    nextDateOnly.setUTCDate(nextDateOnly.getUTCDate() + 1);
+
+    const startOfDay = new Date(dateOnly.getTime() - timezoneOffsetMinutes * 60_000);
+    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+    return { dateOnly, nextDateOnly, startOfDay, endOfDay };
+  }
+
+  private getSchoolTimezoneOffsetMinutes() {
+    const configuredOffset = Number(process.env.SCHOOL_TIMEZONE_OFFSET_MINUTES ?? 420);
+
+    return Number.isFinite(configuredOffset) ? configuredOffset : 420;
+  }
+
   private getDateRange(date: Date) {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
@@ -1048,6 +1064,14 @@ export class ReportingService {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private formatUtcDateOnly(date: Date) {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
   }

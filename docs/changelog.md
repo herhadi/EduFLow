@@ -6,6 +6,8 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 - Menambahkan script data UAT `npm run prisma:uat --workspace backend` untuk membuat akun KS, guru, guru pengganti, kelas, siswa, jadwal, agenda, presensi, perangkat ajar, dan nilai harian berprefix `UAT`.
 - Menambahkan dokumen `docs/uat.md` berisi akun test dan skenario UAT dashboard KS, review, dashboard guru, report siswa, serta Telegram.
+- Memperbaiki pembacaan tanggal dashboard operasional/Kepala Sekolah agar `DailyAgenda.date` mengikuti tanggal kalender sekolah, dan angka guru/siswa dihitung dari agenda pada tanggal tersebut supaya tidak tercampur dengan presensi agenda lain yang disubmit hari ini.
+- Menyesuaikan seed UAT agar tanggal agenda mengikuti `SCHOOL_TIMEZONE_OFFSET_MINUTES`, sehingga hasil dashboard KS konsisten di lokal maupun Debian.
 
 ## 2026-07-10
 
