@@ -351,6 +351,17 @@ function PrincipalHome({ currentUser }: { currentUser: CurrentUser | null }) {
         eyebrow="Kepala Sekolah"
         title={`Selamat datang, ${displayName}`}
       />
+      <section className="mt-5">
+        <div className="mb-3">
+          <h2 className="text-lg font-black tracking-tight text-slate-900 sm:text-xl">
+            Kondisi KBM Hari Ini
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            Prioritas kelas, guru, dan kendala yang perlu dilihat lebih dulu.
+          </p>
+        </div>
+        <OperationalDashboard audience="principal" className="mt-0" />
+      </section>
       <RoleSection description="Hal yang membutuhkan perhatian dan keputusan kepala sekolah." title="Perlu Tindakan">
         <RoleActionCard href="/principal/review" icon="✓" label="Pusat Review" description="Review perangkat ajar dan penilaian semester yang diajukan guru." priority />
         <RoleActionCard href="/principal/notifications" icon="✦" label="Inbox Kepala Sekolah" description="Lihat kelas kosong, guru belum submit, koreksi, dan pengajuan approval." />
@@ -360,17 +371,6 @@ function PrincipalHome({ currentUser }: { currentUser: CurrentUser | null }) {
         <RoleActionCard href="/principal/reports" icon="▣" label="Laporan Sekolah" description="Lihat dan export rekap kehadiran serta kegiatan belajar mengajar." />
         <RoleActionCard href="/principal/audit" icon="◇" label="Jejak Aktivitas" description="Telusuri aktivitas penting untuk kebutuhan supervisi." />
       </RoleSection>
-      <section className="mt-7">
-        <div className="mb-4">
-          <h2 className="text-xl font-black tracking-tight text-slate-900">
-            Kondisi KBM Hari Ini
-          </h2>
-          <p className="mt-1 text-sm text-muted">
-            Ringkasan kelas berjalan, presensi, checklist KBM, guru pengganti, dan agenda yang perlu perhatian.
-          </p>
-        </div>
-        <OperationalDashboard className="mt-0" />
-      </section>
     </>
   );
 }

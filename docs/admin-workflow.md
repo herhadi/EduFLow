@@ -104,7 +104,7 @@ Dashboard wajib menampilkan information architecture sesuai actor:
 
 - Operator Sekolah melihat ruang kerja admin seperti kesiapan data akademik, validasi jadwal, kelengkapan guru, kesehatan operasional, dan checklist sebelum KBM. Jangan mengisi dashboard admin dengan daftar akses cepat yang menduplikasi bottom navigation.
 - Guru melihat agenda hari ini, jadwal pribadi, presensi, perangkat ajar, penilaian, notifikasi, serta kelas binaan jika menjadi wali kelas.
-- Kepala Sekolah melihat pusat review, inbox keputusan, performa guru, laporan sekolah, jejak aktivitas supervisi, serta ringkasan KBM hari ini langsung di `/principal/dashboard`.
+- Kepala Sekolah melihat pusat review, inbox keputusan, performa guru, laporan sekolah, jejak aktivitas supervisi, serta ringkasan KBM hari ini langsung di `/principal/dashboard`. Urutan dashboard KS wajib memprioritaskan informasi yang perlu keputusan cepat: kelas kosong, presensi belum submit, kendala KBM, checklist kurang, dan guru pengganti sebelum statistik umum. Tampilan mobile dashboard KS harus compact: prioritas ringkas di atas, checklist KBM dalam strip pendek, lalu statistik pendukung tanpa deskripsi panjang.
 
 Catatan jadwal:
 

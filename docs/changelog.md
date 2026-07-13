@@ -21,6 +21,8 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan command Telegram on-demand untuk Kepala Sekolah/root/operator: `/kbm` atau `/today` menampilkan ringkasan KBM hari ini dan `/review` menampilkan antrean review, tanpa broadcast otomatis atau penambahan badge Inbox.
 - Mempercepat respons webhook Telegram dengan balasan fire-and-forget serta mengembalikan `/start` tanpa token menjadi status personal jika akun Telegram sudah terhubung.
 - Menambahkan ringkasan KBM harian langsung pada `/principal/dashboard` agar Kepala Sekolah melihat kelas berjalan, presensi, checklist KBM, guru pengganti, dan agenda perlu perhatian tanpa membuka laporan terpisah.
+- Mengatur prioritas informasi dashboard Kepala Sekolah: kelas kosong, belum submit, kendala KBM, checklist kurang, dan guru pengganti ditampilkan sebelum statistik umum.
+- Membuat dashboard Kepala Sekolah lebih compact di mobile dengan urutan KBM di atas, kartu prioritas 2 kolom, strip checklist pendek, dan statistik pendukung tanpa deskripsi panjang.
 
 ## 2026-07-09
 
