@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { api, type TeachingPlan, type TeachingPlanRevisionPriority } from '../lib/api';
+import { dispatchNotificationChanged } from '../lib/notifications';
 import { openTeachingPlanAttachment } from '../lib/open-document';
 import { useToast } from './ui/toast';
-import { NOTIFICATION_CHANGED_EVENT } from './mobile-app-shell';
 
 const typeLabels = {
   ANNUAL_PROGRAM: 'Program Tahunan',
@@ -67,7 +67,7 @@ export function PrincipalTeachingPlanReview() {
         reviewPriority: status === 'REVISION_REQUESTED' ? reviewPriority : undefined,
       });
       setPlans((current) => current.filter((item) => item.id !== plan.id));
-      window.dispatchEvent(new Event(NOTIFICATION_CHANGED_EVENT));
+      dispatchNotificationChanged();
       toast.success(response.message ?? (status === 'APPROVED' ? 'Perangkat ajar disetujui.' : 'Revisi dikirim ke guru.'));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Review gagal disimpan.');

@@ -7,8 +7,8 @@ import {
   type NotificationLog,
 } from '../lib/api';
 import { getNotificationAccess, type NotificationAccess } from '../lib/navigation.config';
+import { dispatchNotificationChanged } from '../lib/notifications';
 import { getCurrentSessionUser } from '../lib/session';
-import { NOTIFICATION_CHANGED_EVENT } from './mobile-app-shell';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 type NotificationTab = 'inbox' | 'sent' | 'pending' | 'failed' | 'retry';
@@ -234,7 +234,7 @@ export function NotificationCenter() {
   async function openOperationalNotification(item: NotificationLog) {
     if (!item.readAt) {
       await api.markMyNotificationAsRead(item.id);
-      window.dispatchEvent(new Event(NOTIFICATION_CHANGED_EVENT));
+      dispatchNotificationChanged();
       await loadNotifications();
     }
 
@@ -260,7 +260,7 @@ function PersonalNotificationInbox({
   async function openNotification(item: NotificationLog) {
     if (!item.readAt) {
       await api.markMyNotificationAsRead(item.id);
-      window.dispatchEvent(new Event(NOTIFICATION_CHANGED_EVENT));
+      dispatchNotificationChanged();
     }
     if (item.actionUrl) router.push(item.actionUrl);
     else await onRefresh();

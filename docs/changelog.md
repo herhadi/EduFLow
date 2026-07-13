@@ -25,6 +25,11 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memisahkan portal wali murid menjadi dashboard `Anak`, halaman `Riwayat` untuk presensi dan nilai harian yang sudah disubmit guru, serta halaman `Izin` sebagai alur persiapan pengajuan izin/sakit sebelum model approval diaktifkan.
 - Membedakan tampilan `/parent/dashboard` dan `/parent/reports`: dashboard parent kini hanya menonjolkan status anak hari ini, sedangkan report fokus pada riwayat presensi dan nilai.
 - Menyesuaikan seed UAT parent agar akun `uat.parent1` memiliki dua anak (`UAT Siswa 01` dan `UAT Siswa 02`) untuk menguji tampilan multi-anak.
+- Mengunci presensi agenda dengan guru pengganti: guru utama tetap melihat agenda sebagai informasi, tetapi tombol presensi nonaktif dan backend hanya mengizinkan guru pengganti membuka/submit presensi.
+- Memperbaiki submit presensi setelah upload foto kelas agar response upload tetap membawa daftar siswa, sehingga UI tidak kadang gagal dengan error `Cannot read properties of undefined (reading 'map')`.
+- Mengaktifkan worker summary presensi untuk membuat inbox wali murid setelah guru submit presensi, termasuk dedupe berdasarkan kontak wali agar parent dengan data guardian duplikat tidak menerima notifikasi ganda.
+- Memperjelas badge unread navbar menjadi angka dan menyegarkan hitungan saat route berubah/tab kembali aktif, sehingga inbox parent yang punya unread langsung terlihat di navigasi.
+- Menjadikan perilaku inbox global di frontend: event perubahan notifikasi, hitung unread, dan badge angka dipusatkan agar parent/guru/KS/operator memakai pola yang sama.
 
 ## 2026-07-10
 

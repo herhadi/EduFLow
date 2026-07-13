@@ -212,6 +212,7 @@ export interface DailyAgenda {
   substituteTeacher?: Teacher | null;
   schedule?: Pick<Schedule, 'startsAt' | 'endsAt'> | null;
   attendance?: Attendance | null;
+  canManageAttendance?: boolean;
 }
 
 export type AttendanceStatus = 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT';

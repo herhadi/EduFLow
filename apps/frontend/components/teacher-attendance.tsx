@@ -79,7 +79,12 @@ export function TeacherAttendance() {
       let current = attendance;
 
       if (photo) {
-        current = (await api.uploadAttendanceClassPhoto(current.id, photo)).data;
+        const uploaded = (await api.uploadAttendanceClassPhoto(current.id, photo)).data;
+        current = {
+          ...current,
+          ...uploaded,
+          items: uploaded.items ?? current.items,
+        };
       }
 
       await api.submitAttendance({
@@ -267,6 +272,7 @@ function AgendaCard({
     agenda.status === 'COMPLETED' ||
     Boolean(agenda.attendance?.submittedAt) ||
     ['SUBMITTED', 'APPROVED', 'CORRECTED', 'LOCKED'].includes(agenda.attendance?.state ?? '');
+  const canOpen = !isSubmitted && agenda.canManageAttendance !== false;
 
   return (
         <article
@@ -287,14 +293,19 @@ function AgendaCard({
                 Presensi sudah selesai
               </p>
             ) : null}
+            {!isSubmitted && agenda.canManageAttendance === false ? (
+              <p className="mt-2 w-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">
+                Presensi dialihkan ke guru pengganti
+              </p>
+            ) : null}
           </div>
           <button
             className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
-            disabled={isSubmitted}
+            disabled={!canOpen}
             onClick={() => void onOpen(agenda)}
             type="button"
           >
-            {isSubmitted ? 'Sudah Submit' : 'Buka Presensi'}
+            {isSubmitted ? 'Sudah Submit' : agenda.canManageAttendance === false ? 'Dialihkan' : 'Buka Presensi'}
           </button>
         </article>
   );

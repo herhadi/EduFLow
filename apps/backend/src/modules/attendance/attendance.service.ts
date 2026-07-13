@@ -243,6 +243,9 @@ export class AttendanceService {
         classPhotoSize: stored.size,
         classPhotoUploadedAt: new Date(),
       },
+      include: {
+        items: { include: { student: true, enrollment: true } },
+      },
     });
     if (attendance.classPhotoKey) await this.storage.delete(attendance.classPhotoKey).catch(() => undefined);
     await this.auditService.record({ action: 'attendance.class-photo-uploaded', entityType: 'Attendance', entityId: attendance.id, before: attendance, after: updated, userId });
@@ -255,7 +258,6 @@ export class AttendanceService {
   ) {
     const teacher = await this.prisma.teacher.findFirst({
       where: {
-        id: { in: [agenda.teacherId, agenda.substituteTeacherId].filter(Boolean) as string[] },
         userId,
         deletedAt: null,
         isActive: true,
@@ -265,6 +267,12 @@ export class AttendanceService {
 
     if (!teacher) {
       throw new BadRequestException('Agenda ini bukan milik guru yang sedang login');
+    }
+
+    const activeTeacherId = agenda.substituteTeacherId ?? agenda.teacherId;
+
+    if (teacher.id !== activeTeacherId) {
+      throw new BadRequestException('Presensi agenda ini dialihkan ke guru pengganti');
     }
   }
 

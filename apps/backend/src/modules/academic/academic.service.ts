@@ -1414,8 +1414,7 @@ export class AcademicService {
     const teacher = await this.getTeacherAccount(userId);
     const agendaDate = date ? this.toDateOnly(date) : undefined;
 
-    return {
-      data: await this.prisma.dailyAgenda.findMany({
+    const agendas = await this.prisma.dailyAgenda.findMany({
         where: {
           date: agendaDate,
           OR: [
@@ -1434,7 +1433,15 @@ export class AcademicService {
           },
         },
         orderBy: [{ date: 'asc' }, { schedule: { startsAt: 'asc' } }],
-      }),
+      });
+
+    return {
+      data: agendas.map((agenda) => ({
+        ...agenda,
+        canManageAttendance: agenda.substituteTeacherId
+          ? agenda.substituteTeacherId === teacher.id
+          : agenda.teacherId === teacher.id,
+      })),
     };
   }
 

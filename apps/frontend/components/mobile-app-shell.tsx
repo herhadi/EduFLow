@@ -3,14 +3,18 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { api } from '../lib/api';
 import { cn } from '../lib/cn';
 import { ThemeToggle } from './ui/theme-toggle';
-import { api } from '../lib/api';
 import {
   clearBrowserSession,
   getCurrentSessionUser,
   SESSION_CHANGED_EVENT,
 } from '../lib/session';
+import {
+  loadUnreadNotificationCount,
+  NOTIFICATION_CHANGED_EVENT,
+} from '../lib/notifications';
 import {
   getDashboardPathForRole,
   getPrimaryNavigation,
@@ -18,8 +22,7 @@ import {
   getSectionFromPath,
   type UserRole,
 } from '../lib/navigation.config';
-
-export const NOTIFICATION_CHANGED_EVENT = 'eduflow-notification-changed';
+import { NotificationBadge } from './ui/notification-badge';
 
 export function MobileAppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -55,19 +58,22 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
 
     async function loadNotificationBadge() {
       try {
-        const response = await api.getMyNotifications();
-        setNotificationBadgeCount(
-          response.data.filter((notification) => !notification.readAt).length,
-        );
+        setNotificationBadgeCount(await loadUnreadNotificationCount());
       } catch {
         setNotificationBadgeCount(0);
       }
     }
 
     void loadNotificationBadge();
+    window.addEventListener('focus', loadNotificationBadge);
+    document.addEventListener('visibilitychange', loadNotificationBadge);
     window.addEventListener(NOTIFICATION_CHANGED_EVENT, loadNotificationBadge);
-    return () => window.removeEventListener(NOTIFICATION_CHANGED_EVENT, loadNotificationBadge);
-  }, [currentUser, isPublicPage]);
+    return () => {
+      window.removeEventListener('focus', loadNotificationBadge);
+      document.removeEventListener('visibilitychange', loadNotificationBadge);
+      window.removeEventListener(NOTIFICATION_CHANGED_EVENT, loadNotificationBadge);
+    };
+  }, [currentUser, isPublicPage, pathname]);
 
   useEffect(() => {
     if (isPublicPage || !currentUser) {
@@ -293,9 +299,7 @@ function BottomNavigation({
             >
               <span className="relative text-lg leading-none">
                 {item.icon}
-                {item.badge === 'notifications' && notificationBadgeCount > 0 ? (
-                  <span className="notification-dot absolute -top-1 -right-2 size-2.5 rounded-full bg-rose-500 ring-2" />
-                ) : null}
+                {item.badge === 'notifications' ? <NotificationBadge count={notificationBadgeCount} /> : null}
               </span>
               <span className="mt-1">{item.label}</span>
             </Link>
