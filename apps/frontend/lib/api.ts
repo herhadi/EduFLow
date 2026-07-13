@@ -219,6 +219,7 @@ export interface AttendanceItem { id: string; status: AttendanceStatus; notes?: 
 export interface Attendance {
   id: string;
   state: string;
+  notes?: string | null;
   items: AttendanceItem[];
   classPhotoName?: string | null;
   teacherPresent?: boolean | null;

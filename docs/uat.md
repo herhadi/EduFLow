@@ -52,6 +52,8 @@ Login sebagai `uat.guru1`, buka `/teacher/dashboard` dan `/teacher/attendance`, 
 
 - dashboard guru menampilkan ringkasan agenda hari ini, jumlah presensi sudah/belum submit, prioritas agenda berikutnya, status perangkat ajar, dan ringkasan nilai,
 - guru dapat melihat agenda hari ini,
+- presensi memiliki dua mode input siswa: `List` 2 kolom dengan pagination 10 baris dan `Dropdown` siswa/status,
+- `Materi/Catatan KBM` wajib diisi sebelum submit karena menjadi dasar checklist materi terisi,
 - akun guru/wali kelas tetap masuk dashboard guru,
 - kelas binaan tersedia untuk akun yang memiliki role wali kelas.
 

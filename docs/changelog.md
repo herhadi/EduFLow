@@ -14,6 +14,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan aksi upload/ganti lampiran langsung pada item perangkat ajar berstatus Draft atau Perlu Revisi, sehingga guru dapat melengkapi dokumen setelah draft dibuat.
 - Mewajibkan lampiran sebelum perangkat ajar dikirim ke Kepala Sekolah, memperjelas pesan upload gagal, dan menonjolkan lampiran pada antrean review KS.
 - Menambahkan dukungan lampiran PDF untuk perangkat ajar; PDF dibuka inline melalui signed URL R2, sedangkan DOCX diarahkan ke Microsoft Office Online Viewer agar bisa dibaca online bila viewer dapat mengakses URL sementara.
+- Merapikan input presensi guru: materi/catatan KBM wajib diisi, list siswa memiliki mode 2 kolom dengan pagination 10 baris, tersedia mode dropdown siswa/status, dan komponen pagination global siap dipakai modul lain.
 
 ## 2026-07-10
 
