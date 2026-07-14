@@ -6,6 +6,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 - Melanjutkan refactor UI global pada alur perangkat ajar: halaman perangkat ajar guru dan review Kepala Sekolah mulai memakai `Button`, `Badge`, `SurfaceCard`, `FormField`, `LoadingState`, dan `EmptyState` agar pola form, status, dan aksi lebih konsisten.
 - Melanjutkan migrasi komponen UI global pada nilai harian guru, audit trail, dan sebagian dashboard operasional agar form, search, loading, empty state, status badge, dan tombol aksi memakai pola yang sama.
+- Memulai pemecahan `academic-master-management.tsx` dengan mengekstrak konstanta master akademik dan form jam pelajaran ke folder `components/academic-master`, sehingga halaman admin akademik mulai lebih mudah dirawat.
 
 ## 2026-07-14
 

@@ -5,37 +5,24 @@ import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import {
   api,
   type AcademicTimeSlot,
-  type AcademicTimeSlotType,
   type SchoolClass,
   type SchoolYear,
   type Subject,
 } from '../lib/api';
 import { getPreferredSchoolYear, getUpcomingSchoolYear } from '../lib/school-year';
+import { AcademicTimeSlotForm } from './academic-master/academic-time-slot-form';
+import {
+  type AcademicTimeSlotFormState,
+  createDefaultTimeSlotForm,
+  grades,
+  schoolYearNamePattern,
+  schoolYearNameRegex,
+  timeSlotTypeOptions,
+  weekdayOptions,
+} from './academic-master/academic-master-constants';
 import { useToast } from './ui/toast';
 
 type LoadState = 'loading' | 'success' | 'error';
-
-const grades = ['VII', 'VIII', 'IX'];
-const weekdayOptions = [
-  { value: 1, label: 'Senin' },
-  { value: 2, label: 'Selasa' },
-  { value: 3, label: 'Rabu' },
-  { value: 4, label: 'Kamis' },
-  { value: 5, label: 'Jumat' },
-  { value: 6, label: 'Sabtu' },
-  { value: 7, label: 'Minggu' },
-];
-const timeSlotTypeOptions: Array<{ value: AcademicTimeSlotType; label: string }> = [
-  { value: 'LESSON', label: 'Pelajaran' },
-  { value: 'BREAK', label: 'Istirahat' },
-  { value: 'CEREMONY', label: 'Upacara' },
-  { value: 'EXERCISE', label: 'Senam' },
-  { value: 'CO_CURRICULAR', label: 'Kokurikuler' },
-  { value: 'RELIGIOUS', label: 'Keagamaan' },
-  { value: 'OTHER', label: 'Lainnya' },
-];
-const schoolYearNamePattern = '[0-9]{4}/[0-9]{4}';
-const schoolYearNameRegex = new RegExp(`^${schoolYearNamePattern}$`);
 
 export function AcademicMasterManagement() {
   const toast = useToast();
@@ -65,16 +52,9 @@ export function AcademicMasterManagement() {
   });
   const [subjectForm, setSubjectForm] = useState({ name: '', code: '' });
   const [schoolYearName, setSchoolYearName] = useState('');
-  const [timeSlotForm, setTimeSlotForm] = useState({
-    schoolYearId: '',
-    dayOfWeek: 1,
-    periodNumber: '',
-    name: '',
-    type: 'LESSON' as AcademicTimeSlotType,
-    startsAt: '07:00',
-    endsAt: '07:40',
-    isAssignable: true,
-  });
+  const [timeSlotForm, setTimeSlotForm] = useState<AcademicTimeSlotFormState>(
+    createDefaultTimeSlotForm(),
+  );
 
   async function loadData() {
     setLoadState('loading');
@@ -275,16 +255,7 @@ export function AcademicMasterManagement() {
   function resetTimeSlotForm(schoolYearId = timeSlotForm.schoolYearId) {
     setEditingTimeSlotId('');
     setIsAddingTimeSlot(false);
-    setTimeSlotForm({
-      schoolYearId,
-      dayOfWeek: 1,
-      periodNumber: '',
-      name: '',
-      type: 'LESSON',
-      startsAt: '07:00',
-      endsAt: '07:40',
-      isAssignable: true,
-    });
+    setTimeSlotForm(createDefaultTimeSlotForm(schoolYearId));
   }
 
   async function handleSaveTimeSlot(event: FormEvent<HTMLFormElement>) {
@@ -430,125 +401,14 @@ export function AcademicMasterManagement() {
   }
 
   const renderTimeSlotForm = (submitLabel: string) => (
-    <form className="grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-4" onSubmit={handleSaveTimeSlot}>
-      <div className="grid gap-3 sm:grid-cols-[0.85fr_0.65fr_1fr]">
-        <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="time-slot-day">
-          Hari
-          <select
-            className="min-w-0 rounded-2xl border border-blue-100 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
-            disabled={timeSlotForm.type === 'CEREMONY'}
-            id="time-slot-day"
-            onChange={(event) => setTimeSlotForm((current) => ({ ...current, dayOfWeek: Number(event.target.value) }))}
-            value={timeSlotForm.dayOfWeek}
-          >
-            {weekdayOptions.map((day) => (
-              <option key={day.value} value={day.value}>{day.label}</option>
-            ))}
-          </select>
-        </label>
-        <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="time-slot-period">
-          Jam ke-
-          <input
-            className="min-w-0 rounded-2xl border border-blue-100 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
-            id="time-slot-period"
-            min="1"
-            onChange={(event) => setTimeSlotForm((current) => ({ ...current, periodNumber: event.target.value }))}
-            placeholder="Contoh 2"
-            type="number"
-            value={timeSlotForm.periodNumber}
-          />
-        </label>
-        <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="time-slot-type">
-          Jenis Slot
-          <select
-            className="min-w-0 rounded-2xl border border-blue-100 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
-            id="time-slot-type"
-            onChange={(event) =>
-              setTimeSlotForm((current) => {
-                const type = event.target.value as AcademicTimeSlotType;
-                return {
-                  ...current,
-                  dayOfWeek: type === 'CEREMONY' ? 1 : current.dayOfWeek,
-                  type,
-                  isAssignable: type === 'LESSON' ? current.isAssignable : false,
-                };
-              })
-            }
-            value={timeSlotForm.type}
-          >
-            {timeSlotTypeOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-[1fr_0.7fr_0.7fr]">
-        <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="time-slot-name">
-          Nama Slot
-          <input
-            className="min-w-0 rounded-2xl border border-blue-100 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
-            id="time-slot-name"
-            onChange={(event) => setTimeSlotForm((current) => ({ ...current, name: event.target.value }))}
-            placeholder="Contoh Jam 2"
-            value={timeSlotForm.name}
-          />
-        </label>
-        <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="time-slot-start">
-          Mulai
-          <input
-            className="min-w-0 rounded-2xl border border-blue-100 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
-            id="time-slot-start"
-            onChange={(event) => setTimeSlotForm((current) => ({ ...current, startsAt: event.target.value }))}
-            type="time"
-            value={timeSlotForm.startsAt}
-          />
-        </label>
-        <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="time-slot-end">
-          Selesai
-          <input
-            className="min-w-0 rounded-2xl border border-blue-100 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
-            id="time-slot-end"
-            onChange={(event) => setTimeSlotForm((current) => ({ ...current, endsAt: event.target.value }))}
-            type="time"
-            value={timeSlotForm.endsAt}
-          />
-        </label>
-      </div>
-
-      <label className="flex items-center gap-2 rounded-xl bg-white px-3 py-3 text-sm font-bold text-slate-700">
-        <input
-          checked={timeSlotForm.isAssignable}
-          className="h-4 w-4 accent-brand-600"
-          disabled={timeSlotForm.type !== 'LESSON'}
-          onChange={(event) => setTimeSlotForm((current) => ({ ...current, isAssignable: event.target.checked }))}
-          type="checkbox"
-        />
-        Slot ini bisa dipakai untuk penjadwalan pelajaran
-      </label>
-      {timeSlotForm.type === 'CEREMONY' ? (
-        <p className="text-xs font-semibold text-brand-700">
-          Slot Upacara dikunci pada hari Senin.
-        </p>
-      ) : null}
-
-      <div className="flex flex-wrap gap-3">
-        <button
-          className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300"
-          disabled={isSavingTimeSlot}
-          type="submit"
-        >
-          {submitLabel}
-        </button>
-        <button
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700"
-          onClick={() => resetTimeSlotForm(selectedTimeSlotSchoolYearId || timeSlotForm.schoolYearId)}
-          type="button"
-        >
-          Batal
-        </button>
-      </div>
-    </form>
+    <AcademicTimeSlotForm
+      form={timeSlotForm}
+      isSaving={isSavingTimeSlot}
+      onCancel={() => resetTimeSlotForm(selectedTimeSlotSchoolYearId || timeSlotForm.schoolYearId)}
+      onSubmit={handleSaveTimeSlot}
+      setForm={setTimeSlotForm}
+      submitLabel={submitLabel}
+    />
   );
 
   return (
