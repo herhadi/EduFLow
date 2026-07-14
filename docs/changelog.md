@@ -10,6 +10,9 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memecah panel `Rombongan Belajar` dan `Manajemen Mata Pelajaran` dari `academic-master-management.tsx` ke komponen khusus agar halaman admin akademik tidak lagi menampung seluruh JSX master data dalam satu file.
 - Memecah panel `Manajemen Jam Pelajaran` ke `time-slot-management-panel.tsx`, sehingga `academic-master-management.tsx` kini lebih fokus pada state, handler, dan komposisi panel master akademik.
 - Memulai refactor `schedule-management.tsx` dengan mengekstrak konstanta, helper tanggal, pencarian kelas jadwal efektif, dan kontrol form/date ke folder `components/schedule-management`.
+- Memecah panel jadwal kelas dan generate agenda ke `schedule-class-panel.tsx`, sehingga `schedule-management.tsx` lebih fokus pada state, validasi, dan handler jadwal.
+- Memecah form create/edit jadwal ke `schedule-editor-form.tsx`, termasuk histori revisi, pilihan guru-mapel, tingkat kelas, dan susunan jam harian.
+- Memindahkan kalkulasi murni jadwal seperti opsi guru-mapel, grouping kelas, target generate agenda, dan jadwal efektif per tanggal ke helper schedule agar komponen utama tidak memuat logika turunan.
 
 ## 2026-07-14
 

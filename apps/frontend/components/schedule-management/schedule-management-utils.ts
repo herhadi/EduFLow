@@ -1,9 +1,16 @@
+import { sortSchoolClasses } from '@eduflow/shared';
 import {
   type Schedule,
   type SchedulePayload,
   type SchoolClass,
+  type SchoolYear,
   type Semester,
+  type Teacher,
 } from '../../lib/api';
+
+export type ScheduleWithEffectiveRevision = Schedule & {
+  hasRevision?: boolean;
+};
 
 export const dayOptions = [
   { value: 1, label: 'Senin' },
@@ -89,6 +96,109 @@ export function getFirstScheduledClassId(
     .find(
       (schedule) =>
         schedule.schoolYearId === schoolYearId &&
-        classIds.has(schedule.classId),
+      classIds.has(schedule.classId),
     )?.classId;
+}
+
+export function getFilteredClasses(classes: SchoolClass[], schoolYearId: string) {
+  return sortSchoolClasses(
+    classes.filter((schoolClass) => schoolClass.schoolYearId === schoolYearId),
+  );
+}
+
+export function getAvailableGrades(classes: SchoolClass[]) {
+  return [...new Set(classes.map((schoolClass) => schoolClass.grade).filter(Boolean))] as string[];
+}
+
+export function groupClassesByGrade(classes: SchoolClass[], schoolYearId: string) {
+  return getFilteredClasses(classes, schoolYearId).reduce<Record<string, SchoolClass[]>>(
+    (groups, schoolClass) => {
+      const grade = schoolClass.grade ?? 'Lainnya';
+      groups[grade] = [...(groups[grade] ?? []), schoolClass];
+      return groups;
+    },
+    {},
+  );
+}
+
+export function getAgendaClassIds(classes: SchoolClass[], schoolYearId: string) {
+  return classes
+    .filter(
+      (schoolClass) =>
+        schoolClass.schoolYearId === schoolYearId &&
+        ['VII', 'VIII', 'IX'].includes(schoolClass.grade ?? ''),
+    )
+    .map((schoolClass) => schoolClass.id);
+}
+
+export function getTeacherSubjectOptions(
+  teachers: Teacher[],
+  schoolYears: SchoolYear[],
+  schoolYearId: string,
+) {
+  const targetSchoolYear = schoolYears.find((item) => item.id === schoolYearId);
+
+  return teachers.flatMap((teacher) => {
+    const assignment = teacher.yearAssignments
+      ?.filter((item) =>
+        targetSchoolYear &&
+        item.schoolYear?.startsAt &&
+        new Date(item.schoolYear.startsAt) <= new Date(targetSchoolYear.startsAt),
+      )
+      .sort((first, second) =>
+        new Date(second.schoolYear?.startsAt ?? 0).getTime() -
+        new Date(first.schoolYear?.startsAt ?? 0).getTime(),
+      )[0];
+    const subjects = assignment
+      ? assignment.status === 'ACTIVE' ? assignment.subjects : []
+      : teacher.subjects ?? [];
+
+    return subjects.map(({ subject }) => ({
+      label: `${teacher.name} · ${subject.name}`,
+      value: `${teacher.id}:${subject.id}`,
+    }));
+  });
+}
+
+export function getEffectiveSchedulesByClass({
+  schedules,
+  semesters,
+  semesterId,
+  schoolYearId,
+  classId,
+  dayFilter,
+  viewDate,
+}: {
+  schedules: Schedule[];
+  semesters: Semester[];
+  semesterId: string;
+  schoolYearId: string;
+  classId: string;
+  dayFilter: string;
+  viewDate: string;
+}) {
+  const semester = semesters.find((item) => item.id === semesterId);
+  const viewTime = new Date(viewDate || semester?.startsAt || getToday()).getTime();
+
+  return schedules
+    .map((schedule) => {
+      const revision = schedule.revisions
+        ?.filter((item) => new Date(item.effectiveFrom).getTime() <= viewTime)
+        .at(-1);
+
+      return revision
+        ? { ...schedule, ...revision, class: revision.class, subject: revision.subject, teacher: revision.teacher, hasRevision: true }
+        : schedule;
+    })
+    .filter(
+      (schedule) =>
+        schedule.classId === classId &&
+        schedule.schoolYearId === schoolYearId &&
+        (dayFilter === 'all' || schedule.dayOfWeek === Number(dayFilter)),
+    )
+    .sort(
+      (firstSchedule, secondSchedule) =>
+        firstSchedule.dayOfWeek - secondSchedule.dayOfWeek ||
+        firstSchedule.startsAt.localeCompare(secondSchedule.startsAt),
+    ) as ScheduleWithEffectiveRevision[];
 }
