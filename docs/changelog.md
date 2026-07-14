@@ -8,6 +8,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Melanjutkan pemecahan dashboard role dengan memindahkan dashboard Root, Operator, Parent, TU, dan BK ke file `components/dashboards/*`, sehingga `role-dashboard.tsx` tinggal menjadi orkestrator role dan prompt Telegram.
 - Memindahkan prompt aktivasi Telegram dan copy fallback monitoring ke komponen/helper terpisah agar `role-dashboard.tsx` hanya menangani routing role, guard dashboard, dan komposisi dashboard aktif.
 - Memulai refactor frontend API client dengan memindahkan transport helper (`request`, `upload`, `download`, restore backup, dan session-expired redirect) dari `lib/api.ts` ke `lib/api-client.ts` tanpa mengubah kontrak ekspor `api`.
+- Memisahkan seluruh tipe API frontend ke `lib/api-types.ts` dan menjaga `lib/api.ts` tetap me-reexport tipe lama, sehingga import komponen yang sudah ada tidak perlu berubah.
 
 ## 2026-07-13
 
