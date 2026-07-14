@@ -4,6 +4,12 @@ import { useEffect, useState } from 'react';
 import { api, type TeachingPlan, type TeachingPlanRevisionPriority } from '../lib/api';
 import { dispatchNotificationChanged } from '../lib/notifications';
 import { openTeachingPlanAttachment } from '../lib/open-document';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { EmptyState } from './ui/empty-state';
+import { fieldClass, FormField } from './ui/form';
+import { LoadingState } from './ui/loading';
+import { SurfaceCard } from './ui/card';
 import { useToast } from './ui/toast';
 
 const typeLabels = {
@@ -83,13 +89,13 @@ export function PrincipalTeachingPlanReview() {
           <h2 className="text-xl font-black">Perangkat Ajar Menunggu Review</h2>
           <p className="mt-1 text-sm text-muted">Periksa dokumen atau foto Buku KBM guru sebelum menyetujui atau meminta revisi.</p>
         </div>
-        <span className="rounded-full bg-brand-50 px-3 py-2 text-xs font-black text-brand-700">{plans.length} pengajuan</span>
+        <Badge tone="brand">{plans.length} pengajuan</Badge>
       </div>
 
-      {loading ? <div className="surface-card rounded-3xl p-5 text-sm text-muted">Memuat antrean review...</div> : null}
+      {loading ? <LoadingState label="Memuat antrean review..." /> : null}
       <div className="grid gap-4 lg:grid-cols-2">
         {plans.map((plan) => (
-          <article className="surface-card rounded-[1.75rem] p-5" key={plan.id}>
+          <SurfaceCard className="rounded-[1.75rem]" key={plan.id}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-black text-brand-700">{typeLabels[plan.type]}</p>
@@ -97,7 +103,7 @@ export function PrincipalTeachingPlanReview() {
                 <p className="mt-1 text-sm font-bold">{plan.teacher?.name ?? 'Guru'}</p>
                 <p className="mt-1 text-sm text-muted">{plan.subject.name} · {plan.schoolYear.name}{plan.semester ? ` · ${plan.semester.type === 'ODD' ? 'Ganjil' : 'Genap'}` : ''}</p>
               </div>
-              <span className="rounded-full bg-amber-50 px-3 py-2 text-xs font-black text-amber-700">Menunggu Review</span>
+              <Badge tone="warning">Menunggu Review</Badge>
             </div>
 
             {plan.description ? <p className="mt-4 rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-700 dark:bg-slate-900 dark:text-slate-200">{plan.description}</p> : null}
@@ -116,13 +122,12 @@ export function PrincipalTeachingPlanReview() {
                     </p>
                   ) : null}
                 </div>
-                <button
-                  className="rounded-2xl bg-white px-4 py-2.5 text-sm font-black text-brand-700 shadow-sm transition hover:bg-brand-600 hover:text-white"
+                <Button
                   onClick={() => void openAttachment(plan)}
-                  type="button"
+                  variant="outline"
                 >
                   {plan.type === 'TEACHING_BOOK' ? 'Buka Foto' : 'Buka Dokumen'}
-                </button>
+                </Button>
               </div>
             ) : (
               <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-800">
@@ -131,21 +136,19 @@ export function PrincipalTeachingPlanReview() {
             )}
 
             <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_0.55fr]">
-              <label className="grid gap-2 text-sm font-bold">
-                Bagian/Halaman
+              <FormField label="Bagian/Halaman">
                 <input
-                  className="rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:bg-slate-950"
+                  className={`${fieldClass} font-normal dark:bg-slate-950`}
                   onChange={(event) =>
                     setSections((current) => ({ ...current, [plan.id]: event.target.value }))
                   }
                   placeholder="Contoh: Hal. 2 bagian asesmen"
                   value={sections[plan.id] ?? ''}
                 />
-              </label>
-              <label className="grid gap-2 text-sm font-bold">
-                Prioritas
+              </FormField>
+              <FormField label="Prioritas">
                 <select
-                  className="rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:bg-slate-950"
+                  className={`${fieldClass} font-normal dark:bg-slate-950`}
                   onChange={(event) =>
                     setPriorities((current) => ({
                       ...current,
@@ -158,17 +161,37 @@ export function PrincipalTeachingPlanReview() {
                   <option value="MEDIUM">Sedang</option>
                   <option value="LOW">Rendah</option>
                 </select>
-              </label>
+              </FormField>
             </div>
-            <label className="mt-4 grid gap-2 text-sm font-bold">Catatan untuk Guru<textarea className="min-h-24 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:bg-slate-950" onChange={(event) => setNotes((current) => ({ ...current, [plan.id]: event.target.value }))} placeholder="Wajib diisi jika meminta revisi" value={notes[plan.id] ?? ''} /></label>
+            <FormField className="mt-4" label="Catatan untuk Guru">
+              <textarea
+                className={`${fieldClass} min-h-24 font-normal dark:bg-slate-950`}
+                onChange={(event) =>
+                  setNotes((current) => ({ ...current, [plan.id]: event.target.value }))
+                }
+                placeholder="Wajib diisi jika meminta revisi"
+                value={notes[plan.id] ?? ''}
+              />
+            </FormField>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <button className="rounded-2xl border border-amber-300 px-4 py-3 text-sm font-black text-amber-700 disabled:opacity-50" disabled={processingId === plan.id} onClick={() => void review(plan, 'REVISION_REQUESTED')} type="button">Minta Revisi</button>
-              <button className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:opacity-50" disabled={processingId === plan.id} onClick={() => void review(plan, 'APPROVED')} type="button">Setujui</button>
+              <Button
+                className="border-amber-300 text-amber-700 hover:border-amber-400 hover:text-amber-800"
+                disabled={processingId === plan.id}
+                onClick={() => void review(plan, 'REVISION_REQUESTED')}
+                variant="outline"
+              >
+                Minta Revisi
+              </Button>
+              <Button disabled={processingId === plan.id} onClick={() => void review(plan, 'APPROVED')}>
+                Setujui
+              </Button>
             </div>
-          </article>
+          </SurfaceCard>
         ))}
       </div>
-      {!loading && plans.length === 0 ? <div className="surface-card rounded-3xl p-5 text-sm text-muted">Tidak ada perangkat ajar yang menunggu review.</div> : null}
+      {!loading && plans.length === 0 ? (
+        <EmptyState title="Tidak ada perangkat ajar yang menunggu review." />
+      ) : null}
     </section>
   );
 }

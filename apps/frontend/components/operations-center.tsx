@@ -10,6 +10,9 @@ import {
   type SchoolYear,
 } from '../lib/api';
 import { formatNumber } from '../lib/format';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { EmptyState } from './ui/empty-state';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -114,13 +117,11 @@ export function OperationsCenter() {
               Status runtime untuk database, Redis, queue, worker, dan notifikasi.
             </p>
           </div>
-          <button
-            className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700"
+          <Button
             onClick={() => void loadDashboard()}
-            type="button"
           >
             Refresh
-          </button>
+          </Button>
         </div>
 
         {loadState === 'error' ? (
@@ -213,36 +214,34 @@ export function OperationsCenter() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-semibold text-white"
+                  <Button
                     onClick={() => void handleRetry(job)}
-                    type="button"
+                    size="sm"
                   >
                     Retry
-                  </button>
-                  <button
-                    className="rounded-xl border border-red-200 px-3 py-2 text-xs font-semibold text-red-700"
+                  </Button>
+                  <Button
+                    className="border-red-200 text-red-700 hover:border-red-300 hover:text-red-800"
                     onClick={() => void handleDiscard(job)}
-                    type="button"
+                    size="sm"
+                    variant="outline"
                   >
                     Discard
-                  </button>
-                  <button
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+                  </Button>
+                  <Button
                     onClick={() => setSelectedJob(job)}
-                    type="button"
+                    size="sm"
+                    variant="outline"
                   >
                     View Payload
-                  </button>
+                  </Button>
                 </div>
               </div>
             </article>
           ))}
 
           {loadState === 'success' && dashboard.failedJobs.length === 0 ? (
-            <p className="rounded-2xl bg-slate-50 p-4 text-sm text-muted">
-              Tidak ada failed job. Mesin lagi adem.
-            </p>
+            <EmptyState title="Tidak ada failed job." />
           ) : null}
         </div>
       </div>
@@ -273,15 +272,7 @@ function HealthCard({ label, status }: { label: string; status: HealthStatus }) 
 
 function StatusPill({ status }: { status: HealthStatus }) {
   return (
-    <span
-      className={`rounded-full px-2 py-1 text-xs font-bold ${
-        status === 'Healthy'
-          ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200'
-          : 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-200'
-      }`}
-    >
-      {status}
-    </span>
+    <Badge tone={status === 'Healthy' ? 'brand' : 'danger'}>{status}</Badge>
   );
 }
 
@@ -327,13 +318,13 @@ function PayloadDialog({
               {job.queueLabel} · {job.name}
             </p>
           </div>
-          <button
-            className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold"
+          <Button
             onClick={onClose}
-            type="button"
+            size="sm"
+            variant="outline"
           >
             Tutup
-          </button>
+          </Button>
         </div>
         <pre className="max-h-[60vh] overflow-auto bg-slate-950 p-5 text-xs leading-6 text-blue-50">
           {JSON.stringify(job.payload, null, 2)}

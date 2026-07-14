@@ -2,6 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, type ActivityTrailItem } from '../lib/api';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { EmptyState } from './ui/empty-state';
+import { LoadingState } from './ui/loading';
+import { SearchInput } from './ui/search';
+import { SurfaceCard } from './ui/card';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -92,7 +98,7 @@ export function AuditTrail() {
   }, [activities, query, selectedDate]);
 
   return (
-    <section className="surface-card mt-8 rounded-2xl p-4 sm:p-6">
+    <SurfaceCard className="mt-8 rounded-2xl sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">Audit Trail</h2>
@@ -128,20 +134,16 @@ export function AuditTrail() {
         <label className="sr-only" htmlFor="audit-search">
           Cari aktivitas
         </label>
-        <input
-          className="h-11 min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-600"
+        <SearchInput
           id="audit-search"
+          onClear={() => setQuery('')}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Cari aktivitas..."
           value={query}
         />
-        <button
-          className="h-11 rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white transition hover:bg-brand-700"
-          onClick={() => void loadActivities()}
-          type="button"
-        >
+        <Button onClick={() => void loadActivities()}>
           Refresh
-        </button>
+        </Button>
       </div>
 
       {loadState === 'error' ? (
@@ -152,9 +154,7 @@ export function AuditTrail() {
 
       <div className="mt-5 max-h-[min(34rem,62vh)] space-y-3 overflow-y-auto pr-1">
         {loadState === 'loading' ? (
-          <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-muted">
-            Memuat audit trail...
-          </p>
+          <LoadingState label="Memuat audit trail..." />
         ) : null}
 
         {filteredActivities.map((activity) => (
@@ -162,12 +162,10 @@ export function AuditTrail() {
         ))}
 
         {loadState === 'success' && filteredActivities.length === 0 ? (
-          <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-muted">
-            Belum ada aktivitas yang cocok pada tanggal ini.
-          </p>
+          <EmptyState title="Belum ada aktivitas yang cocok pada tanggal ini." />
         ) : null}
       </div>
-    </section>
+    </SurfaceCard>
   );
 }
 
@@ -184,17 +182,15 @@ function ActivityCard({ activity }: { activity: ActivityTrailItem }) {
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={`rounded-full border px-2 py-1 text-xs font-bold ${
-                actionTone[activity.action] ??
-                'border-slate-200 bg-white text-slate-700 dark:bg-[var(--surface-solid)]'
-              }`}
+            <Badge
+              className={actionTone[activity.action] ?? 'border-slate-200 bg-white text-slate-700 dark:bg-[var(--surface-solid)]'}
+              tone="muted"
             >
               {activity.action}
-            </span>
-            <span className="rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 dark:bg-[var(--surface-solid)]">
+            </Badge>
+            <Badge className="border-slate-200 bg-white text-slate-600 dark:bg-[var(--surface-solid)]" tone="muted">
               {activity.source}
-            </span>
+            </Badge>
           </div>
 
           <h3 className="mt-3 text-base font-bold text-slate-900">

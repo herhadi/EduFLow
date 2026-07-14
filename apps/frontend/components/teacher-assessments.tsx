@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import {
   api,
   type Assessment,
@@ -13,6 +13,12 @@ import {
   type Subject,
 } from '../lib/api';
 import { formatReadableDate } from '../lib/format';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Card } from './ui/card';
+import { EmptyState } from './ui/empty-state';
+import { fieldClass, FormField } from './ui/form';
+import { LoadingState } from './ui/loading';
 import { useToast } from './ui/toast';
 
 const assessmentTypeLabels: Record<AssessmentType, string> = {
@@ -226,15 +232,13 @@ export function TeacherAssessments() {
 
   if (loading) {
     return (
-      <section className="mt-6 rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted shadow-sm shadow-blue-100/60">
-        Memuat penilaian...
-      </section>
+      <LoadingState className="mt-6" label="Memuat penilaian..." />
     );
   }
 
   return (
     <section className="mt-6 space-y-5">
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
+      <Card>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Nilai Harian</p>
@@ -243,14 +247,12 @@ export function TeacherAssessments() {
               Nilai disimpan per kelas, mapel, semester, dan enrollment siswa.
             </p>
           </div>
-          <button
-            className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white transition hover:bg-brand-700 disabled:opacity-60"
+          <Button
             disabled={saving}
             onClick={() => void createAssessment()}
-            type="button"
           >
             Buat Draft
-          </button>
+          </Button>
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-4">
@@ -274,36 +276,58 @@ export function TeacherAssessments() {
               <option key={subject.id} value={subject.id}>{subject.name}</option>
             ))}
           </FormSelect>
-          <label className="grid gap-2 text-xs font-black text-slate-700 md:col-span-2">
-            Judul
-            <input className="rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600" onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Contoh: Kuis Bab 1" value={form.title} />
-          </label>
+          <FormField className="md:col-span-2" label="Judul">
+            <input
+              className={fieldClass}
+              onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+              placeholder="Contoh: Kuis Bab 1"
+              value={form.title}
+            />
+          </FormField>
           <FormSelect label="Jenis" onChange={(value) => setForm((current) => ({ ...current, type: value as AssessmentType }))} value={form.type}>
             {Object.entries(assessmentTypeLabels).map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
             ))}
           </FormSelect>
-          <label className="grid gap-2 text-xs font-black text-slate-700">
-            Tanggal
-            <input className="rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600" onChange={(event) => setForm((current) => ({ ...current, assessmentDate: event.target.value }))} type="date" value={form.assessmentDate} />
-          </label>
-          <label className="grid gap-2 text-xs font-black text-slate-700">
-            Skor Maks.
-            <input className="rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600" min={1} onChange={(event) => setForm((current) => ({ ...current, maxScore: Number(event.target.value) }))} type="number" value={form.maxScore} />
-          </label>
-          <label className="grid gap-2 text-xs font-black text-slate-700">
-            Bobot
-            <input className="rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600" min={0} onChange={(event) => setForm((current) => ({ ...current, weight: Number(event.target.value) }))} type="number" value={form.weight} />
-          </label>
-          <label className="grid gap-2 text-xs font-black text-slate-700 md:col-span-2">
-            Catatan
-            <input className="rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600" onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Opsional" value={form.notes} />
-          </label>
+          <FormField label="Tanggal">
+            <input
+              className={fieldClass}
+              onChange={(event) => setForm((current) => ({ ...current, assessmentDate: event.target.value }))}
+              type="date"
+              value={form.assessmentDate}
+            />
+          </FormField>
+          <FormField label="Skor Maks.">
+            <input
+              className={fieldClass}
+              min={1}
+              onChange={(event) => setForm((current) => ({ ...current, maxScore: Number(event.target.value) }))}
+              type="number"
+              value={form.maxScore}
+            />
+          </FormField>
+          <FormField label="Bobot">
+            <input
+              className={fieldClass}
+              min={0}
+              onChange={(event) => setForm((current) => ({ ...current, weight: Number(event.target.value) }))}
+              type="number"
+              value={form.weight}
+            />
+          </FormField>
+          <FormField className="md:col-span-2" label="Catatan">
+            <input
+              className={fieldClass}
+              onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
+              placeholder="Opsional"
+              value={form.notes}
+            />
+          </FormField>
         </div>
-      </div>
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-[0.9fr_1.4fr]">
-        <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60">
+        <Card>
           <h3 className="text-sm font-black text-slate-900">Komponen Nilai</h3>
           <div className="mt-3 space-y-2">
             {assessments.map((assessment) => (
@@ -327,12 +351,10 @@ export function TeacherAssessments() {
               </button>
             ))}
             {!assessments.length ? (
-              <p className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-muted">
-                Belum ada komponen nilai.
-              </p>
+              <EmptyState title="Belum ada komponen nilai." />
             ) : null}
           </div>
-        </div>
+        </Card>
 
         <AssessmentScoresEditor
           assessment={selectedAssessment}
@@ -364,16 +386,14 @@ function AssessmentScoresEditor({
 }) {
   if (!assessment) {
     return (
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted shadow-sm shadow-blue-100/60">
-        Pilih atau buat komponen nilai untuk mulai input skor siswa.
-      </div>
+      <EmptyState title="Pilih atau buat komponen nilai untuk mulai input skor siswa." />
     );
   }
 
   const editable = assessment.status === 'DRAFT' || assessment.status === 'REVISION_REQUESTED';
 
   return (
-    <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60">
+    <Card>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="text-lg font-black text-slate-900">{assessment.title}</h3>
@@ -382,8 +402,12 @@ function AssessmentScoresEditor({
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="rounded-2xl border border-blue-100 bg-white px-4 py-2 text-sm font-black text-brand-700 disabled:opacity-60" disabled={!editable || saving} onClick={onSave} type="button">Simpan</button>
-          <button className="rounded-2xl bg-brand-600 px-4 py-2 text-sm font-black text-white disabled:opacity-60" disabled={!editable || saving} onClick={onSubmit} type="button">Submit</button>
+          <Button disabled={!editable || saving} onClick={onSave} size="sm" variant="outline">
+            Simpan
+          </Button>
+          <Button disabled={!editable || saving} onClick={onSubmit} size="sm">
+            Submit
+          </Button>
         </div>
       </div>
 
@@ -414,7 +438,7 @@ function AssessmentScoresEditor({
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -424,30 +448,21 @@ function FormSelect({
   onChange,
   value,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   label: string;
   onChange: (value: string) => void;
   value: string;
 }) {
   return (
-    <label className="grid gap-2 text-xs font-black text-slate-700">
-      {label}
+    <FormField label={label}>
       <select
-        className="min-w-0 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600"
+        className={fieldClass}
         onChange={(event) => onChange(event.target.value)}
         value={value}
       >
         {children}
       </select>
-    </label>
-  );
-}
-
-function Badge({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-slate-600">
-      {children}
-    </span>
+    </FormField>
   );
 }
 

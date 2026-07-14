@@ -2,6 +2,11 @@
 
 Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
+## 2026-07-15
+
+- Melanjutkan refactor UI global pada alur perangkat ajar: halaman perangkat ajar guru dan review Kepala Sekolah mulai memakai `Button`, `Badge`, `SurfaceCard`, `FormField`, `LoadingState`, dan `EmptyState` agar pola form, status, dan aksi lebih konsisten.
+- Melanjutkan migrasi komponen UI global pada nilai harian guru, audit trail, dan sebagian dashboard operasional agar form, search, loading, empty state, status badge, dan tombol aksi memakai pola yang sama.
+
 ## 2026-07-14
 
 - Memulai refactor pasca feature-freeze pilot dengan memecah `role-dashboard.tsx`: tipe dashboard dipindah ke `components/dashboards/dashboard-types.ts`, UI shared ke `role-dashboard-shared.tsx`, dashboard Kepala Sekolah ke `principal-dashboard.tsx`, dan dashboard Guru/Wali Kelas ke `teacher-dashboard.tsx`.

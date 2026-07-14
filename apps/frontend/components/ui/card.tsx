@@ -14,8 +14,21 @@ export function Card({ className, ...props }: ComponentPropsWithoutRef<'section'
 }
 
 export function SurfaceCard({ className, ...props }: ComponentPropsWithoutRef<'section'>) {
+  const classes = cn('surface-card rounded-[2rem] p-4 sm:p-5', className);
+
   return (
     <section
+      className={classes}
+      {...props}
+    />
+  );
+}
+
+type SurfaceFormCardProps = ComponentPropsWithoutRef<'form'>;
+
+export function SurfaceFormCard({ className, ...props }: SurfaceFormCardProps) {
+  return (
+    <form
       className={cn('surface-card rounded-[2rem] p-4 sm:p-5', className)}
       {...props}
     />
