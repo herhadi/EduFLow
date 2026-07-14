@@ -58,24 +58,24 @@ EduFlow memakai permission-based RBAC. Role hanya kumpulan permission, bukan log
 | Permission | root | operator_sekolah | guru | wali_kelas | kepala_sekolah | tu | bk | orang_tua |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `auth.session.manage` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `academic.read` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |  |
-| `academic.manage` | ✓ | ✓ |  |  |  | ✓ |  |  |
-| `academic-calendar.read` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |  |
-| `academic-calendar.manage` | ✓ | ✓ |  |  |  | ✓ |  |  |
-| `schedule.read` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |
-| `schedule.manage` | ✓ | ✓ |  |  |  |  |  |  |
-| `teaching-plan.read` | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |
-| `teaching-plan.manage` | ✓ |  | ✓ |  |  |  |  |  |
-| `teaching-plan.review` | ✓ |  |  |  | ✓ |  |  |  |
-| `student-grade.read` | ✓ | ✓ | ✓ | ✓ | ✓ |  | ✓ | ✓ |
-| `student-grade.manage` | ✓ |  | ✓ |  |  |  |  |  |
-| `student-grade.approve` | ✓ |  |  |  | ✓ |  |  |  |
-| `agenda.read` | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |
-| `agenda.generate` | ✓ | ✓ |  |  |  |  |  |  |
-| `attendance.read` | ✓ | ✓ | ✓ | ✓ | ✓ |  | ✓ | ✓ |
-| `attendance.manage` | ✓ | ✓ | ✓ |  |  |  |  |  |
-| `class-status.read` | ✓ | ✓ | ✓ | ✓ | ✓ |  | ✓ |  |
-| `class-status.manage` | ✓ | ✓ | ✓ |  |  |  |  |  |
+| `academic.read` |  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |  |
+| `academic.manage` |  | ✓ |  |  |  | ✓ |  |  |
+| `academic-calendar.read` |  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |  |
+| `academic-calendar.manage` |  | ✓ |  |  |  | ✓ |  |  |
+| `schedule.read` |  | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |
+| `schedule.manage` |  | ✓ |  |  |  |  |  |  |
+| `teaching-plan.read` |  | ✓ | ✓ | ✓ | ✓ |  |  |  |
+| `teaching-plan.manage` |  |  | ✓ |  |  |  |  |  |
+| `teaching-plan.review` |  |  |  |  | ✓ |  |  |  |
+| `student-grade.read` |  | ✓ | ✓ | ✓ | ✓ |  | ✓ | ✓ |
+| `student-grade.manage` |  |  | ✓ |  |  |  |  |  |
+| `student-grade.approve` |  |  |  |  | ✓ |  |  |  |
+| `agenda.read` |  | ✓ | ✓ | ✓ | ✓ |  |  |  |
+| `agenda.generate` |  | ✓ |  |  |  |  |  |  |
+| `attendance.read` |  | ✓ | ✓ | ✓ | ✓ |  | ✓ | ✓ |
+| `attendance.manage` |  | ✓ | ✓ |  |  |  |  |  |
+| `class-status.read` |  | ✓ | ✓ | ✓ | ✓ |  | ✓ |  |
+| `class-status.manage` |  | ✓ | ✓ |  |  |  |  |  |
 | `notification.read` | ✓ | ✓ |  | ✓ | ✓ | ✓ |  |  |
 | `notification.manage` | ✓ | ✓ |  |  |  |  |  |  |
 | `reporting.read` | ✓ | ✓ |  | ✓ | ✓ | ✓ | ✓ |  |

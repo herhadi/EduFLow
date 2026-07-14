@@ -68,7 +68,7 @@ Login sebagai `uat.guru1`, buka `/teacher/dashboard` dan `/teacher/attendance`, 
 
 ### Report Siswa
 
-Buka `/principal/reports`, lalu pastikan:
+Buka `/principal/student-reports`, lalu pastikan:
 
 - kelas `VII UAT` tersedia,
 - siswa UAT muncul,
@@ -104,7 +104,7 @@ Login sebagai `uat.parent1`, buka `/parent/dashboard`, lalu pastikan:
 5. Jika presensi belum pernah dibuka, login sebagai guru pengajar lalu buka presensi agenda pada tanggal izin/sakit. Status siswa tersebut otomatis terisi `SICK` atau `EXCUSED` dan tetap dipertahankan saat submit.
 6. Login kembali sebagai `uat.parent1`, cek `/parent/notifications` dan `/parent/permits` untuk melihat status review.
 
-Operator sekolah/root juga dapat review melalui `/admin/leave-requests`.
+Operator sekolah juga dapat review melalui `/admin/leave-requests` sebagai fallback bila wali kelas terlewat.
 
 ## Catatan
 

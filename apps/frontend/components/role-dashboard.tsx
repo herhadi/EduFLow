@@ -171,6 +171,18 @@ export function RoleDashboard({
     );
   }
 
+  if (activeRole === 'root') {
+    return (
+      <DashboardWithTelegramPrompt
+        activeRole={activeRole}
+        currentUser={currentUser}
+        profileChecked={profileChecked}
+      >
+        <RootHome currentUser={currentUser} />
+      </DashboardWithTelegramPrompt>
+    );
+  }
+
   return (
     <DashboardWithTelegramPrompt
       activeRole={activeRole}
@@ -185,6 +197,26 @@ export function RoleDashboard({
       />
       <OperationalDashboard />
     </DashboardWithTelegramPrompt>
+  );
+}
+
+function RootHome({ currentUser }: { currentUser: CurrentUser | null }) {
+  const displayName = currentUser?.name ?? currentUser?.username ?? 'Root';
+
+  return (
+    <>
+      <RoleHero
+        description="Area root dipakai untuk support teknis: akses sistem, health check, queue, Telegram, audit, backup, dan pemulihan. Operasional akademik harian tetap berada di role operator sekolah."
+        eyebrow="Support Teknis"
+        title={`Selamat datang, ${displayName}`}
+      />
+      <RoleSection description="Pantau dan tangani konfigurasi teknis tanpa masuk ke pekerjaan harian operator sekolah." title="Kontrol Sistem">
+        <RoleActionCard href="/operations" label="Ops & Health" description="Cek database, Redis, queue, worker, backup, dan retry job teknis." />
+        <RoleActionCard href="/system/access" label="User & Hak Akses" description="Kelola user sistem, role, permission, reset akses, dan akun bermasalah." />
+        <RoleActionCard href="/system/telegram" label="Telegram Bot" description="Cek token, webhook, user yang sudah link Telegram, dan log notifikasi." />
+        <RoleActionCard href="/system/audit" label="Audit Teknis" description="Telusuri aktivitas penting, retry notifikasi, dan perubahan konfigurasi sistem." />
+      </RoleSection>
+    </>
   );
 }
 
@@ -330,6 +362,7 @@ function PrincipalHome({ currentUser }: { currentUser: CurrentUser | null }) {
         <OperationalDashboard audience="principal" className="mt-0" />
       </section>
       <RoleSection description="Akses pendukung supervisi yang tidak perlu dibuka setiap hari." title="Akses Lanjutan">
+        <RoleActionCard href="/principal/exports" label="Export Laporan" description="Unduh rekap operasional sekolah dalam format Excel atau PDF." />
         <RoleActionCard href="/principal/audit" label="Jejak Aktivitas" description="Telusuri aktivitas penting untuk kebutuhan supervisi." />
       </RoleSection>
     </>

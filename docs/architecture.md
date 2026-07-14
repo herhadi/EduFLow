@@ -81,8 +81,14 @@ Area admin dipisahkan berdasarkan domain agar halaman tidak terlalu besar dan le
   /akademik
   /schedules
   /import-data
+
+/system
+  /dashboard
+  /access
+  /telegram
   /audit
-  /akses
+  /notifications
+  /profile
 ```
 
 - `/admin` dan `/admin/data`: hub atau menu utama master administrasi.
@@ -91,8 +97,10 @@ Area admin dipisahkan berdasarkan domain agar halaman tidak terlalu besar dan le
 - `/admin/akademik`: CRUD kelas dan mata pelajaran.
 - `/admin/schedules`: manajemen jadwal tetap dan generate agenda.
 - `/admin/import-data`: import data guru dan siswa.
-- `/admin/audit`: audit trail untuk aktivitas penting.
-- `/admin/akses`: user sistem, role, permission, nonaktif, dan hapus permanen.
+- `/system/dashboard`: beranda root untuk support teknis.
+- `/system/access`: user sistem, role, permission, nonaktif, dan hapus permanen.
+- `/system/telegram`: konfigurasi webhook dan monitoring Telegram bot.
+- `/system/audit`: audit trail untuk aktivitas penting.
 
 Route lama seperti `/schedules`, `/import-data`, dan `/audit` tetap disediakan sebagai kompatibilitas, tetapi navigasi operator memakai namespace `/admin/...`.
 
@@ -112,7 +120,7 @@ Navigasi frontend memakai role-based mobile shell:
 Dashboard frontend dipisahkan per role agar beranda setiap actor dapat berkembang tanpa saling bertabrakan:
 
 ```text
-/dashboard                  root
+/system/dashboard           root
 /admin/dashboard            operator_sekolah
 /principal/dashboard        kepala_sekolah
 /teacher/dashboard          guru, wali_kelas
@@ -121,7 +129,7 @@ Dashboard frontend dipisahkan per role agar beranda setiap actor dapat berkemban
 /dashboard/bk               bk
 ```
 
-`/dashboard` tetap menjadi dashboard root. User non-root yang membuka `/dashboard` diarahkan ke dashboard sesuai role. Login juga mengarahkan user ke dashboard role masing-masing. Jika user memiliki role `wali_kelas` dan `guru`, prioritas dashboard adalah `wali_kelas`.
+Root adalah role support teknis dan memakai namespace `/system/*`, sedangkan operator sekolah memakai namespace `/admin/*` untuk operasional akademik harian. User yang membuka namespace role yang tidak sesuai diarahkan ke dashboard sesuai role. Login juga mengarahkan user ke dashboard role masing-masing. Jika user memiliki role `wali_kelas` dan `guru`, prioritas dashboard adalah `wali_kelas`.
 
 Bottom navigation menggunakan label `Inbox` untuk pusat notifikasi dan `Profil` untuk area akun. Route Inbox dan Profil mengikuti namespace role, misalnya `/admin/notifications`, `/teacher/profile`, `/principal/notifications`, dan `/system/profile`; route lama `/notifications` dan `/profile` hanya menjadi kompatibilitas. Item `Inbox` menampilkan badge/dot saat ada notifikasi yang perlu dibaca atau ditindaklanjuti.
 

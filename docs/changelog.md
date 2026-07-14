@@ -17,6 +17,10 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Merapikan `/parent/reports` agar card riwayat presensi dan nilai harian seimbang di desktop serta tidak pecah di mobile.
 - Mengubah detail siswa di `/principal/reports` menjadi tombol expand terpisah untuk `Riwayat` dan `Nilai Harian`, sehingga daftar siswa tetap ringkas tetapi tetap jelas bisa diklik.
 - Menata navigasi Kepala Sekolah menjadi lebih sederhana dan informatif: Dashboard, KBM, Siswa, Guru, Review, Inbox, dan Profil; menambahkan halaman `/principal/kbm` untuk monitoring KBM harian dan memperjelas `/principal/reports` sebagai report siswa.
+- Membuat ringkasan angka `/principal/reports` lebih compact agar total, hadir, sakit, izin, alpha, dan risiko tetap terlihat tanpa memakan banyak ruang.
+- Memindahkan export laporan KS ke halaman khusus `/principal/exports` agar navbar/menu Siswa tetap fokus pada report siswa dan nilai harian.
+- Mengganti route aktif report siswa KS menjadi `/principal/student-reports`; route lama `/principal/reports` tetap diarahkan ke halaman baru agar link lama tidak patah.
+- Memisahkan root dari operator sekolah: root memakai namespace `/system/*` untuk support teknis, operator tetap memakai `/admin/*` untuk operasional akademik, dan seed RBAC mencabut permission akademik harian dari role root.
 
 ## 2026-07-10
 

@@ -16,27 +16,6 @@ async function main() {
   const rolePermissions: Record<string, string[]> = {
     root: [
       'auth.session.manage',
-      'academic.read',
-      'academic.manage',
-      'academic-calendar.read',
-      'academic-calendar.manage',
-      'schedule.read',
-      'schedule.manage',
-      'teaching-plan.read',
-      'teaching-plan.manage',
-      'teaching-plan.review',
-      'student-grade.read',
-      'student-grade.manage',
-      'student-grade.approve',
-      'student-leave.read',
-      'student-leave.manage',
-      'student-leave.review',
-      'agenda.read',
-      'agenda.generate',
-      'attendance.read',
-      'attendance.manage',
-      'class-status.read',
-      'class-status.manage',
       'notification.read',
       'notification.manage',
       'reporting.read',
@@ -194,6 +173,15 @@ async function main() {
         });
       }),
     );
+
+    await prisma.rolePermission.deleteMany({
+      where: {
+        roleId: role.id,
+        permission: {
+          key: { notIn: permissionKeys },
+        },
+      },
+    });
   }
 
   const rootUser = await prisma.user.upsert({

@@ -28,7 +28,7 @@ const PASSWORD_RESET_LIFETIME_MINUTES = 30;
 const TELEGRAM_LINK_LIFETIME_MINUTES = 15;
 const MAX_FAILED_LOGIN_ATTEMPTS = 5;
 const ACCOUNT_LOCK_MINUTES = 15;
-const TELEGRAM_MONITORING_ROLES = ['kepala_sekolah', 'root', 'operator_sekolah'];
+const TELEGRAM_MONITORING_ROLES = ['kepala_sekolah', 'operator_sekolah'];
 
 type AuthRequestMeta = {
   ipAddress?: string;

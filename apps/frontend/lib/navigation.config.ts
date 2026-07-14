@@ -21,9 +21,11 @@ export type NotificationAccess =
   | { mode: 'operational'; canRetry: boolean };
 
 const rootNavigation: NavigationItem[] = [
-  { href: '/admin', label: 'Admin', icon: '⚙' },
+  { href: '/system/dashboard', label: 'Sistem', icon: '⌂' },
   { href: '/operations', label: 'Ops', icon: '●' },
-  { href: '/audit', label: 'Audit', icon: '◇' },
+  { href: '/system/access', label: 'Akses', icon: '⚙' },
+  { href: '/system/telegram', label: 'Telegram', icon: '▣' },
+  { href: '/system/audit', label: 'Audit', icon: '◇' },
   { href: '/system/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
   { href: '/system/profile', label: 'Profil', icon: '👤' },
 ];
@@ -39,7 +41,7 @@ const operatorNavigation: NavigationItem[] = [
 const principalNavigation: NavigationItem[] = [
   { href: '/principal/dashboard', label: 'Beranda', icon: '⌂' },
   { href: '/principal/kbm', label: 'KBM', icon: '▦' },
-  { href: '/principal/reports', label: 'Siswa', icon: '▣' },
+  { href: '/principal/student-reports', label: 'Siswa', icon: '▣' },
   { href: '/principal/teacher-performance', label: 'Guru', icon: '◈' },
   { href: '/principal/review', label: 'Review', icon: '✓' },
   { href: '/principal/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
@@ -103,18 +105,19 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'admin', href: '/admin/guru', label: 'Guru' },
   { section: 'admin', href: '/admin/akademik', label: 'Akademik' },
   { section: 'admin', href: '/admin/schedules', label: 'Jadwal' },
-  { section: 'admin', href: '/admin/akses', label: 'Akses', roles: ['root'] },
   { section: 'admin', href: '/admin/import-data', label: 'Import' },
   { section: 'admin', href: '/admin/audit', label: 'Audit' },
-  { section: 'admin', href: '/admin/telegram', label: 'Telegram', roles: ['root'] },
   { section: 'admin', href: '/admin/leave-requests', label: 'Izin/Sakit' },
   { section: 'schedules', href: '/admin/schedules', label: 'Setup Jadwal' },
   { section: 'schedules', href: '/admin/guru', label: 'Mapel Guru' },
   { section: 'schedules', href: '/admin/akademik', label: 'Kelas & Mapel' },
   { section: 'schedules', href: '/admin/akademik/kalender', label: 'Kaldik' },
+  { section: 'operations', href: '/system/dashboard', label: 'Sistem' },
   { section: 'operations', href: '/operations', label: 'Health' },
+  { section: 'operations', href: '/system/access', label: 'Akses' },
+  { section: 'operations', href: '/system/telegram', label: 'Telegram' },
   { section: 'operations', href: '/system/notifications', label: 'Notifikasi' },
-  { section: 'operations', href: '/audit', label: 'Audit' },
+  { section: 'operations', href: '/system/audit', label: 'Audit' },
   { section: 'reports', href: '/reports', label: 'Export' },
   { section: 'reports', href: '/teacher-performance', label: 'Performa Guru' },
   { section: 'reports', href: '/parent-portal', label: 'Parent Portal' },
@@ -134,9 +137,10 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'homeroom', href: '/homeroom/notifications', label: 'Notifikasi' },
   { section: 'principal', href: '/principal/dashboard', label: 'Dashboard' },
   { section: 'principal', href: '/principal/kbm', label: 'KBM Hari Ini' },
-  { section: 'principal', href: '/principal/reports', label: 'Siswa' },
+  { section: 'principal', href: '/principal/student-reports', label: 'Siswa' },
   { section: 'principal', href: '/principal/teacher-performance', label: 'Guru' },
   { section: 'principal', href: '/principal/review', label: 'Review Dokumen' },
+  { section: 'principal', href: '/principal/exports', label: 'Export' },
   { section: 'principal', href: '/principal/audit', label: 'Jejak Aktivitas' },
   { section: 'parent', href: '/parent/dashboard', label: 'Anak' },
   { section: 'parent', href: '/parent/reports', label: 'Riwayat' },
@@ -196,7 +200,7 @@ export function getNotificationAccess(roles: string[] = []): NotificationAccess 
 
 export function getDashboardPathForRole(role: UserRole) {
   const paths: Record<UserRole, string> = {
-    root: '/dashboard',
+    root: '/system/dashboard',
     operator_sekolah: '/admin/dashboard',
     kepala_sekolah: '/principal/dashboard',
     wali_kelas: '/teacher/dashboard',
@@ -247,6 +251,7 @@ export function getSectionFromPath(pathname: string) {
   }
 
   if (
+    pathname.startsWith('/system') ||
     pathname.startsWith('/operations') ||
     pathname.startsWith('/notifications') ||
     pathname.startsWith('/system/notifications')

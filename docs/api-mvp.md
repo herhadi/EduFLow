@@ -610,12 +610,12 @@ Backend menyediakan endpoint aktivasi langsung dan webhook Telegram. Jika bot di
 Command bot yang diproses webhook:
 
 - `/help`: panduan bot dan command yang boleh dipakai user tersebut,
-- `/kbm` atau `/today`: ringkasan KBM hari ini untuk akun Telegram dengan role `kepala_sekolah`, `root`, atau `operator_sekolah`,
+- `/kbm` atau `/today`: ringkasan KBM hari ini untuk akun Telegram dengan role `kepala_sekolah` atau `operator_sekolah`,
 - `/review`: antrean review perangkat ajar dan nilai untuk role yang sama.
 
 Command monitoring bersifat on-demand. Backend membalas langsung melalui Bot API, tidak membuat `NotificationLog`, tidak masuk queue, dan tidak menambah badge Inbox.
 
-Operasional Telegram untuk root/operator:
+Operasional Telegram untuk root:
 
 ```txt
 GET /api/operations/telegram

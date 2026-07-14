@@ -6,7 +6,7 @@ Dokumen ini menjelaskan urutan konfigurasi awal EduFlow setelah root pertama ber
 
 Slot jam pada form pembuatan jadwal ditampilkan sebagai susunan hari yang dapat diklik, bukan dropdown. Operator dapat memilih beberapa slot sekaligus untuk kelas, guru, dan mata pelajaran yang sama. Seluruh sesi disimpan dalam satu transaksi agar tidak ada jadwal yang tersimpan sebagian ketika ditemukan bentrok.
 
-Operator Sekolah mengelola template jadwal dan dapat melakukan generate agenda manual bila diperlukan untuk operasional harian. Permission `agenda.generate` diberikan kepada `root` dan `operator_sekolah`; alur normal agenda tetap dapat dijalankan otomatis oleh scheduler.
+Operator Sekolah mengelola template jadwal dan dapat melakukan generate agenda manual bila diperlukan untuk operasional harian. Permission `agenda.generate` menjadi tanggung jawab `operator_sekolah`; root tidak dipakai untuk operasional akademik harian.
 
 Jeda pertama selalu `Istirahat`. Khusus jeda kedua tersedia pilihan per kelas: `Istirahat` sebagai nilai default atau `Istirahat/Sholat Berjamaah`. Pilihan disimpan sebagai override kelas sehingga kegiatan sholat berjamaah tidak otomatis diterapkan ke seluruh kelas.
 
@@ -44,7 +44,6 @@ Halaman `/teacher/schedules` membaca `GET /api/academic/me/schedules`, sehingga 
 | `/admin/data` | Menu utama master administrasi |
 | `/admin/guru` | Akun, role, mapel ampu, dan wali kelas |
 | `/admin/akademik` | Kelas dan mata pelajaran |
-| `/admin/akses` | User, role, status akun, dan penghapusan user |
 | `/admin/schedules` | Setup jadwal kelas keseluruhan dan generate agenda |
 | `/admin/import-data` | Import data guru dan siswa dari Excel |
 
@@ -58,7 +57,7 @@ Hero/card utama halaman memakai lebar penuh container dan token `page-hero` agar
 
 Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama sesuai actor yang sedang login:
 
-- `root`: `Admin`, `Ops`, `Audit`, `Inbox`, `Profil`.
+- `root`: `Sistem`, `Ops`, `Akses`, `Telegram`, `Audit`, `Inbox`, `Profil`.
 - `operator_sekolah`: `Beranda`, `Master`, `Jadwal`, `Inbox`, `Profil`.
 - `kepala_sekolah`: `Beranda`, `Review`, `Performa`, `Inbox`, `Profil`.
 - `guru`: `Hari Ini`, `Jadwal`, `Presensi`, `Inbox`, `Profil`.
@@ -73,11 +72,11 @@ Item `Inbox` memakai icon pesan dan memiliki badge/dot jika ada notifikasi priba
 
 Halaman Profil dipakai oleh semua role untuk melihat identitas login, mengunggah foto dari file lokal perangkat, melihat status Telegram, mengganti akun Telegram, mengubah password, melihat sesi aktif, dan keluar dari semua perangkat. Telegram tidak diketik manual; UI meminta token aktivasi ke backend lalu membuka bot Telegram. Setelah user membuka bot dengan `/start <token>`, webhook Telegram EduFlow mengonfirmasi token dan menyimpan `User.telegramId` otomatis. Jika user belum mengaktifkan Telegram, dashboard role menampilkan peringatan dengan tombol aktivasi langsung ke bot sampai `User.telegramId` tersimpan.
 
-Catatan integrasi Telegram: root mengelola webhook dari `/admin/telegram`. Environment wajib untuk webhook adalah `TELEGRAM_BOT_TOKEN` dan `TELEGRAM_WEBHOOK_URL`; opsional `TELEGRAM_WEBHOOK_SECRET` dan `TELEGRAM_BOT_USERNAME`. Halaman `/admin/telegram` dipakai untuk melihat status konfigurasi, memasang/menghapus webhook, dan membaca response `getWebhookInfo` tanpa menampilkan token bot ke browser.
+Catatan integrasi Telegram: root mengelola webhook dari `/system/telegram`. Environment wajib untuk webhook adalah `TELEGRAM_BOT_TOKEN` dan `TELEGRAM_WEBHOOK_URL`; opsional `TELEGRAM_WEBHOOK_SECRET` dan `TELEGRAM_BOT_USERNAME`. Halaman `/system/telegram` dipakai untuk melihat status konfigurasi, memasang/menghapus webhook, dan membaca response `getWebhookInfo` tanpa menampilkan token bot ke browser.
 
-Command Telegram untuk monitoring sekolah dibuat on-demand agar tidak spam. Kepala Sekolah, root, dan operator sekolah yang sudah mengaktifkan Telegram dapat memakai `/kbm` atau `/today` untuk ringkasan KBM hari ini, serta `/review` untuk antrean perangkat ajar dan nilai yang menunggu review. Command ini tidak membuat `NotificationLog` baru dan tidak menambah badge Inbox.
+Command Telegram untuk monitoring sekolah dibuat on-demand agar tidak spam. Kepala Sekolah dan operator sekolah yang sudah mengaktifkan Telegram dapat memakai `/kbm` atau `/today` untuk ringkasan KBM hari ini, serta `/review` untuk antrean perangkat ajar dan nilai yang menunggu review. Root mengelola konfigurasi bot dari `/system/telegram`, bukan command monitoring sekolah. Command ini tidak membuat `NotificationLog` baru dan tidak menambah badge Inbox.
 
-`Ops` hanya muncul untuk `root` karena berisi health check, queue monitoring, failed jobs, dan tindakan teknis operasional sistem.
+Root adalah role support teknis. Root memakai namespace `/system/*` dan `/operations` untuk health check, queue monitoring, failed jobs, Telegram webhook, audit, backup, recovery, dan user/hak akses sistem. Root tidak memakai namespace `/admin/*` untuk pekerjaan akademik harian.
 
 `Master` pada bottom navigation operator berarti pusat data administrasi akademik di namespace `/admin/data`, bukan root teknis.
 
@@ -87,7 +86,7 @@ Konfigurasi navigasi global berada di `apps/frontend/lib/navigation.config.ts`.
 
 Dashboard dipisahkan per role:
 
-- `root`: `/dashboard`.
+- `root`: `/system/dashboard`.
 - `operator_sekolah`: `/admin/dashboard`.
 - `kepala_sekolah`: `/principal/dashboard`.
 - `guru`: `/teacher/dashboard`.
@@ -96,7 +95,7 @@ Dashboard dipisahkan per role:
 - `tu`: `/tu/dashboard`.
 - `bk`: `/bk/dashboard`.
 
-Login mengarahkan user langsung ke dashboard sesuai role. Jika user non-root membuka `/dashboard`, frontend mengarahkan ke dashboard role-nya. Inbox dan Profil juga mengikuti namespace role, misalnya `/admin/notifications`, `/admin/profile`, `/teacher/notifications`, dan `/teacher/profile`. Halaman `/admin/akses` hanya untuk `root`; user non-root yang membuka URL tersebut akan melihat peringatan akses ditolak sebelum diarahkan kembali ke menu sesuai role.
+Login mengarahkan user langsung ke dashboard sesuai role. Root masuk ke `/system/dashboard`, sedangkan operator sekolah masuk ke `/admin/dashboard`. Jika user membuka namespace role yang tidak sesuai, frontend memberi peringatan lalu mengarahkan ke dashboard role-nya. Inbox dan Profil juga mengikuti namespace role, misalnya `/admin/notifications`, `/admin/profile`, `/teacher/notifications`, dan `/teacher/profile`. Halaman user dan hak akses root berada di `/system/access`.
 
 Shell aplikasi juga melakukan guard ringan untuk namespace role. Jika user membuka namespace yang tidak sesuai, misalnya guru membuka `/principal/...` atau orang tua membuka `/tu/...`, browser menampilkan peringatan akses ditolak lalu mengarahkan user ke dashboard role-nya. Validasi final tetap wajib berada di backend permission.
 
@@ -116,9 +115,11 @@ Catatan jadwal:
 Catatan namespace kepala sekolah:
 
 - `/principal/dashboard` untuk beranda kepala sekolah.
+- `/principal/kbm` untuk monitoring KBM harian.
+- `/principal/student-reports` untuk report siswa, presensi, dan nilai harian.
+- `/principal/exports` untuk unduhan laporan Excel/PDF.
 - `/principal/review` untuk approval perangkat ajar dan nilai.
 - `/principal/teacher-performance` untuk monitoring performa guru.
-- `/principal/reports` untuk laporan sekolah.
 - `/principal/audit` untuk jejak aktivitas supervisi.
 
 Catatan namespace role lain:
@@ -133,7 +134,8 @@ Catatan namespace role lain:
 
 ```text
 Root login
-  -> buat Operator Sekolah
+  -> cek sistem, Telegram, dan user/hak akses
+  -> buat Operator Sekolah bila belum ada
   -> atur tahun ajaran dan semester
   -> atur kelas/rombel
   -> atur mata pelajaran
@@ -335,7 +337,7 @@ Catatan UI mobile admin:
 
 ## Manajemen User
 
-Gunakan `/admin/akses` untuk:
+Gunakan `/system/access` untuk:
 
 - membuat user non-guru,
 - melihat role user,

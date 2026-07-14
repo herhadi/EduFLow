@@ -6,7 +6,7 @@ Dokumen ini memisahkan tanggung jawab admin dan guru dalam pengelolaan jadwal, k
 
 | Actor | Tanggung Jawab |
 | --- | --- |
-| `root` | Akses teknis semua fitur, dipakai sangat terbatas untuk owner/dev/super admin teknis |
+| `root` | Support teknis sistem: health check, queue, backup/recovery, Telegram webhook, audit, user, role, dan permission |
 | `operator_sekolah` | Mengelola kalender pendidikan, jadwal sekolah, tahun ajaran, semester, kelas, mapel, dan konfigurasi akademik |
 | `tu` | Membantu administrasi data sekolah, import data, arsip, dan kebutuhan tata usaha yang tidak selalu bersifat akademik |
 | `guru` | Mengelola perangkat ajar, bahan ajar, buku KBM, dan nilai siswa sesuai kelas/mapel yang diampu |
@@ -36,12 +36,12 @@ Operator sekolah mengelola data yang bersifat konfigurasi akademik sekolah:
 
 Kaldik (kalender pendidikan) dipakai untuk menentukan hari efektif, libur, ujian, kegiatan sekolah, dan pengecualian jadwal. Event Kaldik yang memiliki `blocksAgenda` menjadi sumber tunggal untuk melewati pembuatan `DailyAgenda`.
 
-Admin teknis tidak sama dengan TU. Dalam EduFlow, `root` atau admin teknis dipakai untuk akses penuh dan recovery, sedangkan pekerjaan operasional harian sekolah memakai `operator_sekolah` dan `tu`.
+Admin teknis tidak sama dengan TU. Dalam EduFlow, `root` dipakai untuk support teknis dan recovery, sedangkan pekerjaan operasional akademik harian sekolah memakai `operator_sekolah` dan `tu`.
 
 Dalam navigasi frontend, `operator_sekolah` diperlakukan sebagai admin operasional sekolah. Menu personal seperti profil, ganti password, dan session management tetap dipisahkan di menu `Profil`.
 
 Menu teknis seperti health check, queue monitoring, worker status, dan failed jobs berada di area `Ops` dan hanya ditampilkan untuk `root`.
-Menu user dan hak akses berada di `/admin/akses` dan hanya ditampilkan serta dapat dibuka oleh `root`. Jika user non-root membuka URL tersebut secara manual, frontend menampilkan peringatan akses ditolak lalu mengarahkan user ke dashboard sesuai role. Operator sekolah tidak mengelola user global atau permission teknis dari navigasi harian.
+Menu user dan hak akses berada di `/system/access` dan hanya ditampilkan serta dapat dibuka oleh `root`. Jika user non-root membuka URL tersebut secara manual, frontend menampilkan peringatan akses ditolak lalu mengarahkan user ke dashboard sesuai role. Operator sekolah tidak mengelola user global atau permission teknis dari navigasi harian.
 
 ## Tahun Ajaran
 
