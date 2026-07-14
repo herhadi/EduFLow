@@ -8,6 +8,8 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Melanjutkan migrasi komponen UI global pada nilai harian guru, audit trail, dan sebagian dashboard operasional agar form, search, loading, empty state, status badge, dan tombol aksi memakai pola yang sama.
 - Memulai pemecahan `academic-master-management.tsx` dengan mengekstrak konstanta master akademik dan form jam pelajaran ke folder `components/academic-master`, sehingga halaman admin akademik mulai lebih mudah dirawat.
 - Memecah panel `Rombongan Belajar` dan `Manajemen Mata Pelajaran` dari `academic-master-management.tsx` ke komponen khusus agar halaman admin akademik tidak lagi menampung seluruh JSX master data dalam satu file.
+- Memecah panel `Manajemen Jam Pelajaran` ke `time-slot-management-panel.tsx`, sehingga `academic-master-management.tsx` kini lebih fokus pada state, handler, dan komposisi panel master akademik.
+- Memulai refactor `schedule-management.tsx` dengan mengekstrak konstanta, helper tanggal, pencarian kelas jadwal efektif, dan kontrol form/date ke folder `components/schedule-management`.
 
 ## 2026-07-14
 

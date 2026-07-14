@@ -1,9 +1,19 @@
 'use client';
 
 import { sortSchoolClasses } from '@eduflow/shared';
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { getCurrentSessionUser } from '../lib/session';
 import { getPreferredSchoolYear, getPreferredSemester } from '../lib/school-year';
+import { DateControl, InputField, SelectField } from './schedule-management/schedule-form-controls';
+import {
+  dayOptions,
+  emptyScheduleForm,
+  formatDateDisplay,
+  getDateForSemester,
+  getDayLabel,
+  getFirstScheduledClassId,
+  getToday,
+} from './schedule-management/schedule-management-utils';
 import { useToast } from './ui/toast';
 import {
   api,
@@ -20,27 +30,6 @@ import {
 } from '../lib/api';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
-
-const dayOptions = [
-  { value: 1, label: 'Senin' },
-  { value: 2, label: 'Selasa' },
-  { value: 3, label: 'Rabu' },
-  { value: 4, label: 'Kamis' },
-  { value: 5, label: 'Jumat' },
-  { value: 6, label: 'Sabtu' },
-  { value: 7, label: 'Minggu' },
-];
-
-const emptyForm: SchedulePayload = {
-  schoolYearId: '',
-  semesterId: '',
-  classId: '',
-  subjectId: '',
-  teacherId: '',
-  dayOfWeek: 1,
-  startsAt: '07:00',
-  endsAt: '08:30',
-};
 
 export function ScheduleManagement() {
   const toast = useToast();
@@ -64,7 +53,7 @@ export function ScheduleManagement() {
   const [classes, setClasses] = useState<SchoolClass[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [timeSlots, setTimeSlots] = useState<AcademicTimeSlot[]>([]);
-  const [form, setForm] = useState<SchedulePayload>(emptyForm);
+  const [form, setForm] = useState<SchedulePayload>(emptyScheduleForm);
   const [effectiveFrom, setEffectiveFrom] = useState('');
   const [revisionReason, setRevisionReason] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('VII');
@@ -780,7 +769,7 @@ export function ScheduleManagement() {
               className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 sm:w-auto"
               onClick={() => {
                 setEditingId(null);
-                setForm(emptyForm);
+                setForm(emptyScheduleForm);
               }}
               type="button"
             >
@@ -1025,217 +1014,4 @@ export function ScheduleManagement() {
       </div>
     </section>
   );
-}
-
-function SelectField({
-  label,
-  onChange,
-  options,
-  value,
-}: {
-  label: string;
-  onChange: (value: string) => void;
-  options: Array<{ label: string; value: string }>;
-  value: string;
-}) {
-  return (
-    <label className="grid min-w-0 gap-1 text-sm font-semibold text-slate-700">
-      <span className="min-w-0 truncate">{label}</span>
-      <select
-        className="w-full min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-brand-600"
-        onChange={(event) => onChange(event.target.value)}
-        required
-        value={value}
-      >
-        <option value="">Pilih {label.toLowerCase()}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function InputField({
-  label,
-  onChange,
-  required = true,
-  type = 'text',
-  value,
-}: {
-  label: string;
-  onChange: (value: string) => void;
-  required?: boolean;
-  type?: 'date' | 'time' | 'text';
-  value: string;
-}) {
-  const isDate = type === 'date';
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  function openDatePicker() {
-    const input = inputRef.current as (HTMLInputElement & { showPicker?: () => void }) | null;
-    if (!input) return;
-
-    if (input.showPicker) {
-      input.showPicker();
-      return;
-    }
-
-    input.focus();
-    input.click();
-  }
-
-  return (
-    <label className="grid min-w-0 gap-1 text-sm font-semibold text-slate-700">
-      <span className="min-w-0 truncate">{label}</span>
-      {isDate ? (
-        <span
-          className="date-picker-control grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-center gap-1 rounded-xl py-1 pl-3 pr-1"
-          onClick={openDatePicker}
-        >
-          <span aria-hidden="true" className="date-picker-control__value truncate text-sm font-normal">
-            {value ? formatDateDisplay(value) : 'Pilih tanggal'}
-          </span>
-          <input
-            className="date-picker-control__input"
-            onChange={(event) => onChange(event.target.value)}
-            ref={inputRef}
-            required={required}
-            type={type}
-            value={value}
-          />
-          <button
-            aria-label={`Pilih ${label.toLowerCase()}`}
-            className="date-picker-control__button"
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              openDatePicker();
-            }}
-            type="button"
-          >
-            <CalendarIcon className="h-4 w-4" />
-          </button>
-        </span>
-      ) : (
-        <input
-          className="w-full min-w-0 max-w-full rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600"
-          onChange={(event) => onChange(event.target.value)}
-          required={required}
-          type={type}
-          value={value}
-        />
-      )}
-    </label>
-  );
-}
-
-function DateControl({
-  description,
-  label,
-  onChange,
-  value,
-}: {
-  description: string;
-  label: string;
-  onChange: (value: string) => void;
-  value: string;
-}) {
-  return (
-    <div className="min-w-0">
-      <InputField label={label} onChange={onChange} type="date" value={value} />
-      <p className="mt-1.5 min-h-8 text-[11px] font-semibold leading-4 text-slate-600">
-        {description}
-      </p>
-    </div>
-  );
-}
-
-function CalendarIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M8 2v4" />
-      <path d="M16 2v4" />
-      <path d="M3 10h18" />
-      <rect height="18" rx="2" width="18" x="3" y="4" />
-    </svg>
-  );
-}
-
-function getDayLabel(dayOfWeek: number) {
-  return dayOptions.find((day) => day.value === dayOfWeek)?.label ?? `Hari ${dayOfWeek}`;
-}
-
-function getToday() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function getDateForSemester(semester?: Semester) {
-  if (!semester) return getToday();
-
-  const today = new Date(getToday()).getTime();
-  const startsAt = new Date(semester.startsAt).getTime();
-  const endsAt = new Date(semester.endsAt).getTime();
-
-  if (startsAt <= today && today <= endsAt) {
-    return getToday();
-  }
-
-  return formatDateInput(semester.startsAt);
-}
-
-function formatDateInput(value?: string | Date | null) {
-  if (!value) return '';
-  return new Date(value).toISOString().slice(0, 10);
-}
-
-function formatDateDisplay(value: string | Date) {
-  const date = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
-    ? new Date(`${value}T00:00:00`)
-    : new Date(value);
-
-  return new Intl.DateTimeFormat('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(date);
-}
-
-function getFirstScheduledClassId(
-  classes: SchoolClass[],
-  schedules: Schedule[],
-  schoolYearId: string,
-  viewDate: string,
-) {
-  const viewTime = new Date(viewDate).getTime();
-  const classIds = new Set(classes
-    .filter((schoolClass) => schoolClass.schoolYearId === schoolYearId)
-    .map((schoolClass) => schoolClass.id));
-
-  return schedules
-    .map((schedule) => {
-      const revision = schedule.revisions
-        ?.filter((item) => new Date(item.effectiveFrom).getTime() <= viewTime)
-        .at(-1);
-
-      return revision
-        ? { classId: revision.classId, schoolYearId: schedule.schoolYearId }
-        : { classId: schedule.classId, schoolYearId: schedule.schoolYearId };
-    })
-    .find(
-      (schedule) =>
-        schedule.schoolYearId === schoolYearId &&
-        classIds.has(schedule.classId),
-    )?.classId;
 }

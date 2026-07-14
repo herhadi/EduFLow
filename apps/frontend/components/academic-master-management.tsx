@@ -18,11 +18,11 @@ import {
   createDefaultTimeSlotForm,
   grades,
   schoolYearNameRegex,
-  timeSlotTypeOptions,
   weekdayOptions,
 } from './academic-master/academic-master-constants';
 import { ClassManagementPanel } from './academic-master/class-management-panel';
 import { SubjectManagementPanel } from './academic-master/subject-management-panel';
+import { TimeSlotManagementPanel } from './academic-master/time-slot-management-panel';
 import { useToast } from './ui/toast';
 
 type LoadState = 'loading' | 'success' | 'error';
@@ -443,105 +443,18 @@ export function AcademicMasterManagement() {
         subjects={subjects}
       />
 
-      <section className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
-        <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Jadwal Sekolah</p>
-        <h2 className="mt-1 text-2xl font-black text-ink">Manajemen Jam Pelajaran</h2>
-        <p className="mt-1 text-sm leading-6 text-muted">
-          Atur susunan jam per hari untuk setiap tahun ajaran. Di sinilah operator mengubah jam mulai, jam selesai, nomor jam, dan jenis slot seperti istirahat atau upacara.
-        </p>
-
-        <div className="mt-5 grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-4 md:grid-cols-[1fr_auto] md:items-end">
-          <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="time-slot-school-year-filter">
-            Tahun Ajaran
-            <select
-              className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
-              id="time-slot-school-year-filter"
-              onChange={(event) => handleTimeSlotSchoolYearChange(event.target.value)}
-              value={selectedTimeSlotSchoolYearId}
-            >
-              {schoolYears.map((year) => (
-                <option key={year.id} value={year.id}>{year.name}</option>
-              ))}
-            </select>
-          </label>
-          <button
-            className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300"
-            disabled={!selectedTimeSlotSchoolYearId}
-            onClick={startAddTimeSlot}
-            type="button"
-          >
-            Tambah Jam Pelajaran
-          </button>
-        </div>
-
-        {isAddingTimeSlot ? (
-          <div className="mt-3">
-            {renderTimeSlotForm('Tambah Jam Pelajaran')}
-          </div>
-        ) : null}
-
-        <div className="mt-5 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-          {timeSlotsByDay.map((day) => (
-            <div className="rounded-2xl border border-blue-50 bg-slate-50 p-4" key={day.value}>
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="font-black text-slate-900">{day.label}</h3>
-                <span className="rounded-full bg-white px-2 py-1 text-xs font-black text-brand-700">{day.slots.length}</span>
-              </div>
-              <div className="mt-3 space-y-2">
-                {day.slots.map((slot) => (
-                  <div
-                    className={`rounded-xl bg-white p-3 ${editingTimeSlotId === slot.id ? 'ring-2 ring-brand-200' : ''}`}
-                    key={slot.id}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-black text-slate-900">
-                          {slot.name}
-                        </p>
-                        <p className="mt-1 text-xs font-semibold text-muted">
-                          {slot.startsAt}-{slot.endsAt}
-                          {slot.periodNumber ? ` · Jam ${slot.periodNumber}` : ''}
-                          {' · '}
-                          {timeSlotTypeOptions.find((option) => option.value === slot.type)?.label ?? slot.type}
-                        </p>
-                        <p className="mt-1 text-[11px] font-bold text-brand-700">
-                          {slot.isAssignable ? 'Dipakai untuk jadwal' : 'Slot non-pelajaran'}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 gap-2">
-                        <button
-                          className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-black text-brand-700"
-                          onClick={() => startEditTimeSlot(slot)}
-                          type="button"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-black text-red-700"
-                          onClick={() => void handleDeleteTimeSlot(slot)}
-                          type="button"
-                        >
-                          Hapus
-                        </button>
-                      </div>
-                    </div>
-                    {editingTimeSlotId === slot.id ? (
-                      <div className="mt-3 border-t border-blue-50 pt-3">
-                        {renderTimeSlotForm('Simpan Perubahan Jam')}
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-                {!day.slots.length ? (
-                  <p className="rounded-xl bg-white px-3 py-3 text-xs font-semibold text-muted">
-                    Belum ada slot waktu.
-                  </p>
-                ) : null}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <TimeSlotManagementPanel
+        editingTimeSlotId={editingTimeSlotId}
+        isAddingTimeSlot={isAddingTimeSlot}
+        onDeleteTimeSlot={handleDeleteTimeSlot}
+        onSchoolYearChange={handleTimeSlotSchoolYearChange}
+        onStartAdd={startAddTimeSlot}
+        onStartEdit={startEditTimeSlot}
+        renderTimeSlotForm={renderTimeSlotForm}
+        schoolYears={schoolYears}
+        selectedSchoolYearId={selectedTimeSlotSchoolYearId}
+        timeSlotsByDay={timeSlotsByDay}
+      />
     </div>
   );
 }
