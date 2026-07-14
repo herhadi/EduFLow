@@ -12,14 +12,17 @@ import {
 import { getPreferredSchoolYear, getUpcomingSchoolYear } from '../lib/school-year';
 import { AcademicTimeSlotForm } from './academic-master/academic-time-slot-form';
 import {
+  type AcademicClassFormState,
   type AcademicTimeSlotFormState,
+  type CloneSchoolYearMasterFormState,
   createDefaultTimeSlotForm,
   grades,
-  schoolYearNamePattern,
   schoolYearNameRegex,
   timeSlotTypeOptions,
   weekdayOptions,
 } from './academic-master/academic-master-constants';
+import { ClassManagementPanel } from './academic-master/class-management-panel';
+import { SubjectManagementPanel } from './academic-master/subject-management-panel';
 import { useToast } from './ui/toast';
 
 type LoadState = 'loading' | 'success' | 'error';
@@ -38,12 +41,12 @@ export function AcademicMasterManagement() {
   const [editingTimeSlotId, setEditingTimeSlotId] = useState('');
   const [selectedTimeSlotSchoolYearId, setSelectedTimeSlotSchoolYearId] = useState('');
   const [isAddingTimeSlot, setIsAddingTimeSlot] = useState(false);
-  const [classForm, setClassForm] = useState({
+  const [classForm, setClassForm] = useState<AcademicClassFormState>({
     schoolYearId: '',
     grade: 'VII',
     suffix: '',
   });
-  const [cloneForm, setCloneForm] = useState({
+  const [cloneForm, setCloneForm] = useState<CloneSchoolYearMasterFormState>({
     sourceSchoolYearId: '',
     targetSchoolYearId: '',
     includeClasses: true,
@@ -413,222 +416,32 @@ export function AcademicMasterManagement() {
 
   return (
     <div className="mt-6 grid gap-5">
-      <section className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
-        <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Rombongan Belajar</p>
-        <h2 className="mt-1 text-2xl font-black text-ink">Manajemen Kelas</h2>
-        <p className="mt-1 text-sm leading-6 text-muted">
-          Jumlah kelas bebas menyesuaikan jumlah siswa. Tambah atau hapus rombel tanpa mengubah kode aplikasi.
-        </p>
+      <ClassManagementPanel
+        classForm={classForm}
+        cloneForm={cloneForm}
+        groupedClasses={groupedClasses}
+        isCloningMaster={isCloningMaster}
+        isCreatingSchoolYear={isCreatingSchoolYear}
+        isSaving={isSaving}
+        onCloneSchoolYearMaster={handleCloneSchoolYearMaster}
+        onCreateClass={handleCreateClass}
+        onCreateSchoolYear={handleCreateSchoolYear}
+        onDeleteClass={handleDeleteClass}
+        schoolYearName={schoolYearName}
+        schoolYears={schoolYears}
+        setClassForm={setClassForm}
+        setCloneForm={setCloneForm}
+        setSchoolYearName={setSchoolYearName}
+      />
 
-        <form className="mt-5 grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]" onSubmit={handleCreateSchoolYear}>
-          <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="new-school-year">
-            Tahun Ajaran Baru
-            <input
-              className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
-              id="new-school-year"
-              onChange={(event) => setSchoolYearName(event.target.value)}
-              pattern={schoolYearNamePattern}
-              placeholder="Contoh 2026/2027"
-              value={schoolYearName}
-            />
-          </label>
-          <button
-            className="self-end rounded-2xl border border-brand-200 bg-white px-4 py-3 text-sm font-black text-brand-700 disabled:text-slate-400"
-            disabled={isCreatingSchoolYear}
-            type="submit"
-          >
-            Tambah Tahun
-          </button>
-        </form>
-
-        <form className="mt-3 grid gap-3" onSubmit={handleCreateClass}>
-          <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="class-school-year">
-            Tahun Ajaran
-            <select
-              className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
-              id="class-school-year"
-              onChange={(event) => setClassForm((current) => ({ ...current, schoolYearId: event.target.value }))}
-              value={classForm.schoolYearId}
-            >
-              {schoolYears.map((year) => (
-                <option key={year.id} value={year.id}>{year.name}</option>
-              ))}
-            </select>
-          </label>
-          <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-            <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="class-grade">
-              Tingkat
-              <select
-                className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/60 px-3 py-3 text-sm font-bold outline-none focus:border-brand-600"
-                id="class-grade"
-                onChange={(event) => setClassForm((current) => ({ ...current, grade: event.target.value }))}
-                value={classForm.grade}
-              >
-                {grades.map((grade) => <option key={grade}>{grade}</option>)}
-              </select>
-            </label>
-            <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="class-rombel">
-              Rombel
-              <input
-                className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm uppercase outline-none focus:border-brand-600"
-                id="class-rombel"
-                maxLength={3}
-                onChange={(event) => setClassForm((current) => ({ ...current, suffix: event.target.value }))}
-                placeholder="A"
-                value={classForm.suffix}
-              />
-            </label>
-            <button
-              className="col-span-2 self-end rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300 sm:col-span-1"
-              disabled={isSaving}
-              type="submit"
-            >
-              Tambah
-            </button>
-          </div>
-        </form>
-
-        <div className="mt-5 space-y-4">
-          {groupedClasses.map((group) => (
-            <div key={group.grade}>
-              <div className="flex items-center justify-between">
-                <h3 className="font-black text-slate-800">Kelas {group.grade}</h3>
-                <span className="rounded-full bg-brand-50 px-2 py-1 text-xs font-black text-brand-700">{group.classes.length}</span>
-              </div>
-              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                {group.classes.map((schoolClass) => (
-                  <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-blue-50 bg-slate-50 px-3 py-2.5" key={schoolClass.id}>
-                    <span className="truncate text-sm font-black text-slate-800">{schoolClass.name}</span>
-                    <button
-                      className="rounded-full bg-rose-50 px-2 py-1 text-xs font-black text-rose-700 hover:bg-rose-100"
-                      onClick={() => void handleDeleteClass(schoolClass)}
-                      type="button"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-                {!group.classes.length ? <p className="col-span-full text-xs font-semibold text-muted">Belum ada kelas.</p> : null}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <form className="mt-5 grid min-w-0 gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3" onSubmit={handleCloneSchoolYearMaster}>
-          <div>
-            <p className="text-sm font-black text-slate-900">Salin Master Tahun Ajaran</p>
-            <p className="mt-1 text-xs font-semibold text-muted">
-              Gunakan untuk menyiapkan kelas dan susunan jam tahun ajaran baru dari tahun sebelumnya.
-            </p>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="clone-source-school-year">
-              Sumber
-              <select
-                className="min-w-0 rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
-                id="clone-source-school-year"
-                onChange={(event) => setCloneForm((current) => ({ ...current, sourceSchoolYearId: event.target.value }))}
-                value={cloneForm.sourceSchoolYearId}
-              >
-                {schoolYears.map((year) => (
-                  <option key={year.id} value={year.id}>{year.name}</option>
-                ))}
-              </select>
-            </label>
-            <label className="grid gap-1 text-xs font-black text-slate-700" htmlFor="clone-target-school-year">
-              Target
-              <select
-                className="min-w-0 rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-brand-600"
-                id="clone-target-school-year"
-                onChange={(event) => setCloneForm((current) => ({ ...current, targetSchoolYearId: event.target.value }))}
-                value={cloneForm.targetSchoolYearId}
-              >
-                {schoolYears.map((year) => (
-                  <option key={year.id} value={year.id}>{year.name}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className="grid gap-2 text-xs font-bold text-slate-700 sm:grid-cols-3">
-            {[
-              ['includeClasses', 'Kelas'],
-              ['includeTimeSlots', 'Jam pelajaran'],
-              ['includeClassActivities', 'Aktivitas slot'],
-            ].map(([field, label]) => (
-              <label className="flex items-center gap-2 rounded-xl bg-white px-3 py-2" key={field}>
-                <input
-                  checked={cloneForm[field as keyof typeof cloneForm] as boolean}
-                  className="h-4 w-4 accent-brand-600"
-                  onChange={(event) =>
-                    setCloneForm((current) => ({
-                      ...current,
-                      [field]: event.target.checked,
-                    }))
-                  }
-                  type="checkbox"
-                />
-                {label}
-              </label>
-            ))}
-          </div>
-          <button
-            className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300"
-            disabled={isCloningMaster}
-            type="submit"
-          >
-            Salin Master
-          </button>
-        </form>
-
-      </section>
-
-      <section className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
-        <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Kurikulum</p>
-        <h2 className="mt-1 text-2xl font-black text-ink">Manajemen Mata Pelajaran</h2>
-        <p className="mt-1 text-sm leading-6 text-muted">
-          Daftar mapel bersifat fleksibel. Admin dapat menambah mapel lokal atau menghapus mapel yang belum dipakai.
-        </p>
-
-        <form className="mt-5 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.45fr)_auto]" onSubmit={handleCreateSubject}>
-          <input
-            className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm outline-none focus:border-brand-600"
-            onChange={(event) => setSubjectForm((current) => ({ ...current, name: event.target.value }))}
-            placeholder="Nama mata pelajaran"
-            value={subjectForm.name}
-          />
-          <input
-            className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm uppercase outline-none focus:border-brand-600"
-            onChange={(event) => setSubjectForm((current) => ({ ...current, code: event.target.value }))}
-            placeholder="Kode"
-            value={subjectForm.code}
-          />
-          <button
-            className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300"
-            disabled={isSaving}
-            type="submit"
-          >
-            Tambah
-          </button>
-        </form>
-
-        <div className="mt-5 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-          {subjects.sort((a, b) => a.name.localeCompare(b.name)).map((subject) => (
-            <div className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-blue-50 bg-slate-50 px-3 py-2.5" key={subject.id}>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-black text-slate-900">{subject.name}</p>
-                <p className="mt-1 text-xs font-bold text-muted">{subject.code ?? 'Tanpa kode'}</p>
-              </div>
-              <button
-                className="rounded-2xl bg-rose-50 px-3 py-2 text-xs font-black text-rose-700 transition hover:bg-rose-100"
-                onClick={() => void handleDeleteSubject(subject)}
-                type="button"
-              >
-                Hapus
-              </button>
-            </div>
-          ))}
-        </div>
-      </section>
+      <SubjectManagementPanel
+        isSaving={isSaving}
+        onCreateSubject={handleCreateSubject}
+        onDeleteSubject={handleDeleteSubject}
+        setSubjectForm={setSubjectForm}
+        subjectForm={subjectForm}
+        subjects={subjects}
+      />
 
       <section className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Jadwal Sekolah</p>

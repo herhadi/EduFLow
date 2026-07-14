@@ -11,6 +11,20 @@ export type AcademicTimeSlotFormState = {
   isAssignable: boolean;
 };
 
+export type AcademicClassFormState = {
+  schoolYearId: string;
+  grade: string;
+  suffix: string;
+};
+
+export type CloneSchoolYearMasterFormState = {
+  sourceSchoolYearId: string;
+  targetSchoolYearId: string;
+  includeClasses: boolean;
+  includeTimeSlots: boolean;
+  includeClassActivities: boolean;
+};
+
 export const grades = ['VII', 'VIII', 'IX'];
 
 export const weekdayOptions = [
