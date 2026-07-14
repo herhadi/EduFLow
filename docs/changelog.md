@@ -17,10 +17,12 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Merapikan `/parent/reports` agar card riwayat presensi dan nilai harian seimbang di desktop serta tidak pecah di mobile.
 - Mengubah detail siswa di `/principal/reports` menjadi tombol expand terpisah untuk `Riwayat` dan `Nilai Harian`, sehingga daftar siswa tetap ringkas tetapi tetap jelas bisa diklik.
 - Menata navigasi Kepala Sekolah menjadi lebih sederhana dan informatif: Dashboard, KBM, Siswa, Guru, Review, Inbox, dan Profil; menambahkan halaman `/principal/kbm` untuk monitoring KBM harian dan memperjelas `/principal/reports` sebagai report siswa.
+- Memisahkan fungsi `/principal/dashboard` dan `/principal/kbm`: Beranda KS kini menjadi meja keputusan berisi maksimal 3 agenda prioritas, kalimat status sekolah hari ini, dan antrian tugas KS; detail agenda, checklist, follow-up, serta guru pengganti berada di halaman Detail KBM Harian.
 - Membuat ringkasan angka `/principal/reports` lebih compact agar total, hadir, sakit, izin, alpha, dan risiko tetap terlihat tanpa memakan banyak ruang.
 - Memindahkan export laporan KS ke halaman khusus `/principal/exports` agar navbar/menu Siswa tetap fokus pada report siswa dan nilai harian.
 - Mengganti route aktif report siswa KS menjadi `/principal/student-reports`; route lama `/principal/reports` tetap diarahkan ke halaman baru agar link lama tidak patah.
 - Memisahkan root dari operator sekolah: root memakai namespace `/system/*` untuk support teknis, operator tetap memakai `/admin/*` untuk operasional akademik, dan seed RBAC mencabut permission akademik harian dari role root.
+- Mengubah label navbar dashboard guru/wali kelas dan parent menjadi `Beranda` agar konsisten dan tidak bertumpuk di layar kecil.
 
 ## 2026-07-10
 
@@ -40,7 +42,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan reminder Telegram guru 5 menit sebelum agenda pertama guru pada hari tersebut, termasuk dedupe agar jadwal berurutan hanya mengirim satu pengingat dan guru pengganti menerima reminder jika agenda digantikan.
 - Menambahkan command Telegram on-demand untuk Kepala Sekolah/root/operator: `/kbm` atau `/today` menampilkan ringkasan KBM hari ini dan `/review` menampilkan antrean review, tanpa broadcast otomatis atau penambahan badge Inbox.
 - Mempercepat respons webhook Telegram dengan balasan fire-and-forget serta mengembalikan `/start` tanpa token menjadi status personal jika akun Telegram sudah terhubung.
-- Menambahkan ringkasan KBM harian langsung pada `/principal/dashboard` agar Kepala Sekolah melihat kelas berjalan, presensi, checklist KBM, guru pengganti, dan agenda perlu perhatian tanpa membuka laporan terpisah.
+- Menambahkan ringkasan KBM harian awal pada `/principal/dashboard`; alur ini kemudian dipisah agar dashboard menjadi ringkasan cepat dan detail operasional berpindah ke `/principal/kbm`.
 - Mengatur prioritas informasi dashboard Kepala Sekolah: kelas kosong, belum submit, kendala KBM, checklist kurang, dan guru pengganti ditampilkan sebelum statistik umum.
 - Membuat dashboard Kepala Sekolah lebih compact di mobile dengan urutan KBM di atas, kartu prioritas 2 kolom, strip checklist pendek, dan statistik pendukung tanpa deskripsi panjang.
 

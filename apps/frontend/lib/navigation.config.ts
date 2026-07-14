@@ -49,7 +49,7 @@ const principalNavigation: NavigationItem[] = [
 ];
 
 const teacherNavigation: NavigationItem[] = [
-  { href: '/teacher/dashboard', label: 'Hari Ini', icon: '⌂' },
+  { href: '/teacher/dashboard', label: 'Beranda', icon: '⌂' },
   { href: '/teacher/schedules', label: 'Jadwal', icon: '▦' },
   { href: '/teacher/attendance', label: 'Presensi', icon: '✓' },
   { href: '/teacher/assessments', label: 'Nilai', icon: '▣' },
@@ -58,7 +58,7 @@ const teacherNavigation: NavigationItem[] = [
 ];
 
 const homeroomNavigation: NavigationItem[] = [
-  { href: '/teacher/dashboard', label: 'Hari Ini', icon: '⌂' },
+  { href: '/teacher/dashboard', label: 'Beranda', icon: '⌂' },
   { href: '/teacher/schedules', label: 'Jadwal', icon: '▦' },
   { href: '/teacher/attendance', label: 'Presensi', icon: '✓' },
   { href: '/teacher/assessments', label: 'Nilai', icon: '▣' },
@@ -68,7 +68,7 @@ const homeroomNavigation: NavigationItem[] = [
 ];
 
 const parentNavigation: NavigationItem[] = [
-  { href: '/parent/dashboard', label: 'Anak', icon: '⌂' },
+  { href: '/parent/dashboard', label: 'Beranda', icon: '⌂' },
   { href: '/parent/reports', label: 'Riwayat', icon: '▣' },
   { href: '/parent/permits', label: 'Izin', icon: '✓' },
   { href: '/parent/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },

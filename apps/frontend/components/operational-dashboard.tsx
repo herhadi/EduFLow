@@ -53,9 +53,11 @@ const emptySummary: OperationalDashboardSummary = {
 export function OperationalDashboard({
   audience = 'operations',
   className = 'mt-8',
+  initialPrincipalPriority = 'all',
 }: {
   audience?: 'operations' | 'principal';
   className?: string;
+  initialPrincipalPriority?: PrincipalPriorityKey;
 } = {}) {
   const [summary, setSummary] =
     useState<OperationalDashboardSummary>(emptySummary);
@@ -113,7 +115,7 @@ export function OperationalDashboard({
 
       {audience === 'principal' ? (
         <>
-          <PrincipalPriorityPanel summary={summary} />
+          <PrincipalPriorityPanel initialPriority={initialPrincipalPriority} summary={summary} />
           <PrincipalKbmStrip summary={summary} />
         </>
       ) : null}
@@ -232,9 +234,19 @@ export function OperationalDashboard({
   );
 }
 
-function PrincipalPriorityPanel({ summary }: { summary: OperationalDashboardSummary }) {
+function PrincipalPriorityPanel({
+  initialPriority,
+  summary,
+}: {
+  initialPriority: PrincipalPriorityKey;
+  summary: OperationalDashboardSummary;
+}) {
   const kbm = summary.kbm ?? emptySummary.kbm!;
-  const [activeDetail, setActiveDetail] = useState<PrincipalPriorityKey>('all');
+  const [activeDetail, setActiveDetail] = useState<PrincipalPriorityKey>(initialPriority);
+
+  useEffect(() => {
+    setActiveDetail(initialPriority);
+  }, [initialPriority]);
   const urgentItems = [
     {
       key: 'empty',

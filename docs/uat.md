@@ -38,6 +38,15 @@ Login sebagai `uat.operator`, buka `/admin/schedules`, lalu generate agenda untu
 
 Login sebagai `uat.ks`, buka `/principal/dashboard`, lalu pastikan:
 
+- Beranda menampilkan alarm keputusan KS, bukan daftar operasional penuh.
+- bagian `Perlu Dilihat Lebih Dulu` menampilkan maksimal 3 agenda prioritas lengkap dengan kelas, mapel, jam, guru, dan label masalah.
+- kalimat status sekolah hari ini merangkum jumlah agenda perlu perhatian, total agenda, kelas kosong, belum submit, dan kendala.
+- setiap agenda prioritas dapat diklik dan membuka `/principal/kbm` dengan filter detail yang sesuai.
+- bagian `Tugas Review` menampilkan antrian perangkat ajar, agenda KBM, dan kendala.
+- menu utama tetap di navbar, sedangkan bagian `Akses Lanjutan` hanya berisi halaman pendukung yang tidak ada di navbar.
+
+Buka `/principal/kbm`, lalu pastikan:
+
 - `Kelas kosong` bernilai `1`,
 - `Belum submit` bernilai minimal `2`,
 - `Kendala KBM` bernilai `1`,
@@ -80,7 +89,7 @@ Jika bot sudah dikonfigurasi:
 
 - aktivasi Telegram pada akun `uat.ks`,
 - kirim `/start` dan pastikan balasan personal,
-- kirim `/kbm` atau `/today` dan pastikan ringkasan KBM sama dengan dashboard KS,
+- kirim `/kbm` atau `/today` dan pastikan ringkasan KBM sama dengan halaman `/principal/kbm`,
 - kirim `/review` dan pastikan antrean review muncul,
 - aktivasi Telegram pada `uat.guru1` lalu pastikan reminder guru tidak dobel untuk jadwal berurutan.
 
