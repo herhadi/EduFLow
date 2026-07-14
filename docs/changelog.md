@@ -13,6 +13,8 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memecah panel jadwal kelas dan generate agenda ke `schedule-class-panel.tsx`, sehingga `schedule-management.tsx` lebih fokus pada state, validasi, dan handler jadwal.
 - Memecah form create/edit jadwal ke `schedule-editor-form.tsx`, termasuk histori revisi, pilihan guru-mapel, tingkat kelas, dan susunan jam harian.
 - Memindahkan kalkulasi murni jadwal seperti opsi guru-mapel, grouping kelas, target generate agenda, dan jadwal efektif per tanggal ke helper schedule agar komponen utama tidak memuat logika turunan.
+- Memulai refactor `teacher-role-management.tsx` dengan memindahkan helper status/role guru dan panel daftar guru ke folder `components/teacher-role-management`.
+- Memecah panel identitas guru, upload foto, dan akun login dari `teacher-role-management.tsx` ke `teacher-identity-account-panel.tsx`.
 
 ## 2026-07-14
 

@@ -2,7 +2,7 @@
 
 import { sortSchoolClasses } from '@eduflow/shared';
 import {
-  type CSSProperties,
+  type ChangeEvent,
   useEffect,
   useMemo,
   useRef,
@@ -10,102 +10,19 @@ import {
 } from 'react';
 import { api, type SchoolClass, type SchoolYear, type Subject, type Teacher, type TeacherAssignmentStatus, type TeacherSchoolYearAssignment } from '../lib/api';
 import { getUpcomingSchoolYear } from '../lib/school-year';
+import { TeacherIdentityAccountPanel } from './teacher-role-management/teacher-identity-account-panel';
+import { TeacherListPanel } from './teacher-role-management/teacher-list-panel';
+import {
+  assignableRoles,
+  getEffectiveAssignment,
+  getLegacyAssignmentStatus,
+  normalizeTeacherRoles,
+  toUsername,
+} from './teacher-role-management/teacher-role-management-utils';
 import { useToast } from './ui/toast';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 type SaveState = 'idle' | 'loading' | 'success' | 'error';
-
-const assignableRoles = [
-  { value: 'kepala_sekolah', label: 'Kepala Sekolah' },
-  { value: 'operator_sekolah', label: 'Operator Sekolah' },
-  { value: 'guru', label: 'Guru' },
-  { value: 'wali_kelas', label: 'Wali Kelas' },
-  { value: 'bk', label: 'Guru BK' },
-  { value: 'tu', label: 'TU' },
-];
-
-const assignmentStatusMeta: Record<TeacherAssignmentStatus, { label: string; cardClass: string; textClass: string }> = {
-  ACTIVE: {
-    label: 'Aktif mengajar',
-    cardClass: 'border-emerald-200 bg-emerald-50 hover:bg-emerald-100',
-    textClass: 'text-emerald-800',
-  },
-  ON_LEAVE: {
-    label: 'Cuti',
-    cardClass: 'border-amber-200 bg-amber-50 hover:bg-amber-100',
-    textClass: 'text-amber-900',
-  },
-  RETIRED: {
-    label: 'Pensiun',
-    cardClass: 'border-rose-200 bg-rose-50 hover:bg-rose-100',
-    textClass: 'text-rose-800',
-  },
-  TRANSFERRED: {
-    label: 'Pindah sekolah',
-    cardClass: 'border-sky-200 bg-sky-50 hover:bg-sky-100',
-    textClass: 'text-sky-800',
-  },
-  INACTIVE: {
-    label: 'Tidak ditugaskan',
-    cardClass: 'border-slate-200 bg-slate-100 hover:bg-slate-200',
-    textClass: 'text-slate-700',
-  },
-};
-
-function toUsername(name: string) {
-  return name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '.')
-    .replace(/^\.|\.$/g, '')
-    .slice(0, 32);
-}
-
-function normalizeTeacherRoles(roles: string[]) {
-  const uniqueRoles = [...new Set(roles)];
-
-  if (uniqueRoles.includes('wali_kelas') && !uniqueRoles.includes('guru')) {
-    return [...uniqueRoles, 'guru'];
-  }
-
-  return uniqueRoles;
-}
-
-function getEffectiveAssignment(
-  assignments: TeacherSchoolYearAssignment[] | undefined,
-  schoolYear?: SchoolYear,
-) {
-  if (!schoolYear) return undefined;
-
-  return (assignments ?? [])
-    .filter((assignment) =>
-      assignment.schoolYear?.startsAt &&
-      new Date(assignment.schoolYear.startsAt) <= new Date(schoolYear.startsAt),
-    )
-    .sort((first, second) =>
-      new Date(second.schoolYear?.startsAt ?? 0).getTime() - new Date(first.schoolYear?.startsAt ?? 0).getTime(),
-    )[0];
-}
-
-function getLegacyAssignmentStatus(teacher?: Teacher | null): TeacherAssignmentStatus {
-  return teacher?.isActive === false ? 'INACTIVE' : 'ACTIVE';
-}
-
-function getEffectiveAssignmentStatus(
-  teacher: Teacher,
-  schoolYear?: SchoolYear,
-): TeacherAssignmentStatus {
-  return getEffectiveAssignment(teacher.yearAssignments, schoolYear)?.status ?? getLegacyAssignmentStatus(teacher);
-}
-
-function getEffectiveAssignmentSubjects(
-  teacher: Teacher,
-  schoolYear?: SchoolYear,
-) {
-  const assignment = getEffectiveAssignment(teacher.yearAssignments, schoolYear);
-  return assignment?.subjects?.length ? assignment.subjects : teacher.subjects ?? [];
-}
 
 export function TeacherRoleManagement() {
   const toast = useToast();
@@ -411,6 +328,41 @@ export function TeacherRoleManagement() {
     }
   }
 
+  function handleTeacherPhotoChange(event: ChangeEvent<HTMLInputElement>) {
+    if (!selectedTeacher) return;
+
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.warning('Foto guru maksimal 2 MB.', 'Foto Guru');
+      event.target.value = '';
+      return;
+    }
+
+    void api.uploadTeacherPhoto(selectedTeacher.id, file)
+      .then((response) => {
+        setIdentity((current) => ({
+          ...current,
+          photoUrl: response.data.photoUrl ?? '',
+        }));
+        setTeachers((current) =>
+          current.map((teacher) =>
+            teacher.id === selectedTeacher.id
+              ? { ...teacher, photoUrl: response.data.photoUrl }
+              : teacher,
+          ),
+        );
+        toast.success(response.message ?? 'Foto guru berhasil diunggah.', 'Foto Guru');
+      })
+      .catch((error) =>
+        toast.error(
+          error instanceof Error ? error.message : 'Upload foto guru gagal.',
+          'Foto Guru',
+        ),
+      );
+  }
+
   function selectTeacher(teacherId: string) {
     setSelectedTeacherId(teacherId);
 
@@ -448,109 +400,24 @@ export function TeacherRoleManagement() {
       ) : null}
 
       <div className="mt-5 grid min-w-0 items-stretch gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-        <div
-          className="min-w-0 flex flex-col rounded-[1.5rem] border border-blue-50 bg-slate-50 p-3 lg:h-[var(--detail-card-height)] lg:min-h-0 lg:overflow-hidden"
-          style={
-            {
-              '--detail-card-height': detailCardHeight
-                ? `${detailCardHeight}px`
-                : 'auto',
-            } as CSSProperties
+        <TeacherListPanel
+          assignmentSchoolYearId={assignmentSchoolYearId}
+          classes={classes}
+          detailCardHeight={detailCardHeight}
+          loadState={loadState}
+          newTeacher={newTeacher}
+          onCreateTeacher={handleCreateTeacher}
+          onNewTeacherChange={(field, value) =>
+            setNewTeacher((current) => ({ ...current, [field]: value }))
           }
-        >
-          <div className="flex min-w-0 items-center justify-between gap-3 px-2">
-            <p className="text-xs font-black text-muted">Pilih Guru</p>
-            <button
-              className="rounded-full bg-brand-600 px-3 py-2 text-xs font-black text-white"
-              onClick={() => setShowCreateTeacher((current) => !current)}
-              type="button"
-            >
-              + Tambah Guru
-            </button>
-          </div>
-
-          {showCreateTeacher ? (
-            <div className="mt-3 grid gap-2 rounded-2xl border border-blue-100 bg-white p-3">
-              {[
-                ['name', 'Nama guru *'],
-                ['nip', 'NIP'],
-                ['phone', 'Nomor HP'],
-                ['email', 'Email'],
-              ].map(([field, placeholder]) => (
-                <input
-                  className="rounded-xl border border-blue-100 px-3 py-2 text-sm outline-none focus:border-brand-600"
-                  key={field}
-                  onChange={(event) =>
-                    setNewTeacher((current) => ({
-                      ...current,
-                      [field]: event.target.value,
-                    }))
-                  }
-                  placeholder={placeholder}
-                  type={field === 'email' ? 'email' : 'text'}
-                  value={newTeacher[field as keyof typeof newTeacher]}
-                />
-              ))}
-              <button
-                className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-black text-white disabled:bg-slate-300"
-                disabled={saveState === 'loading' || !newTeacher.name.trim()}
-                onClick={() => void handleCreateTeacher()}
-                type="button"
-              >
-                Simpan Guru Baru
-              </button>
-            </div>
-          ) : null}
-
-          <div className="mt-3 grid min-w-0 content-start gap-2 pr-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain">
-            {teachers.map((teacher) => {
-              const active = teacher.id === selectedTeacherId;
-              const selectedSchoolYear = schoolYears.find((schoolYear) => schoolYear.id === assignmentSchoolYearId);
-              const status = assignmentStatusMeta[getEffectiveAssignmentStatus(teacher, selectedSchoolYear)];
-              const roles = teacher.user?.roles.map(({ role }) => role.name).join(', ');
-              const subjectNames = getEffectiveAssignmentSubjects(teacher, selectedSchoolYear)
-                ?.map(({ subject }) => subject.name)
-                .join(', ');
-
-              return (
-                <button
-                  className={[
-                    'min-w-0 rounded-2xl border p-3 text-left transition',
-                    active
-                      ? `${status.cardClass} ring-2 ring-brand-600 ring-offset-1`
-                      : status.cardClass,
-                  ].join(' ')}
-                  key={teacher.id}
-                  onClick={() => selectTeacher(teacher.id)}
-                  type="button"
-                >
-                  <p className="truncate font-black text-slate-900">{teacher.name}</p>
-                  <p className={['mt-1 text-xs font-black', status.textClass].join(' ')}>
-                    {status.label}
-                  </p>
-                  <p className="mt-1 text-xs font-semibold text-muted">
-                    {roles || 'Belum ada akun'}
-                  </p>
-                <p className="mt-1 line-clamp-2 text-xs text-muted">
-                  {subjectNames || 'Mapel belum diatur'}
-                </p>
-                <p className="mt-1 line-clamp-2 text-xs text-muted">
-                  Wali: {classes
-                    .filter((schoolClass) => schoolClass.homeroomTeacherId === teacher.id)
-                    .map((schoolClass) => schoolClass.name)
-                    .join(', ') || '-'}
-                </p>
-                </button>
-              );
-            })}
-
-            {!teachers.length ? (
-              <p className="rounded-2xl bg-white p-4 text-sm font-semibold text-muted">
-                Belum ada data guru aktif.
-              </p>
-            ) : null}
-          </div>
-        </div>
+          onSelectTeacher={selectTeacher}
+          onToggleCreateTeacher={() => setShowCreateTeacher((current) => !current)}
+          saveState={saveState}
+          schoolYears={schoolYears}
+          selectedTeacherId={selectedTeacherId}
+          showCreateTeacher={showCreateTeacher}
+          teachers={teachers}
+        />
 
         <div
           className="min-w-0 scroll-mt-24 rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4"
@@ -566,77 +433,18 @@ export function TeacherRoleManagement() {
                 </p>
               </div>
 
-              <div>
-                <p className="text-sm font-black text-slate-800">Identitas Guru</p>
-                <p className="mt-1 text-xs font-semibold text-muted">Lengkapi atau koreksi data hasil import sebelum mengatur akun dan jadwal.</p>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  {[
-                    ['name', 'Nama Lengkap'],
-                    ['nip', 'NIP'],
-                    ['nuptk', 'NUPTK'],
-                    ['phone', 'Nomor HP'],
-                    ['email', 'Email Guru'],
-                  ].map(([field, label]) => (
-                    <label className="grid gap-2 text-sm font-bold text-slate-700" key={field}>
-                      {label}
-                      <input
-                        className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600"
-                        onChange={(event) => setIdentity((current) => ({ ...current, [field]: event.target.value }))}
-                        type={field === 'email' ? 'email' : 'text'}
-                        value={identity[field as keyof typeof identity]}
-                      />
-                    </label>
-                  ))}
-                </div>
-                <label className="mt-3 grid gap-2 text-sm font-bold text-slate-700">
-                  Foto Guru
-                  <input
-                    accept="image/jpeg,image/png,image/webp"
-                    className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-normal file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-xs file:font-black file:text-brand-700"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      if (!file) return;
-                      if (file.size > 2 * 1024 * 1024) {
-                        toast.warning('Foto guru maksimal 2 MB.', 'Foto Guru');
-                        event.target.value = '';
-                        return;
-                      }
-                      void api.uploadTeacherPhoto(selectedTeacher.id, file)
-                        .then((response) => {
-                          setIdentity((current) => ({ ...current, photoUrl: response.data.photoUrl ?? '' }));
-                          setTeachers((current) => current.map((teacher) => teacher.id === selectedTeacher.id ? { ...teacher, photoUrl: response.data.photoUrl } : teacher));
-                          toast.success(response.message ?? 'Foto guru berhasil diunggah.', 'Foto Guru');
-                        })
-                        .catch((error) => toast.error(error instanceof Error ? error.message : 'Upload foto guru gagal.', 'Foto Guru'));
-                    }}
-                    type="file"
-                  />
-                </label>
-                {identity.photoUrl ? (
-                  <img alt={`Foto ${selectedTeacher.name}`} className="mt-3 size-20 rounded-xl border border-blue-100 object-cover" src={identity.photoUrl} />
-                ) : null}
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="grid gap-2 text-sm font-bold text-slate-700">
-                  Username Login
-                  <input
-                    className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600"
-                    onChange={(event) => setUsername(event.target.value)}
-                    value={username}
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-bold text-slate-700">
-                  Email Login
-                  <input
-                    className="rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600"
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="opsional"
-                    type="email"
-                    value={email}
-                  />
-                </label>
-              </div>
+              <TeacherIdentityAccountPanel
+                email={email}
+                identity={identity}
+                onEmailChange={setEmail}
+                onIdentityChange={(field, value) =>
+                  setIdentity((current) => ({ ...current, [field]: value }))
+                }
+                onPhotoChange={handleTeacherPhotoChange}
+                onUsernameChange={setUsername}
+                selectedTeacher={selectedTeacher}
+                username={username}
+              />
 
               <div>
                 <p className="text-sm font-black text-slate-800">Role Akun</p>
