@@ -27,7 +27,7 @@ const today = toSchoolDateOnly(new Date());
 const dayOfWeek = getDayOfWeek(today);
 
 async function main() {
-  const roles = await ensureRoles(['kepala_sekolah', 'guru', 'wali_kelas', 'orang_tua']);
+  const roles = await ensureRoles(['kepala_sekolah', 'operator_sekolah', 'guru', 'wali_kelas', 'orang_tua']);
   const password = await hash(defaultPassword, 12);
   const schoolYear = await ensureSchoolYear(schoolYearName);
   const semester = await ensureSemester(schoolYear.id, today);
@@ -39,6 +39,13 @@ async function main() {
     password,
     roleIds: [roles.kepala_sekolah.id],
     username: 'uat.ks',
+  });
+  const operatorUser = await ensureUser({
+    email: 'uat.operator@eduflow.local',
+    name: 'UAT Operator Sekolah',
+    password,
+    roleIds: [roles.operator_sekolah.id],
+    username: 'uat.operator',
   });
   const teacherUser = await ensureUser({
     email: 'uat.guru1@eduflow.local',
@@ -241,6 +248,7 @@ async function main() {
     message: 'Data UAT EduFlow siap.',
     login: [
       { username: principalUser.username, role: 'kepala_sekolah', password: defaultPassword },
+      { username: operatorUser.username, role: 'operator_sekolah', password: defaultPassword },
       { username: teacherUser.username, role: 'guru + wali_kelas', password: defaultPassword },
       { username: teacherTwoUser.username, role: 'guru', password: defaultPassword },
       { username: substituteUser.username, role: 'guru pengganti', password: defaultPassword },

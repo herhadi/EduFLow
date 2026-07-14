@@ -13,6 +13,7 @@ npm run prisma:uat --workspace backend
 Script ini idempotent dan membuat data berprefix `UAT`:
 
 - akun Kepala Sekolah: `uat.ks`,
+- akun operator sekolah: `uat.operator`,
 - akun guru/wali kelas: `uat.guru1`,
 - akun guru mapel: `uat.guru2`,
 - akun guru pengganti: `uat.guru3`,
@@ -28,6 +29,10 @@ Password mengikuti `DEFAULT_USER_PASSWORD` pada `apps/backend/.env`, default `12
 Tanggal agenda UAT mengikuti `SCHOOL_TIMEZONE_OFFSET_MINUTES` agar dashboard membaca hari sekolah yang sama di lokal dan Debian.
 
 ## Skenario Uji
+
+### Generate Agenda Operator
+
+Login sebagai `uat.operator`, buka `/admin/schedules`, lalu generate agenda untuk tanggal atau rentang tanggal uji. Gunakan ini untuk menguji alur yang membutuhkan `DailyAgenda` baru, misalnya izin/sakit pada tanggal depan.
 
 ### Dashboard Kepala Sekolah
 

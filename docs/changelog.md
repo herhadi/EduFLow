@@ -32,6 +32,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menjadikan perilaku inbox global di frontend: event perubahan notifikasi, hitung unread, dan badge angka dipusatkan agar parent/guru/KS/operator memakai pola yang sama.
 - Mengaktifkan alur pengajuan izin/sakit wali murid: model `StudentLeaveRequest`, endpoint parent dan review, halaman `/parent/permits`, halaman review `/homeroom/leave-requests` dan `/admin/leave-requests`, update presensi saat approved, serta inbox untuk reviewer dan parent.
 - Membuat izin/sakit approved otomatis terbawa saat guru membuka presensi; status `SICK`/`EXCUSED` juga tetap dipertahankan saat submit agar tidak tertimpa pilihan manual.
+- Menambahkan akun UAT `uat.operator` untuk menguji alur operator sekolah seperti generate agenda dari `/admin/schedules`.
 
 ## 2026-07-10
 
