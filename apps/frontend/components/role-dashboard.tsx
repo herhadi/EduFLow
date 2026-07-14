@@ -329,8 +329,7 @@ function PrincipalHome({ currentUser }: { currentUser: CurrentUser | null }) {
         </div>
         <OperationalDashboard audience="principal" className="mt-0" />
       </section>
-      <RoleSection description="Akses yang tidak tampil di navbar utama Kepala Sekolah." title="Akses Lanjutan">
-        <RoleActionCard href="/principal/reports" label="Laporan Sekolah" description="Lihat report siswa, presensi, dan rekap sekolah." />
+      <RoleSection description="Akses pendukung supervisi yang tidak perlu dibuka setiap hari." title="Akses Lanjutan">
         <RoleActionCard href="/principal/audit" label="Jejak Aktivitas" description="Telusuri aktivitas penting untuk kebutuhan supervisi." />
       </RoleSection>
     </>

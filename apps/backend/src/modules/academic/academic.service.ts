@@ -1052,8 +1052,7 @@ export class AcademicService {
 
   async getMyHomeroom(userId: string) {
     const teacher = await this.getTeacherAccount(userId);
-    const today = this.toDateOnly(new Date().toISOString());
-    const todayDate = new Date(`${today}T00:00:00.000Z`);
+    const todayDate = this.getTodayDateOnly();
     const monthStart = new Date(Date.UTC(todayDate.getUTCFullYear(), todayDate.getUTCMonth(), 1));
     const nextMonthStart = new Date(Date.UTC(todayDate.getUTCFullYear(), todayDate.getUTCMonth() + 1, 1));
 
@@ -1361,7 +1360,7 @@ export class AcademicService {
 
   async getMySchedules(userId: string) {
     const teacher = await this.getTeacherAccount(userId);
-    const today = this.toDateOnly(new Date().toISOString());
+    const today = this.getTodayDateOnly();
     const schedules = await this.prisma.schedule.findMany({
       where: {
         deletedAt: null,
@@ -2359,6 +2358,18 @@ export class AcademicService {
     const date = new Date(value);
     date.setUTCHours(0, 0, 0, 0);
     return date;
+  }
+
+  private getTodayDateOnly() {
+    const timezoneOffsetMinutes = Number(
+      this.configService.get<string>('SCHOOL_TIMEZONE_OFFSET_MINUTES') ?? this.defaultTimezoneOffsetMinutes,
+    );
+    const localNow = new Date(Date.now() + timezoneOffsetMinutes * 60_000);
+    return new Date(Date.UTC(
+      localNow.getUTCFullYear(),
+      localNow.getUTCMonth(),
+      localNow.getUTCDate(),
+    ));
   }
 
   private getDayOfWeek(date: Date) {

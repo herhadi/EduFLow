@@ -8,9 +8,10 @@ export default function PrincipalReportsPage() {
     <main className="py-10">
       <Container>
         <PageHeader
-          description="Download laporan operasional sekolah dalam format Excel atau PDF."
+          description="Pantau presensi, risiko, izin/sakit, alpha, dan nilai harian siswa dengan tampilan ringkas yang bisa dibuka per detail."
           eyebrow="Kepala Sekolah"
-          title="Laporan Sekolah"
+          showBackLink={false}
+          title="Report Siswa"
         />
 
         <StudentReportDashboard />

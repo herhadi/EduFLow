@@ -38,8 +38,10 @@ const operatorNavigation: NavigationItem[] = [
 
 const principalNavigation: NavigationItem[] = [
   { href: '/principal/dashboard', label: 'Beranda', icon: '⌂' },
+  { href: '/principal/kbm', label: 'KBM', icon: '▦' },
+  { href: '/principal/reports', label: 'Siswa', icon: '▣' },
+  { href: '/principal/teacher-performance', label: 'Guru', icon: '◈' },
   { href: '/principal/review', label: 'Review', icon: '✓' },
-  { href: '/principal/teacher-performance', label: 'Performa', icon: '◈' },
   { href: '/principal/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
   { href: '/principal/profile', label: 'Profil', icon: '👤' },
 ];
@@ -130,9 +132,11 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'homeroom', href: '/homeroom/students', label: 'Kelas Binaan' },
   { section: 'homeroom', href: '/homeroom/leave-requests', label: 'Izin/Sakit' },
   { section: 'homeroom', href: '/homeroom/notifications', label: 'Notifikasi' },
-  { section: 'principal', href: '/principal/review', label: 'Persetujuan' },
-  { section: 'principal', href: '/principal/teacher-performance', label: 'Performa Guru' },
-  { section: 'principal', href: '/principal/reports', label: 'Laporan Sekolah' },
+  { section: 'principal', href: '/principal/dashboard', label: 'Dashboard' },
+  { section: 'principal', href: '/principal/kbm', label: 'KBM Hari Ini' },
+  { section: 'principal', href: '/principal/reports', label: 'Siswa' },
+  { section: 'principal', href: '/principal/teacher-performance', label: 'Guru' },
+  { section: 'principal', href: '/principal/review', label: 'Review Dokumen' },
   { section: 'principal', href: '/principal/audit', label: 'Jejak Aktivitas' },
   { section: 'parent', href: '/parent/dashboard', label: 'Anak' },
   { section: 'parent', href: '/parent/reports', label: 'Riwayat' },

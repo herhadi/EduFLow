@@ -286,9 +286,9 @@ function StudentOverviewCard({
 
 function StudentHistoryCard({ student }: { student: ParentPortalStudent }) {
   return (
-    <article className="surface-card rounded-[1.75rem] p-5">
+    <article className="surface-card rounded-[1.5rem] p-4 sm:rounded-[1.75rem] sm:p-5">
       <StudentIdentity student={student} />
-      <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_16rem]">
+      <div className="mt-4 grid min-w-0 gap-3 lg:grid-cols-2">
         <RecordSection
           emptyText="Belum ada riwayat presensi."
           records={student.history}
@@ -302,10 +302,10 @@ function StudentHistoryCard({ student }: { student: ParentPortalStudent }) {
 
 function StudentIdentity({ student }: { student: ParentPortalStudent }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3">
-      <div>
+    <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="min-w-0">
         <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-600">{student.relation}</p>
-        <h3 className="mt-1 text-xl font-black">{student.name}</h3>
+        <h3 className="mt-1 truncate text-lg font-black sm:text-xl">{student.name}</h3>
         <p className="mt-1 text-sm text-muted">
           {student.activeClass
             ? `${student.activeClass.name} · ${student.activeClass.schoolYear}`
@@ -313,7 +313,7 @@ function StudentIdentity({ student }: { student: ParentPortalStudent }) {
         </p>
       </div>
       {student.isPrimary ? (
-        <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">
+        <span className="w-fit shrink-0 rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">
           Anak utama
         </span>
       ) : null}
@@ -331,20 +331,20 @@ function RecordSection({
   title: string;
 }) {
   return (
-    <section className="mt-5 min-w-0">
+    <section className="mt-5 min-w-0 rounded-2xl border border-blue-50 bg-white/70 p-3">
       <h4 className="text-sm font-black">{title}</h4>
       <div className="mt-3 space-y-2">
         {records.length ? (
           records.map((record) => (
             <div className="rounded-2xl border border-blue-50 bg-slate-50 p-3" key={record.id}>
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black">{record.subjectName}</p>
-                  <p className="mt-1 text-xs text-muted">
+                  <p className="mt-1 break-words text-xs leading-5 text-muted">
                     {formatReadableDate(record.date)} · {record.className} · {record.teacherName}
                   </p>
                 </div>
-                <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-black ${statusTone[record.status]}`}>
+                <span className={`w-fit shrink-0 rounded-full px-3 py-1 text-xs font-black ${statusTone[record.status]}`}>
                   {statusLabels[record.status]}
                 </span>
               </div>
@@ -367,11 +367,11 @@ function GradeSection({
   summary?: ParentPortalStudent['grades'];
 }) {
   return (
-    <section className="mt-5 min-w-0">
-      <div className="flex items-center justify-between gap-3">
+    <section className="mt-5 min-w-0 rounded-2xl border border-emerald-50 bg-white/70 p-3">
+      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h4 className="text-sm font-black">Nilai Harian</h4>
         {summary?.available ? (
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+          <span className="w-fit shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
             Rata-rata {summary.averageScore ?? '-'}
           </span>
         ) : null}
@@ -380,14 +380,14 @@ function GradeSection({
         {grades.length ? (
           grades.map((grade) => (
             <div className="rounded-2xl border border-emerald-50 bg-emerald-50/50 p-3" key={grade.id}>
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black">{grade.title}</p>
-                  <p className="mt-1 text-xs text-muted">
+                  <p className="mt-1 break-words text-xs leading-5 text-muted">
                     {formatReadableDate(grade.date)} · {grade.subjectName} · {grade.teacherName}
                   </p>
                 </div>
-                <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-black text-emerald-700">
+                <span className="w-fit shrink-0 rounded-full bg-white px-3 py-1 text-xs font-black text-emerald-700">
                   {grade.score}/{grade.maxScore}
                 </span>
               </div>

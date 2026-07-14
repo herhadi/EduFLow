@@ -4,35 +4,19 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 ## 2026-07-13
 
-- Menambahkan script data UAT `npm run prisma:uat --workspace backend` untuk membuat akun KS, guru, guru pengganti, kelas, siswa, jadwal, agenda, presensi, perangkat ajar, dan nilai harian berprefix `UAT`.
-- Menambahkan dokumen `docs/uat.md` berisi akun test dan skenario UAT dashboard KS, review, dashboard guru, report siswa, serta Telegram.
-- Memperbaiki pembacaan tanggal dashboard operasional/Kepala Sekolah agar `DailyAgenda.date` mengikuti tanggal kalender sekolah, dan angka guru/siswa dihitung dari agenda pada tanggal tersebut supaya tidak tercampur dengan presensi agenda lain yang disubmit hari ini.
-- Menyesuaikan seed UAT agar tanggal agenda mengikuti `SCHOOL_TIMEZONE_OFFSET_MINUTES`, sehingga hasil dashboard KS konsisten di lokal maupun Debian.
-- Merapikan dashboard guru menjadi lebih informatif: ringkasan agenda hari ini, status submit presensi, prioritas agenda berikutnya, perangkat ajar revisi/disetujui, dan draft nilai tampil sebelum kartu menu.
-- Mengubah halaman perangkat ajar guru agar daftar dokumen menjadi fokus utama, sementara form `Buat Draft` hanya tampil saat guru menekan tombol.
-- Menampilkan lampiran perangkat ajar langsung pada list guru, termasuk nama file, ukuran, dan tombol buka dokumen/foto.
-- Menambahkan aksi upload/ganti lampiran langsung pada item perangkat ajar berstatus Draft atau Perlu Revisi, sehingga guru dapat melengkapi dokumen setelah draft dibuat.
-- Mewajibkan lampiran sebelum perangkat ajar dikirim ke Kepala Sekolah, memperjelas pesan upload gagal, dan menonjolkan lampiran pada antrean review KS.
-- Menambahkan dukungan lampiran PDF untuk perangkat ajar; PDF dibuka inline melalui signed URL R2, sedangkan DOCX diarahkan ke Microsoft Office Online Viewer agar bisa dibaca online bila viewer dapat mengakses URL sementara.
-- Merapikan input presensi guru: materi/catatan KBM wajib diisi, list siswa memiliki mode 2 kolom dengan pagination 10 baris, tersedia mode dropdown siswa/status, dan komponen pagination global siap dipakai modul lain.
-- Menyempurnakan UAT dashboard KS dan presensi guru: tombol presensi agenda yang sudah submitted menjadi nonaktif, submit presensi terkunci sampai checklist wajib dan materi terisi, kartu prioritas KS dapat diklik untuk melihat detail, serta card Guru/Siswa diberi konteks jumlah.
-- Menghapus kartu/tombol shortcut beranda yang menduplikasi menu navbar dan mempertahankan akses pendukung yang tidak ada di navbar utama, seperti laporan/audit KS, perangkat ajar guru, serta halaman pendukung operator.
-- Mengoptimalkan `/principal/reports` untuk jumlah siswa besar dengan filter risiko, ringkasan hasil filter, pagination global 10 siswa per halaman, dan detail siswa tetap expand/collapse.
-- Menyiapkan UAT parent: seed membuat akun `uat.parent1`, dashboard parent otomatis membuka ringkasan berdasarkan email wali murid, dan query parent memakai tanggal kalender sekolah.
-- Memperbaiki tombol presensi guru agar agenda `COMPLETED` ikut dianggap sudah submitted sehingga tombol `Buka Presensi` otomatis nonaktif setelah presensi selesai.
-- Mengunci ulang alur presensi guru berdasarkan `submittedAt` selain state, sehingga data lama yang terlanjur `DRAFT` tetapi sudah pernah submit tidak bisa dibuka/submit ulang dan dashboard KS tetap menghitungnya sebagai submitted.
-- Merapikan navigasi wali murid dengan menghapus menu `Info` yang masih menduplikasi `Riwayat`, sehingga navbar parent hanya menampilkan halaman yang punya fungsi jelas.
-- Memisahkan portal wali murid menjadi dashboard `Anak`, halaman `Riwayat` untuk presensi dan nilai harian yang sudah disubmit guru, serta halaman `Izin` sebagai alur persiapan pengajuan izin/sakit sebelum model approval diaktifkan.
-- Membedakan tampilan `/parent/dashboard` dan `/parent/reports`: dashboard parent kini hanya menonjolkan status anak hari ini, sedangkan report fokus pada riwayat presensi dan nilai.
-- Menyesuaikan seed UAT parent agar akun `uat.parent1` memiliki dua anak (`UAT Siswa 01` dan `UAT Siswa 02`) untuk menguji tampilan multi-anak.
-- Mengunci presensi agenda dengan guru pengganti: guru utama tetap melihat agenda sebagai informasi, tetapi tombol presensi nonaktif dan backend hanya mengizinkan guru pengganti membuka/submit presensi.
-- Memperbaiki submit presensi setelah upload foto kelas agar response upload tetap membawa daftar siswa, sehingga UI tidak kadang gagal dengan error `Cannot read properties of undefined (reading 'map')`.
-- Mengaktifkan worker summary presensi untuk membuat inbox wali murid setelah guru submit presensi, termasuk dedupe berdasarkan kontak wali agar parent dengan data guardian duplikat tidak menerima notifikasi ganda.
-- Memperjelas badge unread navbar menjadi angka dan menyegarkan hitungan saat route berubah/tab kembali aktif, sehingga inbox parent yang punya unread langsung terlihat di navigasi.
-- Menjadikan perilaku inbox global di frontend: event perubahan notifikasi, hitung unread, dan badge angka dipusatkan agar parent/guru/KS/operator memakai pola yang sama.
-- Mengaktifkan alur pengajuan izin/sakit wali murid: model `StudentLeaveRequest`, endpoint parent dan review, halaman `/parent/permits`, halaman review `/homeroom/leave-requests` dan `/admin/leave-requests`, update presensi saat approved, serta inbox untuk reviewer dan parent.
-- Membuat izin/sakit approved otomatis terbawa saat guru membuka presensi; status `SICK`/`EXCUSED` juga tetap dipertahankan saat submit agar tidak tertimpa pilihan manual.
-- Menambahkan akun UAT `uat.operator` untuk menguji alur operator sekolah seperti generate agenda dari `/admin/schedules`.
+- Menambahkan data dan panduan UAT melalui `npm run prisma:uat --workspace backend` dan `docs/uat.md`, mencakup akun KS, operator, guru, guru pengganti, parent multi-anak, kelas, agenda, presensi, perangkat ajar, nilai harian, serta skenario Telegram.
+- Menstabilkan pembacaan tanggal dashboard KS/operasional dan seed UAT agar mengikuti tanggal kalender sekolah (`SCHOOL_TIMEZONE_OFFSET_MINUTES`) sehingga hasil lokal dan Debian konsisten.
+- Merapikan dashboard guru dan KS: ringkasan KBM lebih informatif, prioritas kelas dapat dibuka detailnya, laporan siswa memakai filter/pagination, dan shortcut beranda yang duplikatif dengan navbar dikurangi.
+- Menyempurnakan perangkat ajar guru: daftar dokumen menjadi fokus utama, lampiran wajib sebelum kirim review, upload/ganti lampiran tersedia pada draft/revisi, serta PDF/DOCX dapat dibuka online bila URL viewer tersedia.
+- Memperkuat alur presensi guru: materi/catatan KBM wajib, mode input siswa list/dropdown, pagination global, tombol presensi nonaktif setelah submit, data lama berbasis `submittedAt` terkunci, dan upload foto kelas tidak lagi merusak daftar siswa.
+- Mengunci presensi guru pengganti: guru utama tetap melihat agenda sebagai informasi, tetapi backend dan UI hanya mengizinkan guru pengganti membuka/submit presensi ketika agenda dialihkan.
+- Menata portal wali murid menjadi dashboard anak, riwayat presensi/nilai, dan pengajuan izin/sakit; parent multi-anak didukung dan query mengikuti tanggal kalender sekolah.
+- Mengaktifkan alur izin/sakit wali murid: model `StudentLeaveRequest`, endpoint parent/reviewer, halaman `/parent/permits`, `/homeroom/leave-requests`, `/admin/leave-requests`, inbox reviewer/parent, serta status `SICK`/`EXCUSED` otomatis diterapkan saat presensi dibuka atau disubmit.
+- Menjadikan notifikasi inbox lebih konsisten: worker summary presensi mengirim inbox wali murid, dedupe berdasarkan kontak wali, badge unread global, dan event frontend dipusatkan agar semua role memakai perilaku yang sama.
+- Memperbaiki endpoint kelas binaan wali kelas agar tanggal hari ini valid dan timezone-aware, sehingga `/academic/me/homeroom` tidak lagi 500 saat dibuka dari navbar Binaan.
+- Merapikan `/parent/reports` agar card riwayat presensi dan nilai harian seimbang di desktop serta tidak pecah di mobile.
+- Mengubah detail siswa di `/principal/reports` menjadi tombol expand terpisah untuk `Riwayat` dan `Nilai Harian`, sehingga daftar siswa tetap ringkas tetapi tetap jelas bisa diklik.
+- Menata navigasi Kepala Sekolah menjadi lebih sederhana dan informatif: Dashboard, KBM, Siswa, Guru, Review, Inbox, dan Profil; menambahkan halaman `/principal/kbm` untuk monitoring KBM harian dan memperjelas `/principal/reports` sebagai report siswa.
 
 ## 2026-07-10
 
