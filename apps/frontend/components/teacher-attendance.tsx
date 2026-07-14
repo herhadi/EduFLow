@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, type Attendance, type AttendanceStatus, type DailyAgenda } from '../lib/api';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 import { CameraCaptureButton } from './ui/camera-capture-button';
+import { SurfaceCard } from './ui/card';
+import { EmptyState } from './ui/empty-state';
 import { Pagination } from './ui/pagination';
 import { useToast } from './ui/toast';
 
@@ -117,7 +121,9 @@ export function TeacherAttendance() {
       current
         ? {
             ...current,
-            items: current.items.map((item) => item.id === id ? { ...item, status } : item),
+            items: current.items.map((item) =>
+              item.id === id ? { ...item, status } : item,
+            ),
           }
         : current,
     );
@@ -152,7 +158,7 @@ export function TeacherAttendance() {
           type="file"
         />
 
-        <section className="surface-card rounded-[2rem] p-5">
+        <SurfaceCard>
           <h3 className="text-base font-black">Checklist KBM</h3>
           <div className="mt-3 grid gap-2 text-sm font-bold text-slate-700 sm:grid-cols-3">
             {(['teacherPresent', 'studentAttendanceDone', 'classPhotoDone'] as const).map((key) => (
@@ -174,7 +180,9 @@ export function TeacherAttendance() {
             Materi/Catatan KBM
             <textarea
               className="min-h-24 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600"
-              onChange={(event) => setChecklist((current) => ({ ...current, materialNotes: event.target.value }))}
+              onChange={(event) =>
+                setChecklist((current) => ({ ...current, materialNotes: event.target.value }))
+              }
               placeholder="Contoh: Membahas operasi bilangan bulat dan latihan soal halaman 24."
               value={checklist.materialNotes}
             />
@@ -183,14 +191,16 @@ export function TeacherAttendance() {
             Catatan Kendala
             <textarea
               className="min-h-20 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600"
-              onChange={(event) => setChecklist((current) => ({ ...current, issueNotes: event.target.value }))}
+              onChange={(event) =>
+                setChecklist((current) => ({ ...current, issueNotes: event.target.value }))
+              }
               placeholder="Opsional: kendala kelas, perpindahan ruang, perangkat, atau catatan khusus."
               value={checklist.issueNotes}
             />
           </label>
-        </section>
+        </SurfaceCard>
 
-        <section className="surface-card rounded-[2rem] p-4 sm:p-5">
+        <SurfaceCard>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h3 className="text-lg font-black">Presensi Siswa</h3>
@@ -217,7 +227,12 @@ export function TeacherAttendance() {
           </div>
 
           {mode === 'list' ? (
-            <AttendanceListMode attendance={attendance} page={page} onPageChange={setPage} onUpdate={update} />
+            <AttendanceListMode
+              attendance={attendance}
+              page={page}
+              onPageChange={setPage}
+              onUpdate={update}
+            />
           ) : (
             <AttendanceQuickMode
               attendance={attendance}
@@ -229,20 +244,20 @@ export function TeacherAttendance() {
 
           <AttendanceSummary attendance={attendance} />
 
-          <button
-            className="mt-4 w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+          <Button
+            className="mt-4 w-full"
             disabled={!canSubmit}
             onClick={() => void submit()}
-            type="button"
+            variant="success"
           >
             {saving ? 'Menyimpan...' : 'Selesaikan Presensi'}
-          </button>
+          </Button>
           {!canSubmit ? (
             <p className="mt-2 text-xs font-bold text-amber-700">
               Lengkapi checklist wajib dan Materi/Catatan KBM. Catatan Kendala boleh kosong.
             </p>
           ) : null}
-        </section>
+        </SurfaceCard>
       </section>
     );
   }
@@ -253,9 +268,7 @@ export function TeacherAttendance() {
         <AgendaCard agenda={agenda} key={agenda.id} onOpen={open} />
       ))}
       {!agendas.length ? (
-        <p className="surface-card rounded-2xl p-5 text-sm text-muted">
-          Tidak ada agenda mengajar hari ini.
-        </p>
+        <EmptyState title="Tidak ada agenda mengajar hari ini." />
       ) : null}
     </section>
   );
@@ -275,39 +288,36 @@ function AgendaCard({
   const canOpen = !isSubmitted && agenda.canManageAttendance !== false;
 
   return (
-        <article
-          className="surface-card flex flex-wrap items-center justify-between gap-3 rounded-[2rem] p-5"
-        >
-          <div>
-            <p className="text-xs font-black text-brand-700">
-              {agenda.schedule?.startsAt ?? 'Jam belum diatur'} · {agenda.class.name}
-            </p>
-            <h2 className="mt-1 text-lg font-black">{agenda.subject.name}</h2>
-            {agenda.substituteTeacher ? (
-              <p className="mt-1 text-xs font-black text-amber-700">
-                Guru pengganti: {agenda.substituteTeacher.name}
-              </p>
-            ) : null}
-            {isSubmitted ? (
-              <p className="mt-2 w-fit rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
-                Presensi sudah selesai
-              </p>
-            ) : null}
-            {!isSubmitted && agenda.canManageAttendance === false ? (
-              <p className="mt-2 w-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">
-                Presensi dialihkan ke guru pengganti
-              </p>
-            ) : null}
-          </div>
-          <button
-            className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
-            disabled={!canOpen}
-            onClick={() => void onOpen(agenda)}
-            type="button"
-          >
-            {isSubmitted ? 'Sudah Submit' : agenda.canManageAttendance === false ? 'Dialihkan' : 'Buka Presensi'}
-          </button>
-        </article>
+    <article className="surface-card flex flex-wrap items-center justify-between gap-3 rounded-[2rem] p-5">
+      <div>
+        <p className="text-xs font-black text-brand-700">
+          {agenda.schedule?.startsAt ?? 'Jam belum diatur'} · {agenda.class.name}
+        </p>
+        <h2 className="mt-1 text-lg font-black">{agenda.subject.name}</h2>
+        {agenda.substituteTeacher ? (
+          <p className="mt-1 text-xs font-black text-amber-700">
+            Guru pengganti: {agenda.substituteTeacher.name}
+          </p>
+        ) : null}
+        {isSubmitted ? (
+          <Badge className="mt-2" tone="success">
+            Presensi sudah selesai
+          </Badge>
+        ) : null}
+        {!isSubmitted && agenda.canManageAttendance === false ? (
+          <Badge className="mt-2" tone="warning">
+            Presensi dialihkan ke guru pengganti
+          </Badge>
+        ) : null}
+      </div>
+      <Button disabled={!canOpen} onClick={() => void onOpen(agenda)}>
+        {isSubmitted
+          ? 'Sudah Submit'
+          : agenda.canManageAttendance === false
+            ? 'Dialihkan'
+            : 'Buka Presensi'}
+      </Button>
+    </article>
   );
 }
 

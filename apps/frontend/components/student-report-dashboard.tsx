@@ -9,8 +9,11 @@ import {
   type StudentReportItem,
 } from '../lib/api';
 import { formatReadableDate } from '../lib/format';
-import { MetricCard } from './ui/metric-card';
+import { Badge } from './ui/badge';
+import { EmptyState } from './ui/empty-state';
+import { LoadingState } from './ui/loading';
 import { Pagination } from './ui/pagination';
+import { SearchInput } from './ui/search';
 
 const statusLabels: Record<AttendanceStatus, string> = {
   PRESENT: 'Hadir',
@@ -219,6 +222,10 @@ export function StudentReportDashboard() {
         </div>
       ) : null}
 
+      {loadState === 'loading' && !report ? (
+        <LoadingState label="Memuat report siswa..." />
+      ) : null}
+
       {report ? (
         <>
           <div className="grid grid-cols-4 gap-2 lg:grid-cols-7">
@@ -239,8 +246,9 @@ export function StudentReportDashboard() {
                   {formatReadableDate(report.from)} - {formatReadableDate(report.to)} · {filteredStudents.length} siswa sesuai filter
                 </p>
               </div>
-              <input
-                className="min-w-0 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-600 sm:w-72"
+              <SearchInput
+                className="sm:w-72"
+                onClear={() => setSearch('')}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Cari nama/NIS/kelas"
                 value={search}
@@ -273,9 +281,10 @@ export function StudentReportDashboard() {
                 />
               ))}
               {!filteredStudents.length ? (
-                <p className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-muted">
-                  Tidak ada data siswa sesuai filter.
-                </p>
+                <EmptyState
+                  description="Ubah kata kunci, kelas, status, atau rentang tanggal untuk melihat data lain."
+                  title="Tidak ada data siswa sesuai filter."
+                />
               ) : null}
             </div>
             <Pagination
@@ -386,9 +395,9 @@ function StudentReportRow({
           <MiniStat label="I" value={student.summary.excused} />
           <MiniStat danger label="A" value={student.summary.absent} />
         </div>
-        <span className={`h-fit rounded-full border px-3 py-1 text-xs font-black ${riskClass[student.riskLevel]}`}>
+        <Badge className={riskClass[student.riskLevel]} tone="muted">
           {riskLabels[student.riskLevel]}
-        </span>
+        </Badge>
       </div>
 
       <div className="mt-3 flex flex-col gap-2 border-t border-blue-50 pt-3 sm:flex-row sm:items-center sm:justify-between">

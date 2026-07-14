@@ -12,6 +12,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memecah endpoint API frontend tahap awal ke modul `api-modules/auth-api.ts`, `notification-api.ts`, `reporting-api.ts`, dan `operations-api.ts`; `lib/api.ts` tetap menggabungkan modul-modul tersebut agar kontrak `api.*` tidak berubah.
 - Memecah endpoint akademik frontend lanjutan ke modul `academic-api.ts`, `planning-api.ts`, `grades-api.ts`, dan `schedule-api.ts`; `lib/api.ts` kini berperan sebagai aggregator tipis untuk import/export akademik, report export URL, parent portal, dan izin/sakit.
 - Memindahkan endpoint import/export akademik, report export URL, parent portal, dan izin/sakit ke modul `import-export-api.ts` dan `parent-api.ts`, sehingga `lib/api.ts` menjadi aggregator murni tanpa implementasi endpoint langsung.
+- Menambahkan fondasi komponen UI global (`button`, `badge`, `card`, `dialog`, `form`, `table`, `search`, `loading`, dan `empty-state`) lalu mulai menerapkannya pada presensi guru dan report siswa Kepala Sekolah agar pola UI lebih konsisten.
 
 ## 2026-07-13
 
