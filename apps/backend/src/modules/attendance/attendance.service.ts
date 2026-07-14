@@ -4,7 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { AgendaStatus, AttendanceState, AttendanceStatus } from '@prisma/client';
+import {
+  AgendaStatus,
+  AttendanceState,
+  AttendanceStatus,
+  Prisma,
+  StudentLeaveRequestStatus,
+  StudentLeaveRequestType,
+} from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
 import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
@@ -79,6 +86,12 @@ export class AttendanceService {
     }
 
     const attendance = await this.prisma.$transaction(async (tx) => {
+      const leaveMap = await this.getApprovedLeaveMap(
+        tx,
+        agenda.date,
+        enrollments.map((enrollment) => enrollment.studentId),
+      );
+
       const openedAttendance = await tx.attendance.upsert({
         where: { agendaId: agenda.id },
         create: {
@@ -87,11 +100,16 @@ export class AttendanceService {
           state: AttendanceState.DRAFT,
           startedAt: new Date(),
           items: {
-            create: enrollments.map((enrollment) => ({
-              studentId: enrollment.studentId,
-              enrollmentId: enrollment.id,
-              status: AttendanceStatus.PRESENT,
-            })),
+            create: enrollments.map((enrollment) => {
+              const leave = leaveMap.get(enrollment.studentId);
+
+              return {
+                studentId: enrollment.studentId,
+                enrollmentId: enrollment.id,
+                status: leave?.status ?? AttendanceStatus.PRESENT,
+                notes: leave?.reason,
+              };
+            }),
           },
         },
         update: {
@@ -103,12 +121,27 @@ export class AttendanceService {
         },
       });
 
+      await this.applyApprovedLeavesToAttendance(
+        tx,
+        openedAttendance.id,
+        agenda.date,
+        enrollments.map((enrollment) => enrollment.studentId),
+      );
+
       await tx.dailyAgenda.update({
         where: { id: agenda.id },
         data: { status: AgendaStatus.IN_PROGRESS },
       });
 
-      return openedAttendance;
+      return tx.attendance.findUniqueOrThrow({
+        where: { id: openedAttendance.id },
+        include: {
+          items: {
+            include: { student: true, enrollment: true },
+            orderBy: { student: { name: 'asc' } },
+          },
+        },
+      });
     });
 
     await this.auditService.record({
@@ -150,12 +183,28 @@ export class AttendanceService {
     }
 
     const submittedAttendance = await this.prisma.$transaction(async (tx) => {
+      const existingItems = await tx.attendanceItem.findMany({
+        where: { attendanceId: attendance.id },
+        select: { id: true, studentId: true },
+      });
+      const studentIdByItemId = new Map(
+        existingItems.map((item) => [item.id, item.studentId]),
+      );
+      const leaveMap = await this.getApprovedLeaveMap(
+        tx,
+        attendance.agenda.date,
+        existingItems.map((item) => item.studentId),
+      );
+
       for (const item of dto.items) {
+        const studentId = studentIdByItemId.get(item.attendanceItemId);
+        const leave = studentId ? leaveMap.get(studentId) : undefined;
+
         await tx.attendanceItem.update({
           where: { id: item.attendanceItemId },
           data: {
-            status: item.status,
-            notes: item.notes,
+            status: leave?.status ?? item.status,
+            notes: leave?.reason ?? item.notes,
           },
         });
       }
@@ -285,5 +334,71 @@ export class AttendanceService {
     ];
 
     return Boolean(state && submittedStates.includes(state));
+  }
+
+  private getLeaveAttendanceStatus(type: StudentLeaveRequestType) {
+    return type === StudentLeaveRequestType.SICK
+      ? AttendanceStatus.SICK
+      : AttendanceStatus.EXCUSED;
+  }
+
+  private async getApprovedLeaveMap(
+    tx: Prisma.TransactionClient,
+    date: Date,
+    studentIds: string[],
+  ) {
+    const leaveMap = new Map<string, { status: AttendanceStatus; reason: string }>();
+
+    if (!studentIds.length) {
+      return leaveMap;
+    }
+
+    const leaves = await tx.studentLeaveRequest.findMany({
+      where: {
+        deletedAt: null,
+        status: StudentLeaveRequestStatus.APPROVED,
+        studentId: { in: studentIds },
+        dateFrom: { lte: date },
+        dateTo: { gte: date },
+      },
+      select: {
+        studentId: true,
+        type: true,
+        reason: true,
+      },
+      orderBy: { reviewedAt: 'desc' },
+    });
+
+    for (const leave of leaves) {
+      if (leaveMap.has(leave.studentId)) continue;
+
+      leaveMap.set(leave.studentId, {
+        status: this.getLeaveAttendanceStatus(leave.type),
+        reason: leave.reason,
+      });
+    }
+
+    return leaveMap;
+  }
+
+  private async applyApprovedLeavesToAttendance(
+    tx: Prisma.TransactionClient,
+    attendanceId: string,
+    date: Date,
+    studentIds: string[],
+  ) {
+    const leaveMap = await this.getApprovedLeaveMap(tx, date, studentIds);
+
+    await Promise.all(
+      Array.from(leaveMap.entries()).map(([studentId, leave]) =>
+        tx.attendanceItem.updateMany({
+          where: { attendanceId, studentId },
+          data: {
+            status: leave.status,
+            notes: leave.reason,
+          },
+        }),
+      ),
+    );
   }
 }

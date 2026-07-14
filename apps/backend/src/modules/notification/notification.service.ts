@@ -115,10 +115,11 @@ export class NotificationService implements OnModuleInit {
           'attendance.correction.',
           'teaching-plan.',
           'student-grade.',
+          'student-leave.',
           'academic.announcement.',
         ]
         : roles.includes('orang_tua')
-          ? ['attendance.summary.', 'academic.announcement.']
+          ? ['attendance.summary.', 'student-leave.', 'academic.announcement.']
           : [];
 
     if (roles.includes('orang_tua')) {

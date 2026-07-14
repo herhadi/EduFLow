@@ -88,7 +88,18 @@ Login sebagai `uat.parent1`, buka `/parent/dashboard`, lalu pastikan:
 - data anak `UAT Siswa 02` juga tampil pada akun yang sama,
 - ringkasan hari ini dan riwayat presensi terbaca setelah presensi UAT disubmit.
 - buka `/parent/reports` untuk memastikan riwayat presensi dan nilai harian UAT tampil,
-- buka `/parent/permits` untuk memastikan menu pengajuan izin/sakit sudah terpisah dari riwayat dan masih ditandai belum aktif sampai approval dibuat.
+- buka `/parent/permits` untuk membuat pengajuan sakit/izin salah satu anak.
+
+### Pengajuan Izin/Sakit
+
+1. Login sebagai `uat.parent1`, buka `/parent/permits`.
+2. Pilih `UAT Siswa 01` atau `UAT Siswa 02`, isi tanggal, jenis `Sakit` atau `Izin`, dan alasan.
+3. Login sebagai `uat.guru1` yang juga wali kelas, buka `/homeroom/leave-requests`.
+4. Setujui atau tolak pengajuan. Jika disetujui, presensi siswa pada rentang tanggal yang sudah memiliki agenda/presensi berubah menjadi `SICK` atau `EXCUSED`.
+5. Jika presensi belum pernah dibuka, login sebagai guru pengajar lalu buka presensi agenda pada tanggal izin/sakit. Status siswa tersebut otomatis terisi `SICK` atau `EXCUSED` dan tetap dipertahankan saat submit.
+6. Login kembali sebagai `uat.parent1`, cek `/parent/notifications` dan `/parent/permits` untuk melihat status review.
+
+Operator sekolah/root juga dapat review melalui `/admin/leave-requests`.
 
 ## Catatan
 

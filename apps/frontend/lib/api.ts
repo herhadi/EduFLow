@@ -566,6 +566,38 @@ export interface ParentPortalSummary {
   students: ParentPortalStudent[];
 }
 
+export type StudentLeaveRequestType = 'SICK' | 'EXCUSED';
+export type StudentLeaveRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+
+export interface StudentLeaveRequest {
+  id: string;
+  studentId: string;
+  guardianId: string;
+  requestedById?: string | null;
+  dateFrom: string;
+  dateTo: string;
+  type: StudentLeaveRequestType;
+  status: StudentLeaveRequestStatus;
+  reason: string;
+  reviewedAt?: string | null;
+  reviewNote?: string | null;
+  createdAt: string;
+  student: Student & {
+    enrollments?: Array<{
+      class: SchoolClass;
+      schoolYear?: SchoolYear;
+    }>;
+  };
+  guardian: {
+    id: string;
+    name: string;
+    email?: string | null;
+    phone?: string | null;
+  };
+  requestedBy?: Pick<AppUser, 'id' | 'name' | 'email'> | null;
+  reviewedBy?: Pick<AppUser, 'id' | 'name' | 'email'> | null;
+}
+
 export interface TeacherPerformanceSession {
   agendaId: string;
   date: string;
@@ -1375,4 +1407,27 @@ export const api = {
     request<ApiResponse<ParentPortalSummary>>(
       `/parent-portal/summary?contact=${encodeURIComponent(contact)}`,
     ),
+  getMyStudentLeaveRequests: () =>
+    request<ApiResponse<StudentLeaveRequest[]>>('/student-leaves/mine'),
+  createMyStudentLeaveRequest: (payload: {
+    studentId: string;
+    dateFrom: string;
+    dateTo: string;
+    type: StudentLeaveRequestType;
+    reason: string;
+  }) =>
+    request<ApiResponse<StudentLeaveRequest>>('/student-leaves/mine', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getStudentLeaveReviewQueue: () =>
+    request<ApiResponse<StudentLeaveRequest[]>>('/student-leaves/review'),
+  reviewStudentLeaveRequest: (
+    id: string,
+    payload: { status: 'APPROVED' | 'REJECTED'; reviewNote?: string },
+  ) =>
+    request<ApiResponse<StudentLeaveRequest>>(`/student-leaves/${id}/review`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
 };

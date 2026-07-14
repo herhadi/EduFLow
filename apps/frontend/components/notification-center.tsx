@@ -417,6 +417,7 @@ function getPersonalNotificationLabel(
     if (templateKey?.startsWith('attendance.teacher.not-submitted')) return 'Belum Submit';
     if (templateKey?.startsWith('attendance.correction.')) return 'Koreksi Penting';
     if (templateKey?.startsWith('teacher.substitute.')) return 'Guru Pengganti';
+    if (templateKey?.startsWith('student-leave.')) return 'Izin/Sakit Siswa';
     if (templateKey?.startsWith('school.summary.')) return 'Ringkasan Sekolah';
     if (templateKey?.startsWith('academic.announcement.')) return 'Pengumuman Akademik';
     return 'Informasi Kepala Sekolah';
@@ -424,6 +425,7 @@ function getPersonalNotificationLabel(
 
   if (role === 'parent') {
     if (templateKey?.startsWith('attendance.summary.')) return 'Ringkasan Presensi';
+    if (templateKey?.startsWith('student-leave.')) return 'Izin/Sakit';
     if (templateKey?.startsWith('academic.announcement.')) return 'Pengumuman Sekolah';
     return 'Informasi Anak';
   }
@@ -434,6 +436,10 @@ function getPersonalNotificationLabel(
 
   if (templateKey?.startsWith('attendance.correction.')) {
     return 'Koreksi Presensi';
+  }
+
+  if (templateKey?.startsWith('student-leave.')) {
+    return 'Izin/Sakit Siswa';
   }
 
   if (templateKey?.startsWith('teaching-plan.')) {

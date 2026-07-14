@@ -115,6 +115,18 @@ enum GuardianRelation {
   OTHER
 }
 
+enum StudentLeaveRequestType {
+  SICK
+  EXCUSED
+}
+
+enum StudentLeaveRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
 enum Gender {
   MALE
   FEMALE
@@ -173,15 +185,15 @@ enum LoginAuditStatus {
 }
 
 model User {
-  id                    String               @id @default(uuid()) @db.Uuid
-  username              String?              @unique
+  id                    String                @id @default(uuid()) @db.Uuid
+  username              String?               @unique
   password              String
   name                  String
-  email                 String               @unique
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
+  email                 String                @unique
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
   deletedAt             DateTime?
-  failedLoginCount      Int                  @default(0)
+  failedLoginCount      Int                   @default(0)
   lockedUntil           DateTime?
   lastLoginAt           DateTime?
   passwordChangedAt     DateTime?
@@ -189,21 +201,23 @@ model User {
   photoName             String?
   photoMimeType         String?
   photoSize             Int?
-  telegramId            String?              @unique
+  telegramId            String?               @unique
   telegramLinkedAt      DateTime?
   roles                 UserRole[]
   refreshTokens         RefreshToken[]
   passwordResetTokens   PasswordResetToken[]
   telegramLinkTokens    TelegramLinkToken[]
   loginAudits           LoginAudit[]
-  submittedAttendances  Attendance[]         @relation("AttendanceSubmittedBy")
-  approvedAttendances   Attendance[]         @relation("AttendanceApprovedBy")
-  correctedAttendances  Attendance[]         @relation("AttendanceCorrectedBy")
-  lockedAttendances     Attendance[]         @relation("AttendanceLockedBy")
-  receivedPayments      Payment[]            @relation("PaymentReceivedBy")
+  submittedAttendances  Attendance[]          @relation("AttendanceSubmittedBy")
+  approvedAttendances   Attendance[]          @relation("AttendanceApprovedBy")
+  correctedAttendances  Attendance[]          @relation("AttendanceCorrectedBy")
+  lockedAttendances     Attendance[]          @relation("AttendanceLockedBy")
+  receivedPayments      Payment[]             @relation("PaymentReceivedBy")
   teacherProfile        Teacher?
-  reviewedTeachingPlans TeachingPlan[]       @relation("TeachingPlanReviewedBy")
-  submittedAssessments  Assessment[]         @relation("AssessmentSubmittedBy")
+  reviewedTeachingPlans TeachingPlan[]        @relation("TeachingPlanReviewedBy")
+  submittedAssessments  Assessment[]          @relation("AssessmentSubmittedBy")
+  requestedLeaves       StudentLeaveRequest[] @relation("StudentLeaveRequestedBy")
+  reviewedLeaves        StudentLeaveRequest[] @relation("StudentLeaveReviewedBy")
   notifications         NotificationLog[]
 
   @@index([lockedUntil])
@@ -605,22 +619,23 @@ model AssessmentScore {
 }
 
 model Student {
-  id               String              @id @default(uuid()) @db.Uuid
+  id               String                @id @default(uuid()) @db.Uuid
   name             String
-  nis              String?             @unique
-  nisn             String?             @unique
+  nis              String?               @unique
+  nisn             String?               @unique
   gender           Gender?
-  birthDate        DateTime?           @db.Date
+  birthDate        DateTime?             @db.Date
   phone            String?
-  isActive         Boolean             @default(true)
+  isActive         Boolean               @default(true)
   enrollments      StudentEnrollment[]
   guardians        StudentGuardian[]
   attendanceItems  AttendanceItem[]
   assessmentScores AssessmentScore[]
   invoices         Invoice[]
   payments         Payment[]
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
+  leaveRequests    StudentLeaveRequest[]
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
   deletedAt        DateTime?
 
   @@index([phone])
@@ -628,19 +643,20 @@ model Student {
 }
 
 model Guardian {
-  id         String            @id @default(uuid()) @db.Uuid
-  name       String
-  phone      String?
-  telegramId String?
-  email      String?
-  address    String?
-  isActive   Boolean           @default(true)
-  students   StudentGuardian[]
-  invoices   Invoice[]
-  payments   Payment[]
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
-  deletedAt  DateTime?
+  id            String                @id @default(uuid()) @db.Uuid
+  name          String
+  phone         String?
+  telegramId    String?
+  email         String?
+  address       String?
+  isActive      Boolean               @default(true)
+  students      StudentGuardian[]
+  invoices      Invoice[]
+  payments      Payment[]
+  leaveRequests StudentLeaveRequest[]
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  deletedAt     DateTime?
 
   @@index([phone])
   @@index([telegramId])
@@ -840,6 +856,38 @@ model AttendanceItem {
   @@unique([attendanceId, enrollmentId])
   @@index([studentId])
   @@index([enrollmentId])
+}
+
+model StudentLeaveRequest {
+  id                 String                    @id @default(uuid()) @db.Uuid
+  studentId          String                    @db.Uuid
+  guardianId         String                    @db.Uuid
+  requestedById      String?                   @db.Uuid
+  dateFrom           DateTime                  @db.Date
+  dateTo             DateTime                  @db.Date
+  type               StudentLeaveRequestType
+  status             StudentLeaveRequestStatus @default(PENDING)
+  reason             String
+  attachmentKey      String?
+  attachmentName     String?
+  attachmentMimeType String?
+  attachmentSize     Int?
+  reviewedById       String?                   @db.Uuid
+  reviewedAt         DateTime?
+  reviewNote         String?
+  cancelledAt        DateTime?
+  student            Student                   @relation(fields: [studentId], references: [id])
+  guardian           Guardian                  @relation(fields: [guardianId], references: [id])
+  requestedBy        User?                     @relation("StudentLeaveRequestedBy", fields: [requestedById], references: [id])
+  reviewedBy         User?                     @relation("StudentLeaveReviewedBy", fields: [reviewedById], references: [id])
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  deletedAt          DateTime?
+
+  @@index([studentId, dateFrom, dateTo])
+  @@index([guardianId, status])
+  @@index([requestedById, status])
+  @@index([status, createdAt])
 }
 
 model AuditLog {
