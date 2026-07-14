@@ -2,6 +2,12 @@
 
 Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
+## 2026-07-14
+
+- Memulai refactor pasca feature-freeze pilot dengan memecah `role-dashboard.tsx`: tipe dashboard dipindah ke `components/dashboards/dashboard-types.ts`, UI shared ke `role-dashboard-shared.tsx`, dashboard Kepala Sekolah ke `principal-dashboard.tsx`, dan dashboard Guru/Wali Kelas ke `teacher-dashboard.tsx`.
+- Melanjutkan pemecahan dashboard role dengan memindahkan dashboard Root, Operator, Parent, TU, dan BK ke file `components/dashboards/*`, sehingga `role-dashboard.tsx` tinggal menjadi orkestrator role dan prompt Telegram.
+- Memindahkan prompt aktivasi Telegram dan copy fallback monitoring ke komponen/helper terpisah agar `role-dashboard.tsx` hanya menangani routing role, guard dashboard, dan komposisi dashboard aktif.
+
 ## 2026-07-13
 
 - Menambahkan data dan panduan UAT melalui `npm run prisma:uat --workspace backend` dan `docs/uat.md`, mencakup akun KS, operator, guru, guru pengganti, parent multi-anak, kelas, agenda, presensi, perangkat ajar, nilai harian, serta skenario Telegram.
