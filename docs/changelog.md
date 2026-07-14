@@ -10,6 +10,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memulai refactor frontend API client dengan memindahkan transport helper (`request`, `upload`, `download`, restore backup, dan session-expired redirect) dari `lib/api.ts` ke `lib/api-client.ts` tanpa mengubah kontrak ekspor `api`.
 - Memisahkan seluruh tipe API frontend ke `lib/api-types.ts` dan menjaga `lib/api.ts` tetap me-reexport tipe lama, sehingga import komponen yang sudah ada tidak perlu berubah.
 - Memecah endpoint API frontend tahap awal ke modul `api-modules/auth-api.ts`, `notification-api.ts`, `reporting-api.ts`, dan `operations-api.ts`; `lib/api.ts` tetap menggabungkan modul-modul tersebut agar kontrak `api.*` tidak berubah.
+- Memecah endpoint akademik frontend lanjutan ke modul `academic-api.ts`, `planning-api.ts`, `grades-api.ts`, dan `schedule-api.ts`; `lib/api.ts` kini berperan sebagai aggregator tipis untuk import/export akademik, report export URL, parent portal, dan izin/sakit.
 
 ## 2026-07-13
 
