@@ -9,6 +9,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memindahkan prompt aktivasi Telegram dan copy fallback monitoring ke komponen/helper terpisah agar `role-dashboard.tsx` hanya menangani routing role, guard dashboard, dan komposisi dashboard aktif.
 - Memulai refactor frontend API client dengan memindahkan transport helper (`request`, `upload`, `download`, restore backup, dan session-expired redirect) dari `lib/api.ts` ke `lib/api-client.ts` tanpa mengubah kontrak ekspor `api`.
 - Memisahkan seluruh tipe API frontend ke `lib/api-types.ts` dan menjaga `lib/api.ts` tetap me-reexport tipe lama, sehingga import komponen yang sudah ada tidak perlu berubah.
+- Memecah endpoint API frontend tahap awal ke modul `api-modules/auth-api.ts`, `notification-api.ts`, `reporting-api.ts`, dan `operations-api.ts`; `lib/api.ts` tetap menggabungkan modul-modul tersebut agar kontrak `api.*` tidak berubah.
 
 ## 2026-07-13
 

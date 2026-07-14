@@ -1,9 +1,10 @@
-import { download, getApiUrl, request, restoreBackup, upload } from './api-client';
+import { getApiUrl, request, upload } from './api-client';
+import { authApi } from './api-modules/auth-api';
+import { notificationApi } from './api-modules/notification-api';
+import { operationsApi } from './api-modules/operations-api';
+import { reportingApi } from './api-modules/reporting-api';
 import type {
   ApiResponse,
-  AuthSession,
-  MyProfile,
-  TelegramLinkToken,
   SchoolClass,
   Subject,
   Teacher,
@@ -29,20 +30,6 @@ import type {
   AcademicTimeSlotType,
   AcademicTimeSlot,
   ClassTimeSlotActivity,
-  NotificationChannel,
-  NotificationStatus,
-  NotificationLog,
-  NotificationTemplate,
-  NotificationRetryResult,
-  OperationalDashboardSummary,
-  ActivityTrailItem,
-  HealthStatus,
-  QueueSummary,
-  FailedJob,
-  OperationsDashboard,
-  BackupFile,
-  OperationsBackups,
-  TelegramOperationsStatus,
   ImportType,
   ImportSummary,
   ReportType,
@@ -56,14 +43,8 @@ import type {
   StudentLeaveRequestType,
   StudentLeaveRequestStatus,
   StudentLeaveRequest,
-  TeacherPerformanceSession,
-  TeacherPerformanceItem,
-  TeacherPerformanceDashboard,
-  StudentReportItem,
-  StudentReportDashboard,
   SchedulePayload,
   BulkSchedulePayload,
-  LoginResult,
   TeachingPlanType,
   TeachingPlanStatus,
   TeachingPlanRevisionPriority,
@@ -78,80 +59,7 @@ import type {
 export type * from './api-types';
 
 export const api = {
-  login: (payload: { username: string; password: string }) =>
-    request<LoginResult>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
-  changeInitialPassword: (payload: {
-    newPassword: string;
-    repeatPassword: string;
-  }) =>
-    request<ApiResponse<LoginResult['user']>>('/auth/change-initial-password', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
-  changePassword: (payload: {
-    currentPassword: string;
-    newPassword: string;
-    repeatPassword: string;
-  }) =>
-    request<ApiResponse<null>>('/auth/change-password', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
-  requestPasswordReset: (payload: { username: string }) =>
-    request<{ message: string }>('/auth/password-reset/request', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
-  logout: (refreshToken: string) =>
-    request<{ success: boolean }>('/auth/logout', {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken }),
-    }),
-  getSessions: () => request<ApiResponse<AuthSession[]>>('/auth/sessions'),
-  revokeSessions: (refreshToken?: string) =>
-    request<ApiResponse<null>>('/auth/sessions/revoke', {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken }),
-    }),
-  getMyProfile: () => request<ApiResponse<MyProfile>>('/auth/me/profile'),
-  updateMyProfile: (payload: { name?: string }) =>
-    request<ApiResponse<MyProfile>>('/auth/me/profile', {
-      method: 'PATCH',
-      body: JSON.stringify(payload),
-    }),
-  uploadMyProfilePhoto: (file: File) =>
-    upload<ApiResponse<MyProfile>>('/auth/me/profile/photo', file),
-  createTelegramLinkToken: () =>
-    request<ApiResponse<TelegramLinkToken>>('/auth/me/telegram/link-token', {
-      method: 'POST',
-    }),
-  getUsers: () => request<ApiResponse<AppUser[]>>('/auth/users'),
-  createUser: (payload: {
-    email?: string;
-    username: string;
-    name: string;
-    password?: string;
-    roles: string[];
-  }) =>
-    request<ApiResponse<AppUser>>('/auth/users', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
-  deactivateUser: (id: string) =>
-    request<ApiResponse<AppUser>>(`/auth/users/${id}/deactivate`, {
-      method: 'PATCH',
-    }),
-  resetUserPassword: (id: string) =>
-    request<ApiResponse<AppUser>>(`/auth/users/${id}/reset-password`, {
-      method: 'POST',
-    }),
-  deleteUser: (id: string) =>
-    request<ApiResponse<AppUser>>(`/auth/users/${id}`, {
-      method: 'DELETE',
-    }),
+  ...authApi,
   getSchoolYears: () =>
     request<ApiResponse<SchoolYear[]>>('/academic/school-years'),
   createSchoolYear: (payload: { name: string }) =>
@@ -464,104 +372,9 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ teacherId }),
     }),
-  getSentNotifications: () =>
-    request<ApiResponse<NotificationLog[]>>('/notifications/sent'),
-  getMyNotifications: () =>
-    request<ApiResponse<NotificationLog[]>>('/notifications/mine'),
-  markMyNotificationAsRead: (id: string) =>
-    request<ApiResponse<NotificationLog>>(`/notifications/mine/${id}/read`, { method: 'PATCH' }),
-  getFailedNotifications: () =>
-    request<ApiResponse<NotificationLog[]>>('/notifications/failed'),
-  getPendingNotifications: () =>
-    request<ApiResponse<NotificationLog[]>>('/notifications/pending'),
-  getRetryNotifications: () =>
-    request<ApiResponse<NotificationLog[]>>('/notifications/failed'),
-  retryNotification: (id: string) =>
-    request<ApiResponse<NotificationRetryResult>>(`/notifications/retry/${id}`, {
-      method: 'POST',
-    }),
-  getNotificationTemplates: () =>
-    request<ApiResponse<NotificationTemplate[]>>('/notifications/templates'),
-  getOperationalDashboard: () =>
-    request<ApiResponse<OperationalDashboardSummary>>(
-      '/reporting/operational/today',
-    ),
-  getTeacherPerformance: (from?: string, to?: string) => {
-    const params = new URLSearchParams();
-
-    if (from) {
-      params.set('from', from);
-    }
-
-    if (to) {
-      params.set('to', to);
-    }
-
-    return request<ApiResponse<TeacherPerformanceDashboard>>(
-      `/reporting/teacher-performance${params.size ? `?${params}` : ''}`,
-    );
-  },
-  getStudentReport: (payload: {
-    from?: string;
-    to?: string;
-    classId?: string;
-    status?: AttendanceStatus | '';
-  }) => {
-    const params = new URLSearchParams();
-
-    if (payload.from) {
-      params.set('from', payload.from);
-    }
-
-    if (payload.to) {
-      params.set('to', payload.to);
-    }
-
-    if (payload.classId) {
-      params.set('classId', payload.classId);
-    }
-
-    if (payload.status) {
-      params.set('status', payload.status);
-    }
-
-    return request<ApiResponse<StudentReportDashboard>>(
-      `/reporting/students${params.size ? `?${params}` : ''}`,
-    );
-  },
-  getActivityTrail: () => request<ApiResponse<ActivityTrailItem[]>>('/audit/activity'),
-  getOperationsDashboard: () =>
-    request<ApiResponse<OperationsDashboard>>('/operations/dashboard'),
-  getOperationsTelegram: () =>
-    request<ApiResponse<TelegramOperationsStatus>>('/operations/telegram'),
-  setOperationsTelegramWebhook: () =>
-    request<ApiResponse<TelegramOperationsStatus>>('/operations/telegram/webhook', {
-      method: 'POST',
-    }),
-  deleteOperationsTelegramWebhook: () =>
-    request<ApiResponse<TelegramOperationsStatus>>('/operations/telegram/webhook/delete', {
-      method: 'POST',
-    }),
-  getOperationsBackups: () => request<ApiResponse<OperationsBackups>>('/operations/backups'),
-  createDailyBackup: () => download('/operations/backups/daily'),
-  restoreDailyBackup: (file: File) => restoreBackup<ApiResponse<{ filename: string }>>(file),
-  createAcademicYearBackup: (schoolYearId: string) => request<ApiResponse<{ filename: string }>>('/operations/backups/academic-year', { method: 'POST', body: JSON.stringify({ schoolYearId }) }),
-  retryJob: (queueName: string, jobId: string) =>
-    request<ApiResponse<{ queueName: string; jobId: string }>>(
-      '/operations/jobs/retry',
-      {
-        method: 'POST',
-        body: JSON.stringify({ queueName, jobId }),
-      },
-    ),
-  discardJob: (queueName: string, jobId: string) =>
-    request<ApiResponse<{ queueName: string; jobId: string }>>(
-      '/operations/jobs/discard',
-      {
-        method: 'POST',
-        body: JSON.stringify({ queueName, jobId }),
-      },
-    ),
+  ...notificationApi,
+  ...reportingApi,
+  ...operationsApi,
   importAcademicData: (type: ImportType, file: File) =>
     upload<ApiResponse<ImportSummary>>(`/academic/import/${type}`, file),
   getReportExportUrl: (type: ReportType, format: ReportFormat, date: string) =>
