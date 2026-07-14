@@ -4,6 +4,12 @@ import { useEffect, useState } from 'react';
 import { api, type StudentLeaveRequest } from '../lib/api';
 import { dispatchNotificationChanged } from '../lib/notifications';
 import { formatReadableDate } from '../lib/format';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { EmptyState } from './ui/empty-state';
+import { fieldClass, FormField } from './ui/form';
+import { LoadingState } from './ui/loading';
+import { SurfaceCard } from './ui/card';
 import { useToast } from './ui/toast';
 
 const typeLabels = {
@@ -53,16 +59,10 @@ export function StudentLeaveReview() {
 
   return (
     <section className="mt-6 space-y-4">
-      {loading ? (
-        <p className="surface-card rounded-2xl p-5 text-sm text-muted">
-          Memuat pengajuan izin/sakit...
-        </p>
-      ) : null}
+      {loading ? <LoadingState label="Memuat pengajuan izin/sakit..." /> : null}
 
       {!loading && !items.length ? (
-        <p className="surface-card rounded-2xl p-5 text-sm text-muted">
-          Tidak ada pengajuan izin/sakit yang menunggu review.
-        </p>
+        <EmptyState title="Tidak ada pengajuan izin/sakit yang menunggu review." />
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -70,7 +70,7 @@ export function StudentLeaveReview() {
           const activeEnrollment = item.student.enrollments?.[0];
 
           return (
-            <article className="surface-card rounded-[1.75rem] p-5" key={item.id}>
+            <SurfaceCard className="rounded-[1.75rem]" key={item.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-600">
@@ -81,9 +81,9 @@ export function StudentLeaveReview() {
                     {activeEnrollment?.class.name ?? 'Kelas aktif tidak ditemukan'} · {item.guardian.name}
                   </p>
                 </div>
-                <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">
+                <Badge tone="warning">
                   Menunggu
-                </span>
+                </Badge>
               </div>
 
               <div className="mt-4 rounded-2xl bg-blue-50 p-3 text-sm font-bold text-slate-700">
@@ -93,35 +93,32 @@ export function StudentLeaveReview() {
 
               <p className="mt-3 text-sm leading-6 text-slate-700">{item.reason}</p>
 
-              <label className="mt-4 grid gap-2 text-sm font-bold text-slate-700">
-                Catatan review
+              <FormField className="mt-4" label="Catatan review">
                 <textarea
-                  className="min-h-20 rounded-2xl border bg-white px-4 py-3 text-sm font-normal outline-none focus:border-brand-600"
+                  className={`${fieldClass} min-h-20 font-normal`}
                   onChange={(event) => setNotes((current) => ({ ...current, [item.id]: event.target.value }))}
                   placeholder="Opsional, misalnya bukti diterima atau alasan penolakan."
                   value={notes[item.id] ?? ''}
                 />
-              </label>
+              </FormField>
 
               <div className="mt-4 grid grid-cols-2 gap-2">
-                <button
-                  className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white disabled:opacity-60"
+                <Button
                   disabled={processingId === item.id}
                   onClick={() => void review(item, 'APPROVED')}
-                  type="button"
+                  variant="success"
                 >
                   Setujui
-                </button>
-                <button
-                  className="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-black text-white disabled:opacity-60"
+                </Button>
+                <Button
                   disabled={processingId === item.id}
                   onClick={() => void review(item, 'REJECTED')}
-                  type="button"
+                  variant="danger"
                 >
                   Tolak
-                </button>
+                </Button>
               </div>
-            </article>
+            </SurfaceCard>
           );
         })}
       </div>

@@ -1,4 +1,4 @@
-import { type ComponentPropsWithoutRef, type ReactNode } from 'react';
+import { type ComponentPropsWithoutRef } from 'react';
 import { cn } from '../../lib/cn';
 
 export function FormField({
@@ -14,7 +14,7 @@ export function FormField({
   return (
     <label className={cn('grid gap-2 text-xs font-black text-slate-700', className)} {...props}>
       <span>{label}</span>
-      {children as ReactNode}
+      {children}
       {hint ? <span className="text-xs font-semibold text-muted">{hint}</span> : null}
     </label>
   );

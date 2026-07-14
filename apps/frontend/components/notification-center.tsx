@@ -9,6 +9,12 @@ import {
 import { getNotificationAccess, type NotificationAccess } from '../lib/navigation.config';
 import { dispatchNotificationChanged } from '../lib/notifications';
 import { getCurrentSessionUser } from '../lib/session';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Card } from './ui/card';
+import { EmptyState } from './ui/empty-state';
+import { LoadingState } from './ui/loading';
+import { Table, TableShell } from './ui/table';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 type NotificationTab = 'inbox' | 'sent' | 'pending' | 'failed' | 'retry';
@@ -158,7 +164,7 @@ export function NotificationCenter() {
         </nav>
       </aside>
 
-      <div className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      <Card className="min-w-0 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">
@@ -166,13 +172,13 @@ export function NotificationCenter() {
             </h2>
             <p className="mt-1 text-sm text-muted">{activeDescription}</p>
           </div>
-          <button
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          <Button
             onClick={() => void loadNotifications()}
-            type="button"
+            size="sm"
+            variant="outline"
           >
             Refresh
-          </button>
+          </Button>
         </div>
 
         {loadState === 'error' ? (
@@ -207,7 +213,7 @@ export function NotificationCenter() {
             />
           ) : null}
         </div>
-      </div>
+      </Card>
     </section>
   );
 
@@ -285,13 +291,13 @@ function PersonalNotificationInbox({
                 : 'Reminder kelas, koreksi presensi, revisi perangkat ajar, dan status penilaian.'}
             </p>
           </div>
-          <button
-            className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-black text-brand-700"
+          <Button
             onClick={() => void onRefresh()}
-            type="button"
+            size="sm"
+            variant="outline"
           >
             Refresh
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -302,19 +308,25 @@ function PersonalNotificationInbox({
       ) : null}
 
       {loadState === 'loading' ? (
-        <p className="rounded-2xl bg-blue-50 p-4 text-sm font-semibold text-brand-700">
-          Memuat notifikasi pribadi...
-        </p>
+        <LoadingState label="Memuat notifikasi pribadi..." />
       ) : null}
 
       {loadState === 'success' && !items.length ? (
-        <div className="rounded-[2rem] border border-blue-100 bg-white p-5 text-sm leading-6 text-muted shadow-sm shadow-blue-100/60">
-          {isPrincipal
-            ? 'Belum ada notifikasi yang membutuhkan perhatian Kepala Sekolah.'
-            : isParent
-              ? 'Belum ada notifikasi untuk akun orang tua ini.'
-            : 'Belum ada notifikasi untuk akun guru ini. Reminder hanya muncul jika kontak guru sudah lengkap dan job terkait sudah dibuat.'}
-        </div>
+        <EmptyState
+          className="rounded-[2rem] bg-white shadow-sm shadow-blue-100/60"
+          title={
+            isPrincipal
+              ? 'Belum ada notifikasi yang membutuhkan perhatian Kepala Sekolah.'
+              : isParent
+                ? 'Belum ada notifikasi untuk akun orang tua ini.'
+                : 'Belum ada notifikasi untuk akun guru ini.'
+          }
+          description={
+            isPrincipal || isParent
+              ? undefined
+              : 'Reminder hanya muncul jika kontak guru sudah lengkap dan job terkait sudah dibuat.'
+          }
+        />
       ) : null}
 
       <div className="grid gap-3">
@@ -356,9 +368,7 @@ function OperationalInboxTable({
 }) {
   if (!items.length) {
     return (
-      <p className="rounded-xl bg-slate-50 p-4 text-sm text-muted">
-        Tidak ada notifikasi pribadi untuk akun ini.
-      </p>
+      <EmptyState title="Tidak ada notifikasi pribadi untuk akun ini." />
     );
   }
 
@@ -464,9 +474,7 @@ function NotificationTable({
 }) {
   if (items.length === 0) {
     return (
-      <p className="rounded-xl bg-slate-50 p-4 text-sm text-muted">
-        Belum ada data notifikasi.
-      </p>
+      <EmptyState title="Belum ada data notifikasi." />
     );
   }
 
@@ -504,23 +512,21 @@ function NotificationTable({
                 {formatDateTime(item.sentAt ?? item.failedAt ?? item.createdAt)}
               </p>
               {onRetry ? (
-                <button
-                  className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+                <Button
                   disabled={actionState === 'loading'}
                   onClick={() => void onRetry(item)}
-                  type="button"
+                  size="sm"
                 >
                   Retry
-                </button>
+                </Button>
               ) : null}
             </div>
           </article>
         ))}
       </div>
 
-      <div className="hidden overflow-hidden rounded-2xl border border-slate-200 md:block">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+      <TableShell className="hidden md:block">
+        <Table className="min-w-[760px]">
           <thead className="bg-slate-50 text-xs font-bold tracking-[0.08em] text-slate-500 uppercase">
             <tr>
               <th className="px-4 py-3">Kanal</th>
@@ -553,22 +559,20 @@ function NotificationTable({
                 </td>
                 {onRetry ? (
                   <td className="px-4 py-4">
-                    <button
-                      className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    <Button
                       disabled={actionState === 'loading'}
                       onClick={() => void onRetry(item)}
-                      type="button"
+                      size="sm"
                     >
                       Retry
-                    </button>
+                    </Button>
                   </td>
                 ) : null}
               </tr>
             ))}
           </tbody>
-        </table>
-      </div>
-    </div>
+        </Table>
+      </TableShell>
     </>
   );
 }
@@ -581,11 +585,7 @@ function StatusPill({ label, status }: { label: string; status: string }) {
         ? 'bg-amber-50 text-amber-700'
         : 'bg-brand-50 text-brand-700';
 
-  return (
-    <span className={`rounded-full px-2 py-1 text-xs font-bold ${className}`}>
-      {label}
-    </span>
-  );
+  return <Badge className={className} tone="muted">{label}</Badge>;
 }
 
 function formatDateTime(value: string) {

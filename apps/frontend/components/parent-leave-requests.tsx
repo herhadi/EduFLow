@@ -9,6 +9,12 @@ import {
 } from '../lib/api';
 import { formatReadableDate } from '../lib/format';
 import { getCurrentSessionUser } from '../lib/session';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { EmptyState } from './ui/empty-state';
+import { fieldClass, FormField } from './ui/form';
+import { LoadingState } from './ui/loading';
+import { SurfaceCard } from './ui/card';
 import { useToast } from './ui/toast';
 
 const typeLabels: Record<StudentLeaveRequestType, string> = {
@@ -97,18 +103,19 @@ export function ParentLeaveRequests() {
 
   return (
     <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
-      <div className="surface-card rounded-[1.75rem] p-5">
+      <SurfaceCard className="rounded-[1.75rem]">
         <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-600">Form Pengajuan</p>
         <h2 className="mt-2 text-xl font-black">Ajukan Izin/Sakit</h2>
         <p className="mt-2 text-sm leading-6 text-muted">
           Pengajuan masuk ke wali kelas dan operator. Jika disetujui, presensi pada tanggal terkait akan ditandai Sakit atau Izin.
         </p>
 
+        {loading ? <LoadingState className="mt-5" label="Memuat data anak..." /> : null}
+
         <div className="mt-5 grid gap-3">
-          <label className="grid gap-2 text-sm font-bold text-slate-700">
-            Anak
+          <FormField label="Anak">
             <select
-              className="min-w-0 rounded-2xl border bg-white px-4 py-3 text-sm outline-none focus:border-brand-600"
+              className={fieldClass}
               disabled={loading || !students.length}
               onChange={(event) => setForm((current) => ({ ...current, studentId: event.target.value }))}
               value={form.studentId}
@@ -119,63 +126,57 @@ export function ParentLeaveRequests() {
                 </option>
               ))}
             </select>
-          </label>
+          </FormField>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="grid gap-2 text-sm font-bold text-slate-700">
-              Mulai
+            <FormField label="Mulai">
               <input
-                className="min-w-0 rounded-2xl border bg-white px-4 py-3 text-sm outline-none focus:border-brand-600"
+                className={fieldClass}
                 onChange={(event) => setForm((current) => ({ ...current, dateFrom: event.target.value }))}
                 type="date"
                 value={form.dateFrom}
               />
-            </label>
-            <label className="grid gap-2 text-sm font-bold text-slate-700">
-              Sampai
+            </FormField>
+            <FormField label="Sampai">
               <input
-                className="min-w-0 rounded-2xl border bg-white px-4 py-3 text-sm outline-none focus:border-brand-600"
+                className={fieldClass}
                 onChange={(event) => setForm((current) => ({ ...current, dateTo: event.target.value }))}
                 type="date"
                 value={form.dateTo}
               />
-            </label>
+            </FormField>
           </div>
 
-          <label className="grid gap-2 text-sm font-bold text-slate-700">
-            Jenis
+          <FormField label="Jenis">
             <select
-              className="min-w-0 rounded-2xl border bg-white px-4 py-3 text-sm outline-none focus:border-brand-600"
+              className={fieldClass}
               onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as StudentLeaveRequestType }))}
               value={form.type}
             >
               <option value="SICK">Sakit</option>
               <option value="EXCUSED">Izin</option>
             </select>
-          </label>
+          </FormField>
 
-          <label className="grid gap-2 text-sm font-bold text-slate-700">
-            Alasan
+          <FormField label="Alasan">
             <textarea
-              className="min-h-24 rounded-2xl border bg-white px-4 py-3 text-sm outline-none focus:border-brand-600"
+              className={`${fieldClass} min-h-24`}
               onChange={(event) => setForm((current) => ({ ...current, reason: event.target.value }))}
               placeholder="Contoh: sakit demam dan istirahat di rumah."
               value={form.reason}
             />
-          </label>
+          </FormField>
 
-          <button
-            className="rounded-2xl bg-brand-600 px-5 py-3 text-sm font-black text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+          <Button
             disabled={saving || loading || !students.length}
             onClick={() => void submit()}
-            type="button"
           >
             {saving ? 'Mengirim...' : 'Kirim Pengajuan'}
-          </button>
+          </Button>
         </div>
-      </div>
+      </SurfaceCard>
 
-      <aside className="surface-card rounded-[1.75rem] p-5">
+      <SurfaceCard className="rounded-[1.75rem]">
         <h3 className="text-base font-black">Status Pengajuan</h3>
         <div className="mt-4 space-y-3">
           {requests.length ? (
@@ -189,9 +190,9 @@ export function ParentLeaveRequests() {
                       {request.dateTo !== request.dateFrom ? ` - ${formatReadableDate(request.dateTo)}` : ''}
                     </p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-black text-brand-700">
+                  <Badge className="shrink-0 bg-white" tone="brand">
                     {statusLabels[request.status]}
-                  </span>
+                  </Badge>
                 </div>
                 <p className="mt-2 text-xs leading-5 text-slate-700">{request.reason}</p>
                 {request.reviewNote ? (
@@ -202,12 +203,10 @@ export function ParentLeaveRequests() {
               </article>
             ))
           ) : (
-            <p className="rounded-2xl bg-slate-50 p-4 text-sm text-muted">
-              Belum ada pengajuan izin/sakit.
-            </p>
+            <EmptyState title="Belum ada pengajuan izin/sakit." />
           )}
         </div>
-      </aside>
+      </SurfaceCard>
     </section>
   );
 }

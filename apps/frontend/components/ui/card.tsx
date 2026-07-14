@@ -4,7 +4,10 @@ import { cn } from '../../lib/cn';
 export function Card({ className, ...props }: ComponentPropsWithoutRef<'section'>) {
   return (
     <section
-      className={cn('rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-5', className)}
+      className={cn(
+        'rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-5',
+        className,
+      )}
       {...props}
     />
   );
