@@ -101,6 +101,7 @@ Manual deployment di server:
 - `infra/backup/import-postgres-without-root.sh`: import destruktif ke server lalu membuat root dari environment target.
 - `docs/admin-workflow.md`: alur kerja operator sekolah dan konfigurasi awal akademik.
 - `docs/academic-planning.md`: kalender pendidikan, perangkat ajar, buku KBM, dan nilai siswa.
+- `docs/manual-guide-roles.md`: panduan penggunaan untuk Root, Operator Sekolah, Guru, Wali Kelas, Kepala Sekolah, dan Orang Tua.
 - `docs/changelog.md`: catatan perubahan operasional penting.
 
 ## Endpoint Auth Awal
