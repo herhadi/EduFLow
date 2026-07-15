@@ -27,6 +27,9 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memecah `teacher-assessments.tsx` menjadi form komponen nilai, daftar komponen, editor skor siswa, dan helper draft skor agar input nilai harian guru lebih mudah dirawat.
 - Merapikan `teacher-role-management.tsx` dengan helper draft identitas, akun, penugasan, kelas binaan, dan toggle pilihan agar sinkronisasi state guru lebih ringkas.
 - Merapikan `teacher-teaching-plans.tsx` dengan memindahkan label tipe/status perangkat ajar, aturan lampiran, ukuran file, dan badge status ke helper/komponen khusus.
+- Memecah `parent-portal.tsx` menjadi section ringkasan, kartu anak, riwayat presensi, nilai harian, dan helper status presensi agar portal wali murid lebih mudah dikembangkan.
+- Memecah `teacher-performance-dashboard.tsx` menjadi helper range/filter risiko dan komponen kartu performa guru agar monitoring KS lebih mudah dirawat.
+- Merapikan `operations-center.tsx` dengan memindahkan state kosong, format storage, kartu health, ringkasan queue, dan dialog payload job ke helper/komponen operasi.
 
 ## 2026-07-14
 
