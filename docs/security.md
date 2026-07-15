@@ -30,7 +30,7 @@ Dokumen ini merangkum prinsip keamanan awal EduFlow untuk development dan produc
 - Simpan backup di lokasi terenkripsi dan batasi aksesnya.
 - Jangan kirim backup lewat chat publik.
 - Prosedur backup dan restore ada di `docs/backup-recovery.md`.
-- Endpoint operasional untuk dashboard health memakai permission laporan, sedangkan backup, restore, dan recovery hanya dapat diakses melalui permission `system.recovery.manage`, yang diberikan khusus kepada role `root`.
+- Endpoint operasional untuk dashboard health, backup, restore, queue recovery, dan monitoring root ops memakai permission `system.recovery.manage`, yang diberikan khusus kepada role `root`.
 - Permission recovery diberikan melalui migration dan seed. Setelah deploy yang menambah permission baru, user harus logout-login agar session browser membawa daftar permission terbaru.
 
 ## CI/CD
@@ -38,7 +38,7 @@ Dokumen ini merangkum prinsip keamanan awal EduFlow untuk development dan produc
 - Workflow deployment hanya berjalan pada self-hosted runner.
 - Deployment memakai lock agar tidak ada dua proses production berjalan bersamaan.
 - Log deployment berada di server dan tidak masuk Git.
-- Rollback otomatis belum tersedia pada CI/CD v1.
+- Deployment menjalankan validasi sebelum deploy, backup sebelum migration, health check setelah restart, dan rollback otomatis kode/container jika health check gagal.
 
 ## Akun Aplikasi
 

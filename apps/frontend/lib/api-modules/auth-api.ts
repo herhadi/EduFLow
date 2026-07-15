@@ -25,12 +25,12 @@ export const authApi = {
       body: JSON.stringify(payload),
     }),
   requestPasswordReset: (payload: { username: string }) =>
-    request<{ message: string }>('/auth/password-reset/request', {
+    request<ApiResponse<null>>('/auth/password-reset/request', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   logout: (refreshToken: string) =>
-    request<{ success: boolean }>('/auth/logout', {
+    request<ApiResponse<null>>('/auth/logout', {
       method: 'POST',
       body: JSON.stringify({ refreshToken }),
     }),

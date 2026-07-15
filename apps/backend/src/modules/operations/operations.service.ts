@@ -3,6 +3,7 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from '@nes
 import { ConfigService } from '@nestjs/config';
 import { spawn } from 'node:child_process';
 import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
+import { cpus, freemem, loadavg, totalmem } from 'node:os';
 import { join } from 'node:path';
 import { QUEUES } from '@eduflow/shared';
 import { Job, Queue } from 'bullmq';
@@ -10,6 +11,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
 import { TelegramBotService } from '../../infrastructure/telegram/telegram-bot.service';
+import { RequestMetricsService } from '../../infrastructure/observability/request-metrics.service';
 
 type HealthStatus = 'Healthy' | 'Unhealthy';
 
@@ -27,6 +29,7 @@ export class OperationsService {
     private readonly auditService: AuditService,
     private readonly configService: ConfigService,
     private readonly telegramBotService: TelegramBotService,
+    private readonly requestMetrics: RequestMetricsService,
     @InjectQueue(QUEUES.TEACHER_REMINDER)
     private readonly teacherReminderQueue: Queue,
     @InjectQueue(QUEUES.ATTENDANCE_SUMMARY)
@@ -115,6 +118,9 @@ export class OperationsService {
               'Healthy',
           ),
         },
+        runtime: this.getRuntimeSnapshot(),
+        requests: this.requestMetrics.getSnapshot(),
+        queueTotals: this.getQueueTotals(queues),
         queues,
         failedJobs,
       },
@@ -313,6 +319,52 @@ export class OperationsService {
         new Date(second.timestamp).getTime() - new Date(first.timestamp).getTime()
       );
     });
+  }
+
+  private getRuntimeSnapshot() {
+    const memory = process.memoryUsage();
+    const totalMemoryBytes = totalmem();
+    const freeMemoryBytes = freemem();
+    const cpuCount = cpus().length;
+    const oneMinuteLoad = loadavg()[0] ?? 0;
+
+    return {
+      uptimeSeconds: Math.round(process.uptime()),
+      cpu: {
+        count: cpuCount,
+        loadAverage1m: Number(oneMinuteLoad.toFixed(2)),
+        loadPercent: Math.min(100, Math.round((oneMinuteLoad / Math.max(cpuCount, 1)) * 100)),
+      },
+      memory: {
+        processRssBytes: memory.rss,
+        heapUsedBytes: memory.heapUsed,
+        heapTotalBytes: memory.heapTotal,
+        systemTotalBytes: totalMemoryBytes,
+        systemFreeBytes: freeMemoryBytes,
+        systemUsedPercent: Math.round(((totalMemoryBytes - freeMemoryBytes) / totalMemoryBytes) * 100),
+      },
+    };
+  }
+
+  private getQueueTotals(queues: Awaited<ReturnType<OperationsService['getQueueSummaries']>>) {
+    const totals = queues.reduce(
+      (summary, queue) => ({
+        waiting: summary.waiting + queue.waiting,
+        active: summary.active + queue.active,
+        failed: summary.failed + queue.failed,
+        delayed: summary.delayed + queue.delayed,
+        completed: summary.completed + queue.completed,
+      }),
+      { waiting: 0, active: 0, failed: 0, delayed: 0, completed: 0 },
+    );
+
+    return {
+      ...totals,
+      notification: queues.find((queue) => queue.name === QUEUES.NOTIFICATION_SEND) ?? null,
+      attendance: queues.find((queue) => queue.name === QUEUES.ATTENDANCE_SUMMARY) ?? null,
+      reminder: queues.find((queue) => queue.name === QUEUES.TEACHER_REMINDER) ?? null,
+      report: queues.find((queue) => queue.name === QUEUES.REPORT_DAILY) ?? null,
+    };
   }
 
   private async checkDatabase(): Promise<HealthStatus> {

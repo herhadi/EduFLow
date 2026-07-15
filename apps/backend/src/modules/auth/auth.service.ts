@@ -12,6 +12,7 @@ import { AssessmentStatus, LoginAuditStatus, TeachingPlanStatus } from '@prisma/
 import { compare, hash } from 'bcryptjs';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
+import { ok } from '../../core/response/api-response';
 import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
 import { TelegramBotService } from '../../infrastructure/telegram/telegram-bot.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -186,7 +187,7 @@ export class AuthService {
       data: { revokedAt: new Date(), revokedReason: 'logout' },
     });
 
-    return { success: true };
+    return ok(null, 'Logout berhasil.');
   }
 
   async changeInitialPassword(
@@ -273,7 +274,7 @@ export class AuthService {
       }),
     ]);
 
-    return { message: 'Password berhasil diganti. Silakan login ulang.' };
+    return ok(null, 'Password berhasil diganti. Silakan login ulang.');
   }
 
   async getMyProfile(userId: string) {
@@ -483,10 +484,7 @@ export class AuthService {
     });
 
     if (!user || user.deletedAt) {
-      return {
-        message:
-          'Jika username valid, request reset password akan diteruskan ke admin sekolah.',
-      };
+      return ok(null, 'Jika username valid, request reset password akan diteruskan ke admin sekolah.');
     }
 
     await this.notificationService.createPasswordResetRequestInbox({
@@ -497,10 +495,7 @@ export class AuthService {
       roles: user.roles.map(({ role }) => role.name),
     });
 
-    return {
-      message:
-        'Jika username valid, request reset password akan diteruskan ke admin sekolah.',
-    };
+    return ok(null, 'Jika username valid, request reset password akan diteruskan ke admin sekolah.');
   }
 
   async resetPassword(dto: ResetPasswordInput) {
@@ -540,7 +535,7 @@ export class AuthService {
       }),
     ]);
 
-    return { message: 'Password berhasil direset. Semua sesi aktif dicabut.' };
+    return ok(null, 'Password berhasil direset. Semua sesi aktif dicabut.');
   }
 
   async revokeCurrentSession(userId: string, refreshToken?: string) {
@@ -554,7 +549,7 @@ export class AuthService {
         data: { revokedAt: new Date(), revokedReason: 'manual_revoke' },
       });
 
-      return { message: 'Sesi berhasil dicabut.' };
+      return ok(null, 'Sesi berhasil dicabut.');
     }
 
     await this.prisma.refreshToken.updateMany({
@@ -562,7 +557,7 @@ export class AuthService {
       data: { revokedAt: new Date(), revokedReason: 'manual_revoke_all' },
     });
 
-    return { message: 'Semua sesi aktif berhasil dicabut.' };
+    return ok(null, 'Semua sesi aktif berhasil dicabut.');
   }
 
   async getSessions(userId: string) {

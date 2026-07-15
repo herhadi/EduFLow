@@ -1,6 +1,7 @@
 export interface ApiResponse<T> {
   data: T;
   message?: string;
+  meta?: Record<string, unknown>;
 }
 
 export interface AuthSession {
@@ -415,6 +416,40 @@ export interface OperationsDashboard {
     database: HealthStatus;
     notification: HealthStatus;
     storage: HealthStatus;
+  };
+  runtime: {
+    uptimeSeconds: number;
+    cpu: {
+      count: number;
+      loadAverage1m: number;
+      loadPercent: number;
+    };
+    memory: {
+      processRssBytes: number;
+      heapUsedBytes: number;
+      heapTotalBytes: number;
+      systemTotalBytes: number;
+      systemFreeBytes: number;
+      systemUsedPercent: number;
+    };
+  };
+  requests: {
+    windowSeconds: number;
+    requestsPerMinute: number;
+    errorsPerMinute: number;
+    averageDurationMs: number;
+    recentRequests: number;
+  };
+  queueTotals: {
+    waiting: number;
+    active: number;
+    failed: number;
+    delayed: number;
+    completed: number;
+    notification: QueueSummary | null;
+    attendance: QueueSummary | null;
+    reminder: QueueSummary | null;
+    report: QueueSummary | null;
   };
   storageSummary: { bucket: string; objectCount: number; totalSizeBytes: number; isPartial: boolean } | null;
   storageError: string | null;

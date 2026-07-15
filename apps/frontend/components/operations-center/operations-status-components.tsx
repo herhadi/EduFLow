@@ -51,6 +51,29 @@ export function QueueCount({
   );
 }
 
+export function MetricCard({
+  label,
+  tone = 'neutral',
+  value,
+}: {
+  label: string;
+  tone?: 'danger' | 'neutral' | 'warning';
+  value: string | number;
+}) {
+  const toneClass = {
+    danger: 'border-red-100 bg-red-50 text-red-700 dark:border-red-400/20 dark:bg-red-500/15 dark:text-red-200',
+    neutral: 'border-slate-100 bg-slate-50 text-slate-900 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]',
+    warning: 'border-amber-100 bg-amber-50 text-amber-800 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100',
+  }[tone];
+
+  return (
+    <article className={`rounded-2xl border p-4 ${toneClass}`}>
+      <p className="text-xs font-semibold text-muted">{label}</p>
+      <strong className="mt-2 block text-lg">{value}</strong>
+    </article>
+  );
+}
+
 export function PayloadDialog({
   job,
   onClose,

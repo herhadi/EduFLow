@@ -11,6 +11,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { CorrelationIdMiddleware } from './infrastructure/observability/correlation-id.middleware';
 import { ErrorTrackingFilter } from './infrastructure/observability/error-tracking.filter';
+import { ObservabilityModule } from './infrastructure/observability/observability.module';
 import { RequestLoggingInterceptor } from './infrastructure/observability/request-logging.interceptor';
 import { AcademicModule } from './modules/academic/academic.module';
 import { AcademicPlanningModule } from './modules/academic-planning/academic-planning.module';
@@ -37,6 +38,7 @@ import { WorkersModule } from './workers/workers.module';
       isGlobal: true,
     }),
     EventEmitterModule.forRoot(),
+    ObservabilityModule,
     PrismaModule,
     QueueModule,
     AuthModule,

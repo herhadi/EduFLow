@@ -135,7 +135,9 @@ export default function LoginPage() {
       const response = await api.requestPasswordReset({
         username: submittedUsername,
       });
-      setForgotPasswordMessage(response.message);
+      setForgotPasswordMessage(
+        response.message ?? 'Jika username valid, request reset password akan diteruskan ke admin sekolah.',
+      );
     } catch (error) {
       setForgotPasswordMessage(
         error instanceof Error

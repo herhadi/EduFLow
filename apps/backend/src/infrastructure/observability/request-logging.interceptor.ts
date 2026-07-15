@@ -7,10 +7,13 @@ import {
 } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
 import { RequestWithCorrelation } from './request-with-correlation';
+import { RequestMetricsService } from './request-metrics.service';
 
 @Injectable()
 export class RequestLoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger(RequestLoggingInterceptor.name);
+
+  constructor(private readonly requestMetrics: RequestMetricsService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest<RequestWithCorrelation>();
@@ -38,6 +41,13 @@ export class RequestLoggingInterceptor implements NestInterceptor {
       durationMs,
       error: error?.message,
     };
+
+    this.requestMetrics.record({
+      durationMs,
+      method: request.method,
+      path: request.originalUrl,
+      statusCode: error?.status ?? 'OK',
+    });
 
     if (error) {
       this.logger.warn(JSON.stringify(payload));

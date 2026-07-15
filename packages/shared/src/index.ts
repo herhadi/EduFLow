@@ -60,6 +60,7 @@ export const ROLES = {
 export interface ApiResponse<T> {
   data: T;
   message?: string;
+  meta?: Record<string, unknown>;
 }
 
 export interface AuthUser {

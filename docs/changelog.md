@@ -35,6 +35,9 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Merapikan `academic-master-management.tsx` dengan memindahkan helper default tahun ajaran, grouping kelas/jam, payload slot, dan draft edit jam pelajaran ke util master akademik.
 - Memulai refactor backend akademik dengan memindahkan helper murni jadwal, revisi efektif, rentang tanggal agenda, reminder guru, dan assignment efektif ke `schedules/schedule-utils.ts`.
 - Memecah helper generate agenda backend untuk filter kelas target, pencarian semester per tanggal, key agenda, jadwal efektif harian, dan payload create `DailyAgenda` agar alur generate/coverage agenda lebih mudah dibaca.
+- Menetapkan kontrak response JSON backend melalui `docs/api-contract.md`, memperluas `ApiResponse` dengan `meta`, menambahkan helper `ok()`, dan mulai menyeragamkan response action auth ke `{ data, message }`.
+- Menambahkan monitoring root ops untuk CPU/RAM, uptime backend, request per menit, error per menit, latensi rata-rata, ringkasan notification/attendance queue, dan dokumentasi `docs/operations.md`.
+- Memperkuat CI/CD production dengan job validasi sebelum deploy, script `npm run validate`, backup database sebelum migration, health check tetap wajib, serta rollback otomatis kode/container jika restart atau health check gagal.
 
 ## 2026-07-14
 

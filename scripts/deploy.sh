@@ -13,8 +13,11 @@ FRONTEND_STATUS="Skip"
 BACKEND_STATUS="Skip"
 MIGRATION_STATUS="No"
 SEED_STATUS="No"
+BACKUP_STATUS="No"
+ROLLBACK_STATUS="Not needed"
 DEPLOY_STATUS="FAILED"
 HEAD_SHA=""
+RESTART_PERFORMED=0
 
 mkdir -p "$LOG_DIR"
 exec > >(tee -a "$LOG_FILE") 2>&1
@@ -45,11 +48,107 @@ Frontend    : ${FRONTEND_STATUS}
 Backend     : ${BACKEND_STATUS}
 Migration   : ${MIGRATION_STATUS}
 Seed        : ${SEED_STATUS}
+Backup      : ${BACKUP_STATUS}
+Rollback    : ${ROLLBACK_STATUS}
 Duration    : ${duration}s
 
 Status      : ${DEPLOY_STATUS}
 ====================================
 SUMMARY
+}
+
+backup_database_before_migration() {
+  local backup_dir backup_file commit_short
+
+  if [ "${DEPLOY_SKIP_PRE_MIGRATION_BACKUP:-0}" = "1" ]; then
+    BACKUP_STATUS="Skip"
+    log_warn "Backup database sebelum migration dilewati karena DEPLOY_SKIP_PRE_MIGRATION_BACKUP=1."
+    return 0
+  fi
+
+  backup_dir="${DEPLOY_BACKUP_DIR:-${ROOT_PARENT_DIR}/backups/pre-migrate}"
+  mkdir -p "$backup_dir"
+
+  commit_short="${HEAD_SHA:-unknown}"
+  if [ "$commit_short" != "unknown" ]; then
+    commit_short="$(printf '%s' "$commit_short" | cut -c1-7)"
+  fi
+
+  backup_file="${backup_dir}/eduflow-before-migrate-$(date +%Y%m%d-%H%M%S)-${commit_short}.dump"
+
+  log_section "Backup database sebelum migration"
+  compose exec -T postgres pg_dump -U eduflow -d eduflow -Fc --no-owner --no-privileges > "$backup_file"
+  BACKUP_STATUS="Yes ($(basename "$backup_file"))"
+  log_info "Backup database tersimpan: ${backup_file}"
+}
+
+rollback_deploy() {
+  local failed_command="$1"
+
+  if [ "${DEPLOY_ENABLE_ROLLBACK:-1}" != "1" ]; then
+    ROLLBACK_STATUS="Disabled"
+    log_warn "Rollback otomatis dilewati karena DEPLOY_ENABLE_ROLLBACK=0."
+    return 0
+  fi
+
+  if [ "$RESTART_PERFORMED" != "1" ]; then
+    ROLLBACK_STATUS="Not needed"
+    log_info "Rollback tidak diperlukan karena service aplikasi belum direstart."
+    return 0
+  fi
+
+  if [ -z "${PREVIOUS_HEAD:-}" ] || [ -z "${HEAD_SHA:-}" ] || [ "$PREVIOUS_HEAD" = "$HEAD_SHA" ]; then
+    ROLLBACK_STATUS="Skipped"
+    log_warn "Rollback dilewati karena commit sebelumnya tidak berbeda atau tidak tersedia."
+    return 0
+  fi
+
+  if ! git cat-file -e "${PREVIOUS_HEAD}^{commit}" >/dev/null 2>&1; then
+    ROLLBACK_STATUS="Failed"
+    log_error "Rollback gagal: commit sebelumnya tidak ditemukan (${PREVIOUS_HEAD})."
+    return 0
+  fi
+
+  log_section "Rollback otomatis"
+  log_warn "Memulai rollback karena command gagal: ${failed_command}"
+
+  if [ "$MIGRATION_STATUS" = "Yes" ]; then
+    log_warn "Migration sudah berjalan. Rollback otomatis hanya mengembalikan kode/container, bukan schema database."
+    log_warn "Gunakan backup pre-migration jika rollback database diperlukan."
+  fi
+
+  if ! git reset --hard "$PREVIOUS_HEAD"; then
+    ROLLBACK_STATUS="Failed"
+    log_error "Rollback gagal saat reset source ke commit sebelumnya."
+    return 0
+  fi
+
+  if [ "${#RESTART_SERVICES[@]}" -eq 0 ]; then
+    ROLLBACK_STATUS="Success"
+    log_info "Rollback source selesai; tidak ada service yang perlu direstart."
+    return 0
+  fi
+
+  if ! compose build "${RESTART_SERVICES[@]}"; then
+    ROLLBACK_STATUS="Failed"
+    log_error "Rollback gagal saat build image commit sebelumnya."
+    return 0
+  fi
+
+  if ! compose up -d --no-deps "${RESTART_SERVICES[@]}"; then
+    ROLLBACK_STATUS="Failed"
+    log_error "Rollback gagal saat restart service commit sebelumnya."
+    return 0
+  fi
+
+  if ! HEALTHCHECK_SERVICES="${RESTART_SERVICES[*]}" EDUFLOW_ROOT="$ROOT_DIR" bash "${SCRIPT_DIR}/healthcheck.sh"; then
+    ROLLBACK_STATUS="Failed"
+    log_error "Rollback service berjalan, tetapi health check rollback gagal."
+    return 0
+  fi
+
+  ROLLBACK_STATUS="Success"
+  log_info "Rollback otomatis selesai dan health check berhasil."
 }
 
 on_error() {
@@ -61,6 +160,7 @@ on_error() {
   log_error "Deployment gagal di line ${line_no}."
   log_error "Command: ${failed_command}"
   log_error "Exit code: ${exit_code}"
+  rollback_deploy "$failed_command"
   print_summary
   exit "$exit_code"
 }
@@ -202,6 +302,7 @@ else
 fi
 
 if [ "$RUN_MIGRATION" = "1" ] || [ "${DEPLOY_RUN_MIGRATION:-0}" = "1" ]; then
+  backup_database_before_migration
   log_section "Prisma migrate deploy"
   compose run --rm backend npx prisma migrate deploy --schema apps/backend/prisma/schema.prisma
   MIGRATION_STATUS="Yes"
@@ -232,6 +333,7 @@ if [ "${#RESTART_SERVICES[@]}" -eq 0 ]; then
   log_info "Tidak ada service aplikasi yang perlu direstart."
 else
   log_section "Restart aplikasi"
+  RESTART_PERFORMED=1
   compose up -d --no-deps "${RESTART_SERVICES[@]}"
 fi
 

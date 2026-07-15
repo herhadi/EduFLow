@@ -12,9 +12,11 @@ import {
   emptyOperationsBackups,
   emptyOperationsDashboard,
   formatBytes,
+  formatUptime,
 } from './operations-center/operations-center-utils';
 import {
   HealthCard,
+  MetricCard,
   PayloadDialog,
   QueueCount,
   StatusPill,
@@ -132,6 +134,55 @@ export function OperationsCenter() {
             status={dashboard.health.notification}
           />
           <HealthCard label="Cloudflare R2" status={dashboard.health.storage} />
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <MetricCard
+            label="CPU Load"
+            tone={dashboard.runtime.cpu.loadPercent >= 80 ? 'danger' : dashboard.runtime.cpu.loadPercent >= 60 ? 'warning' : 'neutral'}
+            value={`${dashboard.runtime.cpu.loadPercent}%`}
+          />
+          <MetricCard
+            label="RAM Server"
+            tone={dashboard.runtime.memory.systemUsedPercent >= 85 ? 'danger' : dashboard.runtime.memory.systemUsedPercent >= 70 ? 'warning' : 'neutral'}
+            value={`${dashboard.runtime.memory.systemUsedPercent}%`}
+          />
+          <MetricCard
+            label="RAM Backend"
+            value={formatBytes(dashboard.runtime.memory.processRssBytes)}
+          />
+          <MetricCard
+            label="Request/menit"
+            value={formatNumber(dashboard.requests.requestsPerMinute)}
+          />
+          <MetricCard
+            label="Error/menit"
+            tone={dashboard.requests.errorsPerMinute > 0 ? 'danger' : 'neutral'}
+            value={formatNumber(dashboard.requests.errorsPerMinute)}
+          />
+          <MetricCard
+            label="Uptime"
+            value={formatUptime(dashboard.runtime.uptimeSeconds)}
+          />
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">
+            <p className="font-black text-slate-900 dark:text-[var(--text)]">Traffic API</p>
+            <p className="mt-1">
+              {formatNumber(dashboard.requests.recentRequests)} request dalam {Math.round(dashboard.requests.windowSeconds / 60)} menit terakhir · rata-rata {dashboard.requests.averageDurationMs} ms.
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">
+            <p className="font-black text-slate-900 dark:text-[var(--text)]">Notification Queue</p>
+            <p className="mt-1">
+              Waiting {formatNumber(dashboard.queueTotals.notification?.waiting ?? 0)} · Active {formatNumber(dashboard.queueTotals.notification?.active ?? 0)} · Failed {formatNumber(dashboard.queueTotals.notification?.failed ?? 0)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">
+            <p className="font-black text-slate-900 dark:text-[var(--text)]">Attendance Queue</p>
+            <p className="mt-1">
+              Waiting {formatNumber(dashboard.queueTotals.attendance?.waiting ?? 0)} · Active {formatNumber(dashboard.queueTotals.attendance?.active ?? 0)} · Failed {formatNumber(dashboard.queueTotals.attendance?.failed ?? 0)}
+            </p>
+          </div>
         </div>
         <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700">
           <p className="font-black text-slate-900">Cloudflare R2 Storage</p>

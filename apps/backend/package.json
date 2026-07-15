@@ -6,6 +6,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "prisma:generate": "prisma generate",
+    "prisma:validate": "prisma validate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts",
     "prisma:uat": "node --import tsx prisma/uat-seed.ts"

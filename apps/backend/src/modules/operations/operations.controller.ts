@@ -11,7 +11,7 @@ export class OperationsController {
   constructor(private readonly operationsService: OperationsService) {}
 
   @Get('dashboard')
-  @RequirePermissions(PERMISSIONS.REPORTING_READ)
+  @RequirePermissions(PERMISSIONS.SYSTEM_RECOVERY_MANAGE)
   getDashboard() {
     return this.operationsService.getDashboard();
   }
