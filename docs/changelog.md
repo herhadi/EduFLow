@@ -40,6 +40,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memperkuat CI/CD production dengan job validasi sebelum deploy, script `npm run validate`, backup database sebelum migration, health check tetap wajib, serta rollback otomatis kode/container jika restart atau health check gagal.
 - Memperbaiki job validasi CI agar menyediakan `DATABASE_URL` dummy untuk `prisma validate` pada checkout sementara self-hosted runner.
 - Memperbaiki validasi CI agar menjalankan `prisma generate` sebelum backend build dan memperjelas tipe guardian pada worker summary presensi.
+- Menyembunyikan notice update Prisma pada CI/deploy dan memperpanjang timeout deploy production agar build Docker, backup, migration, dan health check tidak mudah ter-cancel.
 
 ## 2026-07-14
 

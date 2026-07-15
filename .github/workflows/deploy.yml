@@ -41,6 +41,7 @@ permissions:
 env:
   EDUFLOW_DEPLOY_PATH: /srv/eduflow/app
   EDUFLOW_LOG_DIR: /srv/eduflow/logs/deploy
+  PRISMA_HIDE_UPDATE_MESSAGE: "1"
 
 jobs:
   validate:
@@ -72,7 +73,7 @@ jobs:
     name: Deploy production
     runs-on: self-hosted
     needs: validate
-    timeout-minutes: 45
+    timeout-minutes: 90
 
     steps:
       - name: Checkout
