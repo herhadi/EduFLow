@@ -18,6 +18,8 @@ ROLLBACK_STATUS="Not needed"
 DEPLOY_STATUS="FAILED"
 HEAD_SHA=""
 RESTART_PERFORMED=0
+export COMPOSE_DOCKER_CLI_BUILD="${COMPOSE_DOCKER_CLI_BUILD:-1}"
+export DOCKER_BUILDKIT="${DOCKER_BUILDKIT:-1}"
 export PRISMA_HIDE_UPDATE_MESSAGE="${PRISMA_HIDE_UPDATE_MESSAGE:-1}"
 
 mkdir -p "$LOG_DIR"
@@ -208,6 +210,14 @@ else
   CHANGED_FILES="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" || true)"
 fi
 
+if [ "${DEPLOY_BUILD_ALL:-0}" = "1" ]; then
+  log_warn "DEPLOY_BUILD_ALL=1 aktif. Semua service aplikasi akan dibuild meskipun tidak ada diff."
+  CHANGED_FILES="__BUILD_ALL__"
+elif [ -z "$CHANGED_FILES" ] && { [ "${DEPLOY_RUN_MIGRATION:-0}" = "1" ] || [ "${DEPLOY_RUN_SEED:-0}" = "1" ]; }; then
+  log_warn "Tidak ada diff, tetapi ada aksi paksa migration/seed."
+  CHANGED_FILES="__FORCED_ACTION__"
+fi
+
 if [ -z "$CHANGED_FILES" ]; then
   log_info "Tidak ada perubahan terdeteksi. Deployment dilewati."
   DEPLOY_STATUS="SUCCESS"
@@ -231,6 +241,9 @@ while IFS= read -r changed_file; do
       BUILD_BACKEND=1
       RUN_MIGRATION=1
       START_INFRA=1
+      RUN_DEPLOY=1
+      ;;
+    __FORCED_ACTION__)
       RUN_DEPLOY=1
       ;;
     apps/frontend/*)
@@ -269,6 +282,7 @@ fi
 
 if [ "${DEPLOY_RUN_MIGRATION:-0}" = "1" ] || [ "${DEPLOY_RUN_SEED:-0}" = "1" ]; then
   START_INFRA=1
+  RUN_DEPLOY=1
 fi
 
 if [ "$RUN_DEPLOY" = "0" ]; then

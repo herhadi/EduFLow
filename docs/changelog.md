@@ -41,6 +41,8 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memperbaiki job validasi CI agar menyediakan `DATABASE_URL` dummy untuk `prisma validate` pada checkout sementara self-hosted runner.
 - Memperbaiki validasi CI agar menjalankan `prisma generate` sebelum backend build dan memperjelas tipe guardian pada worker summary presensi.
 - Menyembunyikan notice update Prisma pada CI/deploy dan memperpanjang timeout deploy production agar build Docker, backup, migration, dan health check tidak mudah ter-cancel.
+- Mengaktifkan Docker BuildKit dan cache npm pada Dockerfile backend/frontend agar deploy berikutnya tidak mengunduh dependency berulang saat build image.
+- Memperbaiki `scripts/deploy.sh` agar `DEPLOY_BUILD_ALL`, `DEPLOY_RUN_MIGRATION`, dan `DEPLOY_RUN_SEED` tetap berjalan walaupun smart diff tidak menemukan perubahan baru.
 
 ## 2026-07-14
 

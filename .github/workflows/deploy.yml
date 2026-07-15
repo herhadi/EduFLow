@@ -41,6 +41,8 @@ permissions:
 env:
   EDUFLOW_DEPLOY_PATH: /srv/eduflow/app
   EDUFLOW_LOG_DIR: /srv/eduflow/logs/deploy
+  COMPOSE_DOCKER_CLI_BUILD: "1"
+  DOCKER_BUILDKIT: "1"
   PRISMA_HIDE_UPDATE_MESSAGE: "1"
 
 jobs:
