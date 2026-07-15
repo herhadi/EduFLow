@@ -15,6 +15,8 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memindahkan kalkulasi murni jadwal seperti opsi guru-mapel, grouping kelas, target generate agenda, dan jadwal efektif per tanggal ke helper schedule agar komponen utama tidak memuat logika turunan.
 - Memulai refactor `teacher-role-management.tsx` dengan memindahkan helper status/role guru dan panel daftar guru ke folder `components/teacher-role-management`.
 - Memecah panel identitas guru, upload foto, dan akun login dari `teacher-role-management.tsx` ke `teacher-identity-account-panel.tsx`.
+- Memecah panel penugasan tahun ajaran dan kelas binaan wali kelas dari `teacher-role-management.tsx` agar pengaturan guru lebih modular tanpa mengubah alur operator.
+- Memecah pilihan role akun dan area aksi simpan/reset password guru ke komponen kecil agar `teacher-role-management.tsx` tinggal menjadi komposer state dan handler.
 
 ## 2026-07-14
 

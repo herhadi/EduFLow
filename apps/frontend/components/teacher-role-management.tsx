@@ -10,10 +10,13 @@ import {
 } from 'react';
 import { api, type SchoolClass, type SchoolYear, type Subject, type Teacher, type TeacherAssignmentStatus, type TeacherSchoolYearAssignment } from '../lib/api';
 import { getUpcomingSchoolYear } from '../lib/school-year';
+import { TeacherAccountRolePanel } from './teacher-role-management/teacher-account-role-panel';
+import { TeacherAssignmentPanel } from './teacher-role-management/teacher-assignment-panel';
+import { TeacherDetailActions } from './teacher-role-management/teacher-detail-actions';
+import { TeacherHomeroomPanel } from './teacher-role-management/teacher-homeroom-panel';
 import { TeacherIdentityAccountPanel } from './teacher-role-management/teacher-identity-account-panel';
 import { TeacherListPanel } from './teacher-role-management/teacher-list-panel';
 import {
-  assignableRoles,
   getEffectiveAssignment,
   getLegacyAssignmentStatus,
   normalizeTeacherRoles,
@@ -446,167 +449,41 @@ export function TeacherRoleManagement() {
                 username={username}
               />
 
-              <div>
-                <p className="text-sm font-black text-slate-800">Role Akun</p>
-                <p className="mt-1 text-xs font-semibold text-muted">
-                  Jika memilih Wali Kelas, role Guru otomatis ikut karena wali kelas pasti guru mapel.
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {assignableRoles.map((role) => {
-                    const active = selectedRoles.includes(role.value);
+              <TeacherAccountRolePanel
+                onToggleRole={toggleRole}
+                selectedRoles={selectedRoles}
+              />
 
-                    return (
-                      <button
-                        className={[
-                          'rounded-full border px-3 py-2 text-xs font-black transition',
-                          active
-                            ? 'border-brand-600 bg-brand-600 text-white'
-                            : 'border-blue-100 bg-white text-brand-700 hover:bg-brand-50',
-                        ].join(' ')}
-                        key={role.value}
-                        onClick={() => toggleRole(role.value)}
-                        type="button"
-                      >
-                        {role.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              <TeacherAssignmentPanel
+                assignmentNotes={assignmentNotes}
+                assignmentSchoolYearId={assignmentSchoolYearId}
+                assignmentStatus={assignmentStatus}
+                assignmentSubjectIds={assignmentSubjectIds}
+                onNotesChange={setAssignmentNotes}
+                onSave={saveTeacherSchoolYearAssignment}
+                onSchoolYearChange={setAssignmentSchoolYearId}
+                onStatusChange={setAssignmentStatus}
+                onToggleSubject={toggleAssignmentSubject}
+                schoolYears={schoolYears}
+                subjects={subjects}
+              />
 
-              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
-                <p className="text-sm font-black text-emerald-900">Riwayat Penugasan Tahun Ajaran</p>
-                <p className="mt-1 text-xs font-semibold text-emerald-800">Menjadi acuan utama untuk jadwal tahun ajaran yang dipilih.</p>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <label className="grid gap-1 text-sm font-bold text-slate-700">
-                    Tahun ajaran
-                    <select className="rounded-xl border border-emerald-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-emerald-600" onChange={(event) => setAssignmentSchoolYearId(event.target.value)} value={assignmentSchoolYearId}>
-                      {schoolYears.map((schoolYear) => <option key={schoolYear.id} value={schoolYear.id}>{schoolYear.name}</option>)}
-                    </select>
-                  </label>
-                  <label className="grid gap-1 text-sm font-bold text-slate-700">
-                    Status penugasan
-                    <select className="rounded-xl border border-emerald-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-emerald-600" onChange={(event) => setAssignmentStatus(event.target.value as TeacherAssignmentStatus)} value={assignmentStatus}>
-                      <option value="ACTIVE">Aktif mengajar</option>
-                      <option value="ON_LEAVE">Cuti</option>
-                      <option value="TRANSFERRED">Pindah sekolah</option>
-                      <option value="RETIRED">Pensiun</option>
-                      <option value="INACTIVE">Tidak ditugaskan</option>
-                    </select>
-                  </label>
-                </div>
-                <p className="mt-4 text-xs font-black text-slate-700">Mapel ampu pada tahun ajaran ini</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {subjects.map((subject) => {
-                    const active = assignmentSubjectIds.includes(subject.id);
-                    return (
-                      <button
-                        className={[
-                          'rounded-full border px-3 py-2 text-xs font-black transition',
-                          active ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-emerald-200 bg-white text-slate-700 hover:bg-emerald-100',
-                        ].join(' ')}
-                        key={subject.id}
-                        onClick={() => toggleAssignmentSubject(subject.id)}
-                        type="button"
-                      >
-                        {subject.name}
-                      </button>
-                    );
-                  })}
-                </div>
-                <label className="mt-4 grid gap-1 text-sm font-bold text-slate-700">
-                  Catatan riwayat
-                  <input className="rounded-xl border border-emerald-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-emerald-600" onChange={(event) => setAssignmentNotes(event.target.value)} placeholder="Contoh: pensiun per 1 Juli 2027" value={assignmentNotes} />
-                </label>
-                <button className="mt-4 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700 disabled:bg-slate-300" disabled={!assignmentSchoolYearId} onClick={() => void saveTeacherSchoolYearAssignment()} type="button">Simpan Penugasan Tahun Ajaran</button>
-              </div>
+              <TeacherHomeroomPanel
+                classes={classes}
+                onClearHomeroomClasses={clearHomeroomClasses}
+                onToggleHomeroomClass={toggleHomeroomClass}
+                selectedHomeroomClassIds={selectedHomeroomClassIds}
+                selectedTeacher={selectedTeacher}
+              />
 
-              <div>
-                <p className="text-sm font-black text-slate-800">Kelas Binaan Wali Kelas</p>
-                <p className="mt-1 text-xs font-semibold text-muted">
-                  Klik kelas aktif untuk mengosongkan/default. Pilih kelas lain untuk mengganti sebelum simpan.
-                </p>
-                {selectedHomeroomClassIds.length ? (
-                  <button
-                    className="mt-3 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-black text-amber-800"
-                    onClick={clearHomeroomClasses}
-                    type="button"
-                  >
-                    Kosongkan wali kelas
-                  </button>
-                ) : null}
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {classes.map((schoolClass) => {
-                    const active = selectedHomeroomClassIds.includes(schoolClass.id);
-                    const assignedToOtherTeacher =
-                      schoolClass.homeroomTeacherId &&
-                      schoolClass.homeroomTeacherId !== selectedTeacher.id;
-
-                    return (
-                      <button
-                        className={[
-                          'rounded-full border px-3 py-2 text-xs font-black transition',
-                          active
-                            ? 'border-amber-500 bg-amber-500 text-white'
-                            : assignedToOtherTeacher
-                              ? 'border-slate-200 bg-slate-100 text-slate-400'
-                              : 'border-blue-100 bg-white text-slate-700 hover:bg-brand-50',
-                        ].join(' ')}
-                        disabled={Boolean(assignedToOtherTeacher)}
-                        key={schoolClass.id}
-                        onClick={() => toggleHomeroomClass(schoolClass.id)}
-                        type="button"
-                      >
-                        {schoolClass.name}
-                        {active ? ' · aktif, klik untuk kosongkan' : ''}
-                        {assignedToOtherTeacher
-                          ? ` · ${schoolClass.homeroomTeacher?.name ?? 'sudah ada wali'}`
-                          : ''}
-                      </button>
-                    );
-                  })}
-
-                  {!classes.length ? (
-                    <div className="w-full rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs font-semibold leading-5 text-amber-900">
-                      Data kelas belum tersedia atau belum berhasil dimuat. Cek
-                      halaman `/admin/akademik` untuk memastikan kelas sudah ada,
-                      lalu refresh halaman ini.
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-
-              {message ? (
-                <div
-                  className={[
-                    'rounded-2xl border p-4 text-sm font-semibold',
-                    saveState === 'success'
-                      ? 'border-emerald-100 bg-emerald-50 text-emerald-700'
-                      : 'border-amber-200 bg-amber-50 text-amber-900',
-                  ].join(' ')}
-                >
-                  {message}
-                </div>
-              ) : null}
-
-              {selectedTeacher.user ? (
-                <button
-                  className="w-full rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-black text-amber-900 hover:bg-amber-100"
-                  onClick={() => void resetTeacherPassword()}
-                  type="button"
-                >
-                  Reset Password ke Default
-                </button>
-              ) : null}
-
-              <button
-                className="w-full rounded-2xl bg-brand-600 px-5 py-4 text-sm font-black text-white shadow-xl shadow-blue-100 transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-                disabled={saveState === 'loading' || !username.trim() || !selectedRoles.length}
-                onClick={() => void handleSave()}
-                type="button"
-              >
-                {saveState === 'loading' ? 'Menyimpan...' : 'Simpan Pengaturan Guru'}
-              </button>
+              <TeacherDetailActions
+                message={message}
+                onResetPassword={resetTeacherPassword}
+                onSave={handleSave}
+                saveDisabled={saveState === 'loading' || !username.trim() || !selectedRoles.length}
+                saveState={saveState}
+                selectedTeacher={selectedTeacher}
+              />
             </div>
           ) : (
             <p className="rounded-2xl bg-white p-4 text-sm font-semibold text-muted">
