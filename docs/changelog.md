@@ -37,12 +37,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memecah helper generate agenda backend untuk filter kelas target, pencarian semester per tanggal, key agenda, jadwal efektif harian, dan payload create `DailyAgenda` agar alur generate/coverage agenda lebih mudah dibaca.
 - Menetapkan kontrak response JSON backend melalui `docs/api-contract.md`, memperluas `ApiResponse` dengan `meta`, menambahkan helper `ok()`, dan mulai menyeragamkan response action auth ke `{ data, message }`.
 - Menambahkan monitoring root ops untuk CPU/RAM, uptime backend, request per menit, error per menit, latensi rata-rata, ringkasan notification/attendance queue, dan dokumentasi `docs/operations.md`.
-- Memperkuat CI/CD production dengan job validasi sebelum deploy, script `npm run validate`, backup database sebelum migration, health check tetap wajib, serta rollback otomatis kode/container jika restart atau health check gagal.
-- Memperbaiki job validasi CI agar menyediakan `DATABASE_URL` dummy untuk `prisma validate` pada checkout sementara self-hosted runner.
-- Memperbaiki validasi CI agar menjalankan `prisma generate` sebelum backend build dan memperjelas tipe guardian pada worker summary presensi.
-- Menyembunyikan notice update Prisma pada CI/deploy dan memperpanjang timeout deploy production agar build Docker, backup, migration, dan health check tidak mudah ter-cancel.
-- Mengaktifkan Docker BuildKit dan cache npm pada Dockerfile backend/frontend agar deploy berikutnya tidak mengunduh dependency berulang saat build image.
-- Memperbaiki `scripts/deploy.sh` agar `DEPLOY_BUILD_ALL`, `DEPLOY_RUN_MIGRATION`, dan `DEPLOY_RUN_SEED` tetap berjalan walaupun smart diff tidak menemukan perubahan baru.
+- Mengembalikan CI/CD production ke model deploy sederhana seperti sebelumnya agar self-hosted runner tidak terlalu lama tertahan, sambil mempertahankan perbaikan `DEPLOY_BUILD_ALL`, `DEPLOY_RUN_MIGRATION`, dan `DEPLOY_RUN_SEED` agar tetap berjalan walaupun smart diff kosong.
 
 ## 2026-07-14
 

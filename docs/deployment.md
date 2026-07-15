@@ -106,12 +106,7 @@ Deployment production dijalankan oleh GitHub Actions self-hosted runner melalui:
 .github/workflows/deploy.yml
 ```
 
-Workflow memiliki dua tahap:
-
-1. `validate`: install dependency, validasi Prisma, menjalankan test yang tersedia, lalu build backend dan frontend.
-2. `deploy`: menjalankan deploy dari repository production jika tahap validasi sukses.
-
-Deploy production tetap dijalankan dari repository production:
+Workflow melakukan checkout untuk membaca workflow terbaru, lalu menjalankan deploy dari repository production:
 
 ```bash
 cd "${EDUFLOW_DEPLOY_PATH:-/srv/eduflow/app}"
@@ -137,15 +132,13 @@ Script deployment melakukan:
 - build image `frontend` dan/atau `backend` sesuai perubahan,
 - restart hanya service aplikasi yang berubah dengan `docker compose up -d --no-deps`,
 - melewati persiapan PostgreSQL/Redis untuk perubahan frontend-only,
-- membuat backup PostgreSQL sebelum `prisma migrate deploy`,
 - menjalankan `npx prisma migrate deploy --schema apps/backend/prisma/schema.prisma` ketika schema atau migration berubah,
 - health check container dan HTTP ringan,
-- rollback otomatis ke commit sebelumnya jika restart/health check service aplikasi gagal,
 - cleanup image Docker tidak terpakai yang berumur lebih dari 72 jam,
 - logging ke `/srv/eduflow/logs/deploy/`.
 - menampilkan 200 baris terakhir log deployment di GitHub Actions jika deploy gagal.
 
-Rollback otomatis mengembalikan kode dan container aplikasi ke commit sebelumnya. Jika migration database sudah berjalan, rollback schema tidak dilakukan otomatis. Gunakan backup pre-migration bila database perlu dipulihkan manual.
+Validasi build/test dilakukan manual sebelum merge atau push besar. Model deploy production sengaja dibuat sederhana agar self-hosted runner tidak terlalu lama menahan job.
 
 Untuk memindahkan data demo dari lokal ke Debian tanpa akun root lokal, gunakan prosedur `Transfer Data Demo Tanpa Root` pada `docs/backup-recovery.md`. Proses ini dilakukan manual dan terpisah dari workflow deploy karena menimpa database target.
 
@@ -155,13 +148,7 @@ Variabel opsional:
 DEPLOY_BUILD_ALL=1
 DEPLOY_RUN_MIGRATION=1
 DEPLOY_RUN_SEED=1
-DEPLOY_ENABLE_ROLLBACK=1
-DEPLOY_SKIP_PRE_MIGRATION_BACKUP=0
-DEPLOY_BACKUP_DIR=/srv/eduflow/backups/pre-migrate
 DEPLOY_LOG_DIR=/srv/eduflow/logs/deploy
-COMPOSE_DOCKER_CLI_BUILD=1
-DOCKER_BUILDKIT=1
-PRISMA_HIDE_UPDATE_MESSAGE=1
 FRONTEND_HEALTH_URL=http://localhost:3000/api/health
 BACKEND_HEALTH_URL=http://localhost:3001/health
 HTTP_HEALTH_RETRIES=12

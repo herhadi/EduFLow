@@ -38,7 +38,7 @@ Dokumen ini merangkum prinsip keamanan awal EduFlow untuk development dan produc
 - Workflow deployment hanya berjalan pada self-hosted runner.
 - Deployment memakai lock agar tidak ada dua proses production berjalan bersamaan.
 - Log deployment berada di server dan tidak masuk Git.
-- Deployment menjalankan validasi sebelum deploy, backup sebelum migration, health check setelah restart, dan rollback otomatis kode/container jika health check gagal.
+- Deployment menjalankan build, migration sesuai perubahan, restart service terkait, dan health check. Backup/rollback besar dilakukan manual sesuai prosedur recovery.
 
 ## Akun Aplikasi
 
