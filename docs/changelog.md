@@ -30,6 +30,9 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memecah `parent-portal.tsx` menjadi section ringkasan, kartu anak, riwayat presensi, nilai harian, dan helper status presensi agar portal wali murid lebih mudah dikembangkan.
 - Memecah `teacher-performance-dashboard.tsx` menjadi helper range/filter risiko dan komponen kartu performa guru agar monitoring KS lebih mudah dirawat.
 - Merapikan `operations-center.tsx` dengan memindahkan state kosong, format storage, kartu health, ringkasan queue, dan dialog payload job ke helper/komponen operasi.
+- Memecah `mobile-app-shell.tsx` menjadi shell utama, helper akses namespace, dan komponen navigasi/topbar agar guard role dan navigasi global lebih mudah dirawat.
+- Memecah `master-data-dashboard.tsx` menjadi util tab/row dan komponen list responsif agar dashboard master data tetap ringan.
+- Merapikan `academic-master-management.tsx` dengan memindahkan helper default tahun ajaran, grouping kelas/jam, payload slot, dan draft edit jam pelajaran ke util master akademik.
 
 ## 2026-07-14
 

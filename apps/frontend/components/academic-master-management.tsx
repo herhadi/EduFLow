@@ -9,17 +9,23 @@ import {
   type SchoolYear,
   type Subject,
 } from '../lib/api';
-import { getPreferredSchoolYear, getUpcomingSchoolYear } from '../lib/school-year';
+import { getPreferredSchoolYear } from '../lib/school-year';
 import { AcademicTimeSlotForm } from './academic-master/academic-time-slot-form';
 import {
   type AcademicClassFormState,
   type AcademicTimeSlotFormState,
   type CloneSchoolYearMasterFormState,
   createDefaultTimeSlotForm,
-  grades,
   schoolYearNameRegex,
-  weekdayOptions,
 } from './academic-master/academic-master-constants';
+import {
+  getGroupedClasses,
+  getInitialCloneSelection,
+  getTimeSlotEditForm,
+  getTimeSlotPayload,
+  getTimeSlotsByDay,
+  sortAcademicTimeSlots,
+} from './academic-master/academic-master-utils';
 import { ClassManagementPanel } from './academic-master/class-management-panel';
 import { SubjectManagementPanel } from './academic-master/subject-management-panel';
 import { TimeSlotManagementPanel } from './academic-master/time-slot-management-panel';
@@ -74,17 +80,12 @@ export function AcademicMasterManagement() {
       setSchoolYears(yearResponse.data);
       setTimeSlots(timeSlotResponse.data);
       setCloneForm((current) => {
-        const sourceSchoolYear = getPreferredSchoolYear(yearResponse.data);
-        const upcomingSchoolYear = getUpcomingSchoolYear(yearResponse.data);
-        const targetSchoolYear =
-          upcomingSchoolYear?.id !== sourceSchoolYear?.id
-            ? upcomingSchoolYear
-            : yearResponse.data.find((schoolYear) => schoolYear.id !== sourceSchoolYear?.id);
+        const selection = getInitialCloneSelection(yearResponse.data);
 
         return {
           ...current,
-          sourceSchoolYearId: current.sourceSchoolYearId || sourceSchoolYear?.id || '',
-          targetSchoolYearId: current.targetSchoolYearId || targetSchoolYear?.id || '',
+          sourceSchoolYearId: current.sourceSchoolYearId || selection.sourceSchoolYearId,
+          targetSchoolYearId: current.targetSchoolYearId || selection.targetSchoolYearId,
         };
       });
       setClassForm((current) => ({
@@ -108,28 +109,12 @@ export function AcademicMasterManagement() {
   }, []);
 
   const groupedClasses = useMemo(
-    () =>
-      grades.map((grade) => ({
-        grade,
-        classes: sortSchoolClasses(
-          classes.filter(
-            (schoolClass) =>
-              schoolClass.grade === grade &&
-              (!classForm.schoolYearId || schoolClass.schoolYearId === classForm.schoolYearId),
-          ),
-        ),
-      })),
+    () => getGroupedClasses(classes, classForm.schoolYearId),
     [classForm.schoolYearId, classes],
   );
 
   const timeSlotsByDay = useMemo(
-    () =>
-      weekdayOptions.map((day) => ({
-        ...day,
-        slots: timeSlots
-          .filter((slot) => slot.schoolYearId === selectedTimeSlotSchoolYearId && slot.dayOfWeek === day.value)
-          .sort((first, second) => first.startsAt.localeCompare(second.startsAt)),
-      })),
+    () => getTimeSlotsByDay(timeSlots, selectedTimeSlotSchoolYearId),
     [selectedTimeSlotSchoolYearId, timeSlots],
   );
 
@@ -272,16 +257,7 @@ export function AcademicMasterManagement() {
     setIsSavingTimeSlot(true);
 
     try {
-      const payload = {
-        schoolYearId: timeSlotForm.schoolYearId,
-        dayOfWeek: Number(timeSlotForm.dayOfWeek),
-        periodNumber: timeSlotForm.periodNumber ? Number(timeSlotForm.periodNumber) : undefined,
-        name: timeSlotForm.name.trim(),
-        type: timeSlotForm.type,
-        startsAt: timeSlotForm.startsAt,
-        endsAt: timeSlotForm.endsAt,
-        isAssignable: timeSlotForm.isAssignable,
-      };
+      const payload = getTimeSlotPayload(timeSlotForm);
       const response = editingTimeSlotId
         ? await api.updateAcademicTimeSlot(editingTimeSlotId, {
             ...payload,
@@ -294,11 +270,7 @@ export function AcademicMasterManagement() {
           ...current.filter((item) => item.id !== response.data.id),
           response.data,
         ];
-        return next.sort((first, second) =>
-          first.schoolYearId.localeCompare(second.schoolYearId) ||
-          first.dayOfWeek - second.dayOfWeek ||
-          first.startsAt.localeCompare(second.startsAt),
-        );
+        return sortAcademicTimeSlots(next);
       });
       resetTimeSlotForm(selectedTimeSlotSchoolYearId || timeSlotForm.schoolYearId);
       toast.success(
@@ -318,16 +290,7 @@ export function AcademicMasterManagement() {
   function startEditTimeSlot(slot: AcademicTimeSlot) {
     setIsAddingTimeSlot(false);
     setEditingTimeSlotId(slot.id);
-    setTimeSlotForm({
-      schoolYearId: slot.schoolYearId,
-      dayOfWeek: slot.dayOfWeek,
-      periodNumber: slot.periodNumber ? String(slot.periodNumber) : '',
-      name: slot.name,
-      type: slot.type,
-      startsAt: slot.startsAt,
-      endsAt: slot.endsAt,
-      isAssignable: slot.isAssignable,
-    });
+    setTimeSlotForm(getTimeSlotEditForm(slot));
   }
 
   function startAddTimeSlot() {
