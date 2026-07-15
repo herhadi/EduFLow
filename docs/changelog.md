@@ -19,6 +19,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memecah pilihan role akun dan area aksi simpan/reset password guru ke komponen kecil agar `teacher-role-management.tsx` tinggal menjadi komposer state dan handler.
 - Memulai refactor `operational-dashboard.tsx` dengan memindahkan helper KBM, item tindak lanjut agenda, dan panel prioritas Kepala Sekolah ke folder `components/operational-dashboard`.
 - Memecah panel Kendali KBM operasional ke `kbm-control-panel.tsx`, sehingga `operational-dashboard.tsx` tinggal mengatur komposisi ringkasan utama.
+- Memulai refactor `notification-center.tsx` dengan memindahkan helper tab/label/tanggal, inbox personal, dan tabel notifikasi operasional ke folder `components/notification-center`.
 
 ## 2026-07-14
 
