@@ -33,6 +33,8 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memecah `mobile-app-shell.tsx` menjadi shell utama, helper akses namespace, dan komponen navigasi/topbar agar guard role dan navigasi global lebih mudah dirawat.
 - Memecah `master-data-dashboard.tsx` menjadi util tab/row dan komponen list responsif agar dashboard master data tetap ringan.
 - Merapikan `academic-master-management.tsx` dengan memindahkan helper default tahun ajaran, grouping kelas/jam, payload slot, dan draft edit jam pelajaran ke util master akademik.
+- Memulai refactor backend akademik dengan memindahkan helper murni jadwal, revisi efektif, rentang tanggal agenda, reminder guru, dan assignment efektif ke `schedules/schedule-utils.ts`.
+- Memecah helper generate agenda backend untuk filter kelas target, pencarian semester per tanggal, key agenda, jadwal efektif harian, dan payload create `DailyAgenda` agar alur generate/coverage agenda lebih mudah dibaca.
 
 ## 2026-07-14
 

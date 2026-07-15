@@ -30,6 +30,20 @@ import { SetClassHomeroomTeacherDto } from './dto/set-class-homeroom-teacher.dto
 import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
 import { SetTeacherSchoolYearAssignmentDto } from './dto/set-teacher-school-year-assignment.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
+import {
+  getDateRange,
+  getEffectiveTeacherAssignment,
+  getReminderDateTime,
+  getScheduleSnapshotAtDate,
+} from './schedules/schedule-utils';
+import {
+  buildDailyAgendaCreateData,
+  findSemesterForDate,
+  getAgendaDateKey,
+  getAgendaKey,
+  getClassIdFilter,
+  getEffectiveSchedulesForDate,
+} from './schedules/agenda-generation-utils';
 
 @Injectable()
 export class AcademicService {
@@ -1385,7 +1399,7 @@ export class AcademicService {
 
     return {
       data: schedules
-        .map((schedule) => this.getScheduleSnapshotAtDate(schedule, today))
+        .map((schedule) => getScheduleSnapshotAtDate(schedule, today))
         .filter((schedule) => schedule.teacherId === teacher.id)
         .sort((first, second) =>
           first.dayOfWeek - second.dayOfWeek ||
@@ -1675,7 +1689,7 @@ export class AcademicService {
       throw new BadRequestException('Tanggal ini diblokir oleh Kaldik, agenda tidak dapat dibuat');
     }
 
-    const effectiveSchedule = this.getScheduleSnapshotAtDate(schedule, agendaDate);
+    const effectiveSchedule = getScheduleSnapshotAtDate(schedule, agendaDate);
     const semester = await this.prisma.semester.findFirstOrThrow({ where: { schoolYearId: schedule.schoolYearId, startsAt: { lte: agendaDate }, endsAt: { gte: agendaDate }, deletedAt: null } });
     const agenda = await this.createAgendaFromEffectiveSchedule(effectiveSchedule, semester.id, agendaDate);
 
@@ -1704,7 +1718,7 @@ export class AcademicService {
       throw new BadRequestException('Tanggal akhir tidak boleh lebih awal dari tanggal mulai');
     }
 
-    const dates = this.getDateRange(startsAt, endsAt);
+    const dates = getDateRange(startsAt, endsAt);
 
     if (dates.length > 31) {
       throw new BadRequestException('Generate agenda manual maksimal 31 hari per proses');
@@ -1736,34 +1750,22 @@ export class AcademicService {
         revisions: { orderBy: { effectiveFrom: 'asc' } },
       },
     });
-    const classIds = dto.classIds?.length
-      ? new Set(dto.classIds)
-      : dto.classId
-        ? new Set([dto.classId])
-        : null;
+    const classIds = getClassIdFilter(dto);
     const agendas = [];
     let skipped = 0;
     let calendarSkipped = 0;
 
     for (const agendaDate of dates) {
-      if (blockedDates.has(agendaDate.toISOString().slice(0, 10))) {
+      if (blockedDates.has(getAgendaDateKey(agendaDate))) {
         calendarSkipped += 1;
         continue;
       }
 
-      const semester = semesters.find(
-        (item) => item.startsAt <= agendaDate && item.endsAt >= agendaDate,
-      );
+      const semester = findSemesterForDate(semesters, agendaDate);
 
       if (!semester) continue;
 
-      const dayOfWeek = this.getDayOfWeek(agendaDate);
-      const effectiveSchedules = schedules
-        .map((schedule) => this.getScheduleSnapshotAtDate(schedule, agendaDate))
-        .filter((schedule) =>
-          schedule.dayOfWeek === dayOfWeek &&
-          (!classIds || classIds.has(schedule.classId)),
-        );
+      const effectiveSchedules = getEffectiveSchedulesForDate(schedules, agendaDate, classIds);
 
       for (const schedule of effectiveSchedules) {
         const existingAgenda = await this.prisma.dailyAgenda.findFirst({
@@ -1875,7 +1877,7 @@ export class AcademicService {
     const endsAt = this.toDateOnly(input.endsAt);
     if (endsAt < startsAt) throw new BadRequestException('Tanggal akhir tidak boleh lebih awal dari tanggal mulai');
 
-    const dates = this.getDateRange(startsAt, endsAt);
+    const dates = getDateRange(startsAt, endsAt);
     const blockedDates = await this.getBlockedAgendaDates(input.schoolYearId, startsAt, endsAt);
     const schedules = await this.prisma.schedule.findMany({
       where: {
@@ -1894,26 +1896,25 @@ export class AcademicService {
       },
       select: { scheduleId: true, date: true },
     });
-    const agendaKeys = new Set(existingAgendas.map((agenda) => `${agenda.scheduleId}:${agenda.date.toISOString().slice(0, 10)}`));
+    const agendaKeys = new Set(existingAgendas
+      .filter((agenda): agenda is { scheduleId: string; date: Date } => Boolean(agenda.scheduleId))
+      .map((agenda) => getAgendaKey(agenda.scheduleId, agenda.date)));
     const missing: Array<{ date: string; scheduleId: string; classId: string; subjectId: string; teacherId: string; startsAt: string; endsAt: string }> = [];
     let expected = 0;
     let blockedDateCount = 0;
 
     for (const date of dates) {
-      const dateKey = date.toISOString().slice(0, 10);
+      const dateKey = getAgendaDateKey(date);
       if (blockedDates.has(dateKey)) {
         blockedDateCount += 1;
         continue;
       }
 
-      const dayOfWeek = this.getDayOfWeek(date);
-      const effectiveSchedules = schedules
-        .map((schedule) => this.getScheduleSnapshotAtDate(schedule, date))
-        .filter((schedule) => schedule.dayOfWeek === dayOfWeek);
+      const effectiveSchedules = getEffectiveSchedulesForDate(schedules, date);
 
       for (const schedule of effectiveSchedules) {
         expected += 1;
-        if (!agendaKeys.has(`${schedule.id}:${dateKey}`)) {
+        if (!agendaKeys.has(getAgendaKey(schedule.id, date))) {
           missing.push({
             date: dateKey,
             scheduleId: schedule.id,
@@ -2015,7 +2016,7 @@ export class AcademicService {
       throw new BadRequestException('Guru tidak valid');
     }
 
-    const assignment = this.getEffectiveTeacherAssignment(
+    const assignment = getEffectiveTeacherAssignment(
       teacher.yearAssignments,
       semester.schoolYear.startsAt,
     );
@@ -2085,7 +2086,7 @@ export class AcademicService {
       throw new BadRequestException('Guru, mata pelajaran, atau slot waktu tidak valid');
     }
 
-    const yearAssignment = this.getEffectiveTeacherAssignment(
+    const yearAssignment = getEffectiveTeacherAssignment(
       teacher.yearAssignments,
       semester.schoolYear.startsAt,
     );
@@ -2157,7 +2158,7 @@ export class AcademicService {
     });
 
     const conflict = schedules
-      .map((schedule) => this.getScheduleSnapshotAtDate(schedule, effectiveFrom))
+      .map((schedule) => getScheduleSnapshotAtDate(schedule, effectiveFrom))
       .find((schedule) =>
         schedule.dayOfWeek === nextSchedule.dayOfWeek &&
         schedule.startsAt < nextSchedule.endsAt &&
@@ -2170,12 +2171,6 @@ export class AcademicService {
         `Revisi jadwal bentrok dengan ${conflict.class.name} (${conflict.startsAt}-${conflict.endsAt}) atau jadwal guru ${conflict.teacher.name}`,
       );
     }
-  }
-
-  private getScheduleSnapshotAtDate(schedule: any, effectiveFrom: Date) {
-    const revision = this.getEffectiveScheduleRevision(schedule.revisions, effectiveFrom);
-
-    return revision ? { ...schedule, ...revision } : schedule;
   }
 
   private async createAgendaFromEffectiveSchedule(
@@ -2191,16 +2186,7 @@ export class AcademicService {
     agendaDate: Date,
   ) {
     const agenda = await this.prisma.dailyAgenda.create({
-      data: {
-        scheduleId: schedule.id,
-        schoolYearId: schedule.schoolYearId,
-        semesterId,
-        classId: schedule.classId,
-        subjectId: schedule.subjectId,
-        teacherId: schedule.teacherId,
-        date: agendaDate,
-        status: AgendaStatus.SCHEDULED,
-      },
+      data: buildDailyAgendaCreateData(schedule, semesterId, agendaDate),
       include: {
         class: true,
         subject: true,
@@ -2217,7 +2203,12 @@ export class AcademicService {
 
   private async enqueueTeacherReminderBeforeClass(agendaId: string, agendaDate: Date, startsAt: string) {
     try {
-      const reminderAt = this.getReminderDateTime(agendaDate, startsAt);
+      const reminderAt = getReminderDateTime({
+        date: agendaDate,
+        startsAt,
+        timezoneOffsetMinutes: this.getSchoolTimezoneOffsetMinutes(),
+        reminderOffsetMinutes: this.reminderOffsetMinutes,
+      });
       const classStartsAt = new Date(reminderAt.getTime() + (this.reminderOffsetMinutes * 60_000));
 
       if (classStartsAt.getTime() <= Date.now()) {
@@ -2240,41 +2231,6 @@ export class AcademicService {
         }),
       );
     }
-  }
-
-  private getReminderDateTime(date: Date, startsAt: string) {
-    const [hoursText, minutesText] = startsAt.split(':');
-    const hours = Number(hoursText);
-    const minutes = Number(minutesText);
-    const timezoneOffsetMinutes = Number(
-      this.configService.get<string>('SCHOOL_TIMEZONE_OFFSET_MINUTES') ?? this.defaultTimezoneOffsetMinutes,
-    );
-    const localStartUtcMs = Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-      hours,
-      minutes,
-    ) - (timezoneOffsetMinutes * 60_000);
-
-    return new Date(localStartUtcMs - (this.reminderOffsetMinutes * 60_000));
-  }
-
-  private getEffectiveScheduleRevision(
-    revisions: Array<{ effectiveFrom: Date }> | undefined,
-    effectiveFrom: Date,
-  ) {
-    return revisions
-      ?.filter((item) => item.effectiveFrom <= effectiveFrom)
-      .at(-1);
-  }
-
-  private getEffectiveTeacherAssignment<Assignment extends {
-    schoolYear: { startsAt: Date };
-  }>(assignments: Assignment[], schoolYearStartsAt: Date) {
-    return assignments
-      .filter((assignment) => assignment.schoolYear.startsAt <= schoolYearStartsAt)
-      .sort((first, second) => second.schoolYear.startsAt.getTime() - first.schoolYear.startsAt.getTime())[0];
   }
 
   private async withTeacherPhotoUrl<T extends { photoKey?: string | null; photoName?: string | null }>(teacher: T) {
@@ -2350,7 +2306,7 @@ export class AcademicService {
       },
       select: { startsAt: true, endsAt: true },
     });
-    return new Set(events.flatMap((event) => this.getDateRange(event.startsAt, event.endsAt)
+    return new Set(events.flatMap((event) => getDateRange(event.startsAt, event.endsAt)
       .map((date) => date.toISOString().slice(0, 10))));
   }
 
@@ -2361,9 +2317,7 @@ export class AcademicService {
   }
 
   private getTodayDateOnly() {
-    const timezoneOffsetMinutes = Number(
-      this.configService.get<string>('SCHOOL_TIMEZONE_OFFSET_MINUTES') ?? this.defaultTimezoneOffsetMinutes,
-    );
+    const timezoneOffsetMinutes = this.getSchoolTimezoneOffsetMinutes();
     const localNow = new Date(Date.now() + timezoneOffsetMinutes * 60_000);
     return new Date(Date.UTC(
       localNow.getUTCFullYear(),
@@ -2372,21 +2326,10 @@ export class AcademicService {
     ));
   }
 
-  private getDayOfWeek(date: Date) {
-    const day = date.getUTCDay();
-    return day === 0 ? 7 : day;
-  }
-
-  private getDateRange(startsAt: Date, endsAt: Date) {
-    const dates: Date[] = [];
-    const current = new Date(startsAt);
-
-    while (current <= endsAt) {
-      dates.push(new Date(current));
-      current.setUTCDate(current.getUTCDate() + 1);
-    }
-
-    return dates;
+  private getSchoolTimezoneOffsetMinutes() {
+    return Number(
+      this.configService.get<string>('SCHOOL_TIMEZONE_OFFSET_MINUTES') ?? this.defaultTimezoneOffsetMinutes,
+    );
   }
 
   private getDefaultUserPassword() {
