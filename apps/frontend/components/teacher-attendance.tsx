@@ -1,26 +1,23 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, type Attendance, type AttendanceStatus, type DailyAgenda } from '../lib/api';
-import { Badge } from './ui/badge';
+import { AgendaCard } from './teacher-attendance/agenda-card';
+import {
+  AttendanceHeader,
+  AttendanceListMode,
+  AttendanceQuickMode,
+  AttendanceSummary,
+} from './teacher-attendance/attendance-editor-sections';
+import {
+  getChecklistLabel,
+  getToday,
+  type AttendanceMode,
+} from './teacher-attendance/teacher-attendance-utils';
 import { Button } from './ui/button';
-import { CameraCaptureButton } from './ui/camera-capture-button';
 import { SurfaceCard } from './ui/card';
 import { EmptyState } from './ui/empty-state';
-import { Pagination } from './ui/pagination';
 import { useToast } from './ui/toast';
-
-const statuses: Array<{ value: AttendanceStatus; label: string }> = [
-  { value: 'PRESENT', label: 'Hadir' },
-  { value: 'SICK', label: 'Sakit' },
-  { value: 'EXCUSED', label: 'Izin' },
-  { value: 'ABSENT', label: 'Alpha' },
-];
-const pageSize = 10;
-
-type AttendanceMode = 'list' | 'quick';
-
-const today = () => new Date().toISOString().slice(0, 10);
 
 export function TeacherAttendance() {
   const toast = useToast();
@@ -42,7 +39,7 @@ export function TeacherAttendance() {
 
   async function load() {
     try {
-      setAgendas((await api.getMyAgendas(today())).data);
+      setAgendas((await api.getMyAgendas(getToday())).data);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Agenda hari ini gagal dimuat.');
     }
@@ -272,214 +269,4 @@ export function TeacherAttendance() {
       ) : null}
     </section>
   );
-}
-
-function AgendaCard({
-  agenda,
-  onOpen,
-}: {
-  agenda: DailyAgenda;
-  onOpen: (agenda: DailyAgenda) => void;
-}) {
-  const isSubmitted =
-    agenda.status === 'COMPLETED' ||
-    Boolean(agenda.attendance?.submittedAt) ||
-    ['SUBMITTED', 'APPROVED', 'CORRECTED', 'LOCKED'].includes(agenda.attendance?.state ?? '');
-  const canOpen = !isSubmitted && agenda.canManageAttendance !== false;
-
-  return (
-    <article className="surface-card flex flex-wrap items-center justify-between gap-3 rounded-[2rem] p-5">
-      <div>
-        <p className="text-xs font-black text-brand-700">
-          {agenda.schedule?.startsAt ?? 'Jam belum diatur'} · {agenda.class.name}
-        </p>
-        <h2 className="mt-1 text-lg font-black">{agenda.subject.name}</h2>
-        {agenda.substituteTeacher ? (
-          <p className="mt-1 text-xs font-black text-amber-700">
-            Guru pengganti: {agenda.substituteTeacher.name}
-          </p>
-        ) : null}
-        {isSubmitted ? (
-          <Badge className="mt-2" tone="success">
-            Presensi sudah selesai
-          </Badge>
-        ) : null}
-        {!isSubmitted && agenda.canManageAttendance === false ? (
-          <Badge className="mt-2" tone="warning">
-            Presensi dialihkan ke guru pengganti
-          </Badge>
-        ) : null}
-      </div>
-      <Button disabled={!canOpen} onClick={() => void onOpen(agenda)}>
-        {isSubmitted
-          ? 'Sudah Submit'
-          : agenda.canManageAttendance === false
-            ? 'Dialihkan'
-            : 'Buka Presensi'}
-      </Button>
-    </article>
-  );
-}
-
-function AttendanceHeader({
-  classPhotoName,
-  onPickPhoto,
-  photoName,
-}: {
-  classPhotoName?: string | null;
-  onPickPhoto: () => void;
-  photoName?: string;
-}) {
-  return (
-    <div className="surface-card rounded-[2rem] p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h2 className="text-xl font-black">Presensi Siswa</h2>
-          <p className="mt-1 text-sm text-muted">
-            Isi catatan materi, cek kehadiran siswa, lalu submit presensi.
-          </p>
-          {photoName || classPhotoName ? (
-            <p className="mt-2 text-xs font-bold text-muted">
-              Foto: {photoName ?? classPhotoName}
-            </p>
-          ) : null}
-        </div>
-        <CameraCaptureButton onClick={onPickPhoto}>Foto Kelas</CameraCaptureButton>
-      </div>
-    </div>
-  );
-}
-
-function AttendanceListMode({
-  attendance,
-  onPageChange,
-  onUpdate,
-  page,
-}: {
-  attendance: Attendance;
-  onPageChange: (page: number) => void;
-  onUpdate: (id: string, status: AttendanceStatus) => void;
-  page: number;
-}) {
-  const totalPages = Math.max(Math.ceil(attendance.items.length / pageSize), 1);
-  const safePage = Math.min(page, totalPages);
-  const visibleItems = attendance.items.slice((safePage - 1) * pageSize, safePage * pageSize);
-
-  useEffect(() => {
-    if (page !== safePage) {
-      onPageChange(safePage);
-    }
-  }, [onPageChange, page, safePage]);
-
-  return (
-    <>
-      <div className="mt-4 grid gap-2 md:grid-cols-2">
-        {visibleItems.map((item) => (
-          <div
-            className="grid grid-cols-[minmax(0,1fr)_8.5rem] items-center gap-3 rounded-2xl border border-slate-100 bg-white px-3 py-3"
-            key={item.id}
-          >
-            <p className="min-w-0 truncate text-sm font-bold">{item.student.name}</p>
-            <select
-              className="min-w-0 rounded-xl border px-3 py-2 text-sm"
-              onChange={(event) => onUpdate(item.id, event.target.value as AttendanceStatus)}
-              value={item.status}
-            >
-              {statuses.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        ))}
-      </div>
-      <Pagination
-        onPageChange={onPageChange}
-        page={safePage}
-        pageSize={pageSize}
-        totalItems={attendance.items.length}
-      />
-    </>
-  );
-}
-
-function AttendanceQuickMode({
-  attendance,
-  onSelect,
-  onUpdate,
-  selectedItemId,
-}: {
-  attendance: Attendance;
-  onSelect: (id: string) => void;
-  onUpdate: (id: string, status: AttendanceStatus) => void;
-  selectedItemId: string;
-}) {
-  const selectedItem = attendance.items.find((item) => item.id === selectedItemId) ?? attendance.items[0];
-
-  return (
-    <div className="mt-4 grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
-      <label className="grid gap-2 text-sm font-bold">
-        Pilih Siswa
-        <select
-          className="min-w-0 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600"
-          onChange={(event) => onSelect(event.target.value)}
-          value={selectedItem?.id ?? ''}
-        >
-          {attendance.items.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.student.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="grid gap-2 text-sm font-bold">
-        Status
-        <select
-          className="min-w-0 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600"
-          disabled={!selectedItem}
-          onChange={(event) => selectedItem && onUpdate(selectedItem.id, event.target.value as AttendanceStatus)}
-          value={selectedItem?.status ?? 'PRESENT'}
-        >
-          {statuses.map((status) => (
-            <option key={status.value} value={status.value}>
-              {status.label}
-            </option>
-          ))}
-        </select>
-      </label>
-    </div>
-  );
-}
-
-function AttendanceSummary({ attendance }: { attendance: Attendance }) {
-  const summary = useMemo(() => {
-    return attendance.items.reduce<Record<AttendanceStatus, number>>(
-      (result, item) => {
-        result[item.status] += 1;
-        return result;
-      },
-      { PRESENT: 0, SICK: 0, EXCUSED: 0, ABSENT: 0 },
-    );
-  }, [attendance.items]);
-
-  return (
-    <div className="mt-4 grid grid-cols-4 gap-2">
-      {statuses.map((status) => (
-        <div className="rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-center" key={status.value}>
-          <p className="text-lg font-black text-slate-900">{summary[status.value]}</p>
-          <p className="text-[11px] font-black text-muted">{status.label}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function getChecklistLabel(key: 'teacherPresent' | 'studentAttendanceDone' | 'classPhotoDone') {
-  const labels = {
-    teacherPresent: 'Guru hadir',
-    studentAttendanceDone: 'Presensi siswa selesai',
-    classPhotoDone: 'Foto kelas tersedia',
-  };
-  return labels[key];
 }
