@@ -14,8 +14,9 @@
     "build": "npm run build --workspaces --if-present",
     "build:backend": "npm run build --workspace backend",
     "build:frontend": "npm run build --workspace frontend",
+    "prisma:generate": "npm run prisma:generate --workspace backend",
     "prisma:validate": "npm run prisma:validate --workspace backend",
     "test": "npm run test --workspaces --if-present",
-    "validate": "npm run prisma:validate && npm run test && npm run build:backend && npm run build:frontend"
+    "validate": "npm run prisma:validate && npm run prisma:generate && npm run test && npm run build:backend && npm run build:frontend"
   }
 }

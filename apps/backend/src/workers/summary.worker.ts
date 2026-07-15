@@ -5,6 +5,14 @@ import { AttendanceStatus, NotificationStatus } from '@prisma/client';
 import { Job } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 
+type GuardianRecipient = {
+  deletedAt: Date | null;
+  email: string | null;
+  isActive: boolean;
+  name: string;
+  phone: string | null;
+};
+
 @Processor(QUEUES.ATTENDANCE_SUMMARY)
 export class SummaryWorker extends WorkerHost {
   private readonly logger = new Logger(SummaryWorker.name);
@@ -99,7 +107,7 @@ export class SummaryWorker extends WorkerHost {
 
     for (const item of attendance.items) {
       const guardianRecipients = this.uniqueActiveGuardianRecipients(
-        item.student.guardians.map((relation) => relation.guardian),
+        item.student.guardians.map((relation: { guardian: GuardianRecipient }) => relation.guardian),
       );
 
       for (const { guardian, recipient } of guardianRecipients) {
@@ -151,9 +159,7 @@ export class SummaryWorker extends WorkerHost {
     return created;
   }
 
-  private uniqueActiveGuardianRecipients<
-    T extends { email: string | null; phone: string | null; isActive: boolean; deletedAt: Date | null },
-  >(guardians: T[]) {
+  private uniqueActiveGuardianRecipients<T extends GuardianRecipient>(guardians: T[]) {
     return Array.from(
       new Map(
         guardians

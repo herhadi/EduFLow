@@ -39,6 +39,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan monitoring root ops untuk CPU/RAM, uptime backend, request per menit, error per menit, latensi rata-rata, ringkasan notification/attendance queue, dan dokumentasi `docs/operations.md`.
 - Memperkuat CI/CD production dengan job validasi sebelum deploy, script `npm run validate`, backup database sebelum migration, health check tetap wajib, serta rollback otomatis kode/container jika restart atau health check gagal.
 - Memperbaiki job validasi CI agar menyediakan `DATABASE_URL` dummy untuk `prisma validate` pada checkout sementara self-hosted runner.
+- Memperbaiki validasi CI agar menjalankan `prisma generate` sebelum backend build dan memperjelas tipe guardian pada worker summary presensi.
 
 ## 2026-07-14
 
