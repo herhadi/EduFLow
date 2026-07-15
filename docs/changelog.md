@@ -20,6 +20,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memulai refactor `operational-dashboard.tsx` dengan memindahkan helper KBM, item tindak lanjut agenda, dan panel prioritas Kepala Sekolah ke folder `components/operational-dashboard`.
 - Memecah panel Kendali KBM operasional ke `kbm-control-panel.tsx`, sehingga `operational-dashboard.tsx` tinggal mengatur komposisi ringkasan utama.
 - Memulai refactor `notification-center.tsx` dengan memindahkan helper tab/label/tanggal, inbox personal, dan tabel notifikasi operasional ke folder `components/notification-center`.
+- Memecah `admin-access-center.tsx` menjadi helper role/penjelasan, panel User Management, dan panel Teacher Admin agar halaman akses root lebih mudah dirawat.
 
 ## 2026-07-14
 
