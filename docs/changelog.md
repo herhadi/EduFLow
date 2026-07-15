@@ -4,7 +4,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 ## 2026-07-15
 
-- Melanjutkan refactor UI global pada alur perangkat ajar: halaman perangkat ajar guru dan review Kepala Sekolah mulai memakai `Button`, `Badge`, `SurfaceCard`, `FormField`, `LoadingState`, dan `EmptyState` agar pola form, status, dan aksi lebih konsisten.
+- Mulai refactor UI global pada alur perangkat ajar: halaman perangkat ajar guru dan review Kepala Sekolah mulai memakai `Button`, `Badge`, `SurfaceCard`, `FormField`, `LoadingState`, dan `EmptyState` agar pola form, status, dan aksi lebih konsisten.
 - Melanjutkan migrasi komponen UI global pada nilai harian guru, audit trail, dan sebagian dashboard operasional agar form, search, loading, empty state, status badge, dan tombol aksi memakai pola yang sama.
 - Memulai pemecahan `academic-master-management.tsx` dengan mengekstrak konstanta master akademik dan form jam pelajaran ke folder `components/academic-master`, sehingga halaman admin akademik mulai lebih mudah dirawat.
 - Memecah panel `Rombongan Belajar` dan `Manajemen Mata Pelajaran` dari `academic-master-management.tsx` ke komponen khusus agar halaman admin akademik tidak lagi menampung seluruh JSX master data dalam satu file.
@@ -17,6 +17,8 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memecah panel identitas guru, upload foto, dan akun login dari `teacher-role-management.tsx` ke `teacher-identity-account-panel.tsx`.
 - Memecah panel penugasan tahun ajaran dan kelas binaan wali kelas dari `teacher-role-management.tsx` agar pengaturan guru lebih modular tanpa mengubah alur operator.
 - Memecah pilihan role akun dan area aksi simpan/reset password guru ke komponen kecil agar `teacher-role-management.tsx` tinggal menjadi komposer state dan handler.
+- Memulai refactor `operational-dashboard.tsx` dengan memindahkan helper KBM, item tindak lanjut agenda, dan panel prioritas Kepala Sekolah ke folder `components/operational-dashboard`.
+- Memecah panel Kendali KBM operasional ke `kbm-control-panel.tsx`, sehingga `operational-dashboard.tsx` tinggal mengatur komposisi ringkasan utama.
 
 ## 2026-07-14
 
