@@ -64,6 +64,8 @@ jobs:
         run: npm ci
 
       - name: Prisma validate, test, and build
+        env:
+          DATABASE_URL: postgresql://eduflow:eduflow@localhost:5432/eduflow?schema=public
         run: npm run validate
 
   deploy:
