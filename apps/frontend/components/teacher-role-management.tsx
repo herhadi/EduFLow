@@ -17,10 +17,15 @@ import { TeacherHomeroomPanel } from './teacher-role-management/teacher-homeroom
 import { TeacherIdentityAccountPanel } from './teacher-role-management/teacher-identity-account-panel';
 import { TeacherListPanel } from './teacher-role-management/teacher-list-panel';
 import {
-  getEffectiveAssignment,
-  getLegacyAssignmentStatus,
+  emptyNewTeacherForm,
+  getTeacherAccountDraft,
+  getTeacherAssignmentDraft,
+  getTeacherHomeroomClassIds,
+  getTeacherIdentityDraft,
   normalizeTeacherRoles,
-  toUsername,
+  toggleStringSelection,
+  type NewTeacherForm,
+  type TeacherIdentity,
 } from './teacher-role-management/teacher-role-management-utils';
 import { useToast } from './ui/toast';
 
@@ -43,19 +48,21 @@ export function TeacherRoleManagement() {
   const [selectedHomeroomClassIds, setSelectedHomeroomClassIds] = useState<string[]>([]);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [identity, setIdentity] = useState({ name: '', nip: '', nuptk: '', phone: '', email: '', photoUrl: '' });
+  const [identity, setIdentity] = useState<TeacherIdentity>({
+    name: '',
+    nip: '',
+    nuptk: '',
+    phone: '',
+    email: '',
+    photoUrl: '',
+  });
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [message, setMessage] = useState('');
   const detailCardRef = useRef<HTMLDivElement>(null);
   const [detailCardHeight, setDetailCardHeight] = useState<number>();
   const [showCreateTeacher, setShowCreateTeacher] = useState(false);
-  const [newTeacher, setNewTeacher] = useState({
-    name: '',
-    nip: '',
-    phone: '',
-    email: '',
-  });
+  const [newTeacher, setNewTeacher] = useState<NewTeacherForm>(emptyNewTeacherForm);
 
   useEffect(() => {
     let isMounted = true;
@@ -106,24 +113,13 @@ export function TeacherRoleManagement() {
       return;
     }
 
-    setUsername(selectedTeacher.user?.username ?? toUsername(selectedTeacher.name));
-    setEmail(selectedTeacher.user?.email ?? selectedTeacher.email ?? '');
-    setIdentity({
-      name: selectedTeacher.name,
-      nip: selectedTeacher.nip ?? '',
-      nuptk: selectedTeacher.nuptk ?? '',
-      phone: selectedTeacher.phone ?? '',
-      email: selectedTeacher.email ?? '',
-      photoUrl: selectedTeacher.photoUrl ?? '',
-    });
-    setSelectedRoles(
-      selectedTeacher.user?.roles.map(({ role }) => role.name) ?? ['guru'],
-    );
-    setSelectedHomeroomClassIds(
-      classes
-        .filter((schoolClass) => schoolClass.homeroomTeacherId === selectedTeacher.id)
-        .map((schoolClass) => schoolClass.id),
-    );
+    const accountDraft = getTeacherAccountDraft(selectedTeacher);
+
+    setUsername(accountDraft.username);
+    setEmail(accountDraft.email);
+    setIdentity(getTeacherIdentityDraft(selectedTeacher));
+    setSelectedRoles(accountDraft.roles);
+    setSelectedHomeroomClassIds(getTeacherHomeroomClassIds(classes, selectedTeacher.id));
     setMessage('');
     setSaveState('idle');
   }, [classes, selectedTeacher]);
@@ -136,21 +132,16 @@ export function TeacherRoleManagement() {
   }, [selectedTeacherId]);
 
   useEffect(() => {
-    const targetSchoolYear = schoolYears.find((item) => item.id === assignmentSchoolYearId);
-    const assignment = teacherAssignments
-      .filter((item) =>
-        targetSchoolYear && item.schoolYear?.startsAt && new Date(item.schoolYear.startsAt) <= new Date(targetSchoolYear.startsAt),
-      )
-      .sort((first, second) =>
-        new Date(second.schoolYear?.startsAt ?? 0).getTime() - new Date(first.schoolYear?.startsAt ?? 0).getTime(),
-      )[0];
-    setAssignmentStatus(assignment?.status ?? getLegacyAssignmentStatus(selectedTeacher));
-    setAssignmentSubjectIds(
-      assignment?.subjects.map(({ subject }) => subject.id)
-        ?? selectedTeacher?.subjects?.map(({ subject }) => subject.id)
-        ?? [],
-    );
-    setAssignmentNotes(assignment?.notes ?? '');
+    const assignmentDraft = getTeacherAssignmentDraft({
+      assignmentSchoolYearId,
+      schoolYears,
+      selectedTeacher,
+      teacherAssignments,
+    });
+
+    setAssignmentStatus(assignmentDraft.status);
+    setAssignmentSubjectIds(assignmentDraft.subjectIds);
+    setAssignmentNotes(assignmentDraft.notes);
   }, [assignmentSchoolYearId, schoolYears, selectedTeacher, teacherAssignments]);
 
   useEffect(() => {
@@ -172,19 +163,13 @@ export function TeacherRoleManagement() {
 
   function toggleRole(role: string) {
     setSelectedRoles((currentRoles) =>
-      normalizeTeacherRoles(
-        currentRoles.includes(role)
-          ? currentRoles.filter((currentRole) => currentRole !== role)
-          : [...currentRoles, role],
-      ),
+      normalizeTeacherRoles(toggleStringSelection(currentRoles, role)),
     );
   }
 
   function toggleAssignmentSubject(subjectId: string) {
     setAssignmentSubjectIds((currentSubjectIds) =>
-      currentSubjectIds.includes(subjectId)
-        ? currentSubjectIds.filter((currentSubjectId) => currentSubjectId !== subjectId)
-        : [...currentSubjectIds, subjectId],
+      toggleStringSelection(currentSubjectIds, subjectId),
     );
   }
 
@@ -319,7 +304,7 @@ export function TeacherRoleManagement() {
         [...currentTeachers, response.data].sort((a, b) => a.name.localeCompare(b.name)),
       );
       selectTeacher(response.data.id);
-      setNewTeacher({ name: '', nip: '', phone: '', email: '' });
+      setNewTeacher(emptyNewTeacherForm);
       setShowCreateTeacher(false);
       setSaveState('success');
       toast.success('Guru berhasil ditambahkan.', 'Berhasil');

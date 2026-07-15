@@ -2,18 +2,20 @@
 
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { getCurrentSessionUser } from '../lib/session';
-import { getPreferredSchoolYear, getPreferredSemester } from '../lib/school-year';
 import { ScheduleClassPanel } from './schedule-management/schedule-class-panel';
 import { ScheduleEditorForm } from './schedule-management/schedule-editor-form';
 import {
   emptyScheduleForm,
   getAgendaClassIds,
   getAvailableGrades,
-  getDateForSemester,
   getDayLabel,
   getEffectiveSchedulesByClass,
   getFilteredClasses,
-  getFirstScheduledClassId,
+  getInitialScheduleSelection,
+  getScheduleEditDraft,
+  getSchoolYearScheduleSelection,
+  getSemesterScheduleSelection,
+  getSlotClassSelection,
   getTeacherSubjectOptions,
   groupClassesByGrade,
   getToday,
@@ -97,40 +99,28 @@ export function ScheduleManagement() {
       setLoadState('success');
 
       if (!form.schoolYearId) {
-        const firstSchoolYear = getPreferredSchoolYear(schoolYearResponse.data);
+        const selection = getInitialScheduleSelection({
+          classes: classResponse.data,
+          schedules: scheduleResponse.data,
+          schoolYears: schoolYearResponse.data,
+          semesters: semesterResponse.data,
+          teachers: teacherResponse.data,
+        });
 
-        if (!firstSchoolYear) {
+        if (!selection) {
           return;
         }
 
-        const firstSemester = getPreferredSemester(semesterResponse.data, firstSchoolYear.id);
-        const initialDate = getDateForSemester(firstSemester);
-        const initialClassId = getFirstScheduledClassId(
-          classResponse.data,
-          scheduleResponse.data,
-          firstSchoolYear.id,
-          initialDate,
-        );
-        const firstClass =
-          classResponse.data.find((schoolClass) => schoolClass.id === initialClassId) ??
-          classResponse.data.find((schoolClass) => schoolClass.schoolYearId === firstSchoolYear.id);
-        const firstTeacher = teacherResponse.data[0];
-        const firstSubject = firstTeacher?.subjects?.[0]?.subject;
-
         setForm((currentForm) => ({
           ...currentForm,
-          schoolYearId: firstSchoolYear.id,
-          semesterId: firstSemester?.id ?? '',
-          classId: firstClass?.id ?? '',
-          subjectId: firstSubject?.id ?? '',
-          teacherId: firstTeacher?.id ?? '',
+          ...selection.form,
         }));
 
-        setSelectedGrade(firstClass?.grade ?? 'VII');
-        setScheduleClassId(firstClass?.id ?? '');
-        setViewDate(initialDate);
-        setGenerateStartsAt(initialDate);
-        setGenerateEndsAt(initialDate);
+        setSelectedGrade(selection.grade);
+        setScheduleClassId(selection.scheduleClassId);
+        setViewDate(selection.viewDate);
+        setGenerateStartsAt(selection.viewDate);
+        setGenerateEndsAt(selection.viewDate);
       }
     } catch {
       setLoadState('error');
@@ -389,21 +379,14 @@ export function ScheduleManagement() {
   }
 
   function startEdit(schedule: Schedule) {
+    const draft = getScheduleEditDraft(schedule);
+
     setEditingId(schedule.id);
-    setForm({
-      schoolYearId: schedule.schoolYearId,
-      semesterId: schedule.semesterId,
-      classId: schedule.classId,
-      subjectId: schedule.subjectId,
-      teacherId: schedule.teacherId,
-      dayOfWeek: schedule.dayOfWeek,
-      startsAt: schedule.startsAt,
-      endsAt: schedule.endsAt,
-    });
+    setForm(draft.form);
     setEffectiveFrom('');
     setRevisionReason('');
-    setSelectedGrade(schedule.class.grade ?? 'VII');
-    setSlotClassIds(schedule.timeSlotId ? { [schedule.timeSlotId]: [schedule.classId] } : {});
+    setSelectedGrade(draft.grade);
+    setSlotClassIds(draft.slotClassIds);
     setMessage(null);
   }
 
@@ -427,20 +410,18 @@ export function ScheduleManagement() {
 
   function toggleSlotClass(slot: AcademicTimeSlot, classId: string) {
     setSlotClassIds((current) => {
-      const currentIds = current[slot.id] ?? [];
-      const nextIds = editingId
-        ? [classId]
-        : currentIds.includes(classId)
-          ? currentIds.filter((id) => id !== classId)
-          : [...currentIds, classId];
+      const selection = getSlotClassSelection({
+        classId,
+        current,
+        editingId,
+        slot,
+      });
+
       setForm((currentForm) => ({
         ...currentForm,
-        classId: nextIds[0] ?? '',
-        dayOfWeek: slot.dayOfWeek,
-        startsAt: slot.startsAt,
-        endsAt: slot.endsAt,
+        ...selection.form,
       }));
-      return editingId ? { [slot.id]: nextIds } : { ...current, [slot.id]: nextIds };
+      return selection.slotClassIds;
     });
   }
 
@@ -460,52 +441,44 @@ export function ScheduleManagement() {
   }
 
   function handleSchoolYearChange(value: string) {
-    const semester = getPreferredSemester(semesters, value);
-    const nextViewDate = getDateForSemester(semester);
-    const firstClassId = getFirstScheduledClassId(
+    const selection = getSchoolYearScheduleSelection({
       classes,
       schedules,
-      value,
-      nextViewDate,
-    );
-    const firstClass =
-      classes.find((schoolClass) => schoolClass.id === firstClassId) ??
-      classes.find((schoolClass) => schoolClass.schoolYearId === value);
+      schoolYearId: value,
+      semesters,
+    });
 
     setForm((currentForm) => ({
       ...currentForm,
       schoolYearId: value,
-      semesterId: semester?.id ?? '',
+      semesterId: selection.semesterId,
       classId: '',
     }));
-    setSelectedGrade(firstClass?.grade ?? 'VII');
-    setScheduleClassId(firstClass?.id ?? '');
-    setViewDate(nextViewDate);
-    setGenerateStartsAt(nextViewDate);
-    setGenerateEndsAt(nextViewDate);
+    setSelectedGrade(selection.grade);
+    setScheduleClassId(selection.scheduleClassId);
+    setViewDate(selection.viewDate);
+    setGenerateStartsAt(selection.viewDate);
+    setGenerateEndsAt(selection.viewDate);
     setSlotClassIds({});
     setExpandedTimeSlotIds([]);
   }
 
   function handleSemesterChange(value: string) {
-    const semester = semesters.find((item) => item.id === value);
-    const nextViewDate = getDateForSemester(semester);
-    const firstClassId = getFirstScheduledClassId(
+    const selection = getSemesterScheduleSelection({
       classes,
+      fallbackGrade: selectedGrade,
       schedules,
-      form.schoolYearId,
-      nextViewDate,
-    );
-    const firstClass =
-      classes.find((schoolClass) => schoolClass.id === firstClassId) ??
-      classes.find((schoolClass) => schoolClass.schoolYearId === form.schoolYearId);
+      schoolYearId: form.schoolYearId,
+      semesterId: value,
+      semesters,
+    });
 
     setForm({ ...form, semesterId: value });
-    setSelectedGrade(firstClass?.grade ?? selectedGrade);
-    setScheduleClassId(firstClass?.id ?? '');
-    setViewDate(nextViewDate);
-    setGenerateStartsAt(nextViewDate);
-    setGenerateEndsAt(nextViewDate);
+    setSelectedGrade(selection.grade);
+    setScheduleClassId(selection.scheduleClassId);
+    setViewDate(selection.viewDate);
+    setGenerateStartsAt(selection.viewDate);
+    setGenerateEndsAt(selection.viewDate);
   }
 
   function handleTeacherSubjectChange(value: string) {

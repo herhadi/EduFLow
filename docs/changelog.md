@@ -23,6 +23,10 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Memecah `admin-access-center.tsx` menjadi helper role/penjelasan, panel User Management, dan panel Teacher Admin agar halaman akses root lebih mudah dirawat.
 - Memecah `student-report-dashboard.tsx` menjadi helper filter/ringkasan, komponen statistik, dan row detail siswa agar report KS lebih mudah dirawat.
 - Memecah `teacher-attendance.tsx` menjadi kartu agenda, section editor presensi, dan helper checklist agar alur presensi guru lebih mudah dirawat tanpa mengubah perilaku UAT.
+- Merapikan `schedule-management.tsx` dengan memindahkan helper pemilihan tahun ajaran/semester, draft edit jadwal, dan pilihan slot kelas ke util jadwal agar state utama lebih mudah dilacak.
+- Memecah `teacher-assessments.tsx` menjadi form komponen nilai, daftar komponen, editor skor siswa, dan helper draft skor agar input nilai harian guru lebih mudah dirawat.
+- Merapikan `teacher-role-management.tsx` dengan helper draft identitas, akun, penugasan, kelas binaan, dan toggle pilihan agar sinkronisasi state guru lebih ringkas.
+- Merapikan `teacher-teaching-plans.tsx` dengan memindahkan label tipe/status perangkat ajar, aturan lampiran, ukuran file, dan badge status ke helper/komponen khusus.
 
 ## 2026-07-14
 

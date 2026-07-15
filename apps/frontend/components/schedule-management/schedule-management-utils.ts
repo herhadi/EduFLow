@@ -1,5 +1,6 @@
 import { sortSchoolClasses } from '@eduflow/shared';
 import {
+  type AcademicTimeSlot,
   type Schedule,
   type SchedulePayload,
   type SchoolClass,
@@ -7,6 +8,7 @@ import {
   type Semester,
   type Teacher,
 } from '../../lib/api';
+import { getPreferredSchoolYear, getPreferredSemester } from '../../lib/school-year';
 
 export type ScheduleWithEffectiveRevision = Schedule & {
   hasRevision?: boolean;
@@ -129,6 +131,149 @@ export function getAgendaClassIds(classes: SchoolClass[], schoolYearId: string) 
         ['VII', 'VIII', 'IX'].includes(schoolClass.grade ?? ''),
     )
     .map((schoolClass) => schoolClass.id);
+}
+
+export function getInitialScheduleSelection({
+  classes,
+  schedules,
+  schoolYears,
+  semesters,
+  teachers,
+}: {
+  classes: SchoolClass[];
+  schedules: Schedule[];
+  schoolYears: SchoolYear[];
+  semesters: Semester[];
+  teachers: Teacher[];
+}) {
+  const schoolYear = getPreferredSchoolYear(schoolYears);
+
+  if (!schoolYear) {
+    return null;
+  }
+
+  const semester = getPreferredSemester(semesters, schoolYear.id);
+  const viewDate = getDateForSemester(semester);
+  const classId = getFirstScheduledClassId(classes, schedules, schoolYear.id, viewDate);
+  const schoolClass =
+    classes.find((item) => item.id === classId) ??
+    classes.find((item) => item.schoolYearId === schoolYear.id);
+  const teacher = teachers[0];
+  const subject = teacher?.subjects?.[0]?.subject;
+
+  return {
+    form: {
+      schoolYearId: schoolYear.id,
+      semesterId: semester?.id ?? '',
+      classId: schoolClass?.id ?? '',
+      subjectId: subject?.id ?? '',
+      teacherId: teacher?.id ?? '',
+    } satisfies Partial<SchedulePayload>,
+    grade: schoolClass?.grade ?? 'VII',
+    scheduleClassId: schoolClass?.id ?? '',
+    viewDate,
+  };
+}
+
+export function getSchoolYearScheduleSelection({
+  classes,
+  schedules,
+  schoolYearId,
+  semesters,
+}: {
+  classes: SchoolClass[];
+  schedules: Schedule[];
+  schoolYearId: string;
+  semesters: Semester[];
+}) {
+  const semester = getPreferredSemester(semesters, schoolYearId);
+  const viewDate = getDateForSemester(semester);
+  const classId = getFirstScheduledClassId(classes, schedules, schoolYearId, viewDate);
+  const schoolClass =
+    classes.find((item) => item.id === classId) ??
+    classes.find((item) => item.schoolYearId === schoolYearId);
+
+  return {
+    semesterId: semester?.id ?? '',
+    grade: schoolClass?.grade ?? 'VII',
+    scheduleClassId: schoolClass?.id ?? '',
+    viewDate,
+  };
+}
+
+export function getSemesterScheduleSelection({
+  classes,
+  fallbackGrade,
+  schedules,
+  schoolYearId,
+  semesterId,
+  semesters,
+}: {
+  classes: SchoolClass[];
+  fallbackGrade: string;
+  schedules: Schedule[];
+  schoolYearId: string;
+  semesterId: string;
+  semesters: Semester[];
+}) {
+  const semester = semesters.find((item) => item.id === semesterId);
+  const viewDate = getDateForSemester(semester);
+  const classId = getFirstScheduledClassId(classes, schedules, schoolYearId, viewDate);
+  const schoolClass =
+    classes.find((item) => item.id === classId) ??
+    classes.find((item) => item.schoolYearId === schoolYearId);
+
+  return {
+    grade: schoolClass?.grade ?? fallbackGrade,
+    scheduleClassId: schoolClass?.id ?? '',
+    viewDate,
+  };
+}
+
+export function getScheduleEditDraft(schedule: Schedule) {
+  return {
+    form: {
+      schoolYearId: schedule.schoolYearId,
+      semesterId: schedule.semesterId,
+      classId: schedule.classId,
+      subjectId: schedule.subjectId,
+      teacherId: schedule.teacherId,
+      dayOfWeek: schedule.dayOfWeek,
+      startsAt: schedule.startsAt,
+      endsAt: schedule.endsAt,
+    } satisfies SchedulePayload,
+    grade: schedule.class.grade ?? 'VII',
+    slotClassIds: schedule.timeSlotId ? { [schedule.timeSlotId]: [schedule.classId] } : {},
+  };
+}
+
+export function getSlotClassSelection({
+  classId,
+  current,
+  editingId,
+  slot,
+}: {
+  classId: string;
+  current: Record<string, string[]>;
+  editingId: string | null;
+  slot: AcademicTimeSlot;
+}) {
+  const currentIds = current[slot.id] ?? [];
+  const nextIds = editingId
+    ? [classId]
+    : currentIds.includes(classId)
+      ? currentIds.filter((id) => id !== classId)
+      : [...currentIds, classId];
+
+  return {
+    form: {
+      classId: nextIds[0] ?? '',
+      dayOfWeek: slot.dayOfWeek,
+      startsAt: slot.startsAt,
+      endsAt: slot.endsAt,
+    } satisfies Partial<SchedulePayload>,
+    slotClassIds: editingId ? { [slot.id]: nextIds } : { ...current, [slot.id]: nextIds },
+  };
 }
 
 export function getTeacherSubjectOptions(

@@ -11,17 +11,18 @@ import { EmptyState } from './ui/empty-state';
 import { fieldClass, FormField } from './ui/form';
 import { LoadingState } from './ui/loading';
 import { SurfaceCard, SurfaceFormCard } from './ui/card';
+import { TeachingPlanStatus } from './teacher-teaching-plans/teaching-plan-status';
+import {
+  bookPhotoAccept,
+  documentAccept,
+  formatFileSize,
+  getAttachmentAccept,
+  getPlanTypeLabel,
+  getRevisionPriorityLabel,
+  hasPlanAttachment,
+  planTypes,
+} from './teacher-teaching-plans/teacher-teaching-plan-utils';
 import { useToast } from './ui/toast';
-
-const planTypes: Array<{ value: TeachingPlanType; label: string }> = [
-  { value: 'ANNUAL_PROGRAM', label: 'Program Tahunan' },
-  { value: 'SEMESTER_PROGRAM', label: 'Program Semester' },
-  { value: 'KKTP', label: 'KKTP' },
-  { value: 'LESSON_PLAN', label: 'Perencanaan Pembelajaran' },
-  { value: 'TEACHING_BOOK', label: 'Buku KBM' },
-];
-const documentAccept = '.docx,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf';
-const bookPhotoAccept = 'image/jpeg,image/png,image/webp';
 
 export function TeacherTeachingPlans() {
   const toast = useToast();
@@ -209,8 +210,8 @@ export function TeacherTeachingPlans() {
         {plans.map((plan) => (
           <SurfaceCard className="rounded-[1.75rem]" key={plan.id}>
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div><p className="text-xs font-black text-brand-700">{planTypes.find((item) => item.value === plan.type)?.label}</p><h3 className="mt-1 text-lg font-black">{plan.title}</h3><p className="mt-1 text-sm text-muted">{plan.subject.name} · {plan.schoolYear.name}{plan.semester ? ` · ${plan.semester.type === 'ODD' ? 'Ganjil' : 'Genap'}` : ''}</p></div>
-              <Status status={plan.status} />
+              <div><p className="text-xs font-black text-brand-700">{getPlanTypeLabel(plan.type)}</p><h3 className="mt-1 text-lg font-black">{plan.title}</h3><p className="mt-1 text-sm text-muted">{plan.subject.name} · {plan.schoolYear.name}{plan.semester ? ` · ${plan.semester.type === 'ODD' ? 'Ganjil' : 'Genap'}` : ''}</p></div>
+              <TeachingPlanStatus status={plan.status} />
             </div>
             {plan.attachmentKey || plan.attachmentUrl ? (
               <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 sm:flex-row sm:items-center sm:justify-between">
@@ -351,28 +352,4 @@ function Field({
       />
     </FormField>
   );
-}
-
-function Status({ status }: { status: TeachingPlan['status'] }) {
-  const labels = { DRAFT: 'Draft', SUBMITTED: 'Menunggu Review', REVISION_REQUESTED: 'Perlu Revisi', APPROVED: 'Disetujui', ARCHIVED: 'Diarsipkan' };
-  const tones: Record<TeachingPlan['status'], 'brand' | 'default' | 'muted' | 'success' | 'warning'> = {
-    DRAFT: 'default',
-    SUBMITTED: 'brand',
-    REVISION_REQUESTED: 'warning',
-    APPROVED: 'success',
-    ARCHIVED: 'muted',
-  };
-  return <Badge tone={tones[status]}>{labels[status]}</Badge>;
-}
-function getRevisionPriorityLabel(priority: TeachingPlan['reviewPriority']) {
-  if (priority === 'HIGH') return 'Tinggi';
-  if (priority === 'LOW') return 'Rendah';
-  return 'Sedang';
-}
-function formatFileSize(size: number) { return size < 1024 * 1024 ? `${Math.ceil(size / 1024)} KB` : `${(size / 1024 / 1024).toFixed(1)} MB`; }
-function getAttachmentAccept(type: TeachingPlanType) {
-  return type === 'TEACHING_BOOK' ? bookPhotoAccept : documentAccept;
-}
-function hasPlanAttachment(plan: TeachingPlan) {
-  return Boolean(plan.attachmentKey || plan.attachmentUrl);
 }

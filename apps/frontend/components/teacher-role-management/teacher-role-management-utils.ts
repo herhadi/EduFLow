@@ -1,9 +1,33 @@
 import {
+  type SchoolClass,
   type SchoolYear,
   type Teacher,
   type TeacherAssignmentStatus,
   type TeacherSchoolYearAssignment,
 } from '../../lib/api';
+
+export type TeacherIdentity = {
+  name: string;
+  nip: string;
+  nuptk: string;
+  phone: string;
+  email: string;
+  photoUrl: string;
+};
+
+export type NewTeacherForm = {
+  name: string;
+  nip: string;
+  phone: string;
+  email: string;
+};
+
+export const emptyNewTeacherForm: NewTeacherForm = {
+  name: '',
+  nip: '',
+  phone: '',
+  email: '',
+};
 
 export const assignableRoles = [
   { value: 'kepala_sekolah', label: 'Kepala Sekolah' },
@@ -62,6 +86,37 @@ export function normalizeTeacherRoles(roles: string[]) {
   return uniqueRoles;
 }
 
+export function toggleStringSelection(values: string[], value: string) {
+  return values.includes(value)
+    ? values.filter((item) => item !== value)
+    : [...values, value];
+}
+
+export function getTeacherIdentityDraft(teacher: Teacher): TeacherIdentity {
+  return {
+    name: teacher.name,
+    nip: teacher.nip ?? '',
+    nuptk: teacher.nuptk ?? '',
+    phone: teacher.phone ?? '',
+    email: teacher.email ?? '',
+    photoUrl: teacher.photoUrl ?? '',
+  };
+}
+
+export function getTeacherAccountDraft(teacher: Teacher) {
+  return {
+    username: teacher.user?.username ?? toUsername(teacher.name),
+    email: teacher.user?.email ?? teacher.email ?? '',
+    roles: teacher.user?.roles.map(({ role }) => role.name) ?? ['guru'],
+  };
+}
+
+export function getTeacherHomeroomClassIds(classes: SchoolClass[], teacherId: string) {
+  return classes
+    .filter((schoolClass) => schoolClass.homeroomTeacherId === teacherId)
+    .map((schoolClass) => schoolClass.id);
+}
+
 export function getEffectiveAssignment(
   assignments: TeacherSchoolYearAssignment[] | undefined,
   schoolYear?: SchoolYear,
@@ -95,4 +150,28 @@ export function getEffectiveAssignmentSubjects(
 ) {
   const assignment = getEffectiveAssignment(teacher.yearAssignments, schoolYear);
   return assignment?.subjects?.length ? assignment.subjects : teacher.subjects ?? [];
+}
+
+export function getTeacherAssignmentDraft({
+  assignmentSchoolYearId,
+  schoolYears,
+  selectedTeacher,
+  teacherAssignments,
+}: {
+  assignmentSchoolYearId: string;
+  schoolYears: SchoolYear[];
+  selectedTeacher?: Teacher | null;
+  teacherAssignments: TeacherSchoolYearAssignment[];
+}) {
+  const targetSchoolYear = schoolYears.find((item) => item.id === assignmentSchoolYearId);
+  const assignment = getEffectiveAssignment(teacherAssignments, targetSchoolYear);
+
+  return {
+    status: assignment?.status ?? getLegacyAssignmentStatus(selectedTeacher),
+    subjectIds:
+      assignment?.subjects.map(({ subject }) => subject.id)
+      ?? selectedTeacher?.subjects?.map(({ subject }) => subject.id)
+      ?? [],
+    notes: assignment?.notes ?? '',
+  };
 }
