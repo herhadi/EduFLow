@@ -133,10 +133,16 @@ START_INFRA=0
 
 while IFS= read -r changed_file; do
   case "$changed_file" in
-    __BUILD_ALL__|docker-compose.yml|package.json|package-lock.json|.dockerignore)
+    __BUILD_ALL__)
       BUILD_FRONTEND=1
       BUILD_BACKEND=1
       RUN_MIGRATION=1
+      START_INFRA=1
+      RUN_DEPLOY=1
+      ;;
+    docker-compose.yml|package.json|package-lock.json|.dockerignore)
+      BUILD_FRONTEND=1
+      BUILD_BACKEND=1
       START_INFRA=1
       RUN_DEPLOY=1
       ;;
@@ -147,9 +153,14 @@ while IFS= read -r changed_file; do
       BUILD_FRONTEND=1
       RUN_DEPLOY=1
       ;;
-    apps/backend/prisma/migrations/*|apps/backend/prisma/schema.prisma)
+    apps/backend/prisma/migrations/*)
       BUILD_BACKEND=1
       RUN_MIGRATION=1
+      START_INFRA=1
+      RUN_DEPLOY=1
+      ;;
+    apps/backend/prisma/schema.prisma)
+      BUILD_BACKEND=1
       START_INFRA=1
       RUN_DEPLOY=1
       ;;
@@ -166,6 +177,9 @@ while IFS= read -r changed_file; do
       ;;
     scripts/*|.github/workflows/deploy.yml)
       RUN_DEPLOY=1
+      ;;
+    docs/*|README.md|*.md)
+      log_info "Perubahan dokumentasi tidak membutuhkan build container: ${changed_file}"
       ;;
   esac
 done <<< "$CHANGED_FILES"
@@ -197,7 +211,12 @@ else
   log_info "Persiapan service dasar dilewati."
 fi
 
-if [ "$BUILD_BACKEND" = "1" ]; then
+if [ "$BUILD_BACKEND" = "1" ] && [ "$BUILD_FRONTEND" = "1" ]; then
+  log_section "Build backend dan frontend image secara paralel"
+  compose build --parallel backend frontend
+  BACKEND_STATUS="Built"
+  FRONTEND_STATUS="Built"
+elif [ "$BUILD_BACKEND" = "1" ]; then
   log_section "Build backend image"
   compose build backend
   BACKEND_STATUS="Built"
@@ -205,11 +224,11 @@ else
   log_info "Backend build dilewati."
 fi
 
-if [ "$BUILD_FRONTEND" = "1" ]; then
+if [ "$BUILD_FRONTEND" = "1" ] && [ "$BUILD_BACKEND" = "0" ]; then
   log_section "Build frontend image"
   compose build frontend
   FRONTEND_STATUS="Built"
-else
+elif [ "$BUILD_FRONTEND" = "0" ]; then
   log_info "Frontend build dilewati."
 fi
 
@@ -244,7 +263,7 @@ if [ "${#RESTART_SERVICES[@]}" -eq 0 ]; then
   log_info "Tidak ada service aplikasi yang perlu direstart."
 else
   log_section "Restart aplikasi"
-  compose up -d --no-deps "${RESTART_SERVICES[@]}"
+  compose up -d --no-deps --force-recreate "${RESTART_SERVICES[@]}"
 fi
 
 log_section "Health check"
@@ -254,8 +273,12 @@ else
   HEALTHCHECK_SERVICES="${HEALTHCHECK_SERVICES[*]}" EDUFLOW_ROOT="$ROOT_DIR" bash "${SCRIPT_DIR}/healthcheck.sh"
 fi
 
-log_section "Cleanup Docker"
-docker image prune -af --filter "until=72h"
+if [ "${DEPLOY_CLEANUP:-0}" = "1" ]; then
+  log_section "Cleanup Docker"
+  docker image prune -f --filter "until=168h"
+else
+  log_info "Cleanup Docker dilewati agar cache build tetap tersedia."
+fi
 
 FINISHED_AT="$(date +%s)"
 DURATION="$((FINISHED_AT - STARTED_AT))"
