@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [repeatPassword, setRepeatPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [isRequestingReset, setIsRequestingReset] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [forgotPasswordMessage, setForgotPasswordMessage] = useState('');
@@ -31,10 +32,17 @@ export default function LoginPage() {
     }
   }, []);
 
+  function redirectToDashboard(roles: string[] = []) {
+    setIsRedirecting(true);
+    router.replace(getDashboardPathForRoles(roles));
+    router.refresh();
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
     setErrorMessage('');
+    let keepLoadingForRedirect = false;
 
     try {
       const formData = new FormData(event.currentTarget);
@@ -60,12 +68,14 @@ export default function LoginPage() {
         return;
       }
 
-      router.push(getDashboardPathForRoles(session.user.roles ?? []));
-      router.refresh();
+      keepLoadingForRedirect = true;
+      redirectToDashboard(session.user.roles ?? []);
     } catch {
       setErrorMessage('Username atau password salah. Periksa kembali data login Anda.');
     } finally {
-      setIsLoading(false);
+      if (!keepLoadingForRedirect) {
+        setIsLoading(false);
+      }
     }
   }
 
@@ -78,6 +88,7 @@ export default function LoginPage() {
 
     setIsLoading(true);
     setErrorMessage('');
+    let keepLoadingForRedirect = false;
 
     const formData = new FormData(event.currentTarget);
     const submittedNewPassword = String(formData.get('newPassword') ?? '');
@@ -106,8 +117,8 @@ export default function LoginPage() {
       };
 
       saveSession(nextSession);
-      router.push(getDashboardPathForRoles(response.data.roles ?? []));
-      router.refresh();
+      keepLoadingForRedirect = true;
+      redirectToDashboard(response.data.roles ?? []);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -115,7 +126,9 @@ export default function LoginPage() {
           : 'Password baru belum bisa disimpan.',
       );
     } finally {
-      setIsLoading(false);
+      if (!keepLoadingForRedirect) {
+        setIsLoading(false);
+      }
     }
   }
 
@@ -151,6 +164,21 @@ export default function LoginPage() {
 
   return (
     <main className="login-page relative isolate min-h-dvh overflow-hidden px-4 py-5 text-slate-900 sm:py-6">
+      {isRedirecting ? (
+        <div className="absolute inset-0 z-30 grid place-items-center bg-white/85 px-6 text-center backdrop-blur-md dark:bg-slate-950/80">
+          <div className="surface-card max-w-sm rounded-[2rem] p-6">
+            <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-600">
+              Login berhasil
+            </p>
+            <h2 className="mt-2 text-2xl font-black text-ink">
+              Membuka beranda...
+            </h2>
+            <p className="mt-2 text-sm font-semibold leading-6 text-muted">
+              Session sudah tersimpan. Anda sedang diarahkan ke dashboard sesuai role akun.
+            </p>
+          </div>
+        </div>
+      ) : null}
       <div
         aria-hidden="true"
         className="login-backdrop absolute inset-0 -z-20"
@@ -334,10 +362,12 @@ export default function LoginPage() {
 
             <button
               className="mt-8 block w-full rounded-2xl bg-brand-600 px-5 py-4 text-center text-sm font-black text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:text-slate-100 disabled:opacity-70 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
-              disabled={isLoading}
+              disabled={isLoading || isRedirecting}
               type="submit"
             >
-              {isLoading
+              {isRedirecting
+                ? 'Membuka beranda...'
+                : isLoading
                 ? pendingSession
                   ? 'Menyimpan...'
                   : 'Masuk...'

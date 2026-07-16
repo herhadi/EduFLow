@@ -4,6 +4,10 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis granular tetap dilacak melalui riwayat Git dan dokumen domain terkait.
 
+## 2026-07-17
+
+- Memperhalus transisi login mobile: setelah autentikasi berhasil halaman menahan status "Membuka beranda" dan memakai redirect `replace` ke dashboard role agar form login tidak sempat muncul lagi sebelum dashboard selesai dimuat.
+
 ## 2026-07-16
 
 - Menstandarkan kontrak response backend bertahap melalui `docs/api-contract.md`, helper `ok()`, dan error response global berisi `statusCode`, `message`, `error`, `correlationId`, `path`, `method`, serta `timestamp`.
