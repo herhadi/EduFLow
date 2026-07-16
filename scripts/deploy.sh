@@ -275,6 +275,7 @@ fi
 
 if [ "${DEPLOY_CLEANUP:-0}" = "1" ]; then
   log_section "Cleanup Docker"
+  docker builder prune -af --filter "until=168h"
   docker image prune -f --filter "until=168h"
 else
   log_info "Cleanup Docker dilewati agar cache build tetap tersedia."

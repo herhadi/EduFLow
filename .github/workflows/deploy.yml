@@ -49,11 +49,6 @@ jobs:
     timeout-minutes: 45
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
       - name: Deploy
         env:
           DEPLOY_LOG_DIR: ${{ env.EDUFLOW_LOG_DIR }}

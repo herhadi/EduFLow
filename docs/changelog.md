@@ -38,6 +38,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menetapkan kontrak response JSON backend melalui `docs/api-contract.md`, memperluas `ApiResponse` dengan `meta`, menambahkan helper `ok()`, dan mulai menyeragamkan response action auth ke `{ data, message }`.
 - Menambahkan monitoring root ops untuk CPU/RAM, uptime backend, request per menit, error per menit, latensi rata-rata, ringkasan notification/attendance queue, dan dokumentasi `docs/operations.md`.
 - Mengembalikan CI/CD production ke model deploy sederhana seperti sebelumnya agar self-hosted runner tidak terlalu lama tertahan, sambil mempertahankan perbaikan `DEPLOY_BUILD_ALL`, `DEPLOY_RUN_MIGRATION`, dan `DEPLOY_RUN_SEED` agar tetap berjalan walaupun smart diff kosong.
+- Merapikan deploy production dengan menghapus checkout runner yang tidak dipakai dan menambahkan cleanup Docker build cache saat `DEPLOY_CLEANUP=1` agar risiko disk penuh berkurang.
 
 ## 2026-07-14
 
