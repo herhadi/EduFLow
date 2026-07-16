@@ -30,15 +30,15 @@ export const notificationTabs: Array<{ id: NotificationTab; label: string; descr
 ];
 
 export function getInboxTone(templateKey?: string | null) {
-  if (templateKey === 'teaching-plan.revision-requested') return 'border-amber-200 bg-amber-50 hover:border-amber-300 dark:border-amber-800 dark:bg-amber-950/35';
-  if (templateKey === 'teaching-plan.approved') return 'border-emerald-200 bg-emerald-50 hover:border-emerald-300 dark:border-emerald-800 dark:bg-emerald-950/35';
-  return 'border-blue-100 bg-white hover:border-brand-300 hover:bg-brand-50/40 dark:border-slate-800 dark:bg-slate-950';
+  if (templateKey === 'teaching-plan.revision-requested') return 'border-amber-200 bg-amber-50 hover:border-amber-300 dark:border-amber-400/20 dark:bg-amber-500/15';
+  if (templateKey === 'teaching-plan.approved') return 'border-emerald-200 bg-emerald-50 hover:border-emerald-300 dark:border-emerald-400/20 dark:bg-emerald-500/15';
+  return 'border-blue-100 bg-white hover:border-brand-300 hover:bg-brand-50/40 dark:border-slate-700 dark:bg-slate-950 dark:hover:border-blue-400/30 dark:hover:bg-blue-500/10';
 }
 
 export function getInboxLabelTone(templateKey?: string | null) {
   if (templateKey === 'teaching-plan.revision-requested') return 'text-amber-700 dark:text-amber-300';
   if (templateKey === 'teaching-plan.approved') return 'text-emerald-700 dark:text-emerald-300';
-  return 'text-brand-700';
+  return 'text-brand-700 dark:text-blue-100';
 }
 
 export function getPersonalNotificationLabel(

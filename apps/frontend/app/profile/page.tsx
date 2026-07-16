@@ -4,6 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Container } from '../../components/ui/container';
 import { PageHeader } from '../../components/ui/page-header';
 import { UserAvatar } from '../../components/ui/user-avatar';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { SurfaceCard } from '../../components/ui/card';
+import { fieldClass } from '../../components/ui/form';
 import { api, type AuthSession, type MyProfile } from '../../lib/api';
 import { clearBrowserSession } from '../../lib/session';
 
@@ -194,10 +198,10 @@ export default function ProfilePage() {
         {status ? (
           <div className={`mt-5 rounded-2xl border p-4 text-sm font-bold ${
             status.tone === 'success'
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-100'
               : status.tone === 'error'
-                ? 'border-rose-200 bg-rose-50 text-rose-800'
-                : 'border-blue-200 bg-blue-50 text-blue-800'
+                ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-400/20 dark:bg-rose-500/15 dark:text-rose-100'
+                : 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-400/20 dark:bg-blue-500/15 dark:text-blue-100'
           }`}
           >
             {status.text}
@@ -205,14 +209,14 @@ export default function ProfilePage() {
         ) : null}
 
         <section className="mt-6 grid gap-4 lg:grid-cols-[1fr_1fr]">
-          <div className="surface-card rounded-[2rem] p-5">
+          <SurfaceCard>
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
               Identitas
             </p>
             <div className="mt-4 flex items-center gap-4">
               <UserAvatar className="size-20" name={currentUser?.name ?? 'Pengguna EduFlow'} photoUrl={photoUrl} />
               <div className="min-w-0">
-                <h2 className="truncate text-2xl font-black text-slate-900">
+                <h2 className="truncate text-2xl font-black text-slate-900 dark:text-slate-100">
                   {currentUser?.name ?? 'Pengguna EduFlow'}
                 </h2>
                 <p className="mt-1 truncate text-sm font-semibold text-muted">
@@ -226,9 +230,9 @@ export default function ProfilePage() {
               <p>Role: {currentUser?.roles?.join(', ') ?? '-'}</p>
             </div>
 
-            <div className="mt-5 space-y-4 border-t border-slate-100 pt-4">
+            <div className="mt-5 space-y-4 border-t border-slate-100 pt-4 dark:border-slate-800">
               <div>
-                <p className="text-sm font-black text-slate-900">Foto Profil</p>
+                <p className="text-sm font-black text-slate-900 dark:text-slate-100">Foto Profil</p>
                 <p className="mt-1 text-xs font-semibold leading-5 text-muted">
                   Pilih foto dari perangkat lokal. Format JPEG, PNG, atau WebP maksimal 2 MB.
                 </p>
@@ -244,8 +248,8 @@ export default function ProfilePage() {
                 </label>
               </div>
 
-              <div className="rounded-2xl border border-blue-100 bg-white p-4">
-                <p className="text-sm font-black text-slate-900">Telegram</p>
+              <div className="rounded-2xl border border-blue-100 bg-white p-4 dark:border-blue-400/20 dark:bg-slate-950">
+                <p className="text-sm font-black text-slate-900 dark:text-slate-100">Telegram</p>
                 <p className="mt-1 text-xs font-semibold leading-5 text-muted">
                   {telegramId
                     ? `Terhubung dengan Telegram ID ${telegramId}. Jika ingin memakai akun Telegram lain, klik tombol ganti akun lalu tekan Start di bot.`
@@ -253,80 +257,79 @@ export default function ProfilePage() {
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {telegramId ? (
-                    <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+                    <Badge tone="success">
                       Aktif
-                    </span>
+                    </Badge>
                   ) : null}
-                  <button
-                    className="rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-xs font-black text-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  <Button
                     disabled={linkingTelegram}
                     onClick={() => void handleTelegramActivation()}
-                    type="button"
+                    size="sm"
+                    variant="outline"
                   >
                     {linkingTelegram
                       ? 'Membuat Token...'
                       : telegramId
                         ? 'Ganti Akun Telegram'
                         : 'Aktivasi Telegram'}
-                  </button>
-                  <button
-                    className="rounded-2xl border border-slate-200 px-4 py-3 text-xs font-black text-slate-700"
+                  </Button>
+                  <Button
                     onClick={() => void loadProfile()}
-                    type="button"
+                    size="sm"
+                    variant="outline"
                   >
                     Refresh Status
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
-          </div>
+          </SurfaceCard>
 
           <div className="space-y-4">
-            <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm">
+            <SurfaceCard>
               <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
                 Keamanan
               </p>
-              <h2 className="mt-2 text-2xl font-black text-slate-900">
+              <h2 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">
                 Ubah Sandi
               </h2>
               <div className="mt-4 grid gap-3">
                 <input
-                  className="rounded-2xl border bg-white px-4 py-3 text-sm font-semibold outline-none focus:border-brand-600"
+                  className={fieldClass}
                   onChange={(event) => setPasswordForm((current) => ({ ...current, currentPassword: event.target.value }))}
                   placeholder="Password lama"
                   type="password"
                   value={passwordForm.currentPassword}
                 />
                 <input
-                  className="rounded-2xl border bg-white px-4 py-3 text-sm font-semibold outline-none focus:border-brand-600"
+                  className={fieldClass}
                   onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))}
                   placeholder="Password baru, 6-10 karakter"
                   type="password"
                   value={passwordForm.newPassword}
                 />
                 <input
-                  className="rounded-2xl border bg-white px-4 py-3 text-sm font-semibold outline-none focus:border-brand-600"
+                  className={fieldClass}
                   onChange={(event) => setPasswordForm((current) => ({ ...current, repeatPassword: event.target.value }))}
                   placeholder="Ulangi password baru"
                   type="password"
                   value={passwordForm.repeatPassword}
                 />
-                <button
-                  className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-black text-white disabled:opacity-50"
+                <Button
                   disabled={savingPassword || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.repeatPassword}
                   onClick={() => void handlePasswordChange()}
-                  type="button"
+                  variant="primary"
                 >
                   {savingPassword ? 'Menyimpan...' : 'Ubah Password'}
-                </button>
+                </Button>
               </div>
-            </div>
+            </SurfaceCard>
 
-            <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm">
+            <SurfaceCard>
               <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
                 Session
               </p>
-              <h2 className="mt-2 text-2xl font-black text-slate-900">
+              <h2 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">
                 Perangkat Aktif
               </h2>
               <p className="mt-2 text-sm font-semibold text-muted">
@@ -334,18 +337,20 @@ export default function ProfilePage() {
               </p>
               <div className="mt-4 max-h-52 space-y-2 overflow-auto pr-1">
                 {sessions.slice(0, 6).map((session) => (
-                  <div className="rounded-2xl border border-slate-100 p-3 text-xs font-semibold text-muted" key={session.id}>
+                  <div className="rounded-2xl border border-slate-100 p-3 text-xs font-semibold text-muted dark:border-slate-700 dark:bg-slate-950" key={session.id}>
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-black text-slate-800">
+                      <p className="font-black text-slate-800 dark:text-slate-100">
                         {getSessionDeviceLabel(session.userAgent)}
                       </p>
                       {session.tokenHash === currentRefreshTokenHash ? (
-                        <span className="rounded-full bg-emerald-50 px-2 py-1 text-[0.65rem] font-black text-emerald-700">
+                        <Badge tone="success">
                           Aktif saat ini
-                        </span>
+                        </Badge>
                       ) : (
                         <span className={`rounded-full px-2 py-1 text-[0.65rem] font-black ${
-                          session.revokedAt ? 'bg-slate-100 text-slate-500' : 'bg-blue-50 text-brand-700'
+                          session.revokedAt
+                            ? 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                            : 'bg-blue-50 text-brand-700 dark:bg-blue-500/15 dark:text-blue-100'
                         }`}
                         >
                           {session.revokedAt ? 'Dicabut' : 'Aktif'}
@@ -359,15 +364,15 @@ export default function ProfilePage() {
                   </div>
                 ))}
               </div>
-              <button
-                className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-black text-rose-700 disabled:opacity-50"
+              <Button
+                className="mt-4 border-rose-200 text-rose-700 hover:border-rose-300 hover:text-rose-700 dark:border-rose-400/30 dark:text-rose-100"
                 disabled={revoking}
                 onClick={() => void handleRevokeOtherSessions()}
-                type="button"
+                variant="outline"
               >
                 {revoking ? 'Mencabut...' : 'Keluar dari Semua Perangkat'}
-              </button>
-            </div>
+              </Button>
+            </SurfaceCard>
           </div>
         </section>
       </Container>

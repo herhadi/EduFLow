@@ -1,6 +1,11 @@
 import { type FormEvent } from 'react';
 import { type AppUser } from '../../lib/api';
 import { roleCards, type NewUserForm } from './admin-access-center-utils';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { EmptyState } from '../ui/empty-state';
+import { fieldClass } from '../ui/form';
+import { SurfaceCard } from '../ui/card';
 
 type ActionState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -28,7 +33,7 @@ export function UserManagementPanel({
   users,
 }: UserManagementPanelProps) {
   return (
-    <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
+    <SurfaceCard className="sm:p-6">
       <div>
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
           User Management
@@ -42,21 +47,21 @@ export function UserManagementPanel({
       <form className="mt-5 grid gap-3" onSubmit={onCreateUser}>
         <div className="grid gap-3 sm:grid-cols-3">
           <input
-            className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm outline-none transition focus:border-brand-600 focus:bg-white"
+            className={fieldClass}
             onChange={(event) => onNewUserChange('name', event.target.value)}
             placeholder="Nama lengkap"
             type="text"
             value={newUser.name}
           />
           <input
-            className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm outline-none transition focus:border-brand-600 focus:bg-white"
+            className={fieldClass}
             onChange={(event) => onNewUserChange('username', event.target.value)}
             placeholder="Username"
             type="text"
             value={newUser.username}
           />
           <input
-            className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm outline-none transition focus:border-brand-600 focus:bg-white"
+            className={fieldClass}
             onChange={(event) => onNewUserChange('email', event.target.value)}
             placeholder="Email (opsional)"
             type="email"
@@ -66,7 +71,7 @@ export function UserManagementPanel({
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <select
-            className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-brand-600 focus:bg-white sm:min-w-64"
+            className={`${fieldClass} sm:min-w-64`}
             onChange={(event) => onNewUserChange('role', event.target.value)}
             value={newUser.role}
           >
@@ -76,8 +81,7 @@ export function UserManagementPanel({
               </option>
             ))}
           </select>
-          <button
-            className="rounded-2xl bg-brand-600 px-5 py-3 text-sm font-black text-white shadow-lg transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+          <Button
             disabled={
               userActionState === 'loading' ||
               !newUser.username.trim() ||
@@ -86,7 +90,7 @@ export function UserManagementPanel({
             type="submit"
           >
             {userActionState === 'loading' ? 'Membuat...' : 'Buat User'}
-          </button>
+          </Button>
         </div>
       </form>
 
@@ -95,8 +99,8 @@ export function UserManagementPanel({
           className={[
             'mt-4 rounded-2xl border p-4 text-sm font-semibold',
             userActionState === 'success'
-              ? 'border-emerald-100 bg-emerald-50 text-emerald-700'
-              : 'border-amber-200 bg-amber-50 text-amber-900',
+              ? 'border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-100'
+              : 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100',
           ].join(' ')}
         >
           {userMessage}
@@ -105,10 +109,10 @@ export function UserManagementPanel({
 
       <div className="mt-5 grid gap-3">
         {users.map((user) => (
-          <article className="rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4" key={user.id}>
+          <article className="rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900" key={user.id}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h3 className="font-black text-slate-900">{user.name}</h3>
+                <h3 className="font-black text-slate-900 dark:text-slate-100">{user.name}</h3>
                 <p className="mt-1 text-xs font-semibold text-muted">
                   {user.username ?? '-'} · {user.email}
                 </p>
@@ -116,39 +120,37 @@ export function UserManagementPanel({
               <div className="flex flex-col gap-3 sm:items-end">
                 <div className="flex flex-wrap gap-2 sm:justify-end">
                   {user.roles.map((role) => (
-                    <span
-                      className="rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700"
-                      key={role}
-                    >
+                    <Badge key={role} tone="brand">
                       {role}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
                 <div className="grid grid-cols-3 gap-2 sm:flex">
-                  <button
-                    className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-black text-brand-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  <Button
                     disabled={userActionState === 'loading'}
                     onClick={() => void onResetUserPassword(user)}
-                    type="button"
+                    size="sm"
+                    variant="outline"
                   >
                     Reset
-                  </button>
-                  <button
-                    className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-black text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  </Button>
+                  <Button
+                    className="border-amber-200 text-amber-800 hover:border-amber-300 hover:text-amber-900 dark:border-amber-400/30 dark:text-amber-100"
                     disabled={userActionState === 'loading'}
                     onClick={() => void onDeactivateUser(user)}
-                    type="button"
+                    size="sm"
+                    variant="outline"
                   >
                     Nonaktif
-                  </button>
-                  <button
-                    className="rounded-2xl bg-rose-600 px-4 py-2 text-xs font-black text-white shadow-sm shadow-rose-100 transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  </Button>
+                  <Button
                     disabled={userActionState === 'loading'}
                     onClick={() => void onDeleteUser(user)}
-                    type="button"
+                    size="sm"
+                    variant="danger"
                   >
                     Hapus
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -156,11 +158,9 @@ export function UserManagementPanel({
         ))}
 
         {!users.length ? (
-          <p className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-muted">
-            Daftar user hanya muncul setelah login sebagai root.
-          </p>
+          <EmptyState title="Daftar user hanya muncul setelah login sebagai root." />
         ) : null}
       </div>
-    </section>
+    </SurfaceCard>
   );
 }

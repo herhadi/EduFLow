@@ -54,13 +54,13 @@ export const explanationCards = [
     title: 'Nonaktif',
     description:
       'Data disembunyikan dari operasional baru, tetapi histori jadwal, agenda, presensi, audit, dan laporan lama tetap aman.',
-    tone: 'bg-blue-50 text-brand-700 border-blue-100',
+    tone: 'bg-blue-50 text-brand-700 border-blue-100 dark:border-blue-400/20 dark:bg-blue-500/15 dark:text-blue-100',
   },
   {
     title: 'Hapus permanen',
     description:
       'Data benar-benar dihapus dari database. Ini rawan merusak relasi dan histori, jadi tidak dipakai untuk entity penting.',
-    tone: 'bg-rose-50 text-rose-700 border-rose-100',
+    tone: 'bg-rose-50 text-rose-700 border-rose-100 dark:border-rose-400/20 dark:bg-rose-500/15 dark:text-rose-100',
   },
 ];
 

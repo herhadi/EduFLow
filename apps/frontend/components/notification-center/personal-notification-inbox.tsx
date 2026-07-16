@@ -6,6 +6,7 @@ import { dispatchNotificationChanged } from '../../lib/notifications';
 import { Button } from '../ui/button';
 import { EmptyState } from '../ui/empty-state';
 import { LoadingState } from '../ui/loading';
+import { SurfaceCard } from '../ui/card';
 import {
   formatNotificationDateTime,
   getInboxLabelTone,
@@ -44,13 +45,13 @@ export function PersonalNotificationInbox({
 
   return (
     <section className="mt-6 space-y-4">
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm">
+      <SurfaceCard>
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
               {isPrincipal ? 'Inbox Kepala Sekolah' : isParent ? 'Inbox Orang Tua' : 'Inbox Guru'}
             </p>
-            <h2 className="mt-2 text-2xl font-black text-slate-900">
+            <h2 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">
               Pemberitahuan Saya
             </h2>
             <p className="mt-2 text-sm leading-6 text-muted">
@@ -69,10 +70,10 @@ export function PersonalNotificationInbox({
             Refresh
           </Button>
         </div>
-      </div>
+      </SurfaceCard>
 
       {loadState === 'error' ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100">
           Notifikasi pribadi belum bisa dimuat.
         </div>
       ) : null}
@@ -83,7 +84,7 @@ export function PersonalNotificationInbox({
 
       {loadState === 'success' && !items.length ? (
         <EmptyState
-          className="rounded-[2rem] bg-white shadow-sm"
+          className="rounded-[2rem] bg-white shadow-sm dark:bg-slate-950"
           title={
             isPrincipal
               ? 'Belum ada notifikasi yang membutuhkan perhatian Kepala Sekolah.'
@@ -112,7 +113,7 @@ export function PersonalNotificationInbox({
                 <p className={`text-xs font-black ${getInboxLabelTone(item.templateKey)}`}>
                   {getPersonalNotificationLabel(item.templateKey, role)}
                 </p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">{item.message}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-200">{item.message}</p>
               </div>
               {!item.readAt ? (
                 <span className="size-2.5 shrink-0 rounded-full bg-rose-500" />
