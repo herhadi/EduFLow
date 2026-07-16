@@ -60,8 +60,12 @@ export class R2StorageProvider implements StorageProvider {
 
   async getUsageSummary(): Promise<StorageUsageSummary> {
     if (this.apiToken && this.accountId && this.bucket) {
-      const analyticsSummary = await this.getAnalyticsUsageSummary();
-      if (analyticsSummary) return analyticsSummary;
+      try {
+        const analyticsSummary = await this.getAnalyticsUsageSummary();
+        if (analyticsSummary) return analyticsSummary;
+      } catch {
+        // Cloudflare Analytics may be unavailable for the token. Fall back to S3 listing.
+      }
     }
 
     const { bucket, client } = this.connection();

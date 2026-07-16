@@ -9,6 +9,7 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menstandarkan error response global dengan `statusCode`, `message`, `error`, `correlationId`, `path`, `method`, dan `timestamp`; detail error 500 hanya dicatat di log backend.
 - Membersihkan pemisahan role izin/sakit siswa: root tidak lagi menjadi reviewer atau penerima inbox operasional, sedangkan operator sekolah dan wali kelas tetap menerima sesuai tanggung jawabnya.
 - Membuat card health dashboard operasional root lebih informatif dengan angka teknis seperti latency database/Redis, total job queue aktif, failed jobs, pending/failed notification, serta jumlah dan ukuran file R2.
+- Menambahkan fallback pembacaan storage R2: jika Cloudflare GraphQL Analytics gagal, dashboard operasional mencoba menghitung usage melalui listing object S3-compatible agar bucket tetap terbaca selama credential R2 valid.
 
 ## 2026-07-15
 
