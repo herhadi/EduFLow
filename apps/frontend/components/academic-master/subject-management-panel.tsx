@@ -2,6 +2,8 @@ import { type Dispatch, type FormEvent, type SetStateAction } from 'react';
 import { type Subject } from '../../lib/api';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
+import { EmptyState } from '../ui/empty-state';
+import { fieldClass } from '../ui/form';
 
 type SubjectFormState = {
   name: string;
@@ -35,13 +37,13 @@ export function SubjectManagementPanel({
 
       <form className="mt-5 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.45fr)_auto]" onSubmit={onCreateSubject}>
         <input
-          className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm outline-none focus:border-brand-600"
+          className={fieldClass}
           onChange={(event) => setSubjectForm((current) => ({ ...current, name: event.target.value }))}
           placeholder="Nama mata pelajaran"
           value={subjectForm.name}
         />
         <input
-          className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm uppercase outline-none focus:border-brand-600"
+          className={`${fieldClass} uppercase`}
           onChange={(event) => setSubjectForm((current) => ({ ...current, code: event.target.value }))}
           placeholder="Kode"
           value={subjectForm.code}
@@ -53,13 +55,13 @@ export function SubjectManagementPanel({
 
       <div className="mt-5 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
         {[...subjects].sort((a, b) => a.name.localeCompare(b.name)).map((subject) => (
-          <div className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-blue-50 bg-slate-50 px-3 py-2.5" key={subject.id}>
+          <div className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-blue-50 bg-slate-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-900" key={subject.id}>
             <div className="min-w-0">
-              <p className="truncate text-sm font-black text-slate-900">{subject.name}</p>
+              <p className="truncate text-sm font-black text-slate-900 dark:text-slate-100">{subject.name}</p>
               <p className="mt-1 text-xs font-bold text-muted">{subject.code ?? 'Tanpa kode'}</p>
             </div>
             <Button
-              className="bg-rose-50 text-rose-700 hover:bg-rose-100"
+              className="text-rose-700 hover:bg-rose-50 dark:text-rose-100 dark:hover:bg-rose-500/15"
               onClick={() => void onDeleteSubject(subject)}
               size="sm"
               variant="ghost"
@@ -69,6 +71,9 @@ export function SubjectManagementPanel({
           </div>
         ))}
       </div>
+      {!subjects.length ? (
+        <EmptyState className="mt-5" title="Belum ada mata pelajaran." />
+      ) : null}
     </Card>
   );
 }

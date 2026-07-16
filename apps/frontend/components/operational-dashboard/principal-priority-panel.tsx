@@ -75,13 +75,13 @@ export function PrincipalPriorityPanel({
     : urgentItems.find((item) => item.key === activeDetail)?.label ?? 'Detail';
 
   return (
-    <section className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
+    <section className="surface-card min-w-0 rounded-[2rem] p-4 sm:p-6">
       <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-[11px] font-black uppercase tracking-[0.12em] text-brand-700 sm:text-xs">
             Prioritas KS
           </p>
-          <h3 className="mt-1 text-lg font-black tracking-tight text-slate-900 sm:text-xl">
+          <h3 className="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-slate-100 sm:text-xl">
             Perlu Dilihat Lebih Dulu
           </h3>
           <p className="mt-1 hidden text-sm leading-6 text-muted sm:block">
@@ -104,14 +104,14 @@ export function PrincipalPriorityPanel({
         ))}
       </div>
 
-      <div className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3 sm:p-4">
+      <div className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3 dark:border-blue-400/20 dark:bg-blue-500/10 sm:p-4">
         <div className="flex items-center justify-between gap-3">
-          <h4 className="text-sm font-black text-slate-900">Daftar Perhatian Teratas</h4>
+          <h4 className="text-sm font-black text-slate-900 dark:text-slate-100">Daftar Perhatian Teratas</h4>
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-black text-slate-600">
+            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-black text-slate-600 dark:bg-slate-950 dark:text-slate-200">
               {activeLabel}
             </span>
-            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-black text-slate-600">
+            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-black text-slate-600 dark:bg-slate-950 dark:text-slate-200">
               {formatNumber(filteredFollowUpItems.length)}
             </span>
           </div>
@@ -122,7 +122,7 @@ export function PrincipalPriorityPanel({
               <AgendaFollowUpItem item={item} key={item.agendaId} />
             ))
           ) : (
-            <p className="rounded-xl bg-white p-3 text-sm font-semibold text-emerald-700">
+            <p className="rounded-xl bg-white p-3 text-sm font-semibold text-emerald-700 dark:bg-slate-950 dark:text-emerald-100">
               Belum ada agenda prioritas tinggi hari ini.
             </p>
           )}
@@ -148,20 +148,20 @@ function PrincipalPriorityCard({
   value: number;
 }) {
   const toneClass = {
-    danger: 'border-rose-200 bg-rose-50 text-rose-700',
-    good: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    info: 'border-blue-200 bg-blue-50 text-blue-700',
-    warning: 'border-amber-200 bg-amber-50 text-amber-700',
+    danger: 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/20 dark:bg-rose-500/15 dark:text-rose-100',
+    good: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-100',
+    info: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-400/20 dark:bg-blue-500/15 dark:text-blue-100',
+    warning: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100',
   }[tone];
 
   return (
     <button
-      className={`min-w-0 rounded-xl border p-3 text-left transition hover:-translate-y-0.5 sm:rounded-2xl sm:p-4 ${toneClass} ${active ? 'ring-2 ring-brand-500 ring-offset-2' : ''}`}
+      className={`min-w-0 rounded-xl border p-3 text-left transition hover:-translate-y-0.5 sm:rounded-2xl sm:p-4 ${toneClass} ${active ? 'ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-slate-950' : ''}`}
       onClick={onClick}
       type="button"
     >
       <p className="text-xl font-black sm:text-2xl">{formatNumber(value)}</p>
-      <h4 className="mt-1 text-xs font-black text-slate-900 sm:mt-2 sm:text-sm">{label}</h4>
+      <h4 className="mt-1 text-xs font-black text-slate-900 dark:text-slate-100 sm:mt-2 sm:text-sm">{label}</h4>
       <p className="mt-1 hidden text-xs font-semibold leading-5 opacity-80 sm:block">{description}</p>
     </button>
   );

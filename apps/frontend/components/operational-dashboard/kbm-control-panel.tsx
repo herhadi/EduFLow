@@ -1,6 +1,8 @@
 import { type OperationalDashboardSummary } from '../../lib/api';
 import { formatNumber, formatReadableDate } from '../../lib/format';
 import { MetricCard } from '../ui/metric-card';
+import { Badge } from '../ui/badge';
+import { SurfaceCard } from '../ui/card';
 import { AgendaFollowUpItem } from './agenda-follow-up-item';
 import { emptySummary, formatTimeRange } from './operational-dashboard-utils';
 
@@ -14,7 +16,7 @@ export function KbmControlPanel({ summary }: KbmControlPanelProps) {
   const substitutes = kbm?.substitutes.items ?? [];
 
   return (
-    <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
+    <SurfaceCard className="sm:p-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="text-xl font-bold">Kendali KBM</h3>
@@ -22,9 +24,9 @@ export function KbmControlPanel({ summary }: KbmControlPanelProps) {
             Checklist guru, guru pengganti, dan agenda yang perlu dipantau hari ini.
           </p>
         </div>
-        <span className="w-fit rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">
+        <Badge className="w-fit" tone="brand">
           {formatReadableDate(summary.date)}
-        </span>
+        </Badge>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-6">
@@ -37,10 +39,10 @@ export function KbmControlPanel({ summary }: KbmControlPanelProps) {
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-[1.35fr_0.85fr]">
-        <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-4">
+        <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-4 dark:border-blue-400/20 dark:bg-blue-500/10">
           <div className="flex items-center justify-between gap-3">
-            <h4 className="text-sm font-black text-slate-900">Tindak Lanjut</h4>
-            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-black text-slate-600">
+            <h4 className="text-sm font-black text-slate-900 dark:text-slate-100">Tindak Lanjut</h4>
+            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-black text-slate-600 dark:bg-slate-950 dark:text-slate-200">
               {formatNumber(followUpItems.length)}
             </span>
           </div>
@@ -50,25 +52,25 @@ export function KbmControlPanel({ summary }: KbmControlPanelProps) {
                 <AgendaFollowUpItem key={item.agendaId} item={item} />
               ))
             ) : (
-              <p className="rounded-xl bg-white p-3 text-sm font-semibold text-emerald-700">
+              <p className="rounded-xl bg-white p-3 text-sm font-semibold text-emerald-700 dark:bg-slate-950 dark:text-emerald-100">
                 Belum ada agenda yang membutuhkan tindak lanjut.
               </p>
             )}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4">
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 dark:border-emerald-400/20 dark:bg-emerald-500/15">
           <div className="flex items-center justify-between gap-3">
-            <h4 className="text-sm font-black text-slate-900">Guru Pengganti</h4>
-            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-black text-emerald-700">
+            <h4 className="text-sm font-black text-slate-900 dark:text-slate-100">Guru Pengganti</h4>
+            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-black text-emerald-700 dark:bg-slate-950 dark:text-emerald-100">
               {formatNumber(kbm?.substitutes.total ?? 0)}
             </span>
           </div>
           <div className="mt-3 space-y-2">
             {substitutes.length > 0 ? (
               substitutes.map((item) => (
-                <div key={item.agendaId} className="rounded-xl bg-white p-3 text-sm">
-                  <p className="font-black text-slate-900">
+                <div key={item.agendaId} className="rounded-xl bg-white p-3 text-sm dark:bg-slate-950">
+                  <p className="font-black text-slate-900 dark:text-slate-100">
                     {item.className} · {item.subjectName}
                   </p>
                   <p className="mt-1 text-xs font-semibold text-muted">
@@ -83,13 +85,13 @@ export function KbmControlPanel({ summary }: KbmControlPanelProps) {
                 </div>
               ))
             ) : (
-              <p className="rounded-xl bg-white p-3 text-sm font-semibold text-muted">
+              <p className="rounded-xl bg-white p-3 text-sm font-semibold text-muted dark:bg-slate-950">
                 Tidak ada guru pengganti hari ini.
               </p>
             )}
           </div>
         </div>
       </div>
-    </section>
+    </SurfaceCard>
   );
 }

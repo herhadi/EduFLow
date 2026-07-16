@@ -24,7 +24,7 @@ const rootNavigation: NavigationItem[] = [
   { href: '/system/dashboard', label: 'Sistem', icon: '⌂' },
   { href: '/operations', label: 'Ops', icon: '●' },
   { href: '/system/access', label: 'Akses', icon: '⚙' },
-  { href: '/system/telegram', label: 'Telegram', icon: '✈' },
+  { href: '/system/telegram', label: 'Telegram', icon: 'telegram' },
   { href: '/system/audit', label: 'Audit', icon: '◇' },
   { href: '/system/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
   { href: '/system/profile', label: 'Profil', icon: '👤' },

@@ -180,8 +180,8 @@ export function BottomNavigation({
               href={item.href}
               key={item.href}
             >
-              <span className="relative text-lg leading-none">
-                {item.icon}
+              <span className="relative grid size-5 place-items-center text-lg leading-none">
+                <NavigationIcon icon={item.icon} />
                 {item.badge === 'notifications' ? <NotificationBadge count={notificationBadgeCount} /> : null}
               </span>
               <span className="mt-1">{item.label}</span>
@@ -191,4 +191,33 @@ export function BottomNavigation({
       </div>
     </nav>
   );
+}
+
+function NavigationIcon({ icon }: { icon?: string }) {
+  if (icon === 'telegram') {
+    return (
+      <svg
+        aria-hidden="true"
+        className="size-4"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M20.5 4.5 3.8 11.2c-.9.4-.9 1.6.1 1.9l4.2 1.3 1.6 5c.3.9 1.5 1.1 2 .3l2.4-3.1 4.5 3.3c.8.6 1.9.1 2.1-.9l2-13c.2-1-.8-1.8-1.7-1.5Z"
+          stroke="currentColor"
+          strokeLinejoin="round"
+          strokeWidth="1.8"
+        />
+        <path
+          d="m8.2 14.4 8.4-6.1-6.9 8.2"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.8"
+        />
+      </svg>
+    );
+  }
+
+  return <>{icon}</>;
 }

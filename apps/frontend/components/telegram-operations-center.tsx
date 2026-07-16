@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { api, type TelegramOperationsStatus } from '../lib/api';
+import { Button } from './ui/button';
+import { SurfaceCard } from './ui/card';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -85,10 +87,10 @@ export function TelegramOperationsCenter() {
   }
 
   return (
-    <section className="mt-8 w-full min-w-0 max-w-full overflow-hidden rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
+    <SurfaceCard className="mt-8 w-full min-w-0 max-w-full overflow-hidden sm:p-6">
       <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <h2 className="text-balance text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
+          <h2 className="text-balance text-xl font-black tracking-tight text-slate-900 dark:text-slate-100 sm:text-2xl">
             Manajemen Telegram Webhook
           </h2>
           <p className="mt-1 text-sm leading-6 text-muted">
@@ -96,42 +98,40 @@ export function TelegramOperationsCenter() {
           </p>
         </div>
         <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:w-auto sm:grid-cols-3">
-          <button className="secondary-button min-w-0 rounded-2xl px-4 py-2.5 text-sm font-black" onClick={() => void loadStatus()} type="button">
+          <Button onClick={() => void loadStatus()} variant="outline">
             Refresh Status
-          </button>
-          <button
-            className="school-primary-button min-w-0 rounded-2xl px-4 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          </Button>
+          <Button
             disabled={actionState === 'loading' || !status.config.botTokenConfigured || !status.config.webhookUrl}
             onClick={() => void runWebhookAction('set')}
-            type="button"
           >
             {actionState === 'loading' ? 'Memproses...' : 'Set Webhook'}
-          </button>
-          <button
-            className="min-w-0 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-black text-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+          </Button>
+          <Button
+            className="border-rose-200 text-rose-700 hover:border-rose-300 hover:text-rose-700 dark:border-rose-400/30 dark:text-rose-100"
             disabled={actionState === 'loading' || !status.config.botTokenConfigured}
             onClick={() => void runWebhookAction('delete')}
-            type="button"
+            variant="outline"
           >
             Hapus Webhook
-          </button>
+          </Button>
         </div>
       </div>
 
       {loadState === 'error' ? (
-        <p className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700">
+        <p className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700 dark:border-rose-400/20 dark:bg-rose-500/15 dark:text-rose-100">
           Status Telegram belum bisa dimuat.
         </p>
       ) : null}
 
       {message ? (
-        <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-700">{message}</p>
+        <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-700 dark:bg-slate-900 dark:text-slate-200">{message}</p>
       ) : null}
 
       <div className="mt-6 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 p-4">
-          <p className="text-sm font-black text-slate-900">Variabel Backend</p>
-          <div className="mt-3 space-y-2 text-sm text-slate-700">
+        <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+          <p className="text-sm font-black text-slate-900 dark:text-slate-100">Variabel Backend</p>
+          <div className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-200">
             <p className="break-words"><strong>Wajib:</strong> TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_URL</p>
             <p className="break-words"><strong>Opsional:</strong> TELEGRAM_WEBHOOK_SECRET, TELEGRAM_BOT_USERNAME</p>
           </div>
@@ -143,13 +143,13 @@ export function TelegramOperationsCenter() {
           </div>
         </div>
 
-        <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 p-4">
-          <p className="text-sm font-black text-slate-900">Webhook URL</p>
-          <p className="mt-2 break-all text-sm font-bold text-slate-700">
+        <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+          <p className="text-sm font-black text-slate-900 dark:text-slate-100">Webhook URL</p>
+          <p className="mt-2 break-all text-sm font-bold text-slate-700 dark:text-slate-200">
             {status.config.webhookUrl ?? 'Belum tersedia'}
           </p>
           {status.provider.lastErrorMessage ? (
-            <p className="mt-3 rounded-xl border border-rose-100 bg-rose-50 p-3 text-xs font-bold text-rose-700">
+            <p className="mt-3 rounded-xl border border-rose-100 bg-rose-50 p-3 text-xs font-bold text-rose-700 dark:border-rose-400/20 dark:bg-rose-500/15 dark:text-rose-100">
               {status.provider.lastErrorMessage}
             </p>
           ) : null}
@@ -158,15 +158,15 @@ export function TelegramOperationsCenter() {
           </pre>
         </div>
       </div>
-    </section>
+    </SurfaceCard>
   );
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid min-w-0 gap-1 rounded-xl bg-white px-3 py-2 sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)] sm:items-center">
-      <span className="min-w-0 break-words text-xs font-black uppercase tracking-[0.08em] text-slate-500">{label}</span>
-      <span className="min-w-0 break-all text-sm font-bold text-slate-800">{value}</span>
+    <div className="grid min-w-0 gap-1 rounded-xl bg-white px-3 py-2 dark:bg-slate-950 sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)] sm:items-center">
+      <span className="min-w-0 break-words text-xs font-black uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="min-w-0 break-all text-sm font-bold text-slate-800 dark:text-slate-100">{value}</span>
     </div>
   );
 }

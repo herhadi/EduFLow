@@ -62,7 +62,7 @@ export function ClassManagementPanel({
       <form className="mt-5 grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]" onSubmit={onCreateSchoolYear}>
         <FormField htmlFor="new-school-year" label="Tahun Ajaran Baru">
           <input
-            className={`${fieldClass} border-blue-100 bg-blue-50/60 font-bold`}
+            className={`${fieldClass} font-bold`}
             id="new-school-year"
             onChange={(event) => setSchoolYearName(event.target.value)}
             pattern={schoolYearNamePattern}
@@ -78,7 +78,7 @@ export function ClassManagementPanel({
       <form className="mt-3 grid gap-3" onSubmit={onCreateClass}>
         <FormField htmlFor="class-school-year" label="Tahun Ajaran">
           <select
-            className={`${fieldClass} border-blue-100 bg-blue-50/60 font-bold`}
+            className={`${fieldClass} font-bold`}
             id="class-school-year"
             onChange={(event) => setClassForm((current) => ({ ...current, schoolYearId: event.target.value }))}
             value={classForm.schoolYearId}
@@ -92,7 +92,7 @@ export function ClassManagementPanel({
         <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
           <FormField htmlFor="class-grade" label="Tingkat">
             <select
-              className={`${fieldClass} border-blue-100 bg-blue-50/60 font-bold`}
+              className={`${fieldClass} font-bold`}
               id="class-grade"
               onChange={(event) => setClassForm((current) => ({ ...current, grade: event.target.value }))}
               value={classForm.grade}
@@ -102,7 +102,7 @@ export function ClassManagementPanel({
           </FormField>
           <FormField htmlFor="class-rombel" label="Rombel">
             <input
-              className={`${fieldClass} border-blue-100 bg-blue-50/60 uppercase`}
+              className={`${fieldClass} uppercase`}
               id="class-rombel"
               maxLength={3}
               onChange={(event) => setClassForm((current) => ({ ...current, suffix: event.target.value }))}
@@ -120,15 +120,15 @@ export function ClassManagementPanel({
         {groupedClasses.map((group) => (
           <div key={group.grade}>
             <div className="flex items-center justify-between">
-              <h3 className="font-black text-slate-800">Kelas {group.grade}</h3>
+              <h3 className="font-black text-slate-800 dark:text-slate-100">Kelas {group.grade}</h3>
               <Badge tone="brand">{group.classes.length}</Badge>
             </div>
             <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {group.classes.map((schoolClass) => (
-                <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-blue-50 bg-slate-50 px-3 py-2.5" key={schoolClass.id}>
-                  <span className="truncate text-sm font-black text-slate-800">{schoolClass.name}</span>
+                <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-blue-50 bg-slate-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-900" key={schoolClass.id}>
+                  <span className="truncate text-sm font-black text-slate-800 dark:text-slate-100">{schoolClass.name}</span>
                   <button
-                    className="rounded-full bg-rose-50 px-2 py-1 text-xs font-black text-rose-700 hover:bg-rose-100"
+                    className="rounded-full bg-rose-50 px-2 py-1 text-xs font-black text-rose-700 hover:bg-rose-100 dark:bg-rose-500/15 dark:text-rose-100"
                     onClick={() => void onDeleteClass(schoolClass)}
                     type="button"
                   >
@@ -142,9 +142,9 @@ export function ClassManagementPanel({
         ))}
       </div>
 
-      <form className="mt-5 grid min-w-0 gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3" onSubmit={onCloneSchoolYearMaster}>
+      <form className="mt-5 grid min-w-0 gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3 dark:border-blue-400/20 dark:bg-blue-500/10" onSubmit={onCloneSchoolYearMaster}>
         <div>
-          <p className="text-sm font-black text-slate-900">Salin Master Tahun Ajaran</p>
+          <p className="text-sm font-black text-slate-900 dark:text-slate-100">Salin Master Tahun Ajaran</p>
           <p className="mt-1 text-xs font-semibold text-muted">
             Gunakan untuk menyiapkan kelas dan susunan jam tahun ajaran baru dari tahun sebelumnya.
           </p>
@@ -152,7 +152,7 @@ export function ClassManagementPanel({
         <div className="grid gap-2 sm:grid-cols-2">
           <FormField htmlFor="clone-source-school-year" label="Sumber">
             <select
-              className={`${fieldClass} border-blue-100 font-bold`}
+              className={`${fieldClass} font-bold`}
               id="clone-source-school-year"
               onChange={(event) => setCloneForm((current) => ({ ...current, sourceSchoolYearId: event.target.value }))}
               value={cloneForm.sourceSchoolYearId}
@@ -164,7 +164,7 @@ export function ClassManagementPanel({
           </FormField>
           <FormField htmlFor="clone-target-school-year" label="Target">
             <select
-              className={`${fieldClass} border-blue-100 font-bold`}
+              className={`${fieldClass} font-bold`}
               id="clone-target-school-year"
               onChange={(event) => setCloneForm((current) => ({ ...current, targetSchoolYearId: event.target.value }))}
               value={cloneForm.targetSchoolYearId}
@@ -175,13 +175,13 @@ export function ClassManagementPanel({
             </select>
           </FormField>
         </div>
-        <div className="grid gap-2 text-xs font-bold text-slate-700 sm:grid-cols-3">
+        <div className="grid gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 sm:grid-cols-3">
           {[
             ['includeClasses', 'Kelas'],
             ['includeTimeSlots', 'Jam pelajaran'],
             ['includeClassActivities', 'Aktivitas slot'],
           ].map(([field, label]) => (
-            <label className="flex items-center gap-2 rounded-xl bg-white px-3 py-2" key={field}>
+            <label className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 dark:bg-slate-950" key={field}>
               <input
                 checked={cloneForm[field as keyof typeof cloneForm] as boolean}
                 className="h-4 w-4 accent-brand-600"

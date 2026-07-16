@@ -46,10 +46,10 @@ export function TimeSlotManagementPanel({
         Atur susunan jam per hari untuk setiap tahun ajaran. Di sinilah operator mengubah jam mulai, jam selesai, nomor jam, dan jenis slot seperti istirahat atau upacara.
       </p>
 
-      <div className="mt-5 grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-4 md:grid-cols-[1fr_auto] md:items-end">
+      <div className="mt-5 grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-4 dark:border-blue-400/20 dark:bg-blue-500/10 md:grid-cols-[1fr_auto] md:items-end">
         <FormField htmlFor="time-slot-school-year-filter" label="Tahun Ajaran">
           <select
-            className={`${fieldClass} border-blue-100 font-bold`}
+            className={`${fieldClass} font-bold`}
             id="time-slot-school-year-filter"
             onChange={(event) => onSchoolYearChange(event.target.value)}
             value={selectedSchoolYearId}
@@ -72,20 +72,20 @@ export function TimeSlotManagementPanel({
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
         {timeSlotsByDay.map((day) => (
-          <div className="rounded-2xl border border-blue-50 bg-slate-50 p-4" key={day.value}>
+          <div className="rounded-2xl border border-blue-50 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900" key={day.value}>
             <div className="flex items-center justify-between gap-2">
-              <h3 className="font-black text-slate-900">{day.label}</h3>
-              <Badge className="bg-white" tone="brand">{day.slots.length}</Badge>
+              <h3 className="font-black text-slate-900 dark:text-slate-100">{day.label}</h3>
+              <Badge tone="brand">{day.slots.length}</Badge>
             </div>
             <div className="mt-3 space-y-2">
               {day.slots.map((slot) => (
                 <div
-                  className={`rounded-xl bg-white p-3 ${editingTimeSlotId === slot.id ? 'ring-2 ring-brand-200' : ''}`}
+                  className={`rounded-xl bg-white p-3 dark:bg-slate-950 ${editingTimeSlotId === slot.id ? 'ring-2 ring-brand-200 dark:ring-blue-400/40' : ''}`}
                   key={slot.id}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-black text-slate-900">
+                      <p className="truncate text-sm font-black text-slate-900 dark:text-slate-100">
                         {slot.name}
                       </p>
                       <p className="mt-1 text-xs font-semibold text-muted">
@@ -113,14 +113,14 @@ export function TimeSlotManagementPanel({
                     </div>
                   </div>
                   {editingTimeSlotId === slot.id ? (
-                    <div className="mt-3 border-t border-blue-50 pt-3">
+                    <div className="mt-3 border-t border-blue-50 pt-3 dark:border-slate-700">
                       {renderTimeSlotForm('Simpan Perubahan Jam')}
                     </div>
                   ) : null}
                 </div>
               ))}
               {!day.slots.length ? (
-                <EmptyState className="bg-white py-3 text-xs" title="Belum ada slot waktu." />
+                <EmptyState className="py-3 text-xs" title="Belum ada slot waktu." />
               ) : null}
             </div>
           </div>

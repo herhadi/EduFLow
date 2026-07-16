@@ -27,6 +27,7 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Merapikan notification center dan inbox personal agar tab, tabel, kartu notifikasi, status kanal, retry, dan empty/error state konsisten lintas role serta terbaca di dark mode.
 - Merapikan halaman Profil lintas role agar identitas, foto profil, aktivasi Telegram, ubah sandi, dan sesi aktif memakai komponen UI global serta konsisten di dark mode.
 - Merapikan admin access root agar form user, daftar user, reset/nonaktif/hapus user, pencarian guru, dan aksi nonaktif/hapus guru memakai komponen UI global serta tone dark mode yang konsisten.
+- Merapikan lima area sisa sebelum pilot: admin akademik, Telegram root, export report, dashboard operasional/KS, dan halaman profil minor; ikon navbar Telegram diganti menjadi SVG paper-plane yang lebih sesuai.
 - Memecah `academic.service.ts` menjadi facade tipis dan mengekstrak logika domain ke service kecil: master akademik, kalender akademik, jadwal, generate agenda, manajemen agenda, guru akademik, portal guru, dan siswa akademik.
 - Mendokumentasikan struktur baru Academic Module di `docs/architecture.md`, `docs/academic-planning.md`, dan `docs/infrastructure.md`.
 - Merapikan dokumentasi dengan menggabungkan `attendance-state.md` ke `attendance-workflow.md`, `testing.md` ke `operational-scenarios.md`, serta `security.md` dan `operations.md` ke `infrastructure.md` agar referensi inti tidak terlalu tersebar.

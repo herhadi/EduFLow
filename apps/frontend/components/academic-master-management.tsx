@@ -360,7 +360,7 @@ export function AcademicMasterManagement() {
 
   if (loadState === 'error') {
     return (
-      <div className="mt-6 rounded-[2rem] border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+      <div className="mt-6 rounded-[2rem] border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100">
         Data akademik belum bisa dimuat. Pastikan backend berjalan dan login masih aktif.
       </div>
     );

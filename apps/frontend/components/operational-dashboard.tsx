@@ -10,7 +10,9 @@ import {
   type PrincipalPriorityKey,
 } from './operational-dashboard/operational-dashboard-utils';
 import { PrincipalPriorityPanel } from './operational-dashboard/principal-priority-panel';
+import { Badge } from './ui/badge';
 import { MetricCard } from './ui/metric-card';
+import { SurfaceCard } from './ui/card';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -46,13 +48,13 @@ export function OperationalDashboard({
   return (
     <section className={`${className} ${audience === 'principal' ? 'space-y-3 sm:space-y-5' : 'space-y-6'}`}>
       <div className={audience === 'principal'
-        ? 'rounded-[1.25rem] border border-blue-100 bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-5'
+        ? 'surface-card rounded-[1.25rem] p-3 sm:rounded-[2rem] sm:p-5'
         : 'rounded-[2rem] bg-gradient-to-br from-brand-700 to-brand-600 p-5 text-white shadow-xl sm:p-7'}
       >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className={audience === 'principal' ? 'text-xs font-black uppercase tracking-[0.12em] text-brand-700' : 'text-sm font-semibold text-blue-100'}>Hari Ini</p>
-            <h2 className={audience === 'principal' ? 'mt-1 text-lg font-black text-slate-900 sm:text-2xl' : 'mt-1 text-2xl font-bold sm:text-3xl'}>
+            <h2 className={audience === 'principal' ? 'mt-1 text-lg font-black text-slate-900 dark:text-slate-100 sm:text-2xl' : 'mt-1 text-2xl font-bold sm:text-3xl'}>
               {audience === 'principal' ? 'Ringkasan Cepat' : 'Monitoring Operasional'}
             </h2>
             <p className={audience === 'principal' ? 'mt-1 text-xs font-semibold text-muted sm:text-sm' : 'mt-2 text-sm text-blue-100'}>
@@ -61,7 +63,7 @@ export function OperationalDashboard({
           </div>
           <button
             className={audience === 'principal'
-              ? 'rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-black text-brand-700 transition hover:bg-blue-100 sm:rounded-2xl sm:px-4 sm:text-sm'
+              ? 'rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-black text-brand-700 transition hover:bg-blue-100 dark:border-blue-400/20 dark:bg-blue-500/15 dark:text-blue-100 sm:rounded-2xl sm:px-4 sm:text-sm'
               : 'rounded-2xl bg-white/15 px-4 py-2 text-sm font-semibold backdrop-blur transition hover:bg-white/25'}
             onClick={() => void loadDashboard()}
             type="button"
@@ -71,7 +73,10 @@ export function OperationalDashboard({
         </div>
 
         {loadState === 'error' ? (
-          <p className="mt-4 rounded-2xl bg-white/15 p-3 text-sm text-blue-50">
+          <p className={audience === 'principal'
+            ? 'mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-700 dark:border-rose-400/20 dark:bg-rose-500/15 dark:text-rose-100'
+            : 'mt-4 rounded-2xl bg-white/15 p-3 text-sm text-blue-50'}
+          >
             Backend belum bisa diakses. Data operasional belum dapat dimuat.
           </p>
         ) : null}
@@ -167,7 +172,7 @@ export function OperationalDashboard({
 
           <KbmControlPanel summary={summary} />
 
-          <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
+          <SurfaceCard className="sm:p-6">
             <div className="mb-4">
               <h3 className="text-xl font-bold">Tindak Lanjut Hari Ini</h3>
               <p className="mt-1 text-sm text-muted">
@@ -191,7 +196,7 @@ export function OperationalDashboard({
                 value={summary.notifications.failed}
               />
             </div>
-          </section>
+          </SurfaceCard>
         </>
       ) : null}
     </section>
@@ -208,27 +213,27 @@ function PrincipalKbmStrip({ summary }: { summary: OperationalDashboardSummary }
   ];
 
   return (
-    <section className="rounded-[1.25rem] border border-blue-100 bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-4">
+    <SurfaceCard className="rounded-[1.25rem] p-3 sm:rounded-[2rem] sm:p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-black text-slate-900 sm:text-base">Kendali KBM</h3>
+          <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 sm:text-base">Kendali KBM</h3>
           <p className="mt-0.5 text-xs font-semibold text-muted">
             Cek kualitas laporan guru: hadir, presensi siswa, materi, dan foto kelas.
           </p>
         </div>
-        <span className="rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-black text-brand-700">
+        <Badge tone="brand">
           {formatReadableDate(summary.date)}
-        </span>
+        </Badge>
       </div>
       <div className="mt-3 grid grid-cols-4 gap-2">
         {items.map((item) => (
-          <div className="rounded-xl border border-slate-100 bg-slate-50 p-2 text-center" key={item.label}>
-            <p className="text-lg font-black text-slate-900">{formatNumber(item.value)}</p>
+          <div className="rounded-xl border border-slate-100 bg-slate-50 p-2 text-center dark:border-slate-700 dark:bg-slate-900" key={item.label}>
+            <p className="text-lg font-black text-slate-900 dark:text-slate-100">{formatNumber(item.value)}</p>
             <p className="mt-0.5 truncate text-[10px] font-bold text-muted sm:text-xs">{item.label}</p>
           </div>
         ))}
       </div>
-    </section>
+    </SurfaceCard>
   );
 }
 
@@ -246,22 +251,22 @@ function MetricSection({
   title: string;
 }) {
   return (
-    <section className={compact ? 'rounded-[1.25rem] border border-blue-100 bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-4' : 'rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6'}>
+    <SurfaceCard className={compact ? 'rounded-[1.25rem] p-3 sm:rounded-[2rem] sm:p-4' : 'sm:p-6'}>
       <div className={compact ? 'mb-2 flex items-start justify-between gap-3' : 'mb-4 flex items-start justify-between gap-3'}>
         <div>
           <h3 className={compact ? 'text-base font-black sm:text-lg' : 'text-xl font-bold'}>{title}</h3>
           <p className={compact ? 'hidden text-sm text-muted sm:mt-1 sm:block' : 'mt-1 text-sm text-muted'}>{description}</p>
         </div>
         {badge ? (
-          <span className="shrink-0 rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">
+          <Badge className="shrink-0" tone="brand">
             {badge}
-          </span>
+          </Badge>
         ) : null}
       </div>
       <div className={compact ? 'grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5' : 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5'}>
         {children}
       </div>
-    </section>
+    </SurfaceCard>
   );
 }
 

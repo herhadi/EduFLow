@@ -26,11 +26,11 @@ export function AcademicTimeSlotForm({
   submitLabel,
 }: AcademicTimeSlotFormProps) {
   return (
-    <form className="grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-4" onSubmit={onSubmit}>
+    <form className="grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-4 dark:border-blue-400/20 dark:bg-blue-500/10" onSubmit={onSubmit}>
       <div className="grid gap-3 sm:grid-cols-[0.85fr_0.65fr_1fr]">
         <FormField htmlFor="time-slot-day" label="Hari">
           <select
-            className={`${fieldClass} border-blue-100 font-bold`}
+            className={`${fieldClass} font-bold`}
             disabled={form.type === 'CEREMONY'}
             id="time-slot-day"
             onChange={(event) => setForm((current) => ({ ...current, dayOfWeek: Number(event.target.value) }))}
@@ -46,7 +46,7 @@ export function AcademicTimeSlotForm({
 
         <FormField htmlFor="time-slot-period" label="Jam ke-">
           <input
-            className={`${fieldClass} border-blue-100 font-bold`}
+            className={`${fieldClass} font-bold`}
             id="time-slot-period"
             min="1"
             onChange={(event) => setForm((current) => ({ ...current, periodNumber: event.target.value }))}
@@ -58,7 +58,7 @@ export function AcademicTimeSlotForm({
 
         <FormField htmlFor="time-slot-type" label="Jenis Slot">
           <select
-            className={`${fieldClass} border-blue-100 font-bold`}
+            className={`${fieldClass} font-bold`}
             id="time-slot-type"
             onChange={(event) => {
               const type = event.target.value as AcademicTimeSlotType;
@@ -83,7 +83,7 @@ export function AcademicTimeSlotForm({
       <div className="grid gap-3 sm:grid-cols-[1fr_0.7fr_0.7fr]">
         <FormField htmlFor="time-slot-name" label="Nama Slot">
           <input
-            className={`${fieldClass} border-blue-100 font-bold`}
+            className={`${fieldClass} font-bold`}
             id="time-slot-name"
             onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
             placeholder="Contoh Jam 2"
@@ -93,7 +93,7 @@ export function AcademicTimeSlotForm({
 
         <FormField htmlFor="time-slot-start" label="Mulai">
           <input
-            className={`${fieldClass} border-blue-100 font-bold`}
+            className={`${fieldClass} font-bold`}
             id="time-slot-start"
             onChange={(event) => setForm((current) => ({ ...current, startsAt: event.target.value }))}
             type="time"
@@ -103,7 +103,7 @@ export function AcademicTimeSlotForm({
 
         <FormField htmlFor="time-slot-end" label="Selesai">
           <input
-            className={`${fieldClass} border-blue-100 font-bold`}
+            className={`${fieldClass} font-bold`}
             id="time-slot-end"
             onChange={(event) => setForm((current) => ({ ...current, endsAt: event.target.value }))}
             type="time"
@@ -112,7 +112,7 @@ export function AcademicTimeSlotForm({
         </FormField>
       </div>
 
-      <label className="flex items-center gap-2 rounded-xl bg-white px-3 py-3 text-sm font-bold text-slate-700">
+      <label className="flex items-center gap-2 rounded-xl bg-white px-3 py-3 text-sm font-bold text-slate-700 dark:bg-slate-950 dark:text-slate-200">
         <input
           checked={form.isAssignable}
           className="h-4 w-4 accent-brand-600"
