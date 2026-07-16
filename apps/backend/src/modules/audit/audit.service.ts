@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ok } from '../../core/response/api-response';
 import { PrismaService } from '../../prisma/prisma.service';
 
 export interface ActivityItem {
@@ -84,7 +85,7 @@ export class AuditService {
         new Date(second.time).getTime() - new Date(first.time).getTime(),
     );
 
-    return { data: activities.slice(0, 100) };
+    return ok(activities.slice(0, 100));
   }
 
   async record(data: {

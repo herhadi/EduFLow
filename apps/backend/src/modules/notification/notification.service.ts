@@ -5,6 +5,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { NotificationStatus } from '@prisma/client';
+import { ok } from '../../core/response/api-response';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueueProducerService } from '../../queue/queue-producer.service';
 import { AuditService } from '../audit/audit.service';
@@ -37,11 +38,11 @@ export class NotificationService implements OnModuleInit {
     const scope = await this.getPersonalInboxScope(userId, roles);
 
     if (!scope) {
-      return { data: [] };
+      return ok([]);
     }
 
-    return {
-      data: await this.prisma.notificationLog.findMany({
+    return ok(
+      await this.prisma.notificationLog.findMany({
         where: {
           OR: [
             { recipientUserId: userId },
@@ -56,7 +57,7 @@ export class NotificationService implements OnModuleInit {
         orderBy: { createdAt: 'desc' },
         take: 100,
       }),
-    };
+    );
   }
 
   async markAsRead(userId: string, roles: string[], id: string) {
@@ -67,12 +68,13 @@ export class NotificationService implements OnModuleInit {
       throw new NotFoundException('Notifikasi tidak ditemukan');
     }
 
-    return {
-      data: await this.prisma.notificationLog.update({
+    return ok(
+      await this.prisma.notificationLog.update({
         where: { id },
         data: { readAt: new Date() },
       }),
-    };
+      'Notifikasi ditandai sudah dibaca.',
+    );
   }
 
   private async getPersonalInboxScope(userId: string, roles: string[]) {
@@ -301,12 +303,12 @@ export class NotificationService implements OnModuleInit {
   }
 
   async getTemplates() {
-    return {
-      data: await this.prisma.notificationTemplate.findMany({
+    return ok(
+      await this.prisma.notificationTemplate.findMany({
         where: { deletedAt: null },
         orderBy: [{ channel: 'asc' }, { key: 'asc' }],
       }),
-    };
+    );
   }
 
   async retry(id: string) {
@@ -356,8 +358,8 @@ export class NotificationService implements OnModuleInit {
       },
     });
 
-    return {
-      data: {
+    return ok(
+      {
         notification: updatedNotification,
         job: {
           id: job.id,
@@ -365,8 +367,8 @@ export class NotificationService implements OnModuleInit {
           queue: job.queueName,
         },
       },
-      message: 'Retry notifikasi berhasil dikirim ke queue.',
-    };
+      'Retry notifikasi berhasil dikirim ke queue.',
+    );
   }
 
   async ensureDefaultTemplates() {
@@ -431,12 +433,12 @@ export class NotificationService implements OnModuleInit {
   }
 
   private async getLogsByStatus(status: NotificationStatus) {
-    return {
-      data: await this.prisma.notificationLog.findMany({
+    return ok(
+      await this.prisma.notificationLog.findMany({
         where: { status, channel: { not: 'IN_APP' } },
         orderBy: { createdAt: 'desc' },
         take: 100,
       }),
-    };
+    );
   }
 }

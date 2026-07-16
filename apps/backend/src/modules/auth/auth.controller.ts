@@ -4,6 +4,7 @@ import { PERMISSIONS } from '../../common/constants/permissions';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { RequestWithUser } from '../../core/http/request-with-user';
+import { ok } from '../../core/response/api-response';
 import { AuthService } from './auth.service';
 import { ChangeInitialPasswordDto } from './dto/change-initial-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -99,7 +100,7 @@ export class AuthController {
 
   @Get('me')
   me(@Req() request: RequestWithUser) {
-    return request.user;
+    return ok(request.user);
   }
 
   @Get('me/profile')

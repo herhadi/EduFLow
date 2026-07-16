@@ -93,7 +93,7 @@ export class AuthService {
       },
     });
 
-    return this.createSession(user.id);
+    return ok(await this.createSession(user.id), 'Registrasi berhasil.');
   }
 
   async login(dto: LoginDto, meta: AuthRequestMeta = {}) {

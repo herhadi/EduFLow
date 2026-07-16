@@ -2,6 +2,11 @@
 
 Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
+## 2026-07-16
+
+- Memulai audit konsistensi response backend untuk fase freeze piloting: menegaskan strategi standardisasi bertahap di `docs/api-contract.md` dan mulai memakai helper `ok()` pada modul audit/notifikasi tanpa mengubah shape response utama.
+- Menyeragamkan response non-exception auth pada `POST /auth/register` dan `GET /auth/me` ke format `{ data, message? }`, sementara login/refresh, webhook, health check, dan file stream tetap mengikuti kontrak khususnya.
+
 ## 2026-07-15
 
 - Mulai refactor UI global pada alur perangkat ajar: halaman perangkat ajar guru dan review Kepala Sekolah mulai memakai `Button`, `Badge`, `SurfaceCard`, `FormField`, `LoadingState`, dan `EmptyState` agar pola form, status, dan aksi lebih konsisten.

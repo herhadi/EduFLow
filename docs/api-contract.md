@@ -59,3 +59,5 @@ Error response tetap ditangani oleh global error filter. Endpoint tidak perlu me
 
 Backend menyediakan helper `ok(data, message?, meta?)` di `apps/backend/src/core/response/api-response.ts`.
 Gunakan helper ini untuk endpoint baru atau saat merapikan endpoint lama.
+
+Pada fase freeze piloting, standardisasi dilakukan bertahap per modul agar tidak mengubah kontrak besar sekaligus. Hindari interceptor pembungkus global sampai exception seperti login, webhook, health check, dan file stream benar-benar aman.
