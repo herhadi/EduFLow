@@ -53,7 +53,25 @@ Beberapa endpoint boleh tidak memakai format standar:
 
 ## Error Response
 
-Error response tetap ditangani oleh global error filter. Endpoint tidak perlu membungkus error manual dalam `data`.
+Error response ditangani oleh global error filter. Endpoint tidak perlu membungkus error manual dalam `data`.
+
+Format error JSON:
+
+```json
+{
+  "statusCode": 400,
+  "message": "Payload tidak valid",
+  "error": "Bad Request",
+  "correlationId": "uuid",
+  "path": "/api/example",
+  "method": "POST",
+  "timestamp": "2026-07-16T00:00:00.000Z"
+}
+```
+
+- `message` dapat berupa string atau array string untuk error validasi.
+- `correlationId` juga dikirim melalui header `x-correlation-id`.
+- Error internal `500` mengembalikan `Internal server error` ke client, sementara detail teknis hanya dicatat di log backend.
 
 ## Catatan Implementasi
 
@@ -61,3 +79,7 @@ Backend menyediakan helper `ok(data, message?, meta?)` di `apps/backend/src/core
 Gunakan helper ini untuk endpoint baru atau saat merapikan endpoint lama.
 
 Pada fase freeze piloting, standardisasi dilakukan bertahap per modul agar tidak mengubah kontrak besar sekaligus. Hindari interceptor pembungkus global sampai exception seperti login, webhook, health check, dan file stream benar-benar aman.
+
+## Role Operasional
+
+Endpoint operasional sekolah tidak otomatis memberi akses kepada `root`. Role `root` dipakai untuk support teknis, recovery, audit, dan konfigurasi sistem. Workflow harian seperti review izin/sakit siswa memakai `operator_sekolah` dan wali kelas sesuai cakupan datanya.

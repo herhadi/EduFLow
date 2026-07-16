@@ -3,7 +3,17 @@ import { formatNumber } from '../../lib/format';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 
-export function HealthCard({ label, status }: { label: string; status: HealthStatus }) {
+export function HealthCard({
+  detail,
+  label,
+  status,
+  value,
+}: {
+  detail?: string;
+  label: string;
+  status: HealthStatus;
+  value?: string | number;
+}) {
   const isHealthy = status === 'Healthy';
 
   return (
@@ -15,7 +25,8 @@ export function HealthCard({ label, status }: { label: string; status: HealthSta
       }`}
     >
       <p className="text-sm font-semibold text-slate-600 dark:text-[var(--text-soft)]">{label}</p>
-      <strong className="mt-2 block text-lg">{status}</strong>
+      <strong className="mt-2 block text-lg">{value ?? status}</strong>
+      <p className="mt-1 text-xs font-semibold opacity-80">{detail ?? status}</p>
     </article>
   );
 }

@@ -12,6 +12,7 @@ import {
   emptyOperationsBackups,
   emptyOperationsDashboard,
   formatBytes,
+  formatLatency,
   formatUptime,
 } from './operations-center/operations-center-utils';
 import {
@@ -125,15 +126,42 @@ export function OperationsCenter() {
         ) : null}
 
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          <HealthCard label="Redis" status={dashboard.health.redis} />
-          <HealthCard label="Queue" status={dashboard.health.queue} />
-          <HealthCard label="Worker" status={dashboard.health.worker} />
-          <HealthCard label="Database" status={dashboard.health.database} />
           <HealthCard
+            detail="Redis ping"
+            label="Redis"
+            status={dashboard.health.redis}
+            value={formatLatency(dashboard.diagnostics?.redisLatencyMs)}
+          />
+          <HealthCard
+            detail="waiting + active + delayed"
+            label="Queue"
+            status={dashboard.health.queue}
+            value={formatNumber(dashboard.queueTotals.waiting + dashboard.queueTotals.active + dashboard.queueTotals.delayed)}
+          />
+          <HealthCard
+            detail="failed jobs"
+            label="Worker"
+            status={dashboard.health.worker}
+            value={formatNumber(dashboard.queueTotals.failed)}
+          />
+          <HealthCard
+            detail="SELECT 1 latency"
+            label="Database"
+            status={dashboard.health.database}
+            value={formatLatency(dashboard.diagnostics?.databaseLatencyMs)}
+          />
+          <HealthCard
+            detail="pending + failed"
             label="Notification"
             status={dashboard.health.notification}
+            value={formatNumber((dashboard.queueTotals.notification?.waiting ?? 0) + (dashboard.queueTotals.notification?.failed ?? 0))}
           />
-          <HealthCard label="Cloudflare R2" status={dashboard.health.storage} />
+          <HealthCard
+            detail={dashboard.storageSummary ? formatBytes(dashboard.storageSummary.totalSizeBytes) : 'bucket tidak terbaca'}
+            label="Cloudflare R2"
+            status={dashboard.health.storage}
+            value={dashboard.storageSummary ? `${formatNumber(dashboard.storageSummary.objectCount)} file` : '-'}
+          />
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <MetricCard

@@ -220,7 +220,7 @@ export class StudentLeavesService {
       status: StudentLeaveRequestStatus.PENDING,
     };
 
-    if (roles.includes('root') || roles.includes('operator_sekolah')) {
+    if (roles.includes('operator_sekolah')) {
       return base;
     }
 
@@ -283,7 +283,7 @@ export class StudentLeavesService {
     const operators = await this.prisma.user.findMany({
       where: {
         deletedAt: null,
-        roles: { some: { role: { name: { in: ['root', 'operator_sekolah'] } } } },
+        roles: { some: { role: { name: 'operator_sekolah' } } },
       },
       select: { id: true, name: true, email: true },
     });
@@ -299,7 +299,14 @@ export class StudentLeavesService {
         update: {
           readAt: null,
           status: NotificationStatus.SENT,
+          recipient: recipient.email,
+          recipientUserId: recipient.id,
+          recipientName: recipient.name,
+          subject: 'Pengajuan izin/sakit siswa',
           message,
+          templateKey: 'student-leave.requested',
+          entityType: 'StudentLeaveRequest',
+          entityId: request.id,
           actionUrl: this.getReviewerActionUrl(recipient.id, operators),
           sentAt: new Date(),
         },
@@ -345,7 +352,15 @@ export class StudentLeavesService {
       update: {
         readAt: null,
         status: NotificationStatus.SENT,
+        recipient: recipient ?? request.requestedBy!.email,
+        recipientUserId: request.requestedBy?.id ?? null,
+        recipientName: request.requestedBy?.name ?? request.guardian.name,
+        subject: approved ? 'Pengajuan izin disetujui' : 'Pengajuan izin ditolak',
         message,
+        templateKey: approved ? 'student-leave.approved' : 'student-leave.rejected',
+        entityType: 'StudentLeaveRequest',
+        entityId: request.id,
+        actionUrl: '/parent/permits',
         sentAt: new Date(),
       },
       create: {

@@ -14,6 +14,10 @@ import { TelegramBotService } from '../../infrastructure/telegram/telegram-bot.s
 import { RequestMetricsService } from '../../infrastructure/observability/request-metrics.service';
 
 type HealthStatus = 'Healthy' | 'Unhealthy';
+type HealthProbe = {
+  latencyMs: number | null;
+  status: HealthStatus;
+};
 
 const monitoredQueues = [
   QUEUES.TEACHER_REMINDER,
@@ -106,10 +110,10 @@ export class OperationsService {
     return {
       data: {
         health: {
-          redis,
+          redis: redis.status,
           queue: this.toHealth(queueHealthy),
           worker: this.toHealth(workerHealthy),
-          database,
+          database: database.status,
           storage: storageResult.status,
           storageSummary: storageResult.summary,
           storageError: storageResult.error,
@@ -117,6 +121,10 @@ export class OperationsService {
             queues.find((queue) => queue.name === QUEUES.NOTIFICATION_SEND)?.status ===
               'Healthy',
           ),
+        },
+        diagnostics: {
+          databaseLatencyMs: database.latencyMs,
+          redisLatencyMs: redis.latencyMs,
         },
         runtime: this.getRuntimeSnapshot(),
         requests: this.requestMetrics.getSnapshot(),
@@ -367,21 +375,25 @@ export class OperationsService {
     };
   }
 
-  private async checkDatabase(): Promise<HealthStatus> {
+  private async checkDatabase(): Promise<HealthProbe> {
+    const startedAt = Date.now();
+
     try {
       await this.prisma.$queryRaw`SELECT 1`;
-      return 'Healthy';
+      return { latencyMs: Date.now() - startedAt, status: 'Healthy' };
     } catch {
-      return 'Unhealthy';
+      return { latencyMs: null, status: 'Unhealthy' };
     }
   }
 
-  private async checkRedis(): Promise<HealthStatus> {
+  private async checkRedis(): Promise<HealthProbe> {
+    const startedAt = Date.now();
+
     try {
       await this.teacherReminderQueue.getJobCounts('waiting');
-      return 'Healthy';
+      return { latencyMs: Date.now() - startedAt, status: 'Healthy' };
     } catch {
-      return 'Unhealthy';
+      return { latencyMs: null, status: 'Unhealthy' };
     }
   }
 

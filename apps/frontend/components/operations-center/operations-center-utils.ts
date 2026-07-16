@@ -9,6 +9,10 @@ export const emptyOperationsDashboard: OperationsDashboard = {
     notification: 'Unhealthy',
     storage: 'Unhealthy',
   },
+  diagnostics: {
+    databaseLatencyMs: null,
+    redisLatencyMs: null,
+  },
   runtime: {
     uptimeSeconds: 0,
     cpu: {
@@ -68,4 +72,8 @@ export function formatUptime(totalSeconds: number) {
   if (days > 0) return `${days}h ${hours}j`;
   if (hours > 0) return `${hours}j ${minutes}m`;
   return `${minutes}m`;
+}
+
+export function formatLatency(value?: number | null) {
+  return typeof value === 'number' ? `${value} ms` : '-';
 }

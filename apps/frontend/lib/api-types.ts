@@ -417,6 +417,10 @@ export interface OperationsDashboard {
     notification: HealthStatus;
     storage: HealthStatus;
   };
+  diagnostics?: {
+    databaseLatencyMs: number | null;
+    redisLatencyMs: number | null;
+  };
   runtime: {
     uptimeSeconds: number;
     cpu: {

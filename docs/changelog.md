@@ -6,6 +6,9 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 - Memulai audit konsistensi response backend untuk fase freeze piloting: menegaskan strategi standardisasi bertahap di `docs/api-contract.md` dan mulai memakai helper `ok()` pada modul audit/notifikasi tanpa mengubah shape response utama.
 - Menyeragamkan response non-exception auth pada `POST /auth/register` dan `GET /auth/me` ke format `{ data, message? }`, sementara login/refresh, webhook, health check, dan file stream tetap mengikuti kontrak khususnya.
+- Menstandarkan error response global dengan `statusCode`, `message`, `error`, `correlationId`, `path`, `method`, dan `timestamp`; detail error 500 hanya dicatat di log backend.
+- Membersihkan pemisahan role izin/sakit siswa: root tidak lagi menjadi reviewer atau penerima inbox operasional, sedangkan operator sekolah dan wali kelas tetap menerima sesuai tanggung jawabnya.
+- Membuat card health dashboard operasional root lebih informatif dengan angka teknis seperti latency database/Redis, total job queue aktif, failed jobs, pending/failed notification, serta jumlah dan ukuran file R2.
 
 ## 2026-07-15
 
