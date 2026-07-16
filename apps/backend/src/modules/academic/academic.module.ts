@@ -13,6 +13,8 @@ import { StudentsModule } from './students/students.module';
 import { SubjectsModule } from './subjects/subjects.module';
 import { TeachersModule } from './teachers/teachers.module';
 import { StorageModule } from '../../infrastructure/storage/storage.module';
+import { AgendaGenerationService } from './schedules/agenda-generation.service';
+import { AcademicScheduleService } from './schedules/academic-schedule.service';
 
 @Module({
   imports: [
@@ -27,6 +29,6 @@ import { StorageModule } from '../../infrastructure/storage/storage.module';
     StorageModule,
   ],
   controllers: [AcademicController, AcademicImportController],
-  providers: [AcademicService, AcademicImportService, ImportExcelService],
+  providers: [AcademicService, AcademicScheduleService, AgendaGenerationService, AcademicImportService, ImportExcelService],
 })
 export class AcademicModule {}

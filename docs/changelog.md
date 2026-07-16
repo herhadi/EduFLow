@@ -12,6 +12,9 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Menambahkan fallback pembacaan storage R2: jika Cloudflare GraphQL Analytics gagal, dashboard operasional mencoba menghitung usage melalui listing object S3-compatible agar bucket tetap terbaca selama credential R2 valid.
 - Memperjelas status R2 di dashboard operasional: upload/preview dapat tetap aktif walaupun detail usage tidak tersedia karena izin list bucket atau Cloudflare Analytics belum diberikan.
 - Menambahkan tone status pada `components/ui/card` dan menerapkannya di health card operasional: sukses hijau, gagal merah, dan warning kuning untuk kasus seperti R2 aktif tetapi detail usage belum tersedia.
+- Mendokumentasikan behaviour health card dan R2 warning di `docs/operations.md` serta menyelaraskan catatan Root Ops di `docs/infrastructure.md`.
+- Memulai pemecahan `academic.service.ts` dengan mengekstrak generate agenda, bulk agenda, coverage agenda, blok Kaldik, dan reminder guru ke `AgendaGenerationService` tanpa mengubah endpoint akademik.
+- Melanjutkan pemecahan `academic.service.ts` dengan mengekstrak CRUD jadwal, bulk jadwal, revisi jadwal, cancel revisi, dan validasi konflik ke `AcademicScheduleService`.
 
 ## 2026-07-15
 

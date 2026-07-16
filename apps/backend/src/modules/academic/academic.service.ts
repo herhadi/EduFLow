@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AcademicCalendarEventType, AgendaStatus, SemesterType, TeacherAssignmentStatus } from '@prisma/client';
 import { hash } from 'bcryptjs';
@@ -8,7 +8,6 @@ import { Inject } from '@nestjs/common';
 import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
 import { sortSchoolClasses } from '@eduflow/shared';
 import { PrismaService } from '../../prisma/prisma.service';
-import { QueueProducerService } from '../../queue/queue-producer.service';
 import { AuditService } from '../audit/audit.service';
 import { CloneSchoolYearMasterDto } from './dto/clone-school-year-master.dto';
 import { ConfigureTeacherAccountDto } from './dto/configure-teacher-account.dto';
@@ -30,32 +29,20 @@ import { SetClassHomeroomTeacherDto } from './dto/set-class-homeroom-teacher.dto
 import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
 import { SetTeacherSchoolYearAssignmentDto } from './dto/set-teacher-school-year-assignment.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
-import {
-  getDateRange,
-  getEffectiveTeacherAssignment,
-  getReminderDateTime,
-  getScheduleSnapshotAtDate,
-} from './schedules/schedule-utils';
-import {
-  buildDailyAgendaCreateData,
-  findSemesterForDate,
-  getAgendaDateKey,
-  getAgendaKey,
-  getClassIdFilter,
-  getEffectiveSchedulesForDate,
-} from './schedules/agenda-generation-utils';
+import { getEffectiveTeacherAssignment, getScheduleSnapshotAtDate } from './schedules/schedule-utils';
+import { AgendaGenerationService } from './schedules/agenda-generation.service';
+import { AcademicScheduleService } from './schedules/academic-schedule.service';
 
 @Injectable()
 export class AcademicService {
-  private readonly logger = new Logger(AcademicService.name);
-  private readonly reminderOffsetMinutes = 5;
   private readonly defaultTimezoneOffsetMinutes = 7 * 60;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     private readonly configService: ConfigService,
-    private readonly queueProducer: QueueProducerService,
+    private readonly academicScheduleService: AcademicScheduleService,
+    private readonly agendaGenerationService: AgendaGenerationService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
@@ -1188,21 +1175,7 @@ export class AcademicService {
   }
 
   async getSchedules(classId?: string) {
-    return {
-      data: await this.prisma.schedule.findMany({
-        where: { deletedAt: null, classId },
-        include: {
-          schoolYear: true,
-          semester: true,
-          class: true,
-          subject: true,
-          teacher: true,
-          timeSlot: true,
-          revisions: { include: { semester: true, class: true, subject: true, teacher: true, timeSlot: true }, orderBy: { effectiveFrom: 'asc' } },
-        },
-        orderBy: [{ dayOfWeek: 'asc' }, { startsAt: 'asc' }],
-      }),
-    };
+    return this.academicScheduleService.getSchedules(classId);
   }
 
   private emptyAttendanceSummary() {
@@ -1459,350 +1432,39 @@ export class AcademicService {
   }
 
   async getSchedule(id: string) {
-    const schedule = await this.prisma.schedule.findFirst({
-      where: { id, deletedAt: null },
-      include: {
-        schoolYear: true,
-        semester: true,
-        class: true,
-        subject: true,
-        teacher: true,
-      },
-    });
-
-    if (!schedule) {
-      throw new NotFoundException('Jadwal tidak ditemukan');
-    }
-
-    return { data: schedule };
+    return this.academicScheduleService.getSchedule(id);
   }
 
   async createSchedule(dto: CreateScheduleDto) {
-    this.validateScheduleTime(dto.startsAt, dto.endsAt);
-    await this.ensureScheduleRelations(dto);
-
-    const schedule = await this.prisma.schedule.create({
-      data: dto,
-      include: {
-        schoolYear: true,
-        semester: true,
-        class: true,
-        subject: true,
-        teacher: true,
-      },
-    });
-
-    await this.auditService.record({
-      action: 'schedule.created',
-      entityType: 'Schedule',
-      entityId: schedule.id,
-      after: schedule,
-    });
-
-    return { data: schedule, message: 'Jadwal berhasil dibuat.' };
+    return this.academicScheduleService.createSchedule(dto);
   }
 
   async createBulkSchedule(dto: CreateBulkScheduleDto) {
-    const assignments = dto.assignments.map((assignment) => ({
-      timeSlotId: assignment.timeSlotId,
-      classIds: [...new Set(assignment.classIds)],
-    }));
-    const classIds = [...new Set(assignments.flatMap((assignment) => assignment.classIds))];
-    const timeSlotIds = [...new Set(assignments.map((assignment) => assignment.timeSlotId))];
-    const timeSlots = await this.ensureBulkScheduleRelations({
-      ...dto,
-      assignments,
-    });
-
-    for (const timeSlot of timeSlots) {
-      const assignment = assignments.find((item) => item.timeSlotId === timeSlot.id);
-      await this.ensureScheduleAvailability(
-        {
-          schoolYearId: dto.schoolYearId,
-          semesterId: dto.semesterId,
-          teacherId: dto.teacherId,
-          classIds: assignment?.classIds ?? [],
-        },
-        timeSlot,
-      );
-    }
-
-    const schedules = await this.prisma.$transaction(
-      timeSlots.flatMap((timeSlot) =>
-        (assignments.find((item) => item.timeSlotId === timeSlot.id)?.classIds ?? []).map((classId) =>
-          this.prisma.schedule.create({
-          data: {
-            schoolYearId: dto.schoolYearId,
-            semesterId: dto.semesterId,
-            classId,
-            subjectId: dto.subjectId,
-            teacherId: dto.teacherId,
-            timeSlotId: timeSlot.id,
-            dayOfWeek: timeSlot.dayOfWeek,
-            startsAt: timeSlot.startsAt,
-            endsAt: timeSlot.endsAt,
-          },
-          include: {
-            schoolYear: true,
-            semester: true,
-            class: true,
-            subject: true,
-            teacher: true,
-            timeSlot: true,
-          },
-          }),
-        ),
-      ),
-    );
-
-    await this.auditService.record({
-      action: 'schedule.bulk-created',
-      entityType: 'Schedule',
-      entityId: schedules.map((schedule) => schedule.id).join(','),
-      after: {
-        teacherId: dto.teacherId,
-        subjectId: dto.subjectId,
-        assignments,
-      },
-    });
-
-    return {
-      data: schedules,
-      message: `${schedules.length} sesi jadwal berhasil dibuat.`,
-    };
+    return this.academicScheduleService.createBulkSchedule(dto);
   }
 
   async updateSchedule(id: string, dto: UpdateScheduleDto) {
-    const existingSchedule = await this.prisma.schedule.findFirst({
-      where: { id, deletedAt: null }, include: { semester: true },
-    });
-
-    if (!existingSchedule) {
-      throw new NotFoundException('Jadwal tidak ditemukan');
-    }
-
-    const { effectiveFrom, reason, ...scheduleChanges } = dto;
-    const nextSchedule = { ...existingSchedule, ...scheduleChanges };
-    this.validateScheduleTime(nextSchedule.startsAt, nextSchedule.endsAt);
-    await this.ensureScheduleRelations(nextSchedule);
-
-    const revisionSemester = await this.prisma.semester.findUniqueOrThrow({
-      where: { id: nextSchedule.semesterId },
-    });
-    const revisionEffectiveFrom = effectiveFrom
-      ? this.toDateOnly(effectiveFrom)
-      : revisionSemester.startsAt;
-
-    if (revisionEffectiveFrom < revisionSemester.startsAt || revisionEffectiveFrom > revisionSemester.endsAt) {
-      throw new BadRequestException('Tanggal revisi harus berada dalam semester yang dipilih');
-    }
-    await this.ensureScheduleRevisionAvailability(id, nextSchedule, revisionEffectiveFrom);
-
-    const revision = await this.prisma.scheduleRevision.upsert({
-      where: { scheduleId_effectiveFrom: { scheduleId: id, effectiveFrom: revisionEffectiveFrom } },
-      update: {
-        semesterId: revisionSemester.id, classId: nextSchedule.classId, subjectId: nextSchedule.subjectId,
-        teacherId: nextSchedule.teacherId, timeSlotId: nextSchedule.timeSlotId, dayOfWeek: nextSchedule.dayOfWeek,
-        startsAt: nextSchedule.startsAt, endsAt: nextSchedule.endsAt,
-        reason: reason?.trim() || null,
-      },
-      create: {
-        scheduleId: id, semesterId: revisionSemester.id, effectiveFrom: revisionEffectiveFrom,
-        classId: nextSchedule.classId, subjectId: nextSchedule.subjectId, teacherId: nextSchedule.teacherId,
-        timeSlotId: nextSchedule.timeSlotId, dayOfWeek: nextSchedule.dayOfWeek, startsAt: nextSchedule.startsAt, endsAt: nextSchedule.endsAt,
-        reason: reason?.trim() || null,
-      },
-      include: { semester: true, class: true, subject: true, teacher: true, timeSlot: true },
-    });
-
-    await this.auditService.record({
-      action: 'schedule.updated',
-      entityType: 'Schedule',
-      entityId: id,
-      before: existingSchedule,
-      after: revision,
-    });
-
-    return { data: { ...existingSchedule, revisions: [revision] }, message: 'Revisi jadwal berhasil disimpan.' };
+    return this.academicScheduleService.updateSchedule(id, dto);
   }
 
   async deleteSchedule(id: string) {
-    const existingSchedule = await this.getSchedule(id);
-
-    const schedule = await this.prisma.schedule.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
-
-    await this.auditService.record({
-      action: 'schedule.deleted',
-      entityType: 'Schedule',
-      entityId: schedule.id,
-      before: existingSchedule.data,
-      after: schedule,
-    });
-
-    return { data: schedule, message: 'Jadwal berhasil dinonaktifkan.' };
+    return this.academicScheduleService.deleteSchedule(id);
   }
 
   async getScheduleRevisions(scheduleId: string) {
-    return { data: await this.prisma.scheduleRevision.findMany({ where: { scheduleId }, include: { semester: true, class: true, subject: true, teacher: true }, orderBy: { effectiveFrom: 'asc' } }) };
+    return this.academicScheduleService.getScheduleRevisions(scheduleId);
   }
 
   async cancelScheduleRevision(scheduleId: string, revisionId: string) {
-    const revision = await this.prisma.scheduleRevision.findFirst({ where: { id: revisionId, scheduleId } });
-    if (!revision) throw new NotFoundException('Revisi jadwal tidak ditemukan');
-    const result = await this.prisma.scheduleRevision.delete({ where: { id: revisionId } });
-    await this.auditService.record({ action: 'schedule.revision.cancelled', entityType: 'ScheduleRevision', entityId: revisionId, before: revision, after: null });
-    return { data: result, message: 'Revisi jadwal dibatalkan.' };
+    return this.academicScheduleService.cancelScheduleRevision(scheduleId, revisionId);
   }
 
   async generateAgenda(id: string, dto: GenerateAgendaDto) {
-    const schedule = await this.prisma.schedule.findFirst({ where: { id, deletedAt: null }, include: { revisions: { orderBy: { effectiveFrom: 'asc' } } } });
-
-    if (!schedule) {
-      throw new NotFoundException('Jadwal tidak ditemukan');
-    }
-
-    const agendaDate = this.toDateOnly(dto.date);
-    const existingAgenda = await this.prisma.dailyAgenda.findFirst({
-      where: {
-        scheduleId: schedule.id,
-        date: agendaDate,
-      },
-      include: {
-        class: true,
-        subject: true,
-        teacher: true,
-        attendance: true,
-      },
-    });
-
-    if (existingAgenda) {
-      return {
-        data: existingAgenda,
-        message: 'Agenda sudah ada, generate dilewati.',
-      };
-    }
-
-    if (await this.isAgendaBlockedByCalendar(schedule.schoolYearId, agendaDate)) {
-      throw new BadRequestException('Tanggal ini diblokir oleh Kaldik, agenda tidak dapat dibuat');
-    }
-
-    const effectiveSchedule = getScheduleSnapshotAtDate(schedule, agendaDate);
-    const semester = await this.prisma.semester.findFirstOrThrow({ where: { schoolYearId: schedule.schoolYearId, startsAt: { lte: agendaDate }, endsAt: { gte: agendaDate }, deletedAt: null } });
-    const agenda = await this.createAgendaFromEffectiveSchedule(effectiveSchedule, semester.id, agendaDate);
-
-    await this.auditService.record({
-      action: 'agenda.generated',
-      entityType: 'DailyAgenda',
-      entityId: agenda.id,
-      after: {
-        agendaId: agenda.id,
-        scheduleId: schedule.id,
-        date: agenda.date,
-        classId: agenda.classId,
-        subjectId: agenda.subjectId,
-        teacherId: agenda.teacherId,
-      },
-    });
-
-    return { data: agenda, message: 'Agenda berhasil digenerate.' };
+    return this.agendaGenerationService.generateAgenda(id, dto);
   }
 
   async generateBulkAgenda(dto: GenerateBulkAgendaDto) {
-    const startsAt = this.toDateOnly(dto.startsAt);
-    const endsAt = this.toDateOnly(dto.endsAt);
-
-    if (endsAt < startsAt) {
-      throw new BadRequestException('Tanggal akhir tidak boleh lebih awal dari tanggal mulai');
-    }
-
-    const dates = getDateRange(startsAt, endsAt);
-
-    if (dates.length > 31) {
-      throw new BadRequestException('Generate agenda manual maksimal 31 hari per proses');
-    }
-
-    const semesters = await this.prisma.semester.findMany({
-      where: {
-        schoolYearId: dto.schoolYearId,
-        startsAt: { lte: endsAt },
-        endsAt: { gte: startsAt },
-        deletedAt: null,
-      },
-      orderBy: { startsAt: 'asc' },
-    });
-
-    if (!semesters.length) {
-      throw new BadRequestException('Rentang tanggal tidak berada dalam tahun ajaran aktif');
-    }
-
-    const schoolYearId = semesters[0].schoolYearId;
-    const blockedDates = await this.getBlockedAgendaDates(schoolYearId, startsAt, endsAt);
-    const schedules = await this.prisma.schedule.findMany({
-      where: {
-        schoolYearId,
-        deletedAt: null,
-        isActive: true,
-      },
-      include: {
-        revisions: { orderBy: { effectiveFrom: 'asc' } },
-      },
-    });
-    const classIds = getClassIdFilter(dto);
-    const agendas = [];
-    let skipped = 0;
-    let calendarSkipped = 0;
-
-    for (const agendaDate of dates) {
-      if (blockedDates.has(getAgendaDateKey(agendaDate))) {
-        calendarSkipped += 1;
-        continue;
-      }
-
-      const semester = findSemesterForDate(semesters, agendaDate);
-
-      if (!semester) continue;
-
-      const effectiveSchedules = getEffectiveSchedulesForDate(schedules, agendaDate, classIds);
-
-      for (const schedule of effectiveSchedules) {
-        const existingAgenda = await this.prisma.dailyAgenda.findFirst({
-          where: { scheduleId: schedule.id, date: agendaDate },
-          include: { class: true, subject: true, teacher: true, substituteTeacher: true, attendance: true },
-        });
-
-        if (existingAgenda) {
-          skipped += 1;
-          agendas.push(existingAgenda);
-          continue;
-        }
-
-        agendas.push(await this.createAgendaFromEffectiveSchedule(schedule, semester.id, agendaDate));
-      }
-    }
-
-    await this.auditService.record({
-      action: 'agenda.bulk-generated',
-      entityType: 'DailyAgenda',
-      entityId: agendas.map((agenda) => agenda.id).join(','),
-      after: {
-        startsAt,
-        endsAt,
-        classId: dto.classId ?? null,
-        classIds: dto.classIds ?? null,
-        schoolYearId,
-        generated: agendas.length - skipped,
-        skipped,
-        calendarSkipped,
-      },
-    });
-
-    return {
-      data: agendas,
-      message: `${agendas.length - skipped} agenda dibuat, ${skipped} sudah ada, ${calendarSkipped} hari dilewati oleh Kaldik.`,
-    };
+    return this.agendaGenerationService.generateBulkAgenda(dto);
   }
 
   async getAgendas(date?: string) {
@@ -1869,74 +1531,7 @@ export class AcademicService {
     endsAt?: string;
     classId?: string;
   }) {
-    if (!input.schoolYearId || !input.startsAt || !input.endsAt) {
-      throw new BadRequestException('Tahun ajaran, tanggal mulai, dan tanggal akhir wajib diisi');
-    }
-
-    const startsAt = this.toDateOnly(input.startsAt);
-    const endsAt = this.toDateOnly(input.endsAt);
-    if (endsAt < startsAt) throw new BadRequestException('Tanggal akhir tidak boleh lebih awal dari tanggal mulai');
-
-    const dates = getDateRange(startsAt, endsAt);
-    const blockedDates = await this.getBlockedAgendaDates(input.schoolYearId, startsAt, endsAt);
-    const schedules = await this.prisma.schedule.findMany({
-      where: {
-        schoolYearId: input.schoolYearId,
-        deletedAt: null,
-        isActive: true,
-        ...(input.classId ? { classId: input.classId } : {}),
-      },
-      include: { revisions: { orderBy: { effectiveFrom: 'asc' } } },
-    });
-    const existingAgendas = await this.prisma.dailyAgenda.findMany({
-      where: {
-        schoolYearId: input.schoolYearId,
-        date: { gte: startsAt, lte: endsAt },
-        ...(input.classId ? { classId: input.classId } : {}),
-      },
-      select: { scheduleId: true, date: true },
-    });
-    const agendaKeys = new Set(existingAgendas
-      .filter((agenda): agenda is { scheduleId: string; date: Date } => Boolean(agenda.scheduleId))
-      .map((agenda) => getAgendaKey(agenda.scheduleId, agenda.date)));
-    const missing: Array<{ date: string; scheduleId: string; classId: string; subjectId: string; teacherId: string; startsAt: string; endsAt: string }> = [];
-    let expected = 0;
-    let blockedDateCount = 0;
-
-    for (const date of dates) {
-      const dateKey = getAgendaDateKey(date);
-      if (blockedDates.has(dateKey)) {
-        blockedDateCount += 1;
-        continue;
-      }
-
-      const effectiveSchedules = getEffectiveSchedulesForDate(schedules, date);
-
-      for (const schedule of effectiveSchedules) {
-        expected += 1;
-        if (!agendaKeys.has(getAgendaKey(schedule.id, date))) {
-          missing.push({
-            date: dateKey,
-            scheduleId: schedule.id,
-            classId: schedule.classId,
-            subjectId: schedule.subjectId,
-            teacherId: schedule.teacherId,
-            startsAt: schedule.startsAt,
-            endsAt: schedule.endsAt,
-          });
-        }
-      }
-    }
-
-    return {
-      data: {
-        expected,
-        existing: expected - missing.length,
-        missing: missing.length,
-        blockedDates: blockedDateCount,
-        items: missing.slice(0, 50),
-      },
-    };
+    return this.agendaGenerationService.getAgendaCoverage(input);
   }
 
   private validateScheduleTime(startsAt: string, endsAt: string) {
@@ -1962,275 +1557,6 @@ export class AcademicService {
     }
 
     return teacher;
-  }
-
-  private async ensureScheduleRelations(dto: {
-    schoolYearId: string;
-    semesterId: string;
-    classId: string;
-    subjectId: string;
-    teacherId: string;
-  }) {
-    const [semester, schoolClass, subject, teacher] = await Promise.all([
-      this.prisma.semester.findFirst({
-        where: {
-          id: dto.semesterId,
-          schoolYearId: dto.schoolYearId,
-          deletedAt: null,
-        },
-        include: { schoolYear: true },
-      }),
-      this.prisma.class.findFirst({
-        where: {
-          id: dto.classId,
-          schoolYearId: dto.schoolYearId,
-          deletedAt: null,
-        },
-      }),
-      this.prisma.subject.findFirst({
-        where: { id: dto.subjectId, deletedAt: null },
-      }),
-      this.prisma.teacher.findFirst({
-        where: { id: dto.teacherId, deletedAt: null },
-        include: {
-          yearAssignments: {
-            include: { schoolYear: true, subjects: true },
-          },
-        },
-      }),
-    ]);
-
-    if (!semester) {
-      throw new BadRequestException('Semester tidak valid untuk tahun ajaran ini');
-    }
-
-    if (!schoolClass) {
-      throw new BadRequestException('Kelas tidak valid untuk tahun ajaran ini');
-    }
-
-    if (!subject) {
-      throw new BadRequestException('Mata pelajaran tidak valid');
-    }
-
-    if (!teacher) {
-      throw new BadRequestException('Guru tidak valid');
-    }
-
-    const assignment = getEffectiveTeacherAssignment(
-      teacher.yearAssignments,
-      semester.schoolYear.startsAt,
-    );
-    const teacherSubject = assignment
-      ? assignment.subjects.some(({ subjectId }) => subjectId === dto.subjectId)
-      : await this.prisma.teacherSubject.findUnique({
-        where: { teacherId_subjectId: { teacherId: dto.teacherId, subjectId: dto.subjectId } },
-      });
-
-    if ((assignment && assignment.status !== TeacherAssignmentStatus.ACTIVE) || !teacherSubject) {
-      throw new BadRequestException('Guru belum diatur mengampu mata pelajaran ini');
-    }
-  }
-
-  private async ensureBulkScheduleRelations(dto: CreateBulkScheduleDto) {
-    const classIds = [...new Set(dto.assignments.flatMap((assignment) => assignment.classIds))];
-    const timeSlotIds = [...new Set(dto.assignments.map((assignment) => assignment.timeSlotId))];
-    const [semester, classes, subject, teacher, timeSlots] = await Promise.all([
-      this.prisma.semester.findFirst({
-        where: {
-          id: dto.semesterId,
-          schoolYearId: dto.schoolYearId,
-          deletedAt: null,
-        },
-        include: { schoolYear: true },
-      }),
-      this.prisma.class.findMany({
-        where: {
-          id: { in: classIds },
-          schoolYearId: dto.schoolYearId,
-          deletedAt: null,
-        },
-      }),
-      this.prisma.subject.findFirst({
-        where: { id: dto.subjectId, deletedAt: null, isActive: true },
-      }),
-      this.prisma.teacher.findFirst({
-        where: { id: dto.teacherId, deletedAt: null, isActive: true },
-        include: {
-          subjects: true,
-          yearAssignments: {
-            include: { schoolYear: true, subjects: true },
-          },
-          user: { include: { roles: { include: { role: true } } } },
-        },
-      }),
-      this.prisma.academicTimeSlot.findMany({
-        where: {
-          id: { in: timeSlotIds },
-          schoolYearId: dto.schoolYearId,
-          deletedAt: null,
-          isActive: true,
-          isAssignable: true,
-        },
-      }),
-    ]);
-
-    if (!semester) {
-      throw new BadRequestException('Semester tidak valid untuk tahun ajaran ini');
-    }
-
-    if (classes.length !== classIds.length) {
-      throw new BadRequestException('Ada kelas yang tidak valid untuk tahun ajaran ini');
-    }
-
-    if (!subject || !teacher || timeSlots.length !== timeSlotIds.length) {
-      throw new BadRequestException('Guru, mata pelajaran, atau slot waktu tidak valid');
-    }
-
-    const yearAssignment = getEffectiveTeacherAssignment(
-      teacher.yearAssignments,
-      semester.schoolYear.startsAt,
-    );
-    if (
-      (yearAssignment && yearAssignment.status !== TeacherAssignmentStatus.ACTIVE) ||
-      (yearAssignment
-        ? !yearAssignment.subjects.some(({ subjectId }) => subjectId === dto.subjectId)
-        : !teacher.subjects.some(({ subjectId }) => subjectId === dto.subjectId))
-    ) {
-      throw new BadRequestException('Guru belum diatur mengampu mata pelajaran ini');
-    }
-
-    return timeSlots;
-  }
-
-  private async ensureScheduleAvailability(
-    dto: Pick<CreateBulkScheduleDto, 'schoolYearId' | 'semesterId' | 'teacherId'> & { classIds: string[] },
-    timeSlot: { dayOfWeek: number; startsAt: string; endsAt: string },
-  ) {
-    const conflict = await this.prisma.schedule.findFirst({
-      where: {
-        schoolYearId: dto.schoolYearId,
-        dayOfWeek: timeSlot.dayOfWeek,
-        deletedAt: null,
-        isActive: true,
-        startsAt: { lt: timeSlot.endsAt },
-        endsAt: { gt: timeSlot.startsAt },
-        OR: [{ classId: { in: dto.classIds } }, { teacherId: dto.teacherId }],
-      },
-      include: { class: true, teacher: true },
-    });
-
-    if (conflict) {
-      throw new BadRequestException(
-        `Jadwal bentrok dengan ${conflict.class.name} (${conflict.startsAt}-${conflict.endsAt}) atau jadwal guru ${conflict.teacher.name}`,
-      );
-    }
-  }
-
-  private async ensureScheduleRevisionAvailability(
-    scheduleId: string,
-    nextSchedule: {
-      schoolYearId: string;
-      semesterId: string;
-      classId: string;
-      teacherId: string;
-      dayOfWeek: number;
-      startsAt: string;
-      endsAt: string;
-    },
-    effectiveFrom: Date,
-  ) {
-    const schedules = await this.prisma.schedule.findMany({
-      where: {
-        id: { not: scheduleId },
-        schoolYearId: nextSchedule.schoolYearId,
-        deletedAt: null,
-        isActive: true,
-      },
-      include: {
-        class: true,
-        teacher: true,
-        revisions: {
-          where: { effectiveFrom: { lte: effectiveFrom } },
-          include: { class: true, teacher: true },
-          orderBy: { effectiveFrom: 'asc' },
-        },
-      },
-    });
-
-    const conflict = schedules
-      .map((schedule) => getScheduleSnapshotAtDate(schedule, effectiveFrom))
-      .find((schedule) =>
-        schedule.dayOfWeek === nextSchedule.dayOfWeek &&
-        schedule.startsAt < nextSchedule.endsAt &&
-        schedule.endsAt > nextSchedule.startsAt &&
-        (schedule.classId === nextSchedule.classId || schedule.teacherId === nextSchedule.teacherId),
-      );
-
-    if (conflict) {
-      throw new BadRequestException(
-        `Revisi jadwal bentrok dengan ${conflict.class.name} (${conflict.startsAt}-${conflict.endsAt}) atau jadwal guru ${conflict.teacher.name}`,
-      );
-    }
-  }
-
-  private async createAgendaFromEffectiveSchedule(
-    schedule: {
-      id: string;
-      schoolYearId: string;
-      classId: string;
-      subjectId: string;
-      teacherId: string;
-      startsAt: string;
-    },
-    semesterId: string,
-    agendaDate: Date,
-  ) {
-    const agenda = await this.prisma.dailyAgenda.create({
-      data: buildDailyAgendaCreateData(schedule, semesterId, agendaDate),
-      include: {
-        class: true,
-        subject: true,
-        teacher: true,
-        substituteTeacher: true,
-        attendance: true,
-      },
-    });
-
-    await this.enqueueTeacherReminderBeforeClass(agenda.id, agenda.date, schedule.startsAt);
-
-    return agenda;
-  }
-
-  private async enqueueTeacherReminderBeforeClass(agendaId: string, agendaDate: Date, startsAt: string) {
-    try {
-      const reminderAt = getReminderDateTime({
-        date: agendaDate,
-        startsAt,
-        timezoneOffsetMinutes: this.getSchoolTimezoneOffsetMinutes(),
-        reminderOffsetMinutes: this.reminderOffsetMinutes,
-      });
-      const classStartsAt = new Date(reminderAt.getTime() + (this.reminderOffsetMinutes * 60_000));
-
-      if (classStartsAt.getTime() <= Date.now()) {
-        return;
-      }
-
-      const delay = Math.max(0, reminderAt.getTime() - Date.now());
-
-      await this.queueProducer.addTeacherReminderBeforeClass(
-        { agendaId },
-        delay,
-        `teacher-reminder-before-class:${agendaId}`,
-      );
-    } catch (error) {
-      this.logger.warn(
-        JSON.stringify({
-          event: 'teacher.reminder.enqueue.failed',
-          agendaId,
-          error: error instanceof Error ? error.message : String(error),
-        }),
-      );
-    }
   }
 
   private async withTeacherPhotoUrl<T extends { photoKey?: string | null; photoName?: string | null }>(teacher: T) {
@@ -2279,35 +1605,6 @@ export class AcademicService {
       endsAt,
       blocksAgenda: dto.blocksAgenda ?? true,
     };
-  }
-
-  private async isAgendaBlockedByCalendar(schoolYearId: string, date: Date) {
-    const blockedEvent = await this.prisma.academicCalendarEvent.findFirst({
-      where: {
-        schoolYearId,
-        blocksAgenda: true,
-        deletedAt: null,
-        startsAt: { lte: date },
-        endsAt: { gte: date },
-      },
-      select: { id: true },
-    });
-    return Boolean(blockedEvent);
-  }
-
-  private async getBlockedAgendaDates(schoolYearId: string, startsAt: Date, endsAt: Date) {
-    const events = await this.prisma.academicCalendarEvent.findMany({
-      where: {
-        schoolYearId,
-        blocksAgenda: true,
-        deletedAt: null,
-        startsAt: { lte: endsAt },
-        endsAt: { gte: startsAt },
-      },
-      select: { startsAt: true, endsAt: true },
-    });
-    return new Set(events.flatMap((event) => getDateRange(event.startsAt, event.endsAt)
-      .map((date) => date.toISOString().slice(0, 10))));
   }
 
   private toDateOnly(value: string) {
