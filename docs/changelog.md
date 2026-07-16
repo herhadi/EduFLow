@@ -11,6 +11,7 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Memperkaya dashboard operasional root dengan metrik teknis seperti latency database/Redis, queue aktif/failed, pending notification, ukuran file, dan status Cloudflare R2.
 - Menambahkan fallback dan status warning untuk Cloudflare R2: upload/preview bisa tetap aktif walaupun detail usage Cloudflare Analytics atau list bucket belum tersedia.
 - Menambahkan tone status global pada `components/ui/card` untuk success, danger, warning, dan default, lalu menerapkannya pada health card operasional.
+- Menempatkan ringkasan runtime root ops di bagian paling atas Dashboard Operasional dengan card biru ringan yang tetap kontras di dark dan light mode.
 - Memecah `academic.service.ts` menjadi facade tipis dan mengekstrak logika domain ke service kecil: master akademik, kalender akademik, jadwal, generate agenda, manajemen agenda, guru akademik, portal guru, dan siswa akademik.
 - Mendokumentasikan struktur baru Academic Module di `docs/architecture.md`, `docs/academic-planning.md`, dan `docs/infrastructure.md`.
 - Merapikan dokumentasi dengan menggabungkan `attendance-state.md` ke `attendance-workflow.md`, `testing.md` ke `operational-scenarios.md`, serta `security.md` dan `operations.md` ke `infrastructure.md` agar referensi inti tidak terlalu tersebar.

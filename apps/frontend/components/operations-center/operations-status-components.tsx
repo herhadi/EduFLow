@@ -65,18 +65,19 @@ export function MetricCard({
   value,
 }: {
   label: string;
-  tone?: 'danger' | 'neutral' | 'warning';
+  tone?: 'danger' | 'info' | 'neutral' | 'warning';
   value: string | number;
 }) {
   const toneClass = {
     danger: 'border-red-100 bg-red-50 text-red-700 dark:border-red-400/20 dark:bg-red-500/15 dark:text-red-200',
+    info: 'border-sky-100 bg-sky-50 text-sky-950 dark:border-sky-400/25 dark:bg-sky-400/10 dark:text-sky-50',
     neutral: 'border-slate-100 bg-slate-50 text-slate-900 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]',
     warning: 'border-amber-100 bg-amber-50 text-amber-800 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100',
   }[tone];
 
   return (
     <article className={`rounded-2xl border p-4 ${toneClass}`}>
-      <p className="text-xs font-semibold text-muted">{label}</p>
+      <p className="text-xs font-semibold opacity-75">{label}</p>
       <strong className="mt-2 block text-lg">{value}</strong>
     </article>
   );

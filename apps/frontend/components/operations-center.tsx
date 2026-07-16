@@ -91,14 +91,7 @@ export function OperationsCenter() {
 
   return (
     <section className="mt-10 space-y-6">
-      <div className="surface-card rounded-lg p-4 sm:p-6">
-        <div><h2 className="text-lg font-bold">Backup & Arsip</h2><p className="mt-1 text-sm text-muted">Backup harian langsung diunduh ke perangkat admin. Arsip tahun ajaran disimpan di server.</p></div>
-        <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-4"><p className="font-bold">Backup Harian</p><p className="mt-1 text-sm text-muted">Snapshot seluruh database untuk disimpan di perangkat ini.</p><div className="mt-4 grid gap-2 sm:grid-cols-2"><button className="school-primary-button rounded-xl px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60" disabled={backupState === 'loading'} onClick={() => void createDailyBackup()} type="button">{backupState === 'loading' ? 'Menyiapkan...' : 'Download Backup'}</button><button className="secondary-button rounded-xl px-4 py-2 text-sm font-black" onClick={() => restoreInputRef.current?.click()} type="button">Restore Backup</button><input accept=".dump" className="hidden" onChange={(event) => void restoreBackup(event.target.files?.[0])} ref={restoreInputRef} type="file" /></div></section>
-          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-4"><p className="font-bold">Arsip Tahun Ajaran</p><p className="mt-1 text-sm text-muted">Simpan snapshot relasional untuk tahun ajaran terpilih.</p><div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]"><select className="min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 text-sm" onChange={(event) => setSchoolYearId(event.target.value)} value={schoolYearId}><option value="">Pilih tahun ajaran</option>{backups.academicYears.map((year) => <option key={year.id} value={year.id}>{year.name}</option>)}</select><button className="secondary-button rounded-xl px-4 py-2 text-sm font-black disabled:cursor-not-allowed disabled:opacity-60" disabled={!schoolYearId || backupState === 'loading'} onClick={() => void createAcademicBackup()} type="button">Arsipkan</button></div></section>
-        </div>
-      </div>
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">Dashboard Operasional</h2>
@@ -125,7 +118,42 @@ export function OperationsCenter() {
           </p>
         ) : null}
 
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="mt-5 rounded-2xl border border-sky-100 bg-sky-50/80 p-3 shadow-sm shadow-sky-100/50 dark:border-sky-400/20 dark:bg-sky-400/10 dark:shadow-none sm:p-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            <MetricCard
+              label="CPU Load"
+              tone={dashboard.runtime.cpu.loadPercent >= 80 ? 'danger' : dashboard.runtime.cpu.loadPercent >= 60 ? 'warning' : 'info'}
+              value={`${dashboard.runtime.cpu.loadPercent}%`}
+            />
+            <MetricCard
+              label="RAM Server"
+              tone={dashboard.runtime.memory.systemUsedPercent >= 85 ? 'danger' : dashboard.runtime.memory.systemUsedPercent >= 70 ? 'warning' : 'info'}
+              value={`${dashboard.runtime.memory.systemUsedPercent}%`}
+            />
+            <MetricCard
+              label="RAM Backend"
+              tone="info"
+              value={formatBytes(dashboard.runtime.memory.processRssBytes)}
+            />
+            <MetricCard
+              label="Request/menit"
+              tone="info"
+              value={formatNumber(dashboard.requests.requestsPerMinute)}
+            />
+            <MetricCard
+              label="Error/menit"
+              tone={dashboard.requests.errorsPerMinute > 0 ? 'danger' : 'info'}
+              value={formatNumber(dashboard.requests.errorsPerMinute)}
+            />
+            <MetricCard
+              label="Uptime"
+              tone="info"
+              value={formatUptime(dashboard.runtime.uptimeSeconds)}
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <HealthCard
             detail="Redis ping"
             label="Redis"
@@ -164,35 +192,6 @@ export function OperationsCenter() {
             value={dashboard.storageSummary ? `${formatNumber(dashboard.storageSummary.objectCount)} file` : 'Aktif'}
           />
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          <MetricCard
-            label="CPU Load"
-            tone={dashboard.runtime.cpu.loadPercent >= 80 ? 'danger' : dashboard.runtime.cpu.loadPercent >= 60 ? 'warning' : 'neutral'}
-            value={`${dashboard.runtime.cpu.loadPercent}%`}
-          />
-          <MetricCard
-            label="RAM Server"
-            tone={dashboard.runtime.memory.systemUsedPercent >= 85 ? 'danger' : dashboard.runtime.memory.systemUsedPercent >= 70 ? 'warning' : 'neutral'}
-            value={`${dashboard.runtime.memory.systemUsedPercent}%`}
-          />
-          <MetricCard
-            label="RAM Backend"
-            value={formatBytes(dashboard.runtime.memory.processRssBytes)}
-          />
-          <MetricCard
-            label="Request/menit"
-            value={formatNumber(dashboard.requests.requestsPerMinute)}
-          />
-          <MetricCard
-            label="Error/menit"
-            tone={dashboard.requests.errorsPerMinute > 0 ? 'danger' : 'neutral'}
-            value={formatNumber(dashboard.requests.errorsPerMinute)}
-          />
-          <MetricCard
-            label="Uptime"
-            value={formatUptime(dashboard.runtime.uptimeSeconds)}
-          />
-        </div>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">
             <p className="font-black text-slate-900 dark:text-[var(--text)]">Traffic API</p>
@@ -213,15 +212,23 @@ export function OperationsCenter() {
             </p>
           </div>
         </div>
-        <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700">
-          <p className="font-black text-slate-900">Cloudflare R2 Storage</p>
+        <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">
+          <p className="font-black text-slate-900 dark:text-[var(--text)]">Cloudflare R2 Storage</p>
           {dashboard.storageSummary ? (
             <p className="mt-1">Bucket <strong>{dashboard.storageSummary.bucket}</strong> · <strong>{formatNumber(dashboard.storageSummary.objectCount)}</strong> file · <strong>{formatBytes(dashboard.storageSummary.totalSizeBytes)}</strong>{dashboard.storageSummary.isPartial ? ' (minimum, pemindaian dibatasi 10.000 file)' : ''}</p>
-          ) : <p className="mt-1 text-amber-700">{dashboard.storageError ?? 'Storage aktif, tetapi detail penggunaan belum tersedia.'}</p>}
+          ) : <p className="mt-1 text-amber-700 dark:text-amber-200">{dashboard.storageError ?? 'Storage aktif, tetapi detail penggunaan belum tersedia.'}</p>}
         </div>
       </div>
 
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      <div className="surface-card rounded-lg p-4 sm:p-6">
+        <div><h2 className="text-lg font-bold">Backup & Arsip</h2><p className="mt-1 text-sm text-muted">Backup harian langsung diunduh ke perangkat admin. Arsip tahun ajaran disimpan di server.</p></div>
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-4"><p className="font-bold">Backup Harian</p><p className="mt-1 text-sm text-muted">Snapshot seluruh database untuk disimpan di perangkat ini.</p><div className="mt-4 grid gap-2 sm:grid-cols-2"><button className="school-primary-button rounded-xl px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60" disabled={backupState === 'loading'} onClick={() => void createDailyBackup()} type="button">{backupState === 'loading' ? 'Menyiapkan...' : 'Download Backup'}</button><button className="secondary-button rounded-xl px-4 py-2 text-sm font-black" onClick={() => restoreInputRef.current?.click()} type="button">Restore Backup</button><input accept=".dump" className="hidden" onChange={(event) => void restoreBackup(event.target.files?.[0])} ref={restoreInputRef} type="file" /></div></section>
+          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-4"><p className="font-bold">Arsip Tahun Ajaran</p><p className="mt-1 text-sm text-muted">Simpan snapshot relasional untuk tahun ajaran terpilih.</p><div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]"><select className="min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 text-sm" onChange={(event) => setSchoolYearId(event.target.value)} value={schoolYearId}><option value="">Pilih tahun ajaran</option>{backups.academicYears.map((year) => <option key={year.id} value={year.id}>{year.name}</option>)}</select><button className="secondary-button rounded-xl px-4 py-2 text-sm font-black disabled:cursor-not-allowed disabled:opacity-60" disabled={!schoolYearId || backupState === 'loading'} onClick={() => void createAcademicBackup()} type="button">Arsipkan</button></div></section>
+        </div>
+      </div>
+
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
         <h2 className="text-2xl font-bold">Queue Monitoring</h2>
         <p className="mt-1 text-sm text-muted">
           Pantau waiting, active, failed, delayed, dan completed jobs.
@@ -253,7 +260,7 @@ export function OperationsCenter() {
         </div>
       </div>
 
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
         <h2 className="text-2xl font-bold">Failed Jobs</h2>
         <p className="mt-1 text-sm text-muted">
           Retry, discard, atau inspeksi payload job yang gagal.
@@ -262,7 +269,7 @@ export function OperationsCenter() {
         <div className="mt-5 space-y-3">
           {dashboard.failedJobs.map((job) => (
             <article
-              className="rounded-3xl border border-red-100 bg-red-50/50 p-4"
+              className="rounded-3xl border border-red-100 bg-red-50/50 p-4 dark:border-red-400/20 dark:bg-red-500/10"
               key={`${job.queueName}-${job.id}`}
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

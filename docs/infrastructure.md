@@ -143,6 +143,7 @@ Halaman operasional root memakai endpoint `GET /api/operations/dashboard`.
 
 Informasi utama:
 
+- Ringkasan runtime paling atas: CPU load, RAM server, RAM backend, request/menit, error/menit, dan uptime.
 - Health service: database, Redis, queue, worker, notification, dan storage R2.
 - Runtime backend: uptime proses, CPU load, RAM server, dan RAM proses backend.
 - Traffic API: request per menit, error per menit, rata-rata durasi request, dan jumlah request pada window 5 menit.
@@ -156,6 +157,7 @@ Metrik request disimpan in-memory oleh backend melalui `RequestMetricsService`. 
 
 Health card memakai warna untuk membedakan tingkat masalah:
 
+- Biru: ringkasan runtime netral yang perlu cepat dibaca root.
 - Hijau: layanan berjalan normal dan data pendukung berhasil dibaca.
 - Kuning: layanan utama aktif, tetapi detail pendukung belum lengkap atau belum bisa dibaca.
 - Merah: layanan gagal, tidak terhubung, atau perlu tindakan teknis.
