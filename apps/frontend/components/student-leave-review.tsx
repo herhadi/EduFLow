@@ -86,12 +86,12 @@ export function StudentLeaveReview() {
                 </Badge>
               </div>
 
-              <div className="mt-4 rounded-2xl bg-blue-50 p-3 text-sm font-bold text-slate-700">
+              <div className="mt-4 rounded-2xl bg-blue-50 p-3 text-sm font-bold text-slate-700 dark:bg-blue-500/10 dark:text-slate-100">
                 {formatReadableDate(item.dateFrom)}
                 {item.dateTo !== item.dateFrom ? ` - ${formatReadableDate(item.dateTo)}` : ''}
               </div>
 
-              <p className="mt-3 text-sm leading-6 text-slate-700">{item.reason}</p>
+              <p className="mt-3 text-sm leading-6 text-slate-700 dark:text-slate-200">{item.reason}</p>
 
               <FormField className="mt-4" label="Catatan review">
                 <textarea

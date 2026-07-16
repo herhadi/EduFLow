@@ -114,7 +114,7 @@ export function TeacherTeachingPlans() {
     <section className="mt-7 space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-xl font-black tracking-tight text-slate-900">Perangkat Ajar Saya</h2>
+          <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">Perangkat Ajar Saya</h2>
           <p className="mt-1 text-sm text-muted">Pantau draft, pengajuan, revisi, dan persetujuan sebelum membuat dokumen baru.</p>
         </div>
         <Button
@@ -180,7 +180,7 @@ export function TeacherTeachingPlans() {
               <FormField label="Dokumen DOCX/PDF (opsional)">
                 <input
                   accept={documentAccept}
-                  className="min-w-0 rounded-2xl border bg-white px-4 py-3 text-sm font-normal outline-none file:mr-3 file:rounded-xl file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:font-black file:text-brand-700"
+                  className="min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-normal text-slate-900 outline-none file:mr-3 file:rounded-xl file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:font-black file:text-brand-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   onChange={(event) => setAttachment(event.target.files?.[0] ?? null)}
                   type="file"
                 />
@@ -214,12 +214,12 @@ export function TeacherTeachingPlans() {
               <TeachingPlanStatus status={plan.status} />
             </div>
             {plan.attachmentKey || plan.attachmentUrl ? (
-              <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 dark:border-blue-400/20 dark:bg-blue-500/10 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs font-black uppercase tracking-[0.1em] text-brand-700">
                     Dokumen Terlampir
                   </p>
-                  <p className="mt-1 truncate text-sm font-bold text-slate-900">
+                  <p className="mt-1 truncate text-sm font-bold text-slate-900 dark:text-slate-100">
                     {plan.attachmentName ?? (plan.type === 'TEACHING_BOOK' ? 'Foto Buku KBM' : 'Dokumen perangkat ajar')}
                   </p>
                   {plan.attachmentSize ? (
@@ -239,13 +239,13 @@ export function TeacherTeachingPlans() {
               <EmptyState className="mt-4 py-2 text-xs" title="Belum ada dokumen terlampir." />
             )}
             {plan.reviewNote ? (
-              <div className="mt-4 rounded-2xl bg-amber-50 p-3 text-sm font-semibold text-amber-900">
+              <div className="mt-4 rounded-2xl bg-amber-50 p-3 text-sm font-semibold text-amber-900 dark:bg-amber-500/15 dark:text-amber-100">
                 <div className="flex flex-wrap gap-2">
-                  <Badge className="bg-white text-amber-800" tone="warning">
+                  <Badge className="bg-white text-amber-800 dark:bg-slate-950 dark:text-amber-100" tone="warning">
                     Prioritas: {getRevisionPriorityLabel(plan.reviewPriority)}
                   </Badge>
                   {plan.reviewSection ? (
-                    <Badge className="bg-white text-amber-800" tone="warning">
+                    <Badge className="bg-white text-amber-800 dark:bg-slate-950 dark:text-amber-100" tone="warning">
                       {plan.reviewSection}
                     </Badge>
                   ) : null}
@@ -255,7 +255,7 @@ export function TeacherTeachingPlans() {
             ) : null}
             <div className="mt-4 flex flex-wrap gap-2">
               {plan.status === 'DRAFT' || plan.status === 'REVISION_REQUESTED' ? (
-                <label className="cursor-pointer rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-black text-brand-700 transition hover:border-brand-600">
+                <label className="cursor-pointer rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-black text-brand-700 transition hover:border-brand-600 dark:border-blue-400/20 dark:bg-blue-500/10 dark:text-blue-100">
                   {uploadingPlanId === plan.id ? 'Mengunggah...' : plan.attachmentKey || plan.attachmentUrl ? 'Ganti Lampiran' : 'Upload Lampiran'}
                   <input
                     accept={getAttachmentAccept(plan.type)}

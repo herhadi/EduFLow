@@ -24,13 +24,13 @@ export function Dialog({
     <div className="fixed inset-0 z-50 grid min-h-dvh place-items-center bg-slate-950/40 p-4">
       <div
         aria-modal="true"
-        className={cn('w-full max-w-lg rounded-[2rem] bg-white p-5 shadow-2xl', className)}
+        className={cn('w-full max-w-lg rounded-[2rem] bg-white p-5 shadow-2xl dark:bg-slate-950 dark:text-slate-100', className)}
         role="dialog"
         {...props}
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-black text-slate-900">{title}</h2>
+            <h2 className="text-lg font-black text-slate-900 dark:text-slate-100">{title}</h2>
             {description ? (
               <p className="mt-1 text-sm font-semibold text-muted">{description}</p>
             ) : null}

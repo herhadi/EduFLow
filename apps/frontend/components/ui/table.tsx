@@ -4,7 +4,7 @@ import { cn } from '../../lib/cn';
 export function TableShell({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   return (
     <div
-      className={cn('w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white', className)}
+      className={cn('w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-950', className)}
       {...props}
     />
   );

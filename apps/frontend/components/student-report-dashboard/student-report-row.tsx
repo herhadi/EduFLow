@@ -21,10 +21,10 @@ export function StudentReportRow({
   student,
 }: StudentReportRowProps) {
   return (
-    <article className="rounded-2xl border border-blue-50 bg-slate-50/70 p-3">
+    <article className="rounded-2xl border border-blue-50 bg-slate-50/70 p-3 dark:border-[var(--border)] dark:bg-[var(--surface-soft)]">
       <div className="grid w-full gap-3 md:grid-cols-[1.4fr_0.9fr_1.2fr_auto]">
         <div className="min-w-0">
-          <p className="truncate text-sm font-black text-slate-900">{student.studentName}</p>
+          <p className="truncate text-sm font-black text-slate-900 dark:text-[var(--text)]">{student.studentName}</p>
           <p className="mt-1 text-xs font-semibold text-muted">
             NIS: {student.nis ?? '-'} · {student.className ?? '-'}
           </p>
@@ -44,7 +44,7 @@ export function StudentReportRow({
         </Badge>
       </div>
 
-      <div className="mt-3 flex flex-col gap-2 border-t border-blue-50 pt-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-3 flex flex-col gap-2 border-t border-blue-50 pt-3 dark:border-[var(--border)] sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs font-semibold text-muted">
           Klik Riwayat atau Nilai Harian untuk membuka detail siswa ini.
         </p>
@@ -63,13 +63,13 @@ export function StudentReportRow({
       </div>
 
       {activePanel ? (
-        <div className="mt-3 rounded-xl bg-white p-3">
+        <div className="mt-3 rounded-xl bg-white p-3 dark:bg-[var(--surface-solid)]">
           {activePanel === 'attendance' ? (
             <AttendanceDetail student={student} />
           ) : (
             <GradeDetail student={student} />
           )}
-          <p className="mt-3 rounded-lg bg-blue-50 p-2 text-xs font-black text-brand-700">
+          <p className="mt-3 rounded-lg bg-blue-50 p-2 text-xs font-black text-brand-700 dark:bg-blue-400/10 dark:text-blue-100">
             {student.riskReason}
           </p>
         </div>
@@ -91,8 +91,8 @@ function DetailButton({
     <button
       className={`rounded-xl border px-3 py-2 text-xs font-black transition ${
         active
-          ? 'border-brand-200 bg-brand-50 text-brand-700'
-          : 'border-slate-200 bg-white text-slate-700 hover:border-brand-200 hover:text-brand-700'
+          ? 'border-brand-200 bg-brand-50 text-brand-700 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100'
+          : 'border-slate-200 bg-white text-slate-700 hover:border-brand-200 hover:text-brand-700 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]'
       }`}
       onClick={onClick}
       type="button"
@@ -105,16 +105,16 @@ function DetailButton({
 function AttendanceDetail({ student }: { student: StudentReportItem }) {
   return (
     <>
-      <p className="text-xs font-black text-slate-900">Riwayat Presensi Terbaru</p>
+      <p className="text-xs font-black text-slate-900 dark:text-[var(--text)]">Riwayat Presensi Terbaru</p>
       <div className="mt-2 space-y-2">
         {student.latestRecords.length ? (
           student.latestRecords.map((record) => (
             <div
-              className="flex flex-col gap-1 rounded-lg border border-slate-100 p-2 text-xs sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-1 rounded-lg border border-slate-100 p-2 text-xs dark:border-[var(--border)] sm:flex-row sm:items-center sm:justify-between"
               key={record.id}
             >
               <div>
-                <p className="font-black text-slate-800">
+                <p className="font-black text-slate-800 dark:text-[var(--text)]">
                   {record.subjectName} · {record.className}
                 </p>
                 <p className="mt-0.5 text-muted">
@@ -139,7 +139,7 @@ function AttendanceDetail({ student }: { student: StudentReportItem }) {
 function GradeDetail({ student }: { student: StudentReportItem }) {
   return (
     <>
-      <p className="text-xs font-black text-slate-900">Nilai Harian</p>
+      <p className="text-xs font-black text-slate-900 dark:text-[var(--text)]">Nilai Harian</p>
       {student.dailyGrades.available ? (
         <>
           <div className="mt-2 grid grid-cols-2 gap-2">
@@ -148,8 +148,8 @@ function GradeDetail({ student }: { student: StudentReportItem }) {
           </div>
           <div className="mt-2 space-y-2">
             {student.dailyGrades.records.map((record) => (
-              <div className="rounded-lg border border-slate-100 p-2 text-xs" key={record.id}>
-                <p className="font-black text-slate-800">
+              <div className="rounded-lg border border-slate-100 p-2 text-xs dark:border-[var(--border)]" key={record.id}>
+                <p className="font-black text-slate-800 dark:text-[var(--text)]">
                   {record.title} · {record.subjectName}
                 </p>
                 <p className="mt-0.5 text-muted">

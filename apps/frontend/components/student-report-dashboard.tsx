@@ -105,13 +105,13 @@ export function StudentReportDashboard() {
 
   return (
     <section className="mt-8 space-y-5">
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
               Report Siswa
             </p>
-            <h2 className="mt-1 text-2xl font-black text-slate-900">
+            <h2 className="mt-1 text-2xl font-black text-slate-900 dark:text-[var(--text)]">
               Presensi dan Risiko Siswa
             </h2>
             <p className="mt-1 text-sm text-muted">
@@ -128,10 +128,10 @@ export function StudentReportDashboard() {
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-6">
-          <label className="grid gap-2 text-xs font-black text-slate-700 md:col-span-2">
+          <label className="grid gap-2 text-xs font-black text-slate-700 dark:text-[var(--text-soft)] md:col-span-2">
             Kelas
             <select
-              className="min-w-0 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600"
+              className="min-w-0 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]"
               onChange={(event) => setClassId(event.target.value)}
               value={classId}
             >
@@ -143,28 +143,28 @@ export function StudentReportDashboard() {
               ))}
             </select>
           </label>
-          <label className="grid gap-2 text-xs font-black text-slate-700">
+          <label className="grid gap-2 text-xs font-black text-slate-700 dark:text-[var(--text-soft)]">
             Dari
             <input
-              className="min-w-0 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600"
+              className="min-w-0 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]"
               onChange={(event) => setFrom(event.target.value)}
               type="date"
               value={from}
             />
           </label>
-          <label className="grid gap-2 text-xs font-black text-slate-700">
+          <label className="grid gap-2 text-xs font-black text-slate-700 dark:text-[var(--text-soft)]">
             Sampai
             <input
-              className="min-w-0 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600"
+              className="min-w-0 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]"
               onChange={(event) => setTo(event.target.value)}
               type="date"
               value={to}
             />
           </label>
-          <label className="grid gap-2 text-xs font-black text-slate-700">
+          <label className="grid gap-2 text-xs font-black text-slate-700 dark:text-[var(--text-soft)]">
             Status
             <select
-              className="min-w-0 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600"
+              className="min-w-0 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]"
               onChange={(event) => setStatus(event.target.value as AttendanceStatus | '')}
               value={status}
             >
@@ -175,10 +175,10 @@ export function StudentReportDashboard() {
               <option value="ABSENT">Alpha</option>
             </select>
           </label>
-          <label className="grid gap-2 text-xs font-black text-slate-700">
+          <label className="grid gap-2 text-xs font-black text-slate-700 dark:text-[var(--text-soft)]">
             Risiko
             <select
-              className="min-w-0 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600"
+              className="min-w-0 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]"
               onChange={(event) => setRisk(event.target.value as StudentReportItem['riskLevel'] | '')}
               value={risk}
             >
@@ -192,7 +192,7 @@ export function StudentReportDashboard() {
       </div>
 
       {loadState === 'error' ? (
-        <div className="rounded-[2rem] border border-red-100 bg-red-50 p-5 text-sm font-semibold text-red-700">
+        <div className="rounded-[2rem] border border-red-100 bg-red-50 p-5 text-sm font-semibold text-red-700 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100">
           Report siswa belum dapat dimuat.
         </div>
       ) : null}
@@ -213,10 +213,10 @@ export function StudentReportDashboard() {
             <CompactSummaryStat label="Risiko Sedang" shortLabel="R. Sedang" tone="warning" value={report.summary.mediumRisk} />
           </div>
 
-          <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
+          <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="text-lg font-black text-slate-900">Daftar Siswa</h3>
+                <h3 className="text-lg font-black text-slate-900 dark:text-[var(--text)]">Daftar Siswa</h3>
                 <p className="mt-1 text-sm text-muted">
                   {formatReadableDate(report.from)} - {formatReadableDate(report.to)} · {filteredStudents.length} siswa sesuai filter
                 </p>

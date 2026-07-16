@@ -108,12 +108,12 @@ export function PrincipalTeachingPlanReview() {
 
             {plan.description ? <p className="mt-4 rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-700 dark:bg-slate-900 dark:text-slate-200">{plan.description}</p> : null}
             {plan.attachmentKey || plan.attachmentUrl ? (
-              <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 dark:border-blue-400/20 dark:bg-blue-500/10 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs font-black uppercase tracking-[0.1em] text-brand-700">
                     Lampiran Guru
                   </p>
-                  <p className="mt-1 truncate text-sm font-bold text-slate-900">
+                  <p className="mt-1 truncate text-sm font-bold text-slate-900 dark:text-slate-100">
                     {plan.attachmentName ?? (plan.type === 'TEACHING_BOOK' ? 'Foto Buku KBM' : 'Dokumen perangkat ajar')}
                   </p>
                   {plan.attachmentSize ? (
@@ -130,7 +130,7 @@ export function PrincipalTeachingPlanReview() {
                 </Button>
               </div>
             ) : (
-              <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-800">
+              <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-800 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100">
                 Lampiran belum tersedia. Minta revisi agar guru mengunggah dokumen sebelum disetujui.
               </div>
             )}

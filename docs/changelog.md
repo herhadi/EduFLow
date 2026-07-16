@@ -17,6 +17,9 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Mengoptimasi beranda guru dengan aksi cepat kontekstual serta membersihkan efek glow/shadow berwarna agar dark mode lebih bersih.
 - Mengoptimasi beranda orang tua dengan panduan cepat status hari ini, ajukan izin, dan riwayat anak, serta merapikan kontras parent portal di dark mode.
 - Merapikan beranda Kepala Sekolah, TU, dan BK agar isi halaman lebih jelas serta card/link tetap terbaca bersih di dark mode.
+- Merapikan detail presensi guru dan report siswa KS agar microcopy lebih jelas, empty state lebih membantu, dan form/card tetap terbaca di dark mode.
+- Merapikan halaman admin jadwal agar tabel, generate agenda, form create/edit, dan kontrol tanggal tetap jelas di dark mode.
+- Merapikan perangkat ajar, review KS, pengajuan izin/sakit, serta komponen UI dasar (`Button`, `Badge`, `FormField`, `Table`, `Search`, `Pagination`, `Dialog`, `LoadingState`, `EmptyState`, `MetricCard`, `Toast`, `PageHeader`) agar lebih konsisten dan terbaca di dark mode.
 - Memecah `academic.service.ts` menjadi facade tipis dan mengekstrak logika domain ke service kecil: master akademik, kalender akademik, jadwal, generate agenda, manajemen agenda, guru akademik, portal guru, dan siswa akademik.
 - Mendokumentasikan struktur baru Academic Module di `docs/architecture.md`, `docs/academic-planning.md`, dan `docs/infrastructure.md`.
 - Merapikan dokumentasi dengan menggabungkan `attendance-state.md` ke `attendance-workflow.md`, `testing.md` ke `operational-scenarios.md`, serta `security.md` dan `operations.md` ke `infrastructure.md` agar referensi inti tidak terlalu tersebar.

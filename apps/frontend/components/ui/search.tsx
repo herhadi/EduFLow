@@ -16,14 +16,14 @@ export function SearchInput({
   return (
     <div className={cn('relative min-w-0', className)}>
       <input
-        className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm font-semibold outline-none focus:border-brand-600"
+        className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm font-semibold text-slate-900 outline-none focus:border-brand-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
         type="search"
         value={value}
         {...props}
       />
       {onClear && hasValue ? (
         <button
-          className="absolute top-1/2 right-2 -translate-y-1/2 rounded-xl px-2 py-1 text-xs font-black text-muted hover:bg-slate-50 hover:text-slate-800"
+          className="absolute top-1/2 right-2 -translate-y-1/2 rounded-xl px-2 py-1 text-xs font-black text-muted hover:bg-slate-50 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-slate-100"
           onClick={onClear}
           type="button"
         >

@@ -35,10 +35,10 @@ type ToastContextValue = {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 const toneClassNames: Record<ToastTone, string> = {
-  error: 'border-rose-100 bg-rose-50 text-rose-800',
-  info: 'border-blue-100 bg-brand-50 text-brand-700',
-  success: 'border-emerald-100 bg-emerald-50 text-emerald-800',
-  warning: 'border-amber-100 bg-amber-50 text-amber-800',
+  error: 'border-rose-100 bg-rose-50 text-rose-800 dark:border-rose-400/20 dark:bg-rose-500/15 dark:text-rose-100',
+  info: 'border-blue-100 bg-brand-50 text-brand-700 dark:border-blue-400/20 dark:bg-blue-500/15 dark:text-blue-100',
+  success: 'border-emerald-100 bg-emerald-50 text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-100',
+  warning: 'border-amber-100 bg-amber-50 text-amber-800 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100',
 };
 
 const toneIcon: Record<ToastTone, string> = {
@@ -91,7 +91,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={toast.id}
             role="status"
           >
-            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-white/75 text-xs font-black">
+            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-white/75 text-xs font-black dark:bg-slate-950/70">
               {toneIcon[toast.tone]}
             </span>
             <div className="min-w-0 flex-1">
@@ -102,7 +102,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             </div>
             <button
               aria-label="Tutup notifikasi"
-              className="rounded-full px-2 text-sm font-black opacity-70 transition hover:bg-white/70 hover:opacity-100"
+              className="rounded-full px-2 text-sm font-black opacity-70 transition hover:bg-white/70 hover:opacity-100 dark:hover:bg-slate-950/70"
               onClick={() => removeToast(toast.id)}
               type="button"
             >

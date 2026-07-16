@@ -10,10 +10,10 @@ export function ReportFilterStat({
   value: number;
 }) {
   const toneClass = {
-    danger: 'border-red-100 bg-red-50 text-red-700',
-    good: 'border-emerald-100 bg-emerald-50 text-emerald-700',
-    neutral: 'border-slate-100 bg-slate-50 text-slate-700',
-    warning: 'border-amber-100 bg-amber-50 text-amber-700',
+    danger: 'border-red-100 bg-red-50 text-red-700 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100',
+    good: 'border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100',
+    neutral: 'border-slate-100 bg-slate-50 text-slate-700 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]',
+    warning: 'border-amber-100 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100',
   }[tone];
 
   return (
@@ -36,10 +36,10 @@ export function CompactSummaryStat({
   value: number;
 }) {
   const toneClass = {
-    danger: 'border-red-100 bg-red-50 text-red-700',
-    good: 'border-emerald-100 bg-emerald-50 text-emerald-700',
-    neutral: 'border-slate-100 bg-white text-slate-700',
-    warning: 'border-amber-100 bg-amber-50 text-amber-700',
+    danger: 'border-red-100 bg-red-50 text-red-700 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100',
+    good: 'border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100',
+    neutral: 'border-slate-100 bg-white text-slate-700 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]',
+    warning: 'border-amber-100 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100',
   }[tone];
 
   return (
@@ -65,7 +65,9 @@ export function MiniStat({
   return (
     <span
       className={`rounded-lg px-2 py-1 text-xs font-black ${
-        danger ? 'bg-red-50 text-red-700' : 'bg-white text-slate-700'
+        danger
+          ? 'bg-red-50 text-red-700 dark:bg-red-400/10 dark:text-red-100'
+          : 'bg-white text-slate-700 dark:bg-[var(--surface-solid)] dark:text-[var(--text)]'
       }`}
     >
       {label}: {value}

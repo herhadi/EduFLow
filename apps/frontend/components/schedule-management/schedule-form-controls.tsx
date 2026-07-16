@@ -13,10 +13,10 @@ export function SelectField({
   value: string;
 }) {
   return (
-    <label className="grid min-w-0 gap-1 text-sm font-semibold text-slate-700">
+    <label className="grid min-w-0 gap-1 text-sm font-semibold text-slate-700 dark:text-[var(--text-soft)]">
       <span className="min-w-0 truncate">{label}</span>
       <select
-        className="w-full min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-brand-600"
+        className="w-full min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]"
         onChange={(event) => onChange(event.target.value)}
         required
         value={value}
@@ -62,7 +62,7 @@ export function InputField({
   }
 
   return (
-    <label className="grid min-w-0 gap-1 text-sm font-semibold text-slate-700">
+    <label className="grid min-w-0 gap-1 text-sm font-semibold text-slate-700 dark:text-[var(--text-soft)]">
       <span className="min-w-0 truncate">{label}</span>
       {isDate ? (
         <span
@@ -95,7 +95,7 @@ export function InputField({
         </span>
       ) : (
         <input
-          className="w-full min-w-0 max-w-full rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600"
+          className="w-full min-w-0 max-w-full rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]"
           onChange={(event) => onChange(event.target.value)}
           required={required}
           type={type}
@@ -120,7 +120,7 @@ export function DateControl({
   return (
     <div className="min-w-0">
       <InputField label={label} onChange={onChange} type="date" value={value} />
-      <p className="mt-1.5 min-h-8 text-[11px] font-semibold leading-4 text-slate-600">
+      <p className="mt-1.5 min-h-8 text-[11px] font-semibold leading-4 text-slate-600 dark:text-[var(--text-soft)]">
         {description}
       </p>
     </div>

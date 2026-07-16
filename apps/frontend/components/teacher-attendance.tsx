@@ -156,11 +156,16 @@ export function TeacherAttendance() {
         />
 
         <SurfaceCard>
-          <h3 className="text-base font-black">Checklist KBM</h3>
-          <div className="mt-3 grid gap-2 text-sm font-bold text-slate-700 sm:grid-cols-3">
+          <div>
+            <h3 className="text-base font-black">Checklist KBM</h3>
+            <p className="mt-1 text-sm text-muted">
+              Tombol selesai aktif setelah materi, presensi siswa, dan foto kelas dilengkapi.
+            </p>
+          </div>
+          <div className="mt-3 grid gap-2 text-sm font-bold text-slate-700 dark:text-[var(--text)] sm:grid-cols-3">
             {(['teacherPresent', 'studentAttendanceDone', 'classPhotoDone'] as const).map((key) => (
               <label
-                className="flex items-center gap-2 rounded-2xl border border-blue-100 bg-blue-50/50 px-3 py-2"
+                className="flex items-center gap-2 rounded-2xl border border-blue-100 bg-blue-50/50 px-3 py-2 dark:border-blue-400/20 dark:bg-blue-400/10"
                 key={key}
               >
                 <input
@@ -176,7 +181,7 @@ export function TeacherAttendance() {
           <label className="mt-3 grid gap-2 text-sm font-bold">
             Materi/Catatan KBM
             <textarea
-              className="min-h-24 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600"
+              className="min-h-24 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]"
               onChange={(event) =>
                 setChecklist((current) => ({ ...current, materialNotes: event.target.value }))
               }
@@ -187,7 +192,7 @@ export function TeacherAttendance() {
           <label className="mt-3 grid gap-2 text-sm font-bold">
             Catatan Kendala
             <textarea
-              className="min-h-20 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600"
+              className="min-h-20 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]"
               onChange={(event) =>
                 setChecklist((current) => ({ ...current, issueNotes: event.target.value }))
               }
@@ -205,16 +210,16 @@ export function TeacherAttendance() {
                 Default semua siswa Hadir. Pilih mode input yang paling nyaman.
               </p>
             </div>
-            <div className="grid grid-cols-2 rounded-2xl border border-blue-100 bg-blue-50 p-1 text-xs font-black">
+            <div className="grid grid-cols-2 rounded-2xl border border-blue-100 bg-blue-50 p-1 text-xs font-black dark:border-blue-400/20 dark:bg-blue-400/10">
               <button
-                className={`rounded-xl px-3 py-2 ${mode === 'list' ? 'bg-white text-brand-700 shadow-sm' : 'text-muted'}`}
+                className={`rounded-xl px-3 py-2 ${mode === 'list' ? 'bg-white text-brand-700 shadow-sm dark:bg-[var(--surface-solid)] dark:text-blue-100' : 'text-muted'}`}
                 onClick={() => setMode('list')}
                 type="button"
               >
                 List
               </button>
               <button
-                className={`rounded-xl px-3 py-2 ${mode === 'quick' ? 'bg-white text-brand-700 shadow-sm' : 'text-muted'}`}
+                className={`rounded-xl px-3 py-2 ${mode === 'quick' ? 'bg-white text-brand-700 shadow-sm dark:bg-[var(--surface-solid)] dark:text-blue-100' : 'text-muted'}`}
                 onClick={() => setMode('quick')}
                 type="button"
               >
@@ -250,7 +255,7 @@ export function TeacherAttendance() {
             {saving ? 'Menyimpan...' : 'Selesaikan Presensi'}
           </Button>
           {!canSubmit ? (
-            <p className="mt-2 text-xs font-bold text-amber-700">
+            <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700 dark:bg-amber-400/10 dark:text-amber-100">
               Lengkapi checklist wajib dan Materi/Catatan KBM. Catatan Kendala boleh kosong.
             </p>
           ) : null}
@@ -265,7 +270,10 @@ export function TeacherAttendance() {
         <AgendaCard agenda={agenda} key={agenda.id} onOpen={open} />
       ))}
       {!agendas.length ? (
-        <EmptyState title="Tidak ada agenda mengajar hari ini." />
+        <EmptyState
+          description="Jika seharusnya ada jadwal, minta operator mengecek generate agenda pada rentang tanggal hari ini."
+          title="Tidak ada agenda mengajar hari ini."
+        />
       ) : null}
     </section>
   );

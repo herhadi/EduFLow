@@ -65,12 +65,12 @@ export function AttendanceListMode({
       <div className="mt-4 grid gap-2 md:grid-cols-2">
         {visibleItems.map((item) => (
           <div
-            className="grid grid-cols-[minmax(0,1fr)_8.5rem] items-center gap-3 rounded-2xl border border-slate-100 bg-white px-3 py-3"
+            className="grid grid-cols-[minmax(0,1fr)_8.5rem] items-center gap-3 rounded-2xl border border-slate-100 bg-white px-3 py-3 dark:border-[var(--border)] dark:bg-[var(--surface-solid)]"
             key={item.id}
           >
             <p className="min-w-0 truncate text-sm font-bold">{item.student.name}</p>
             <select
-              className="min-w-0 rounded-xl border px-3 py-2 text-sm"
+              className="min-w-0 rounded-xl border px-3 py-2 text-sm dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]"
               onChange={(event) => onUpdate(item.id, event.target.value as AttendanceStatus)}
               value={item.status}
             >
@@ -107,11 +107,11 @@ export function AttendanceQuickMode({
   const selectedItem = attendance.items.find((item) => item.id === selectedItemId) ?? attendance.items[0];
 
   return (
-    <div className="mt-4 grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+    <div className="mt-4 grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3 dark:border-blue-400/20 dark:bg-blue-400/10 sm:grid-cols-[minmax(0,1fr)_12rem]">
       <label className="grid gap-2 text-sm font-bold">
         Pilih Siswa
         <select
-          className="min-w-0 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600"
+          className="min-w-0 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]"
           onChange={(event) => onSelect(event.target.value)}
           value={selectedItem?.id ?? ''}
         >
@@ -125,7 +125,7 @@ export function AttendanceQuickMode({
       <label className="grid gap-2 text-sm font-bold">
         Status
         <select
-          className="min-w-0 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600"
+          className="min-w-0 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]"
           disabled={!selectedItem}
           onChange={(event) => selectedItem && onUpdate(selectedItem.id, event.target.value as AttendanceStatus)}
           value={selectedItem?.status ?? 'PRESENT'}
@@ -155,8 +155,8 @@ export function AttendanceSummary({ attendance }: { attendance: Attendance }) {
   return (
     <div className="mt-4 grid grid-cols-4 gap-2">
       {attendanceStatuses.map((status) => (
-        <div className="rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-center" key={status.value}>
-          <p className="text-lg font-black text-slate-900">{summary[status.value]}</p>
+        <div className="rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-center dark:border-[var(--border)] dark:bg-[var(--surface-soft)]" key={status.value}>
+          <p className="text-lg font-black text-slate-900 dark:text-[var(--text)]">{summary[status.value]}</p>
           <p className="text-[11px] font-black text-muted">{status.label}</p>
         </div>
       ))}

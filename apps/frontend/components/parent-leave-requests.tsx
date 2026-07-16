@@ -181,7 +181,7 @@ export function ParentLeaveRequests() {
         <div className="mt-4 space-y-3">
           {requests.length ? (
             requests.map((request) => (
-              <article className="rounded-2xl border border-blue-100 bg-blue-50/50 p-3" key={request.id}>
+              <article className="rounded-2xl border border-blue-100 bg-blue-50/50 p-3 dark:border-blue-400/20 dark:bg-blue-500/10" key={request.id}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-black">{request.student.name}</p>
@@ -190,13 +190,13 @@ export function ParentLeaveRequests() {
                       {request.dateTo !== request.dateFrom ? ` - ${formatReadableDate(request.dateTo)}` : ''}
                     </p>
                   </div>
-                  <Badge className="shrink-0 bg-white" tone="brand">
+                  <Badge className="shrink-0 bg-white dark:bg-slate-950" tone="brand">
                     {statusLabels[request.status]}
                   </Badge>
                 </div>
-                <p className="mt-2 text-xs leading-5 text-slate-700">{request.reason}</p>
+                <p className="mt-2 text-xs leading-5 text-slate-700 dark:text-slate-200">{request.reason}</p>
                 {request.reviewNote ? (
-                  <p className="mt-2 rounded-xl bg-white px-3 py-2 text-xs font-bold text-muted">
+                  <p className="mt-2 rounded-xl bg-white px-3 py-2 text-xs font-bold text-muted dark:bg-slate-950">
                     Catatan: {request.reviewNote}
                   </p>
                 ) : null}
