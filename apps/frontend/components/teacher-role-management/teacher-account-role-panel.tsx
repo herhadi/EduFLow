@@ -11,7 +11,7 @@ export function TeacherAccountRolePanel({
 }: TeacherAccountRolePanelProps) {
   return (
     <div>
-      <p className="text-sm font-black text-slate-800">Role Akun</p>
+      <p className="text-sm font-black text-slate-800 dark:text-slate-100">Role Akun</p>
       <p className="mt-1 text-xs font-semibold text-muted">
         Jika memilih Wali Kelas, role Guru otomatis ikut karena wali kelas pasti guru mapel.
       </p>
@@ -25,7 +25,7 @@ export function TeacherAccountRolePanel({
                 'rounded-full border px-3 py-2 text-xs font-black transition',
                 active
                   ? 'border-brand-600 bg-brand-600 text-white'
-                  : 'border-blue-100 bg-white text-brand-700 hover:bg-brand-50',
+                  : 'border-blue-100 bg-white text-brand-700 hover:bg-brand-50 dark:border-blue-400/20 dark:bg-slate-950 dark:text-blue-100 dark:hover:bg-blue-500/15',
               ].join(' ')}
               key={role.value}
               onClick={() => onToggleRole(role.value)}

@@ -21,18 +21,20 @@ export function AssessmentListCard({
 }: AssessmentListCardProps) {
   return (
     <Card>
-      <h3 className="text-sm font-black text-slate-900">Komponen Nilai</h3>
+      <h3 className="text-sm font-black text-slate-900 dark:text-slate-100">Komponen Nilai</h3>
       <div className="mt-3 space-y-2">
         {assessments.map((assessment) => (
           <button
             className={`w-full rounded-2xl border p-3 text-left transition ${
-              selectedAssessmentId === assessment.id ? 'border-brand-300 bg-brand-50' : 'border-blue-50 bg-slate-50 hover:border-brand-200'
+              selectedAssessmentId === assessment.id
+                ? 'border-brand-300 bg-brand-50 dark:border-blue-400/30 dark:bg-blue-500/15'
+                : 'border-blue-50 bg-slate-50 hover:border-brand-200 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-400/30'
             }`}
             key={assessment.id}
             onClick={() => onOpen(assessment.id)}
             type="button"
           >
-            <p className="text-sm font-black text-slate-900">{assessment.title}</p>
+            <p className="text-sm font-black text-slate-900 dark:text-slate-100">{assessment.title}</p>
             <p className="mt-1 text-xs font-semibold text-muted">
               {assessment.class.name} · {assessment.subject.name}
             </p>

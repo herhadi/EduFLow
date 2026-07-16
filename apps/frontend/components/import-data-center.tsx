@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import { api, type ImportSummary, type ImportType } from '../lib/api';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { SurfaceCard } from './ui/card';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -70,14 +73,14 @@ export function ImportDataCenter() {
 
   return (
     <section className="mt-10 space-y-5">
-      <div className="rounded-[2rem] border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-slate-700">
+      <div className="rounded-[2rem] border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-slate-700 dark:border-blue-400/20 dark:bg-blue-500/15 dark:text-slate-100">
         Import hanya dipakai untuk data massal yang paling berat: guru dan siswa.
         Kelas, mata pelajaran, jadwal, role guru, mapel ampu, dan wali kelas
         diatur lewat halaman admin agar lebih aman dan mudah dikoreksi.
       </div>
 
       {message ? (
-        <p className="rounded-2xl border border-blue-100 bg-white p-4 text-sm text-slate-700">
+        <p className="rounded-2xl border border-blue-100 bg-white p-4 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
           {message}
         </p>
       ) : null}
@@ -112,7 +115,7 @@ function ImportCard({
   const [showColumns, setShowColumns] = useState(false);
 
   return (
-    <article className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
+    <SurfaceCard>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
@@ -121,28 +124,28 @@ function ImportCard({
           <h2 className="mt-1 text-2xl font-bold">{item.title}</h2>
           <p className="mt-1 text-sm leading-6 text-muted">{item.description}</p>
         </div>
-        <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">
+        <Badge tone="brand">
           XLSX
-        </span>
+        </Badge>
       </div>
 
-      <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+      <div className="mt-4 rounded-2xl bg-slate-50 p-4 dark:bg-slate-900">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-bold text-slate-500 uppercase">
+            <p className="text-xs font-bold text-slate-500 uppercase dark:text-slate-300">
               Format Kolom
             </p>
-            <p className="mt-1 text-sm font-semibold text-slate-700">
+            <p className="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-100">
               {item.columns.length} kolom diperlukan
             </p>
           </div>
-          <button
-            className="rounded-xl bg-white px-3 py-2 text-xs font-bold text-brand-700 shadow-sm"
+          <Button
             onClick={() => setShowColumns((current) => !current)}
-            type="button"
+            size="sm"
+            variant="outline"
           >
             {showColumns ? 'Tutup' : 'Lihat'}
-          </button>
+          </Button>
         </div>
         <div
           className={[
@@ -152,7 +155,7 @@ function ImportCard({
         >
           {item.columns.map((column) => (
             <span
-              className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-slate-600"
+              className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-950 dark:text-slate-200"
               key={column}
             >
               {column}
@@ -162,7 +165,7 @@ function ImportCard({
       </div>
 
       <div className="mt-5 grid gap-3">
-        <label className="grid gap-2 rounded-2xl border border-dashed border-blue-200 bg-blue-50/50 p-4 text-sm font-semibold text-slate-700">
+        <label className="grid gap-2 rounded-2xl border border-dashed border-blue-200 bg-blue-50/50 p-4 text-sm font-semibold text-slate-700 dark:border-blue-400/20 dark:bg-blue-500/10 dark:text-slate-100">
           Pilih file Excel
           <input
             accept=".xlsx,.xls"
@@ -176,14 +179,13 @@ function ImportCard({
             </span>
           ) : null}
         </label>
-        <button
-          className="rounded-2xl bg-brand-600 px-4 py-4 text-sm font-bold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+        <Button
+          className="w-full"
           disabled={state === 'loading'}
           onClick={() => void onImport(item.type, file)}
-          type="button"
         >
           {state === 'loading' ? 'Mengimport...' : `Import ${item.title}`}
-        </button>
+        </Button>
       </div>
 
       {summary ? (
@@ -196,9 +198,9 @@ function ImportCard({
       ) : null}
 
       {summary?.errors.length ? (
-        <div className="mt-4 rounded-2xl border border-red-100 bg-red-50 p-4">
-          <p className="text-sm font-bold text-red-700">Error rows</p>
-          <ul className="mt-2 space-y-1 text-sm text-red-700">
+        <div className="mt-4 rounded-2xl border border-red-100 bg-red-50 p-4 dark:border-red-400/20 dark:bg-red-500/15">
+          <p className="text-sm font-bold text-red-700 dark:text-red-100">Error rows</p>
+          <ul className="mt-2 space-y-1 text-sm text-red-700 dark:text-red-100">
             {summary.errors.slice(0, 5).map((error) => (
               <li key={`${error.row}-${error.message}`}>
                 Row {error.row}: {error.message}
@@ -207,13 +209,13 @@ function ImportCard({
           </ul>
         </div>
       ) : null}
-    </article>
+    </SurfaceCard>
   );
 }
 
 function SummaryBox({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl bg-slate-50 p-3 text-center sm:text-left">
+    <div className="rounded-2xl bg-slate-50 p-3 text-center dark:bg-slate-900 sm:text-left">
       <p className="text-xs text-muted">{label}</p>
       <strong>{value}</strong>
     </div>

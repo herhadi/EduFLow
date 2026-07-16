@@ -20,6 +20,8 @@ import {
   masterDataTabs,
   type MasterTab,
 } from './master-data-dashboard/master-data-utils';
+import { Badge } from './ui/badge';
+import { SurfaceCard } from './ui/card';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -84,7 +86,7 @@ export function MasterDataDashboard() {
 
   return (
     <section className="mt-6 grid min-w-0 gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm">
+      <aside className="surface-card min-w-0 rounded-[2rem] p-4 sm:p-5">
         <p className="px-3 text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
           Master Data
         </p>
@@ -95,7 +97,7 @@ export function MasterDataDashboard() {
                 'shrink-0 rounded-2xl px-4 py-3 text-left text-sm font-semibold transition lg:w-full',
                 activeTab === tab.id
                   ? 'bg-brand-600 text-white'
-                  : 'bg-brand-50 text-brand-700 hover:bg-blue-100 lg:bg-transparent lg:text-slate-700 lg:hover:bg-slate-100',
+                  : 'bg-brand-50 text-brand-700 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-100 dark:hover:bg-blue-500/20 lg:bg-transparent lg:text-slate-700 lg:hover:bg-slate-100 lg:dark:bg-transparent lg:dark:text-slate-200 lg:dark:hover:bg-slate-800',
               ].join(' ')}
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -107,7 +109,7 @@ export function MasterDataDashboard() {
         </nav>
       </aside>
 
-      <div className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
+      <SurfaceCard className="min-w-0 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">
@@ -115,13 +117,13 @@ export function MasterDataDashboard() {
             </h2>
             <p className="mt-1 text-sm text-muted">{activeDescription}</p>
           </div>
-          <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+          <Badge tone={loadState === 'error' ? 'warning' : 'brand'}>
             {loadState === 'loading' ? 'Memuat' : 'Read-only MVP'}
-          </span>
+          </Badge>
         </div>
 
         {loadState === 'error' ? (
-          <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+          <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100">
             Data belum bisa dimuat. Pastikan backend berjalan di port `3001`.
           </div>
         ) : null}
@@ -135,7 +137,7 @@ export function MasterDataDashboard() {
             <SchoolYearList schoolYears={schoolYears} />
           ) : null}
         </div>
-      </div>
+      </SurfaceCard>
     </section>
   );
 }

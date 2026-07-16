@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { type TeacherPerformanceItem } from '../../lib/api';
 import { formatReadableDate } from '../../lib/format';
 import { getTeacherRiskLevel } from './teacher-performance-utils';
+import { fieldClass } from '../ui/form';
 
 export function DateInput({
   label,
@@ -13,10 +14,10 @@ export function DateInput({
   value: string;
 }) {
   return (
-    <label className="grid gap-2 text-sm font-bold text-slate-700">
+    <label className="grid gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
       {label}
       <input
-        className="rounded-2xl border border-blue-100 bg-blue-50/40 px-4 py-3 text-sm font-normal text-slate-900 outline-none focus:border-brand-600"
+        className={`${fieldClass} font-normal`}
         onChange={(event) => onChange(event.target.value)}
         onFocus={() => undefined}
         type="date"
@@ -36,29 +37,29 @@ export function TeacherCard({
   const riskMeta = {
     attention: {
       label: 'Perlu perhatian',
-      card: 'border-rose-100',
-      badge: 'border-rose-100 bg-rose-50 text-rose-700',
+      card: 'border-rose-100 dark:border-rose-400/20',
+      badge: 'border-rose-100 bg-rose-50 text-rose-700 dark:border-rose-400/20 dark:bg-rose-500/15 dark:text-rose-100',
     },
     note: {
       label: 'Ada catatan',
-      card: 'border-amber-100',
-      badge: 'border-amber-100 bg-amber-50 text-amber-700',
+      card: 'border-amber-100 dark:border-amber-400/20',
+      badge: 'border-amber-100 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100',
     },
     safe: {
       label: 'Aman',
-      card: 'border-emerald-100',
-      badge: 'border-emerald-100 bg-emerald-50 text-emerald-700',
+      card: 'border-emerald-100 dark:border-emerald-400/20',
+      badge: 'border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-100',
     },
   }[risk];
 
   return (
     <article
-      className={`rounded-2xl border ${riskMeta.card} bg-white p-4`}
+      className={`rounded-2xl border ${riskMeta.card} bg-white p-4 dark:bg-slate-950`}
     >
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="truncate text-base font-black text-slate-900">{teacher.teacherName}</h3>
+            <h3 className="truncate text-base font-black text-slate-900 dark:text-slate-100">{teacher.teacherName}</h3>
             <span className={`rounded-full border px-2.5 py-1 text-[0.68rem] font-black ${riskMeta.badge}`}>
               {riskMeta.label}
             </span>
@@ -67,7 +68,7 @@ export function TeacherCard({
             {teacher.totalSessions} sesi · submit {teacher.submitRate}% · tepat waktu {teacher.onTimeSubmissions}
           </p>
         </div>
-        <div className="grid grid-cols-4 gap-2 text-center text-xs font-black text-slate-700 sm:flex sm:text-left">
+        <div className="grid grid-cols-4 gap-2 text-center text-xs font-black text-slate-700 dark:text-slate-200 sm:flex sm:text-left">
           <CompactMetric label="Submit" value={teacher.submittedSessions} />
           <CompactMetric label="Telat" tone="warning" value={teacher.lateSubmissions} />
           <CompactMetric label="Kosong" tone="danger" value={teacher.emptyClasses} />
@@ -85,10 +86,10 @@ export function TeacherCard({
 
       {open ? (
         <div className="mt-3 space-y-2">
-          <h4 className="text-sm font-bold">Aktivitas Terbaru</h4>
+          <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">Aktivitas Terbaru</h4>
           {teacher.latestSessions.map((session) => (
             <div
-              className="rounded-2xl border border-blue-50 bg-slate-50 p-3"
+              className="rounded-2xl border border-blue-50 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900"
               key={session.agendaId}
             >
               <div className="flex items-start justify-between gap-3">
@@ -101,8 +102,8 @@ export function TeacherCard({
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-bold ${
                     session.isLate
-                      ? 'bg-amber-50 text-amber-700'
-                      : 'bg-emerald-50 text-emerald-700'
+                      ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-100'
+                      : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-100'
                   }`}
                 >
                   {session.isLate ? 'Terlambat' : 'On time'}
@@ -126,9 +127,9 @@ function CompactMetric({
   value: number;
 }) {
   const toneClass = {
-    default: 'bg-blue-50 text-brand-700',
-    warning: 'bg-amber-50 text-amber-700',
-    danger: 'bg-rose-50 text-rose-700',
+    default: 'bg-blue-50 text-brand-700 dark:bg-blue-500/15 dark:text-blue-100',
+    warning: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-100',
+    danger: 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-100',
   }[tone];
 
   return (

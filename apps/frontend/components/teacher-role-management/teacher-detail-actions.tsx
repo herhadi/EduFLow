@@ -1,6 +1,7 @@
 import {
   type Teacher,
 } from '../../lib/api';
+import { Button } from '../ui/button';
 
 type SaveState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -28,8 +29,8 @@ export function TeacherDetailActions({
           className={[
             'rounded-2xl border p-4 text-sm font-semibold',
             saveState === 'success'
-              ? 'border-emerald-100 bg-emerald-50 text-emerald-700'
-              : 'border-amber-200 bg-amber-50 text-amber-900',
+              ? 'border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-100'
+              : 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100',
           ].join(' ')}
         >
           {message}
@@ -37,23 +38,23 @@ export function TeacherDetailActions({
       ) : null}
 
       {selectedTeacher.user ? (
-        <button
-          className="w-full rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-black text-amber-900 hover:bg-amber-100"
+        <Button
+          className="w-full border-amber-300 text-amber-900 hover:border-amber-400 hover:text-amber-900 dark:border-amber-400/30 dark:text-amber-100"
           onClick={() => void onResetPassword()}
-          type="button"
+          variant="outline"
         >
           Reset Password ke Default
-        </button>
+        </Button>
       ) : null}
 
-      <button
-        className="w-full rounded-2xl bg-brand-600 px-5 py-4 text-sm font-black text-white shadow-xl transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+      <Button
+        className="w-full"
         disabled={saveDisabled}
         onClick={() => void onSave()}
-        type="button"
+        size="lg"
       >
         {saveState === 'loading' ? 'Menyimpan...' : 'Simpan Pengaturan Guru'}
-      </button>
+      </Button>
     </>
   );
 }

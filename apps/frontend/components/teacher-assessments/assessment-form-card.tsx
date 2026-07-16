@@ -40,7 +40,7 @@ export function AssessmentFormCard({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Nilai Harian</p>
-          <h2 className="mt-1 text-2xl font-black text-slate-900">Buat Komponen Nilai</h2>
+          <h2 className="mt-1 text-2xl font-black text-slate-900 dark:text-slate-100">Buat Komponen Nilai</h2>
           <p className="mt-1 text-sm text-muted">
             Nilai disimpan per kelas, mapel, semester, dan enrollment siswa.
           </p>

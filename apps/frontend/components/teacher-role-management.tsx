@@ -365,7 +365,7 @@ export function TeacherRoleManagement() {
   }
 
   return (
-    <section className="mt-6 min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
+    <section className="surface-card mt-6 min-w-0 rounded-[2rem] p-4 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
@@ -376,13 +376,13 @@ export function TeacherRoleManagement() {
             Guru mapel belum tentu wali kelas. Wali kelas adalah tugas tambahan dan wajib tetap guru mapel.
           </p>
         </div>
-        <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">
+        <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700 dark:bg-blue-500/15 dark:text-blue-100">
           {loadState === 'loading' ? 'Memuat' : `${teachers.length} guru`}
         </span>
       </div>
 
       {loadState === 'error' ? (
-        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100">
           Data guru/mapel belum bisa dimuat. Pastikan backend berjalan dan root sudah login.
         </div>
       ) : null}
@@ -408,14 +408,14 @@ export function TeacherRoleManagement() {
         />
 
         <div
-          className="min-w-0 scroll-mt-24 rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4"
+          className="min-w-0 scroll-mt-24 rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900"
           ref={detailCardRef}
         >
           {selectedTeacher ? (
             <div className="space-y-5">
               <div>
                 <p className="text-xs font-black text-brand-700">Guru Terpilih</p>
-                <h3 className="mt-1 text-xl font-black text-slate-900">{selectedTeacher.name}</h3>
+                <h3 className="mt-1 text-xl font-black text-slate-900 dark:text-slate-100">{selectedTeacher.name}</h3>
                 <p className="mt-1 text-xs font-semibold text-muted">
                   NIP: {selectedTeacher.nip ?? '-'} · HP: {selectedTeacher.phone ?? '-'}
                 </p>
@@ -471,7 +471,7 @@ export function TeacherRoleManagement() {
               />
             </div>
           ) : (
-            <p className="rounded-2xl bg-white p-4 text-sm font-semibold text-muted">
+            <p className="rounded-2xl bg-white p-4 text-sm font-semibold text-muted dark:bg-slate-950">
               Pilih guru terlebih dahulu.
             </p>
           )}

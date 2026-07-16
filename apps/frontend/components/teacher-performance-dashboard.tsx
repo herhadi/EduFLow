@@ -16,6 +16,10 @@ import {
   type RiskFilter,
 } from './teacher-performance/teacher-performance-utils';
 import { MetricCard } from './ui/metric-card';
+import { Button } from './ui/button';
+import { EmptyState } from './ui/empty-state';
+import { SurfaceCard } from './ui/card';
+import { SearchInput } from './ui/search';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -69,26 +73,25 @@ export function TeacherPerformanceDashboard() {
 
   return (
     <section className="mt-8 space-y-5">
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
+      <SurfaceCard>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
               Monitoring Guru
             </p>
-            <h2 className="mt-1 text-xl font-black text-slate-900 sm:text-2xl">
+            <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-slate-100 sm:text-2xl">
               Performa Guru Mengajar
             </h2>
             <p className="mt-1 text-sm leading-6 text-muted">
               Fokus pada guru yang perlu tindak lanjut, bukan leaderboard.
             </p>
           </div>
-          <button
-            className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-black text-brand-700 transition hover:bg-blue-100"
+          <Button
             onClick={() => void loadDashboard()}
-            type="button"
+            variant="outline"
           >
             Refresh
-          </button>
+          </Button>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -101,7 +104,7 @@ export function TeacherPerformanceDashboard() {
               className={`rounded-full border px-3 py-2 text-xs font-black ${
                 quickRange === value
                   ? 'border-brand-600 bg-brand-600 text-white'
-                  : 'border-blue-100 bg-white text-brand-700'
+                  : 'border-blue-100 bg-white text-brand-700 dark:border-blue-400/20 dark:bg-slate-950 dark:text-blue-100'
               }`}
               key={value}
               onClick={() => applyQuickRange(value as QuickRange)}
@@ -115,26 +118,25 @@ export function TeacherPerformanceDashboard() {
         <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
           <DateInput label="Dari" onChange={(value) => { setQuickRange('custom'); setFrom(value); }} value={from} />
           <DateInput label="Sampai" onChange={(value) => { setQuickRange('custom'); setTo(value); }} value={to} />
-          <button
-            className="rounded-2xl bg-brand-600 px-5 py-3 text-sm font-black text-white transition hover:bg-brand-700 sm:self-end"
+          <Button
+            className="sm:self-end"
             disabled={loadState === 'loading'}
             onClick={() => void loadDashboard()}
-            type="button"
           >
               {loadState === 'loading' ? 'Memuat...' : 'Terapkan'}
-            </button>
+            </Button>
         </div>
-      </div>
+      </SurfaceCard>
 
       {loadState === 'error' ? (
-        <div className="rounded-[2rem] border border-rose-100 bg-rose-50 p-5 text-sm text-rose-700">
+        <div className="rounded-[2rem] border border-rose-100 bg-rose-50 p-5 text-sm text-rose-700 dark:border-rose-400/20 dark:bg-rose-500/15 dark:text-rose-100">
           Data performa guru belum bisa dimuat. Pastikan backend berjalan.
         </div>
       ) : null}
 
       {dashboard ? (
         <>
-          <section className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm">
+          <SurfaceCard>
             <p className="text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
               Periode
             </p>
@@ -156,16 +158,19 @@ export function TeacherPerformanceDashboard() {
                 value={dashboard.totalEmptyClasses}
               />
             </div>
-          </section>
+          </SurfaceCard>
 
-          <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
+          <SurfaceCard>
             <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
-              <label className="grid gap-2 text-sm font-bold text-slate-700">
+              <label className="grid gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
                 Cari Guru
-                <input
-                  className="rounded-2xl border border-blue-100 bg-blue-50/40 px-4 py-3 text-sm font-normal outline-none focus:border-brand-600"
+                <SearchInput
                   onChange={(event) => {
                     setSearch(event.target.value);
+                    setVisibleCount(teacherPerformancePageSize);
+                  }}
+                  onClear={() => {
+                    setSearch('');
                     setVisibleCount(teacherPerformancePageSize);
                   }}
                   placeholder="Ketik nama guru"
@@ -183,7 +188,7 @@ export function TeacherPerformanceDashboard() {
                     className={`rounded-full border px-3 py-2 text-xs font-black ${
                       riskFilter === value
                         ? 'border-brand-600 bg-brand-600 text-white'
-                        : 'border-blue-100 bg-white text-brand-700'
+                        : 'border-blue-100 bg-white text-brand-700 dark:border-blue-400/20 dark:bg-slate-950 dark:text-blue-100'
                     }`}
                     key={value}
                     onClick={() => {
@@ -204,22 +209,20 @@ export function TeacherPerformanceDashboard() {
                 <TeacherCard key={teacher.teacherId} teacher={teacher} />
               ))
             ) : (
-              <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-4 text-sm font-semibold text-muted">
-                Tidak ada guru yang sesuai filter pada periode ini.
-              </div>
+              <EmptyState title="Tidak ada guru yang sesuai filter pada periode ini." />
             )}
             </div>
 
             {visibleCount < filteredTeachers.length ? (
-              <button
-                className="mt-4 w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-black text-brand-700 hover:bg-brand-50"
+              <Button
+                className="mt-4 w-full"
                 onClick={() => setVisibleCount((current) => current + teacherPerformancePageSize)}
-                type="button"
+                variant="outline"
               >
                 Muat {Math.min(teacherPerformancePageSize, filteredTeachers.length - visibleCount)} guru lagi
-              </button>
+              </Button>
             ) : null}
-          </section>
+          </SurfaceCard>
         </>
       ) : null}
     </section>

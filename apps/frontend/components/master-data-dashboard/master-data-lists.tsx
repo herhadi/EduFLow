@@ -12,6 +12,8 @@ import {
   getSubjectRows,
   getTeacherRows,
 } from './master-data-utils';
+import { EmptyState } from '../ui/empty-state';
+import { Table, TableShell } from '../ui/table';
 
 export function TeacherList({ teachers }: { teachers: Teacher[] }) {
   return (
@@ -73,7 +75,7 @@ function ResponsiveList({
   rows: string[][];
 }) {
   if (rows.length === 0) {
-    return <p className="rounded-xl bg-slate-50 p-4 text-sm text-muted">{emptyLabel}</p>;
+    return <EmptyState title={emptyLabel} />;
   }
 
   return (
@@ -81,12 +83,12 @@ function ResponsiveList({
       <div className="space-y-3 md:hidden">
         {rows.map((row, rowIndex) => (
           <article
-            className="rounded-2xl border border-blue-100 bg-slate-50 p-4"
+            className="rounded-2xl border border-blue-100 bg-slate-50 p-4 dark:border-blue-400/20 dark:bg-blue-500/10"
             key={`${row.join('-')}-${rowIndex}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h3 className="truncate text-base font-bold text-slate-900">
+                <h3 className="truncate text-base font-bold text-slate-900 dark:text-slate-100">
                   {row[0]}
                 </h3>
                 {row[1] ? (
@@ -96,7 +98,7 @@ function ResponsiveList({
                 ) : null}
               </div>
               {row[row.length - 1] ? (
-                <span className="shrink-0 rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">
+                <span className="shrink-0 rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700 dark:bg-blue-500/15 dark:text-blue-100">
                   {row[row.length - 1]}
                 </span>
               ) : null}
@@ -105,13 +107,13 @@ function ResponsiveList({
             <dl className="mt-4 grid gap-2">
               {row.slice(1).map((cell, cellIndex) => (
                 <div
-                  className="flex items-start justify-between gap-3 rounded-xl bg-white px-3 py-2"
+                  className="flex items-start justify-between gap-3 rounded-xl bg-white px-3 py-2 dark:bg-slate-950"
                   key={`${cell}-${cellIndex}`}
                 >
                   <dt className="text-xs font-bold text-muted">
                     {headers[cellIndex + 1]}
                   </dt>
-                  <dd className="max-w-[60%] text-right text-xs font-semibold text-slate-700">
+                  <dd className="max-w-[60%] text-right text-xs font-semibold text-slate-700 dark:text-slate-200">
                     {cell}
                   </dd>
                 </div>
@@ -121,10 +123,10 @@ function ResponsiveList({
         ))}
       </div>
 
-      <div className="hidden overflow-hidden rounded-2xl border border-slate-200 md:block">
+      <TableShell className="hidden md:block">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-            <thead className="bg-slate-50 text-xs font-bold tracking-[0.08em] text-slate-500 uppercase">
+          <Table className="min-w-[640px]">
+            <thead className="bg-slate-50 text-xs font-bold tracking-[0.08em] text-slate-500 uppercase dark:bg-slate-900 dark:text-slate-300">
               <tr>
                 {headers.map((header) => (
                   <th className="px-4 py-3" key={header}>
@@ -133,20 +135,20 @@ function ResponsiveList({
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {rows.map((row, rowIndex) => (
                 <tr key={`${row.join('-')}-${rowIndex}`}>
                   {row.map((cell, cellIndex) => (
-                    <td className="px-4 py-4 text-slate-700" key={`${cell}-${cellIndex}`}>
+                    <td className="px-4 py-4 text-slate-700 dark:text-slate-200" key={`${cell}-${cellIndex}`}>
                       {cell}
                     </td>
                   ))}
                 </tr>
               ))}
             </tbody>
-          </table>
+          </Table>
         </div>
-      </div>
+      </TableShell>
     </>
   );
 }

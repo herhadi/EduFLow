@@ -12,6 +12,7 @@ import {
   getEffectiveAssignmentStatus,
   getEffectiveAssignmentSubjects,
 } from './teacher-role-management-utils';
+import { fieldClass } from '../ui/form';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 type SaveState = 'idle' | 'loading' | 'success' | 'error';
@@ -60,7 +61,7 @@ export function TeacherListPanel({
 
   return (
     <div
-      className="min-w-0 flex flex-col rounded-[1.5rem] border border-blue-50 bg-slate-50 p-3 lg:h-[var(--detail-card-height)] lg:min-h-0 lg:overflow-hidden"
+      className="min-w-0 flex flex-col rounded-[1.5rem] border border-blue-50 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900 lg:h-[var(--detail-card-height)] lg:min-h-0 lg:overflow-hidden"
       style={
         {
           '--detail-card-height': detailCardHeight
@@ -81,7 +82,7 @@ export function TeacherListPanel({
       </div>
 
       {showCreateTeacher ? (
-        <div className="mt-3 grid gap-2 rounded-2xl border border-blue-100 bg-white p-3">
+        <div className="mt-3 grid gap-2 rounded-2xl border border-blue-100 bg-white p-3 dark:border-slate-700 dark:bg-slate-950">
           {[
             ['name', 'Nama guru *'],
             ['nip', 'NIP'],
@@ -89,7 +90,7 @@ export function TeacherListPanel({
             ['email', 'Email'],
           ].map(([field, placeholder]) => (
             <input
-              className="rounded-xl border border-blue-100 px-3 py-2 text-sm outline-none focus:border-brand-600"
+              className={`${fieldClass} rounded-xl py-2`}
               key={field}
               onChange={(event) => onNewTeacherChange(field as keyof NewTeacherForm, event.target.value)}
               placeholder={placeholder}
@@ -126,14 +127,14 @@ export function TeacherListPanel({
               className={[
                 'min-w-0 rounded-2xl border p-3 text-left transition',
                 active
-                  ? `${status.cardClass} ring-2 ring-brand-600 ring-offset-1`
+                  ? `${status.cardClass} ring-2 ring-brand-600 ring-offset-1 dark:ring-offset-slate-900`
                   : status.cardClass,
               ].join(' ')}
               key={teacher.id}
               onClick={() => onSelectTeacher(teacher.id)}
               type="button"
             >
-              <p className="truncate font-black text-slate-900">{teacher.name}</p>
+              <p className="truncate font-black text-slate-900 dark:text-slate-100">{teacher.name}</p>
               <p className={['mt-1 text-xs font-black', status.textClass].join(' ')}>
                 {status.label}
               </p>
@@ -151,7 +152,7 @@ export function TeacherListPanel({
         })}
 
         {!teachers.length ? (
-          <p className="rounded-2xl bg-white p-4 text-sm font-semibold text-muted">
+          <p className="rounded-2xl bg-white p-4 text-sm font-semibold text-muted dark:bg-slate-950">
             {loadState === 'loading' ? 'Memuat data guru...' : 'Belum ada data guru aktif.'}
           </p>
         ) : null}
