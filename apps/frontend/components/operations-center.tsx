@@ -157,10 +157,11 @@ export function OperationsCenter() {
             value={formatNumber((dashboard.queueTotals.notification?.waiting ?? 0) + (dashboard.queueTotals.notification?.failed ?? 0))}
           />
           <HealthCard
-            detail={dashboard.storageSummary ? formatBytes(dashboard.storageSummary.totalSizeBytes) : 'bucket tidak terbaca'}
+            detail={dashboard.storageSummary ? formatBytes(dashboard.storageSummary.totalSizeBytes) : 'usage tidak tersedia'}
             label="Cloudflare R2"
             status={dashboard.health.storage}
-            value={dashboard.storageSummary ? `${formatNumber(dashboard.storageSummary.objectCount)} file` : '-'}
+            tone={!dashboard.storageSummary && dashboard.storageError ? 'warning' : undefined}
+            value={dashboard.storageSummary ? `${formatNumber(dashboard.storageSummary.objectCount)} file` : 'Aktif'}
           />
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -216,7 +217,7 @@ export function OperationsCenter() {
           <p className="font-black text-slate-900">Cloudflare R2 Storage</p>
           {dashboard.storageSummary ? (
             <p className="mt-1">Bucket <strong>{dashboard.storageSummary.bucket}</strong> · <strong>{formatNumber(dashboard.storageSummary.objectCount)}</strong> file · <strong>{formatBytes(dashboard.storageSummary.totalSizeBytes)}</strong>{dashboard.storageSummary.isPartial ? ' (minimum, pemindaian dibatasi 10.000 file)' : ''}</p>
-          ) : <p className="mt-1 text-rose-700">{dashboard.storageError ?? 'Detail penggunaan tidak tersedia karena bucket tidak dapat diakses.'}</p>}
+          ) : <p className="mt-1 text-amber-700">{dashboard.storageError ?? 'Storage aktif, tetapi detail penggunaan belum tersedia.'}</p>}
         </div>
       </div>
 

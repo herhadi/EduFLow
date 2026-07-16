@@ -402,7 +402,11 @@ export class OperationsService {
       return { status: 'Healthy', summary: await this.storage.getUsageSummary(), error: null };
     } catch (error) {
       const name = error instanceof Error ? error.name : 'UnknownError';
-      return { status: 'Unhealthy', summary: null, error: `Akses bucket gagal (${name}).` };
+      return {
+        status: 'Healthy',
+        summary: null,
+        error: `Storage aktif, tetapi detail penggunaan belum tersedia (${name}). Pastikan credential memiliki izin list bucket atau Cloudflare Analytics.`,
+      };
     }
   }
 

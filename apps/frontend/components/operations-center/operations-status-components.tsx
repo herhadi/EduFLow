@@ -2,38 +2,35 @@ import { type FailedJob, type HealthStatus } from '../../lib/api';
 import { formatNumber } from '../../lib/format';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
+import { Card } from '../ui/card';
 
 export function HealthCard({
   detail,
   label,
   status,
+  tone,
   value,
 }: {
   detail?: string;
   label: string;
   status: HealthStatus;
+  tone?: 'danger' | 'success' | 'warning';
   value?: string | number;
 }) {
-  const isHealthy = status === 'Healthy';
+  const cardTone = tone ?? (status === 'Healthy' ? 'success' : 'danger');
 
   return (
-    <article
-      className={`rounded-2xl border p-4 ${
-        isHealthy
-          ? 'border-blue-100 bg-blue-50 text-blue-700 dark:border-blue-400/20 dark:bg-blue-500/15 dark:text-blue-200'
-          : 'border-red-100 bg-red-50 text-red-700 dark:border-red-400/20 dark:bg-red-500/15 dark:text-red-200'
-      }`}
-    >
+    <Card className="rounded-2xl p-4 shadow-none sm:p-4" tone={cardTone}>
       <p className="text-sm font-semibold text-slate-600 dark:text-[var(--text-soft)]">{label}</p>
       <strong className="mt-2 block text-lg">{value ?? status}</strong>
       <p className="mt-1 text-xs font-semibold opacity-80">{detail ?? status}</p>
-    </article>
+    </Card>
   );
 }
 
 export function StatusPill({ status }: { status: HealthStatus }) {
   return (
-    <Badge tone={status === 'Healthy' ? 'brand' : 'danger'}>{status}</Badge>
+    <Badge tone={status === 'Healthy' ? 'success' : 'danger'}>{status}</Badge>
   );
 }
 
