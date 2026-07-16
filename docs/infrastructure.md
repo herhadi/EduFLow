@@ -87,6 +87,46 @@ Docker Compose membaca `apps/backend/.env` sebagai `env_file` untuk secret backe
 
 `NEXT_PUBLIC_API_URL` dipakai saat build image frontend. Jika nilainya berubah, image frontend wajib dibuild ulang.
 
+## Security Production
+
+### Secret Dan Environment
+
+- Jangan commit `.env`, `.env.local`, backup, atau log production.
+- `JWT_SECRET` production wajib diganti dari nilai contoh.
+- Secret backend berada di environment server atau secret manager runner.
+- Frontend hanya boleh menerima variable public yang memang aman, seperti `NEXT_PUBLIC_API_URL`.
+- `BACKEND_INTERNAL_API_URL` adalah runtime server-side Next.js dan tidak perlu diekspos ke browser.
+
+### Akses Server
+
+- Deployment normal dilakukan melalui GitHub Actions self-hosted runner.
+- SSH langsung ke server hanya untuk maintenance atau incident.
+- Batasi akses SSH dan dashboard administratif dengan Cloudflare Access atau kontrol setara.
+- Jangan melakukan perubahan kode langsung di server production.
+
+### CORS Dan Origin
+
+- Backend membaca `FRONTEND_URL` dan `FRONTEND_ALLOWED_ORIGINS`.
+- Production harus mengisi domain frontend resmi.
+- Hindari wildcard origin untuk production.
+
+### Database, Backup, Dan CI/CD
+
+- PostgreSQL adalah source of truth.
+- Backup berisi data sensitif siswa, guru, dan wali murid; simpan di lokasi terenkripsi dan batasi aksesnya.
+- Prosedur backup dan restore ada di `docs/backup-recovery.md`.
+- Workflow deployment hanya berjalan pada self-hosted runner dan memakai lock agar tidak ada dua proses production berjalan bersamaan.
+- Log deployment berada di server dan tidak masuk Git.
+- Deployment menjalankan build, migration sesuai perubahan, restart service terkait, dan health check.
+
+### Akun Aplikasi
+
+- Root awal dibuat oleh Prisma seed dari `ROOT_*`.
+- Password default harus diganti saat login pertama.
+- Permission harus berbasis permission matrix, bukan hardcode role.
+- Endpoint operasional untuk dashboard health, backup, restore, queue recovery, dan monitoring root ops memakai permission `system.recovery.manage`, yang diberikan khusus kepada role `root`.
+- Permission recovery diberikan melalui migration dan seed. Setelah deploy yang menambah permission baru, user harus logout-login agar session browser membawa daftar permission terbaru.
+
 ## Log Operasional
 
 Script deployment menulis log ke:
@@ -99,9 +139,44 @@ Path ini berada di luar repository production `/srv/eduflow/app`. Jika path serv
 
 ## Root Ops
 
-Root Ops menampilkan status Cloudflare R2 melalui Cloudflare GraphQL Analytics bila `CLOUDFLARE_API_TOKEN` tersedia, lalu fallback ke listing object bucket. Tampilan memuat nama bucket, jumlah file, dan ukuran total file jika izin monitoring tersedia.
+Halaman operasional root memakai endpoint `GET /api/operations/dashboard`.
+
+Informasi utama:
+
+- Health service: database, Redis, queue, worker, notification, dan storage R2.
+- Runtime backend: uptime proses, CPU load, RAM server, dan RAM proses backend.
+- Traffic API: request per menit, error per menit, rata-rata durasi request, dan jumlah request pada window 5 menit.
+- Queue: waiting, active, failed, delayed, dan completed untuk reminder guru, attendance summary, notification send, dan report daily.
+- Failed job: daftar job gagal terbaru, payload, retry, dan discard.
+- Storage: jumlah file dan ukuran bucket R2 bila kredensial Cloudflare tersedia.
+
+Metrik request disimpan in-memory oleh backend melalui `RequestMetricsService`. Data ini ringan dan cukup untuk support teknis cepat, tetapi akan reset saat container backend restart. Untuk kebutuhan multi sekolah yang lebih besar, metrik jangka panjang dapat dipindah ke stack observability khusus seperti Prometheus/Grafana atau log aggregator.
+
+### Warna Status
+
+Health card memakai warna untuk membedakan tingkat masalah:
+
+- Hijau: layanan berjalan normal dan data pendukung berhasil dibaca.
+- Kuning: layanan utama aktif, tetapi detail pendukung belum lengkap atau belum bisa dibaca.
+- Merah: layanan gagal, tidak terhubung, atau perlu tindakan teknis.
+
+Contoh status kuning adalah Cloudflare R2 yang masih bisa dipakai upload dan preview file, tetapi dashboard belum bisa menampilkan jumlah file atau ukuran bucket karena credential belum memiliki izin `ListBucket` atau akses Cloudflare Analytics.
+
+### Cloudflare R2 Storage
+
+Upload dan preview file R2 memakai operasi object seperti `PutObject` dan `GetObject`. Detail penggunaan storage memakai operasi berbeda:
+
+- Cloudflare GraphQL Analytics jika `CLOUDFLARE_API_TOKEN` tersedia dan memiliki izin yang sesuai.
+- Fallback listing object S3-compatible jika credential R2 memiliki izin membaca daftar object bucket.
 
 Jika upload dan preview R2 masih berjalan tetapi jumlah file atau ukuran bucket tidak bisa dibaca, dashboard memakai status warning karena layanan storage aktif tetapi detail usage belum tersedia. Status `Unhealthy` dipakai untuk gangguan yang membuat storage tidak dapat digunakan atau konfigurasi dasar tidak lengkap. Credential tidak pernah ditampilkan di UI. Kapasitas atau limit akun R2 tidak tersedia melalui API S3-compatible dan perlu dilihat dari dashboard Cloudflare.
+
+Checklist saat R2 kuning:
+
+- Pastikan upload dan preview file masih berhasil dari fitur profil atau perangkat ajar.
+- Pastikan `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, dan `R2_BUCKET_NAME` terbaca di container backend.
+- Jika ingin melihat jumlah file dan ukuran bucket dari EduFlow, berikan izin list bucket pada credential R2 atau lengkapi token Cloudflare Analytics.
+- Jika hanya upload/preview yang dibutuhkan saat pilot, status kuning dapat dicatat sebagai keterbatasan monitoring, bukan gangguan layanan.
 
 ## Batas Tanggung Jawab
 

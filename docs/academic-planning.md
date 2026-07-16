@@ -36,6 +36,8 @@ Operator sekolah mengelola data yang bersifat konfigurasi akademik sekolah:
 
 Kaldik (kalender pendidikan) dipakai untuk menentukan hari efektif, libur, ujian, kegiatan sekolah, dan pengecualian jadwal. Event Kaldik yang memiliki `blocksAgenda` menjadi sumber tunggal untuk melewati pembuatan `DailyAgenda`.
 
+Di backend, alur akademik dibagi ke service kecil agar aturan setiap area tidak bercampur: `AcademicMasterService` untuk master sekolah, `AcademicCalendarService` untuk Kaldik, `AcademicScheduleService` untuk jadwal/revisi, `AgendaGenerationService` untuk generate agenda, `AgendaManagementService` untuk agenda harian/guru pengganti, `TeacherAcademicService` untuk administrasi guru, `TeacherPortalService` untuk endpoint personal guru/wali kelas, dan `StudentAcademicService` untuk daftar siswa akademik.
+
 Admin teknis tidak sama dengan TU. Dalam EduFlow, `root` dipakai untuk support teknis dan recovery, sedangkan pekerjaan operasional akademik harian sekolah memakai `operator_sekolah` dan `tu`.
 
 Dalam navigasi frontend, `operator_sekolah` diperlakukan sebagai admin operasional sekolah. Menu personal seperti profil, ganti password, dan session management tetap dipisahkan di menu `Profil`.

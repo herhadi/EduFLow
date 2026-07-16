@@ -93,14 +93,16 @@ Manual deployment di server:
 ## Dokumentasi
 
 - `docs/architecture.md`: arsitektur aplikasi dan batas modul.
+- `docs/api-contract.md`: kontrak response JSON backend.
+- `docs/api-endpoints.md`: referensi endpoint API utama.
 - `docs/deployment.md`: deployment lokal, Docker/VPS, dan CI/CD.
-- `docs/infrastructure.md`: server production, Docker service, runner, dan Cloudflare.
-- `docs/security.md`: secret, akses server, CORS, backup, dan CI/CD security.
+- `docs/infrastructure.md`: server production, Docker service, runner, Cloudflare, secret, akses server, CORS, backup, dan CI/CD security.
 - `docs/backup-recovery.md`: backup dan restore PostgreSQL/Redis.
 - `infra/backup/export-postgres-without-root.sh`: export data untuk demo tanpa akun root sumber.
 - `infra/backup/import-postgres-without-root.sh`: import destruktif ke server lalu membuat root dari environment target.
-- `docs/admin-workflow.md`: alur kerja operator sekolah dan konfigurasi awal akademik.
+- `docs/operator-workflow.md`: alur kerja operator sekolah dan konfigurasi awal akademik.
 - `docs/academic-planning.md`: kalender pendidikan, perangkat ajar, buku KBM, dan nilai siswa.
+- `docs/operational-scenarios.md`: skenario operasional dan strategi pengujian.
 - `docs/manual-guide-roles.md`: panduan penggunaan untuk Root, Operator Sekolah, Guru, Wali Kelas, Kepala Sekolah, dan Orang Tua.
 - `docs/changelog.md`: catatan perubahan operasional penting.
 

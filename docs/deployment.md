@@ -3,7 +3,6 @@
 Dokumen terkait:
 
 - Infrastruktur production: `docs/infrastructure.md`
-- Security production: `docs/security.md`
 - Backup dan restore: `docs/backup-recovery.md`
 - Changelog operasional: `docs/changelog.md`
 

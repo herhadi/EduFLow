@@ -38,29 +38,29 @@ Attendance workflow berpusat pada `DailyAgenda`. Guru tidak melakukan presensi t
 ## Transisi State Attendance
 
 ```text
-DRAFT
-  -> SUBMITTED
-  -> APPROVED
-  -> LOCKED
-
-SUBMITTED
-  -> CORRECTION_REQUESTED
-  -> CORRECTED
-  -> APPROVED
-
-DRAFT atau SUBMITTED
-  -> VOID
+DRAFT -> SUBMITTED
+SUBMITTED -> APPROVED
+SUBMITTED -> CORRECTION_REQUESTED
+CORRECTION_REQUESTED -> CORRECTED
+CORRECTED -> APPROVED
+APPROVED -> LOCKED
+DRAFT -> VOID
+SUBMITTED -> VOID
 ```
 
 Aturan:
 
 - `DRAFT` dibuat saat guru mulai presensi atau sistem membuat sesi presensi.
 - `SUBMITTED` dibuat saat guru selesai mengisi dan mengirim presensi.
+- Approval hanya dilakukan pada `SUBMITTED` atau `CORRECTED`.
 - `APPROVED` dipakai sebagai dasar summary resmi.
 - `CORRECTION_REQUESTED` wajib menyimpan `correctionNote`.
 - `CORRECTED` wajib menghasilkan audit `before` dan `after`.
 - `LOCKED` menutup perubahan normal setelah summary atau batas waktu.
 - `VOID` dipakai untuk pembatalan presensi yang valid, bukan penghapusan data.
+- Kelas kosong divalidasi dari `DailyAgenda.status = EMPTY` dan tidak memiliki attendance valid.
+- Perubahan state wajib menyimpan actor: submitter, approver, corrector, atau locker.
+- Transisi selain daftar valid di atas harus dianggap invalid kecuali ada proses administratif khusus.
 
 ## Flow Sebelum KBM
 

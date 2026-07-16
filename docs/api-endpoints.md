@@ -1,4 +1,4 @@
-# API MVP
+# API Endpoints
 
 ## Academic Planning
 
@@ -20,7 +20,7 @@ Agenda harian mendukung:
 
 Submit presensi menerima checklist KBM opsional: `teacherPresent`, `studentAttendanceDone`, `materialFilled`, `classPhotoDone`, dan `issueNotes`.
 
-Endpoint berikut bersifat dasar untuk memvalidasi flow backend sebelum frontend lengkap dibuat.
+Endpoint berikut menjadi referensi operasional API utama yang dipakai frontend dan skenario UAT.
 
 ## Auth API
 

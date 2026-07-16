@@ -50,6 +50,23 @@ Frontend menjadi pintu masuk browser. Untuk pola satu stack, browser memanggil `
 - `reporting`: dashboard, statistik, dan laporan sekolah.
 - `audit`: log aktivitas, audit trail, dan riwayat perubahan.
 
+## Struktur Academic Module Backend
+
+`AcademicController` tetap menjadi pintu kompatibilitas endpoint `/api/academic`, tetapi `AcademicService` hanya berperan sebagai facade tipis. Logika domain akademik dipisahkan ke service kecil berdasarkan tanggung jawab:
+
+| Service | Tanggung jawab |
+| --- | --- |
+| `AcademicMasterService` | Tahun ajaran, semester, kelas, wali kelas, mata pelajaran, slot jam, aktivitas slot kelas, dan salin master tahun ajaran |
+| `AcademicCalendarService` | Kaldik/event akademik, validasi rentang tahun ajaran, dan blok agenda |
+| `AcademicScheduleService` | CRUD jadwal, bulk jadwal, revisi jadwal, cancel revisi, dan validasi konflik jadwal efektif |
+| `AgendaGenerationService` | Generate agenda, bulk generate, coverage agenda, tanggal blokir Kaldik, dan reminder guru sebelum kelas |
+| `AgendaManagementService` | Daftar agenda harian dan penetapan guru pengganti pada `DailyAgenda` |
+| `TeacherAcademicService` | Administrasi guru: identitas, foto, akun login, reset password, mapel ampu, penugasan tahun ajaran, dan penghapusan guru |
+| `TeacherPortalService` | Endpoint personal guru/wali kelas: jadwal saya, mapel saya, agenda saya, dan kelas binaan |
+| `StudentAcademicService` | Daftar siswa akademik beserta enrollment dan wali |
+
+Prinsipnya: controller menjaga kontrak API, facade menjaga kompatibilitas internal, sedangkan perubahan aturan bisnis dilakukan di service domain yang sesuai. Service baru tidak boleh saling memanggil secara melingkar; jika sebuah workflow melintasi domain besar, gunakan event atau queue sesuai kebutuhan.
+
 ## Alur Akademik
 
 ```text
@@ -129,23 +146,24 @@ Dashboard frontend dipisahkan per role agar beranda setiap actor dapat berkemban
 /dashboard/bk               bk
 ```
 
-Root adalah role support teknis dan memakai namespace `/system/*`, sedangkan operator sekolah memakai namespace `/admin/*` untuk operasional akademik harian. User yang membuka namespace role yang tidak sesuai diarahkan ke dashboard sesuai role. Login juga mengarahkan user ke dashboard role masing-masing. Jika user memiliki role `wali_kelas` dan `guru`, prioritas dashboard adalah `wali_kelas`.
+Root adalah role support teknis dan memakai namespace `/system/*`, sedangkan operator sekolah memakai namespace `/admin/*` untuk operasional akademik harian. User yang membuka namespace role yang tidak sesuai diarahkan ke dashboard sesuai role. Login juga mengarahkan user ke dashboard role masing-masing. Jika user memiliki role `wali_kelas` dan `guru`, dashboard tetap memakai alur guru harian dengan menu tambahan `Binaan`.
 
 Bottom navigation menggunakan label `Inbox` untuk pusat notifikasi dan `Profil` untuk area akun. Route Inbox dan Profil mengikuti namespace role, misalnya `/admin/notifications`, `/teacher/profile`, `/principal/notifications`, dan `/system/profile`; route lama `/notifications` dan `/profile` hanya menjadi kompatibilitas. Item `Inbox` menampilkan badge/dot saat ada notifikasi yang perlu dibaca atau ditindaklanjuti.
 
 ## Dokumen Operasional
 
 - `docs/database.md`: desain relasi akademik.
+- `docs/api-contract.md`: kontrak response JSON backend.
+- `docs/api-endpoints.md`: referensi endpoint API utama.
 - `docs/events.md`: event flow sistem nyata.
-- `docs/attendance-workflow.md`: alur guru, siswa, dan kelas kosong.
-- `docs/attendance-state.md`: workflow state presensi untuk koreksi, approval, audit, dan summary.
+- `docs/attendance-workflow.md`: alur guru, siswa, kelas kosong, state presensi, koreksi, approval, audit, dan summary.
 - `docs/queues.md`: strategi queue, job naming, retry, dan idempotency.
 - `docs/permission-matrix.md`: role, capability, dan scope data.
-- `docs/academic-planning.md`: pembagian admin dan guru untuk kalender pendidikan, perangkat ajar, dan nilai siswa.
-- `docs/admin-workflow.md`: route admin dan urutan konfigurasi awal sekolah.
+- `docs/academic-planning.md`: pembagian operator sekolah dan guru untuk kalender pendidikan, perangkat ajar, dan nilai siswa.
+- `docs/operator-workflow.md`: route operator sekolah dan urutan konfigurasi awal sekolah.
+- `docs/operational-scenarios.md`: skenario operasional dan strategi pengujian.
 - `docs/deployment.md`: deployment lokal, Docker Compose, dan CI/CD.
-- `docs/infrastructure.md`: server production, domain, runner, tunnel, dan struktur operasional.
-- `docs/security.md`: prinsip keamanan environment, akses server, CORS, backup, dan secret.
+- `docs/infrastructure.md`: server production, domain, runner, tunnel, struktur operasional, dan prinsip security production.
 - `docs/backup-recovery.md`: prosedur backup dan restore PostgreSQL/Redis.
 
 ## Batas Infra

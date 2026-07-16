@@ -1,6 +1,6 @@
-# Workflow Administrasi Sekolah
+# Workflow Operator Sekolah
 
-Dokumen ini menjelaskan urutan konfigurasi awal EduFlow setelah root pertama berhasil login.
+Dokumen ini menjelaskan urutan konfigurasi awal dan operasional akademik yang dikerjakan operator sekolah setelah root pertama berhasil login.
 
 ## Setup Jadwal Banyak Kelas
 
