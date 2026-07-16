@@ -87,7 +87,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div className="pointer-events-none fixed inset-x-0 top-[max(env(safe-area-inset-top),0.75rem)] z-[80] mx-auto flex w-full max-w-md flex-col gap-2 px-3 md:max-w-xl">
         {toasts.map((toast) => (
           <div
-            className={`pointer-events-auto flex items-start gap-3 rounded-[1.25rem] border p-3 shadow-2xl shadow-blue-950/10 backdrop-blur ${toneClassNames[toast.tone]}`}
+            className={`pointer-events-auto flex items-start gap-3 rounded-[1.25rem] border p-3 shadow-2xl backdrop-blur ${toneClassNames[toast.tone]}`}
             key={toast.id}
             role="status"
           >

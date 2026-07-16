@@ -365,7 +365,7 @@ export function TeacherRoleManagement() {
   }
 
   return (
-    <section className="mt-6 min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+    <section className="mt-6 min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">

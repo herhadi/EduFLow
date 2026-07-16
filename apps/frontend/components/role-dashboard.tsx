@@ -73,7 +73,7 @@ export function RoleDashboard({
 
   if (!role) {
     return (
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted shadow-sm shadow-blue-100/60">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted shadow-sm">
         Menyiapkan beranda sesuai akun...
       </div>
     );
@@ -83,7 +83,7 @@ export function RoleDashboard({
 
   if (!dashboardRole && activeRole !== 'root' && pathname !== getDashboardPathForRole(activeRole)) {
     return (
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted shadow-sm shadow-blue-100/60">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted shadow-sm">
         Mengarahkan ke dashboard sesuai role...
       </div>
     );

@@ -38,7 +38,7 @@ export function HomeroomStudents() {
 
   if (loadState === 'loading') {
     return (
-      <section className="mt-6 rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted shadow-sm shadow-blue-100/60">
+      <section className="mt-6 rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted shadow-sm">
         Memuat data kelas binaan...
       </section>
     );
@@ -54,7 +54,7 @@ export function HomeroomStudents() {
 
   if (!overview?.class) {
     return (
-      <section className="mt-6 rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold leading-6 text-muted shadow-sm shadow-blue-100/60">
+      <section className="mt-6 rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold leading-6 text-muted shadow-sm">
         Anda belum ditetapkan sebagai wali kelas pada tahun ajaran aktif.
       </section>
     );
@@ -62,7 +62,7 @@ export function HomeroomStudents() {
 
   return (
     <section className="mt-6 space-y-5">
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm">
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Kelas Binaan</p>
         <h2 className="mt-1 text-2xl font-black text-slate-900">{overview.class.name}</h2>
         <p className="mt-1 text-sm font-semibold text-muted">
@@ -103,7 +103,7 @@ export function HomeroomStudents() {
         </div>
       ) : null}
 
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm">
         <h3 className="text-sm font-black text-slate-900">Daftar Siswa</h3>
         <div className="mt-3 grid gap-2">
           {overview.students.map((student) => (

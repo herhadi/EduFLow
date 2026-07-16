@@ -39,7 +39,7 @@ export function ExportReportingCenter() {
 
   return (
     <section className="mt-10 space-y-5">
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm">
         <label className="grid gap-2 text-sm font-semibold text-slate-700 sm:max-w-xs">
           Tanggal Laporan
           <input
@@ -54,7 +54,7 @@ export function ExportReportingCenter() {
       <div className="grid gap-4 md:grid-cols-2">
         {reports.map((report) => (
           <article
-            className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60"
+            className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm"
             key={report.type}
           >
             <p className="text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">

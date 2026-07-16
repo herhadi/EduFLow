@@ -22,7 +22,7 @@ export function MetricCard({
   return (
     <article
       className={cn(
-        'group relative overflow-hidden rounded-2xl border p-3 shadow-sm shadow-slate-100 transition hover:-translate-y-0.5 hover:shadow-lg sm:p-4',
+        'group relative overflow-hidden rounded-2xl border p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg sm:p-4',
         toneClass[tone],
       )}
     >

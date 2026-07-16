@@ -30,9 +30,9 @@ export const notificationTabs: Array<{ id: NotificationTab; label: string; descr
 ];
 
 export function getInboxTone(templateKey?: string | null) {
-  if (templateKey === 'teaching-plan.revision-requested') return 'border-amber-200 bg-amber-50 shadow-amber-100/60 hover:border-amber-300 dark:border-amber-800 dark:bg-amber-950/35';
-  if (templateKey === 'teaching-plan.approved') return 'border-emerald-200 bg-emerald-50 shadow-emerald-100/60 hover:border-emerald-300 dark:border-emerald-800 dark:bg-emerald-950/35';
-  return 'border-blue-100 bg-white shadow-blue-100/60 hover:border-brand-300 hover:bg-brand-50/40 dark:border-slate-800 dark:bg-slate-950';
+  if (templateKey === 'teaching-plan.revision-requested') return 'border-amber-200 bg-amber-50 hover:border-amber-300 dark:border-amber-800 dark:bg-amber-950/35';
+  if (templateKey === 'teaching-plan.approved') return 'border-emerald-200 bg-emerald-50 hover:border-emerald-300 dark:border-emerald-800 dark:bg-emerald-950/35';
+  return 'border-blue-100 bg-white hover:border-brand-300 hover:bg-brand-50/40 dark:border-slate-800 dark:bg-slate-950';
 }
 
 export function getInboxLabelTone(templateKey?: string | null) {

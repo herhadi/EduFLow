@@ -28,7 +28,7 @@ export function UserManagementPanel({
   users,
 }: UserManagementPanelProps) {
   return (
-    <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+    <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
       <div>
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
           User Management
@@ -77,7 +77,7 @@ export function UserManagementPanel({
             ))}
           </select>
           <button
-            className="rounded-2xl bg-brand-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="rounded-2xl bg-brand-600 px-5 py-3 text-sm font-black text-white shadow-lg transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300"
             disabled={
               userActionState === 'loading' ||
               !newUser.username.trim() ||

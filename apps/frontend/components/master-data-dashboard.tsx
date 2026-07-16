@@ -84,7 +84,7 @@ export function MasterDataDashboard() {
 
   return (
     <section className="mt-6 grid min-w-0 gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60">
+      <aside className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm">
         <p className="px-3 text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
           Master Data
         </p>
@@ -107,7 +107,7 @@ export function MasterDataDashboard() {
         </nav>
       </aside>
 
-      <div className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      <div className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">

@@ -135,7 +135,7 @@ export function AcademicCalendarManagement() {
 
   return (
     <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-      <section className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      <section className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Master Kaldik</p>
         <h2 className="mt-1 text-2xl font-black text-ink">Tandai Tanggal Penting</h2>
         <p className="mt-1 text-sm leading-6 text-muted">Event yang memblokir agenda akan dilewati saat agenda harian dibuat.</p>
@@ -178,7 +178,7 @@ export function AcademicCalendarManagement() {
         </form>
       </section>
 
-      <section className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      <section className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">{selectedSchoolYear?.name ?? 'Tahun Ajaran'}</p>
         <h2 className="mt-1 text-2xl font-black text-ink">Daftar Event Kaldik</h2>
         <div className="mt-5 space-y-3">
@@ -197,7 +197,7 @@ export function AcademicCalendarManagement() {
         </div>
       </section>
 
-      <section className="xl:col-span-2 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      <section className="xl:col-span-2 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Kalender Pendidikan</p>
         <h2 className="mt-1 text-2xl font-black text-ink">Kaldik {selectedSchoolYear?.name ?? ''}</h2>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

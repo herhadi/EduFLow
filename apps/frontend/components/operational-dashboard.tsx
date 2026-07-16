@@ -46,8 +46,8 @@ export function OperationalDashboard({
   return (
     <section className={`${className} ${audience === 'principal' ? 'space-y-3 sm:space-y-5' : 'space-y-6'}`}>
       <div className={audience === 'principal'
-        ? 'rounded-[1.25rem] border border-blue-100 bg-white p-3 shadow-sm shadow-blue-100/60 sm:rounded-[2rem] sm:p-5'
-        : 'rounded-[2rem] bg-gradient-to-br from-brand-700 to-brand-600 p-5 text-white shadow-xl shadow-blue-200 sm:p-7'}
+        ? 'rounded-[1.25rem] border border-blue-100 bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-5'
+        : 'rounded-[2rem] bg-gradient-to-br from-brand-700 to-brand-600 p-5 text-white shadow-xl sm:p-7'}
       >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -167,7 +167,7 @@ export function OperationalDashboard({
 
           <KbmControlPanel summary={summary} />
 
-          <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+          <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
             <div className="mb-4">
               <h3 className="text-xl font-bold">Tindak Lanjut Hari Ini</h3>
               <p className="mt-1 text-sm text-muted">
@@ -208,7 +208,7 @@ function PrincipalKbmStrip({ summary }: { summary: OperationalDashboardSummary }
   ];
 
   return (
-    <section className="rounded-[1.25rem] border border-blue-100 bg-white p-3 shadow-sm shadow-blue-100/60 sm:rounded-[2rem] sm:p-4">
+    <section className="rounded-[1.25rem] border border-blue-100 bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-black text-slate-900 sm:text-base">Kendali KBM</h3>
@@ -246,7 +246,7 @@ function MetricSection({
   title: string;
 }) {
   return (
-    <section className={compact ? 'rounded-[1.25rem] border border-blue-100 bg-white p-3 shadow-sm shadow-blue-100/60 sm:rounded-[2rem] sm:p-4' : 'rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6'}>
+    <section className={compact ? 'rounded-[1.25rem] border border-blue-100 bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-4' : 'rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6'}>
       <div className={compact ? 'mb-2 flex items-start justify-between gap-3' : 'mb-4 flex items-start justify-between gap-3'}>
         <div>
           <h3 className={compact ? 'text-base font-black sm:text-lg' : 'text-xl font-bold'}>{title}</h3>

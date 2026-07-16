@@ -112,7 +112,7 @@ function ImportCard({
   const [showColumns, setShowColumns] = useState(false);
 
   return (
-    <article className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-5">
+    <article className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">

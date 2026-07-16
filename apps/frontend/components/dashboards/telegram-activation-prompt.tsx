@@ -30,7 +30,7 @@ export function TelegramActivationPrompt({ activeRole }: { activeRole: UserRole 
   }
 
   return (
-    <section className="mb-5 rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-sm shadow-amber-100/60 dark:border-amber-400/25 dark:bg-amber-500/15 dark:text-amber-100">
+    <section className="mb-5 rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-sm dark:border-amber-400/25 dark:bg-amber-500/15 dark:text-amber-100">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.12em] text-amber-700 dark:text-amber-200">

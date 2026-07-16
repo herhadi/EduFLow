@@ -115,7 +115,7 @@ export function NotificationCenter() {
 
   return (
     <section className="mt-6 grid min-w-0 gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60">
+      <aside className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm">
         <p className="px-3 text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
           Notifikasi
         </p>
@@ -240,7 +240,7 @@ function OperationalInboxTable({
     <div className="grid gap-3">
       {items.map((item) => (
         <button
-          className="w-full rounded-2xl border border-blue-100 bg-white p-4 text-left shadow-sm shadow-blue-100/60 transition hover:border-brand-300 hover:bg-brand-50/40"
+          className="w-full rounded-2xl border border-blue-100 bg-white p-4 text-left shadow-sm transition hover:border-brand-300 hover:bg-brand-50/40"
           key={item.id}
           onClick={() => void onOpen(item)}
           type="button"

@@ -10,7 +10,7 @@ export function RoleSection({ children, description, title }: { children: ReactN
   return (
     <section className="mt-7">
       <div className="mb-4">
-        <h2 className="text-xl font-black tracking-tight text-slate-900">{title}</h2>
+        <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-[var(--text)]">{title}</h2>
         <p className="mt-1 text-sm text-muted">{description}</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{children}</div>
@@ -29,10 +29,10 @@ export function RoleActionCard({
 }) {
   return (
     <Link
-      className="rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60 transition hover:-translate-y-0.5 hover:border-brand-600 hover:shadow-lg"
+      className="rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-600 hover:shadow-lg dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none"
       href={href}
     >
-      <h3 className="text-lg font-black text-slate-900">{label}</h3>
+      <h3 className="text-lg font-black text-slate-900 dark:text-[var(--text)]">{label}</h3>
       <p className="mt-2 text-sm leading-6 text-muted">{description}</p>
       <span className="mt-4 inline-flex text-xs font-black text-brand-700">Buka halaman</span>
     </Link>

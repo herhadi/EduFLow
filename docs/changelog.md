@@ -12,6 +12,11 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Menambahkan fallback dan status warning untuk Cloudflare R2: upload/preview bisa tetap aktif walaupun detail usage Cloudflare Analytics atau list bucket belum tersedia.
 - Menambahkan tone status global pada `components/ui/card` untuk success, danger, warning, dan default, lalu menerapkannya pada health card operasional.
 - Menempatkan ringkasan runtime root ops di bagian paling atas Dashboard Operasional dengan card biru ringan yang tetap kontras di dark dan light mode.
+- Mengganti ikon navbar Telegram root menjadi ikon paper-plane agar lebih mudah dikenali.
+- Mengoptimasi isi beranda root dan operator agar lebih berfungsi sebagai papan kerja: ringkasan support teknis, batas peran root, prioritas operasional, dan alur setup tahun ajaran.
+- Mengoptimasi beranda guru dengan aksi cepat kontekstual serta membersihkan efek glow/shadow berwarna agar dark mode lebih bersih.
+- Mengoptimasi beranda orang tua dengan panduan cepat status hari ini, ajukan izin, dan riwayat anak, serta merapikan kontras parent portal di dark mode.
+- Merapikan beranda Kepala Sekolah, TU, dan BK agar isi halaman lebih jelas serta card/link tetap terbaca bersih di dark mode.
 - Memecah `academic.service.ts` menjadi facade tipis dan mengekstrak logika domain ke service kecil: master akademik, kalender akademik, jadwal, generate agenda, manajemen agenda, guru akademik, portal guru, dan siswa akademik.
 - Mendokumentasikan struktur baru Academic Module di `docs/architecture.md`, `docs/academic-planning.md`, dan `docs/infrastructure.md`.
 - Merapikan dokumentasi dengan menggabungkan `attendance-state.md` ke `attendance-workflow.md`, `testing.md` ke `operational-scenarios.md`, serta `security.md` dan `operations.md` ke `infrastructure.md` agar referensi inti tidak terlalu tersebar.

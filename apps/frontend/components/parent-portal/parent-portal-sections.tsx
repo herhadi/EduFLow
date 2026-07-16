@@ -24,7 +24,7 @@ export function ParentTodayBoard({ summary }: { summary: ParentPortalSummary }) 
               {summary.students.length} anak terhubung ke akun {summary.guardian.name}
             </p>
           </div>
-          <span className={`rounded-full px-3 py-1 text-xs font-black ${summary.summary.absent ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}`}>
+          <span className={`rounded-full px-3 py-1 text-xs font-black ${summary.summary.absent ? 'bg-rose-50 text-rose-700 dark:bg-rose-400/10 dark:text-rose-100' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-100'}`}>
             {summary.summary.absent ? `${summary.summary.absent} Alpha` : 'Aman'}
           </span>
         </div>
@@ -57,7 +57,7 @@ export function ParentSummaryCard({ summary }: { summary: ParentPortalSummary })
             {formatReadableDate(summary.date)} · {summary.students.length} anak
           </p>
         </div>
-        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-brand-700">
+        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-brand-700 dark:bg-blue-400/10 dark:text-blue-100">
           Parent
         </span>
       </div>
@@ -174,7 +174,7 @@ function StudentIdentity({ student }: { student: ParentPortalStudent }) {
         </p>
       </div>
       {student.isPrimary ? (
-        <span className="w-fit shrink-0 rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">
+        <span className="w-fit shrink-0 rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700 dark:bg-blue-400/10 dark:text-blue-100">
           Anak utama
         </span>
       ) : null}
@@ -192,12 +192,12 @@ function RecordSection({
   title: string;
 }) {
   return (
-    <section className="mt-5 min-w-0 rounded-2xl border border-blue-50 bg-white/70 p-3">
+    <section className="mt-5 min-w-0 rounded-2xl border border-blue-50 bg-white/70 p-3 dark:border-[var(--border)] dark:bg-[var(--surface-soft)]">
       <h4 className="text-sm font-black">{title}</h4>
       <div className="mt-3 space-y-2">
         {records.length ? (
           records.map((record) => (
-            <div className="rounded-2xl border border-blue-50 bg-slate-50 p-3" key={record.id}>
+            <div className="rounded-2xl border border-blue-50 bg-slate-50 p-3 dark:border-[var(--border)] dark:bg-[var(--surface-solid)]" key={record.id}>
               <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black">{record.subjectName}</p>
@@ -213,7 +213,7 @@ function RecordSection({
             </div>
           ))
         ) : (
-          <p className="rounded-2xl bg-blue-50 p-4 text-sm text-muted">{emptyText}</p>
+          <p className="rounded-2xl bg-blue-50 p-4 text-sm text-muted dark:bg-blue-400/10">{emptyText}</p>
         )}
       </div>
     </section>
@@ -228,11 +228,11 @@ function GradeSection({
   summary?: ParentPortalStudent['grades'];
 }) {
   return (
-    <section className="mt-5 min-w-0 rounded-2xl border border-emerald-50 bg-white/70 p-3">
+    <section className="mt-5 min-w-0 rounded-2xl border border-emerald-50 bg-white/70 p-3 dark:border-[var(--border)] dark:bg-[var(--surface-soft)]">
       <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h4 className="text-sm font-black">Nilai Harian</h4>
         {summary?.available ? (
-          <span className="w-fit shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+          <span className="w-fit shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-100">
             Rata-rata {summary.averageScore ?? '-'}
           </span>
         ) : null}
@@ -240,7 +240,7 @@ function GradeSection({
       <div className="mt-3 space-y-2">
         {grades.length ? (
           grades.map((grade) => (
-            <div className="rounded-2xl border border-emerald-50 bg-emerald-50/50 p-3" key={grade.id}>
+            <div className="rounded-2xl border border-emerald-50 bg-emerald-50/50 p-3 dark:border-emerald-400/20 dark:bg-emerald-400/10" key={grade.id}>
               <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black">{grade.title}</p>
@@ -248,7 +248,7 @@ function GradeSection({
                     {formatReadableDate(grade.date)} · {grade.subjectName} · {grade.teacherName}
                   </p>
                 </div>
-                <span className="w-fit shrink-0 rounded-full bg-white px-3 py-1 text-xs font-black text-emerald-700">
+                <span className="w-fit shrink-0 rounded-full bg-white px-3 py-1 text-xs font-black text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-100">
                   {grade.score}/{grade.maxScore}
                 </span>
               </div>
@@ -256,7 +256,7 @@ function GradeSection({
             </div>
           ))
         ) : (
-          <p className="rounded-2xl bg-slate-50 p-4 text-sm text-muted">
+          <p className="rounded-2xl bg-slate-50 p-4 text-sm text-muted dark:bg-[var(--surface-solid)]">
             Belum ada nilai harian yang disubmit guru.
           </p>
         )}

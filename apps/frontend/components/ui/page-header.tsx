@@ -15,7 +15,7 @@ export function PageHeader({
   title: string;
 }) {
   return (
-    <header className="page-hero relative w-full overflow-hidden rounded-2xl border border-blue-100/70 p-4 shadow-sm shadow-blue-100/60 backdrop-blur-xl sm:p-5">
+    <header className="page-hero relative w-full overflow-hidden rounded-2xl border border-blue-100/70 p-4 shadow-sm backdrop-blur-xl sm:p-5">
       {showBackLink ? (
         <Link
           className="secondary-button relative inline-flex rounded-full px-3 py-1.5 text-xs font-bold"

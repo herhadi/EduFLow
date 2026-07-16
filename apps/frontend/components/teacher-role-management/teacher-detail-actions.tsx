@@ -47,7 +47,7 @@ export function TeacherDetailActions({
       ) : null}
 
       <button
-        className="w-full rounded-2xl bg-brand-600 px-5 py-4 text-sm font-black text-white shadow-xl shadow-blue-100 transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+        className="w-full rounded-2xl bg-brand-600 px-5 py-4 text-sm font-black text-white shadow-xl transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300"
         disabled={saveDisabled}
         onClick={() => void onSave()}
         type="button"

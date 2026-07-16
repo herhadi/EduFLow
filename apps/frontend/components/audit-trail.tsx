@@ -171,7 +171,7 @@ export function AuditTrail() {
 
 function ActivityCard({ activity }: { activity: ActivityTrailItem }) {
   return (
-    <article className="relative rounded-xl border border-slate-200 bg-white/80 p-4 shadow-sm shadow-slate-100/70 dark:bg-[var(--surface-soft)] dark:shadow-black/20 sm:p-5">
+    <article className="relative rounded-xl border border-slate-200 bg-white/80 p-4 shadow-sm dark:bg-[var(--surface-soft)] dark:shadow-black/20 sm:p-5">
       <div className="flex gap-4">
         <div className="flex shrink-0 flex-col items-center">
           <div className="grid h-12 w-12 place-items-center rounded-xl bg-brand-600 text-sm font-bold text-white">

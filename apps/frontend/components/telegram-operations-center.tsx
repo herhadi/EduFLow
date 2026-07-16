@@ -85,7 +85,7 @@ export function TelegramOperationsCenter() {
   }
 
   return (
-    <section className="mt-8 w-full min-w-0 max-w-full overflow-hidden rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+    <section className="mt-8 w-full min-w-0 max-w-full overflow-hidden rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
       <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <h2 className="text-balance text-xl font-black tracking-tight text-slate-900 sm:text-2xl">

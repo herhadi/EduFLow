@@ -122,12 +122,6 @@
     opacity: 0.55;
   }
 
-  .login-glow {
-    background:
-      radial-gradient(circle at 20% 12%, rgba(37, 99, 235, 0.2), transparent 34%),
-      radial-gradient(circle at 82% 10%, rgba(16, 185, 129, 0.18), transparent 30%);
-  }
-
   [data-theme="dark"] .login-page {
     background: #020617;
   }
@@ -138,12 +132,6 @@
 
   [data-theme="dark"] .login-pattern {
     opacity: 0.25;
-  }
-
-  [data-theme="dark"] .login-glow {
-    background:
-      radial-gradient(circle at 22% 14%, rgba(56, 189, 248, 0.18), transparent 32%),
-      radial-gradient(circle at 78% 10%, rgba(20, 184, 166, 0.16), transparent 28%);
   }
 
   .school-backdrop {
@@ -1069,10 +1057,6 @@
 
 [data-theme="dark"] :is(.border-blue-50, .border-blue-100, .border-slate-100, .border-slate-200) {
   border-color: var(--border) !important;
-}
-
-[data-theme="dark"] :is(.shadow-blue-100, .shadow-blue-100\/60, .shadow-slate-100) {
-  --tw-shadow-color: rgba(0, 0, 0, 0.26) !important;
 }
 
 [data-theme="dark"] table,

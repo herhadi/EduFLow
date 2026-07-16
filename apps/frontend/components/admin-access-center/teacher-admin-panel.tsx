@@ -25,7 +25,7 @@ export function TeacherAdminPanel({
   query,
 }: TeacherAdminPanelProps) {
   return (
-    <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+    <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
@@ -87,7 +87,7 @@ export function TeacherAdminPanel({
               </div>
               <div className="grid grid-cols-2 gap-2 sm:flex">
                 <button
-                  className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-black text-amber-800 shadow-sm shadow-amber-100 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:bg-slate-300"
+                  className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-black text-amber-800 shadow-sm transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:bg-slate-300"
                   disabled={actionState === 'loading'}
                   onClick={() => void onDeactivateTeacher(teacher)}
                   type="button"

@@ -159,14 +159,10 @@ export default function LoginPage() {
         aria-hidden="true"
         className="login-pattern absolute inset-0 -z-10"
       />
-      <div
-        aria-hidden="true"
-        className="login-glow absolute inset-x-0 top-0 -z-10 h-72"
-      />
       <div className="mx-auto flex min-h-[calc(100dvh-2.5rem)] max-w-5xl flex-col sm:min-h-[calc(100dvh-3rem)]">
         <div className="mb-6 flex items-center justify-between gap-3 sm:mb-8">
           <Link className="flex min-w-0 items-center gap-3" href="/">
-            <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/50 bg-white p-1 shadow-sm shadow-blue-950/20">
+            <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/50 bg-white p-1 shadow-sm">
               <img
                 alt="Logo sekolah"
                 className="h-full w-full object-contain"
@@ -185,7 +181,7 @@ export default function LoginPage() {
 
           <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle compact />
-            <Link className="rounded-full border border-brand-200 bg-white/70 px-3 py-2 text-xs font-black text-brand-700 shadow-sm shadow-blue-100/50 backdrop-blur transition hover:bg-white dark:border-white/30 dark:bg-white/15 dark:text-white dark:shadow-none dark:hover:bg-white/25 sm:px-4" href="/">
+            <Link className="rounded-full border border-brand-200 bg-white/70 px-3 py-2 text-xs font-black text-brand-700 shadow-sm backdrop-blur transition hover:bg-white dark:border-white/30 dark:bg-white/15 dark:text-white dark:shadow-none dark:hover:bg-white/25 sm:px-4" href="/">
               ← Landing
             </Link>
           </div>
@@ -206,7 +202,7 @@ export default function LoginPage() {
                 ['Presensi', 'KBM harian'],
                 ['Laporan', 'Pantauan siswa'],
               ].map(([title, description]) => (
-                <div className="rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm shadow-blue-100/60 backdrop-blur dark:border-white/20 dark:bg-white/12 dark:shadow-blue-950/20" key={title}>
+                <div className="rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur dark:border-white/20 dark:bg-white/12" key={title}>
                   <p className="text-sm font-black text-slate-900 dark:text-white">{title}</p>
                   <p className="mt-1 text-xs font-semibold leading-5 text-slate-500 dark:text-blue-100/85">{description}</p>
                 </div>

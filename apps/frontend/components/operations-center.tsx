@@ -91,7 +91,7 @@ export function OperationsCenter() {
 
   return (
     <section className="mt-10 space-y-6">
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">Dashboard Operasional</h2>
@@ -118,7 +118,7 @@ export function OperationsCenter() {
           </p>
         ) : null}
 
-        <div className="mt-5 rounded-2xl border border-sky-100 bg-sky-50/80 p-3 shadow-sm shadow-sky-100/50 dark:border-sky-400/20 dark:bg-sky-400/10 dark:shadow-none sm:p-4">
+        <div className="mt-5 rounded-2xl border border-sky-100 bg-sky-50/80 p-3 shadow-sm dark:border-sky-400/20 dark:bg-sky-400/10 dark:shadow-none sm:p-4">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             <MetricCard
               label="CPU Load"
@@ -228,7 +228,7 @@ export function OperationsCenter() {
         </div>
       </div>
 
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
         <h2 className="text-2xl font-bold">Queue Monitoring</h2>
         <p className="mt-1 text-sm text-muted">
           Pantau waiting, active, failed, delayed, dan completed jobs.
@@ -260,7 +260,7 @@ export function OperationsCenter() {
         </div>
       </div>
 
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
         <h2 className="text-2xl font-bold">Failed Jobs</h2>
         <p className="mt-1 text-sm text-muted">
           Retry, discard, atau inspeksi payload job yang gagal.

@@ -76,7 +76,7 @@ export function ScheduleClassPanel({
 }: ScheduleClassPanelProps) {
   return (
     <div className="min-w-0 space-y-4">
-      <div className="min-w-0 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+      <div className="min-w-0 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
         <div>
           <div className="min-w-0">
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
@@ -113,7 +113,7 @@ export function ScheduleClassPanel({
                         className={[
                           'rounded-xl border px-3 py-2 text-xs font-black transition',
                           active
-                            ? 'border-brand-600 bg-brand-600 text-white shadow-md shadow-blue-100'
+                            ? 'border-brand-600 bg-brand-600 text-white shadow-md'
                             : 'border-blue-100 bg-blue-50/60 text-brand-700 hover:bg-blue-100',
                         ].join(' ')}
                         key={schoolClass.id}

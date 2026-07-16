@@ -14,7 +14,7 @@ export function KbmControlPanel({ summary }: KbmControlPanelProps) {
   const substitutes = kbm?.substitutes.items ?? [];
 
   return (
-    <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+    <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="text-xl font-bold">Kendali KBM</h3>

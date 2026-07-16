@@ -77,11 +77,11 @@ export default function AdminPage() {
         <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {visibleMenus.map((menu) => (
             <Link
-              className="rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60 transition hover:-translate-y-0.5 hover:border-brand-600 hover:shadow-lg"
+              className="rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-600 hover:shadow-lg"
               href={menu.href}
               key={menu.href}
             >
-              <span className="grid size-11 place-items-center rounded-2xl bg-brand-600 text-lg font-black text-white shadow-lg shadow-blue-100">
+              <span className="grid size-11 place-items-center rounded-2xl bg-brand-600 text-lg font-black text-white shadow-lg">
                 {menu.icon}
               </span>
               <h2 className="mt-4 text-lg font-black text-slate-900">{menu.title}</h2>

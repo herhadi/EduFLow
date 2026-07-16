@@ -75,7 +75,7 @@ export function PrincipalPriorityPanel({
     : urgentItems.find((item) => item.key === activeDetail)?.label ?? 'Detail';
 
   return (
-    <section className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-6">
+    <section className="min-w-0 rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
       <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-[11px] font-black uppercase tracking-[0.12em] text-brand-700 sm:text-xs">

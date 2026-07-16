@@ -44,7 +44,7 @@ export function PersonalNotificationInbox({
 
   return (
     <section className="mt-6 space-y-4">
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
@@ -83,7 +83,7 @@ export function PersonalNotificationInbox({
 
       {loadState === 'success' && !items.length ? (
         <EmptyState
-          className="rounded-[2rem] bg-white shadow-sm shadow-blue-100/60"
+          className="rounded-[2rem] bg-white shadow-sm"
           title={
             isPrincipal
               ? 'Belum ada notifikasi yang membutuhkan perhatian Kepala Sekolah.'

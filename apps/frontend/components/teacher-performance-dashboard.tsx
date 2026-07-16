@@ -69,7 +69,7 @@ export function TeacherPerformanceDashboard() {
 
   return (
     <section className="mt-8 space-y-5">
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-5">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
@@ -134,7 +134,7 @@ export function TeacherPerformanceDashboard() {
 
       {dashboard ? (
         <>
-          <section className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
+          <section className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm">
             <p className="text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
               Periode
             </p>
@@ -158,7 +158,7 @@ export function TeacherPerformanceDashboard() {
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-5">
+          <section className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
             <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
               <label className="grid gap-2 text-sm font-bold text-slate-700">
                 Cari Guru

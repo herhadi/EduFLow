@@ -105,7 +105,7 @@ export function StudentReportDashboard() {
 
   return (
     <section className="mt-8 space-y-5">
-      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
+      <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
@@ -213,7 +213,7 @@ export function StudentReportDashboard() {
             <CompactSummaryStat label="Risiko Sedang" shortLabel="R. Sedang" tone="warning" value={report.summary.mediumRisk} />
           </div>
 
-          <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm shadow-blue-100/60 sm:p-5">
+          <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-lg font-black text-slate-900">Daftar Siswa</h3>

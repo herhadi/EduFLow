@@ -282,7 +282,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="space-y-4">
-            <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
+            <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm">
               <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
                 Keamanan
               </p>
@@ -322,7 +322,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/60">
+            <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm">
               <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
                 Session
               </p>

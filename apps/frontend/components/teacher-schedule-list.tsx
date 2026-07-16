@@ -56,7 +56,7 @@ export function TeacherScheduleList() {
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {activeDays.map((day) => (
-        <article className="rounded-[1.5rem] border border-blue-100 bg-white p-3 shadow-sm shadow-blue-100/60 sm:p-4" key={day.dayOfWeek}>
+        <article className="rounded-[1.5rem] border border-blue-100 bg-white p-3 shadow-sm sm:p-4" key={day.dayOfWeek}>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-black text-slate-900">{day.label}</h2>
             <span className="text-[11px] font-black text-muted">{day.schedules.length} sesi</span>

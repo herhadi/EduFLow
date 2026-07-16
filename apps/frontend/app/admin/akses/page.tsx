@@ -36,7 +36,7 @@ export default function AdminAccessPage() {
     return (
       <main>
         <Container>
-          <div className="mt-6 rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted shadow-sm shadow-blue-100/60">
+          <div className="mt-6 rounded-[2rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted shadow-sm">
             Memeriksa hak akses...
           </div>
         </Container>
