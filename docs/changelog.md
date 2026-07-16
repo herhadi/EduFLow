@@ -15,6 +15,11 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 - Mendokumentasikan behaviour health card dan R2 warning di `docs/operations.md` serta menyelaraskan catatan Root Ops di `docs/infrastructure.md`.
 - Memulai pemecahan `academic.service.ts` dengan mengekstrak generate agenda, bulk agenda, coverage agenda, blok Kaldik, dan reminder guru ke `AgendaGenerationService` tanpa mengubah endpoint akademik.
 - Melanjutkan pemecahan `academic.service.ts` dengan mengekstrak CRUD jadwal, bulk jadwal, revisi jadwal, cancel revisi, dan validasi konflik ke `AcademicScheduleService`.
+- Mengekstrak pengelolaan Kaldik/event akademik ke `AcademicCalendarService` agar validasi kalender, blok agenda, dan audit event tidak lagi berada di `academic.service.ts`.
+- Mengekstrak manajemen guru administratif ke `TeacherAcademicService`, termasuk data guru, foto, akun login, reset password, mapel ampu, penugasan tahun ajaran, dan penghapusan guru.
+- Mengekstrak master akademik ke `AcademicMasterService`, mencakup tahun ajaran, salin master, semester, kelas, wali kelas, mata pelajaran, slot jam, dan aktivitas slot kelas.
+- Mengekstrak endpoint personal guru/wali kelas ke `TeacherPortalService`, mencakup jadwal saya, mapel saya, agenda saya, dan ringkasan kelas binaan.
+- Mengekstrak sisa logika akademik ke `StudentAcademicService` dan `AgendaManagementService`, sehingga `academic.service.ts` menjadi facade tipis untuk controller akademik.
 
 ## 2026-07-15
 
