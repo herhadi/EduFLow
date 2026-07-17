@@ -38,9 +38,7 @@ export function TeacherHome({
         <RoleActionCard href="/teacher/profile" label="Profil & Telegram" description="Kelola foto profil, sandi, sesi aktif, dan aktivasi Telegram." />
         {isHomeroom ? (
           <RoleActionCard href="/homeroom/leave-requests" label="Izin/Sakit" description="Review pengajuan izin atau sakit dari wali murid kelas binaan." />
-        ) : (
-          <RoleActionCard href="/teacher/schedules" label="Jadwal Mengajar" description="Cek jadwal mingguan dan perubahan efektif yang berlaku." />
-        )}
+        ) : null}
       </RoleSection>
     </>
   );

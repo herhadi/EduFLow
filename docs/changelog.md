@@ -10,7 +10,10 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Memperbaiki `/system/access` agar root tidak lagi memanggil daftar guru akademik ketika panel guru tidak ditampilkan, sehingga halaman User & Hak Akses tidak terkena 403 dari endpoint `/academic/teachers`.
 - Menyembunyikan card edukasi nonaktif/hapus permanen guru dari `/system/access` karena konteks tersebut milik operator saat mengelola data guru, bukan root support teknis.
 - Merapikan bottom navbar mobile agar role dengan banyak menu tetap maksimal lima item utama; route yang jarang dipakai dipindahkan ke popover `Lainnya`/`Setting` tanpa menghapus akses halaman.
+- Menyesuaikan navbar wali kelas agar modul harian guru (`Jadwal`, `Presensi`, `Nilai`) tampil langsung, sedangkan `Kelas Binaan` dan `Izin/Sakit` masuk ke `Lainnya`.
 - Merapikan layout desktop `/teacher/dashboard`: ringkasan agenda dibuat lebih simetris dan aksi lanjutan diisi beberapa card relevan agar grid tidak terlihat kosong.
+- Membersihkan shortcut dashboard statis yang menduplikasi navbar utama; card yang mengulang menu langsung diubah menjadi info non-clickable atau dihapus, sementara link ke menu tersembunyi `Lainnya`/`Setting` tetap dipertahankan.
+- Memperbarui style bottom navbar mobile dengan container blur, tone warna per item, icon bubble, badge notifikasi yang lebih rapi, dan active state yang tetap terbaca di light/dark mode.
 
 ## 2026-07-16
 

@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { type CurrentUser } from './dashboard-types';
 import { RoleHero } from './role-dashboard-shared';
 
@@ -13,9 +12,9 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
         title={`Selamat bekerja, ${displayName}`}
       />
       <section className="mt-7 grid gap-3 md:grid-cols-3">
-        <StaffActionCard href="/tu/data" label="Data Administrasi" text="Buka data dasar yang dibutuhkan untuk layanan administrasi sekolah." />
-        <StaffActionCard href="/tu/import-data" label="Import Data" text="Masukkan data dari file sekolah saat ada pembaruan kolektif." />
-        <StaffActionCard href="/tu/reports" label="Laporan" text="Buka laporan yang mendukung kebutuhan tata usaha." />
+        <StaffFocusCard label="Data Administrasi" text="Pastikan data dasar yang dibutuhkan layanan administrasi sekolah tetap rapi." />
+        <StaffFocusCard label="Import Data" text="Gunakan import saat ada pembaruan kolektif dari file sekolah." />
+        <StaffFocusCard label="Laporan" text="Pantau laporan yang mendukung kebutuhan tata usaha." />
       </section>
     </>
   );
@@ -32,31 +31,25 @@ export function CounselingHome({ currentUser }: { currentUser: CurrentUser | nul
         title={`Selamat bekerja, ${displayName}`}
       />
       <section className="mt-7 grid gap-3 md:grid-cols-3">
-        <StaffActionCard href="/bk/students" label="Siswa Perlu Perhatian" text="Lihat daftar siswa dan gunakan data presensi sebagai awal tindak lanjut." />
-        <StaffActionCard href="/bk/reports" label="Laporan BK" text="Buka rekap pendukung untuk observasi dan konseling." />
-        <StaffActionCard href="/bk/notifications" label="Inbox" text="Pantau pesan atau tindak lanjut yang masuk ke peran BK." />
+        <StaffFocusCard label="Siswa Perlu Perhatian" text="Gunakan data presensi sebagai awal tindak lanjut siswa." />
+        <StaffFocusCard label="Laporan BK" text="Baca rekap pendukung untuk observasi dan konseling." />
+        <StaffFocusCard label="Inbox" text="Pantau pesan atau tindak lanjut yang masuk ke peran BK." />
       </section>
     </>
   );
 }
 
-function StaffActionCard({
-  href,
+function StaffFocusCard({
   label,
   text,
 }: {
-  href: string;
   label: string;
   text: string;
 }) {
   return (
-    <Link
-      className="rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-500 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none"
-      href={href}
-    >
+    <div className="rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none">
       <p className="text-base font-black text-slate-900 dark:text-[var(--text)]">{label}</p>
       <p className="mt-2 text-sm leading-6 text-muted">{text}</p>
-      <span className="mt-4 inline-flex text-xs font-black text-brand-700 dark:text-blue-100">Buka</span>
-    </Link>
+    </div>
   );
 }

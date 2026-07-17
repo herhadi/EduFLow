@@ -174,14 +174,14 @@ export function BottomNavigation({
   return (
     <nav
       aria-label="Navigasi utama"
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[456px] px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] md:w-1/2 md:max-w-none"
+      className="mobile-bottom-nav md:w-1/2"
     >
       <div
         ref={navRef}
-        className="bottom-nav mx-auto grid gap-1 rounded-[1.75rem] p-2 backdrop-blur-xl"
+        className="mobile-bottom-nav-inner"
         style={{ gridTemplateColumns: `repeat(${primaryNavItems.length}, minmax(0, 1fr))` }}
       >
-        {primaryNavItems.map((item) => {
+        {primaryNavItems.map((item, index) => {
           const active = isBottomNavItemActive({
             href: item.href,
             pathname,
@@ -189,6 +189,7 @@ export function BottomNavigation({
             children: item.children,
           });
           const open = openMoreHref === item.href;
+          const toneClass = getBottomNavToneClass(index);
 
           return (
             <div className="relative" key={item.href}>
@@ -197,10 +198,9 @@ export function BottomNavigation({
                   <button
                     aria-expanded={open}
                     className={cn(
-                      'flex w-full flex-col items-center justify-center rounded-2xl px-2 py-2 text-[0.68rem] font-bold transition',
-                      active || open
-                        ? 'nav-item-active text-white'
-                        : 'text-muted hover:bg-brand-50 hover:text-brand-700',
+                      'mobile-bottom-nav-item',
+                      toneClass,
+                      (active || open) && 'mobile-bottom-nav-item-active',
                     )}
                     onClick={() => setOpenMoreHref((current) => current === item.href ? null : item.href)}
                     type="button"
@@ -216,16 +216,16 @@ export function BottomNavigation({
                       notificationBadgeCount={notificationBadgeCount}
                       pathname={pathname}
                       section={section}
+                      toneClass={toneClass}
                     />
                   ) : null}
                 </>
               ) : (
                 <Link
                   className={cn(
-                    'flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-[0.68rem] font-bold transition',
-                    active
-                      ? 'nav-item-active text-white'
-                      : 'text-muted hover:bg-brand-50 hover:text-brand-700',
+                    'mobile-bottom-nav-item',
+                    toneClass,
+                    active && 'mobile-bottom-nav-item-active',
                   )}
                   href={item.href}
                 >
@@ -252,11 +252,11 @@ function BottomNavContent({
 }) {
   return (
     <>
-      <span className="relative grid size-5 place-items-center text-lg leading-none">
+      <span className="mobile-bottom-nav-icon">
         <NavigationIcon icon={item.icon} />
         {item.badge === 'notifications' ? <NotificationBadge count={notificationBadgeCount} /> : null}
       </span>
-      <span className="mt-1">{item.label}</span>
+      <span className="mobile-bottom-nav-label">{item.label}</span>
     </>
   );
 }
@@ -266,14 +266,16 @@ function MoreNavigationMenu({
   notificationBadgeCount,
   pathname,
   section,
+  toneClass,
 }: {
   items: NavigationItem[];
   notificationBadgeCount: number;
   pathname: string;
   section: string | null;
+  toneClass: string;
 }) {
   return (
-    <div className="surface-card absolute right-0 bottom-[calc(100%+0.75rem)] z-50 w-48 rounded-[1.25rem] p-2 shadow-xl">
+    <div className="mobile-bottom-nav-menu">
       <div className="grid gap-1">
         {items.map((child) => {
           const active = isBottomNavItemActive({
@@ -286,25 +288,36 @@ function MoreNavigationMenu({
           return (
             <Link
               className={cn(
-                'flex min-w-0 items-center gap-3 rounded-2xl px-3 py-2 text-sm font-bold transition',
-                active
-                  ? 'bg-brand-600 text-white'
-                  : 'text-ink hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-white/10 dark:hover:text-white',
+                'mobile-bottom-nav-menu-item',
+                toneClass,
+                active && 'mobile-bottom-nav-menu-item-active',
               )}
               href={child.href}
               key={child.href}
             >
-              <span className="relative grid size-5 shrink-0 place-items-center text-base leading-none">
+              <span className="mobile-bottom-nav-menu-icon">
                 <NavigationIcon icon={child.icon} />
                 {child.badge === 'notifications' ? <NotificationBadge count={notificationBadgeCount} /> : null}
               </span>
-              <span className="truncate">{child.label}</span>
+              <span className="min-w-0 truncate">{child.label}</span>
             </Link>
           );
         })}
       </div>
     </div>
   );
+}
+
+function getBottomNavToneClass(index: number) {
+  const tones = [
+    'mobile-bottom-nav-tone-blue',
+    'mobile-bottom-nav-tone-emerald',
+    'mobile-bottom-nav-tone-cyan',
+    'mobile-bottom-nav-tone-amber',
+    'mobile-bottom-nav-tone-violet',
+  ];
+
+  return tones[index % tones.length];
 }
 
 function NavigationIcon({ icon }: { icon?: string }) {

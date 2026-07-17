@@ -30,7 +30,6 @@ export function OperatorHome({ currentUser }: { currentUser: CurrentUser | null 
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <OperatorPriorityItem
             description="Pastikan jadwal tahun ajaran aktif sudah benar dan agenda periode berjalan sudah dibuat."
-            href="/admin/schedules"
             label="Jadwal & Agenda"
           />
           <OperatorPriorityItem
@@ -68,8 +67,6 @@ export function OperatorHome({ currentUser }: { currentUser: CurrentUser | null 
       </section>
 
       <RoleSection description="Akses pendukung ketika perlu melengkapi data atau menelusuri perubahan." title="Aksi Lanjutan">
-        <RoleActionCard href="/admin/guru" label="Pengaturan Guru" description="Atur data guru, akun, role, mapel ampu, dan wali kelas." />
-        <RoleActionCard href="/admin/akademik" label="Admin Akademik" description="Kelola rombel, mata pelajaran, jam pelajaran, dan master akademik." />
         <RoleActionCard href="/admin/import-data" label="Import Data" description="Upload data guru dan siswa dari file sekolah." />
         <RoleActionCard href="/admin/audit" label="Audit Aktivitas" description="Telusuri perubahan data penting oleh operator." />
       </RoleSection>
@@ -83,18 +80,22 @@ function OperatorPriorityItem({
   label,
 }: {
   description: string;
-  href: string;
+  href?: string;
   label: string;
 }) {
-  return (
-    <Link
-      className="rounded-2xl border border-emerald-100 bg-white p-4 text-emerald-950 transition hover:-translate-y-0.5 hover:border-emerald-300 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-50"
-      href={href}
-    >
+  const className = 'rounded-2xl border border-emerald-100 bg-white p-4 text-emerald-950 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-50';
+  const content = (
+    <>
       <p className="text-sm font-black">{label}</p>
       <p className="mt-2 text-sm leading-6 opacity-80">{description}</p>
-      <span className="mt-3 inline-flex text-xs font-black opacity-90">Buka</span>
-    </Link>
+      {href ? <span className="mt-3 inline-flex text-xs font-black opacity-90">Buka</span> : null}
+    </>
+  );
+
+  return (
+    href
+      ? <Link className={`${className} transition hover:-translate-y-0.5 hover:border-emerald-300`} href={href}>{content}</Link>
+      : <div className={className}>{content}</div>
   );
 }
 

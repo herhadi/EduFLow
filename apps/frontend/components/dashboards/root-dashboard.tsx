@@ -30,7 +30,6 @@ export function RootHome({ currentUser }: { currentUser: CurrentUser | null }) {
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <RootFocusItem
             description="CPU, RAM, database, Redis, queue, worker, failed job, backup, dan R2."
-            href="/operations"
             label="Kesehatan Sistem"
             tone="info"
           />
@@ -42,7 +41,6 @@ export function RootHome({ currentUser }: { currentUser: CurrentUser | null }) {
           />
           <RootFocusItem
             description="Akun terkunci, reset password, permission root/operator, dan audit akses."
-            href="/system/access"
             label="Akses User"
             tone="warning"
           />
@@ -61,10 +59,8 @@ export function RootHome({ currentUser }: { currentUser: CurrentUser | null }) {
       </section>
 
       <RoleSection description="Akses teknis yang paling sering dipakai saat support sekolah." title="Aksi Lanjutan">
-        <RoleActionCard href="/operations" label="Ops & Health" description="Cek database, Redis, queue, worker, backup, dan retry job teknis." />
-        <RoleActionCard href="/system/access" label="User & Hak Akses" description="Kelola user sistem, role, permission, reset akses, dan akun bermasalah." />
-        <RoleActionCard href="/system/telegram" label="Telegram Bot" description="Cek token, webhook, user yang sudah link Telegram, dan log notifikasi." />
         <RoleActionCard href="/system/audit" label="Audit Teknis" description="Telusuri aktivitas penting, retry notifikasi, dan perubahan konfigurasi sistem." />
+        <RoleActionCard href="/system/profile" label="Profil Root" description="Kelola profil, sandi, sesi aktif, dan pengaturan akun root." />
       </RoleSection>
     </>
   );
@@ -77,7 +73,7 @@ function RootFocusItem({
   tone,
 }: {
   description: string;
-  href: string;
+  href?: string;
   label: string;
   tone: 'info' | 'success' | 'warning';
 }) {
@@ -87,13 +83,16 @@ function RootFocusItem({
     warning: 'border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-50',
   }[tone];
 
-  return (
-    <Link className={`rounded-2xl border p-4 transition hover:-translate-y-0.5 ${toneClass}`} href={href}>
+  const className = `rounded-2xl border p-4 ${href ? 'transition hover:-translate-y-0.5' : ''} ${toneClass}`;
+  const content = (
+    <>
       <p className="text-sm font-black">{label}</p>
       <p className="mt-2 text-sm leading-6 opacity-80">{description}</p>
-      <span className="mt-3 inline-flex text-xs font-black opacity-90">Buka</span>
-    </Link>
+      {href ? <span className="mt-3 inline-flex text-xs font-black opacity-90">Buka</span> : null}
+    </>
   );
+
+  return href ? <Link className={className} href={href}>{content}</Link> : <div className={className}>{content}</div>;
 }
 
 function RootBoundaryItem({ label, value }: { label: string; value: string }) {

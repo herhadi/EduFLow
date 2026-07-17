@@ -84,16 +84,16 @@ const teacherNavigation: NavigationItem[] = [
 
 const homeroomNavigation: NavigationItem[] = [
   { href: '/teacher/dashboard', label: 'Beranda', icon: '⌂' },
+  { href: '/teacher/schedules', label: 'Jadwal', icon: '▦' },
   { href: '/teacher/attendance', label: 'Presensi', icon: '✓' },
-  { href: '/homeroom/students', label: 'Binaan', icon: '☷' },
-  { href: '/homeroom/leave-requests', label: 'Izin', icon: '✓' },
+  { href: '/teacher/assessments', label: 'Nilai', icon: '▣' },
   {
     href: '/teacher/profile',
     label: 'Lainnya',
     icon: '☰',
     children: [
-      { href: '/teacher/schedules', label: 'Jadwal', icon: '▦' },
-      { href: '/teacher/assessments', label: 'Nilai', icon: '▣' },
+      { href: '/homeroom/students', label: 'Kelas Binaan', icon: '☷' },
+      { href: '/homeroom/leave-requests', label: 'Izin/Sakit', icon: '✓' },
       { href: '/teacher/teaching-plans', label: 'Perangkat', icon: '▤' },
       { href: '/teacher/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
       { href: '/teacher/profile', label: 'Profil', icon: '👤' },

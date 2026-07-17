@@ -918,15 +918,217 @@
     line-height: 1;
   }
 
-  .bottom-nav {
-    border: 1px solid var(--border);
-    background: color-mix(in srgb, var(--surface-solid) 86%, transparent);
-    box-shadow: 0 18px 55px rgba(15, 23, 42, 0.20);
+  .mobile-bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    max-width: 456px;
+    margin-inline: auto;
+    padding: 0 0.75rem calc(0.65rem + env(safe-area-inset-bottom));
+    pointer-events: none;
   }
 
-  .nav-item-active {
-    background: linear-gradient(145deg, #3b82f6, #1d4ed8);
-    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.28);
+  .mobile-bottom-nav-inner {
+    display: grid;
+    max-width: 32rem;
+    margin-inline: auto;
+    gap: 0.35rem;
+    border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+    border-radius: 1.65rem;
+    background: color-mix(in srgb, var(--surface-solid) 94%, #ffffff 6%);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16);
+    backdrop-filter: blur(18px);
+    padding: 0.42rem;
+    pointer-events: auto;
+  }
+
+  .mobile-bottom-nav-item {
+    position: relative;
+    display: inline-flex;
+    min-width: 0;
+    min-height: 3.55rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    border-radius: 1.2rem;
+    color: var(--text-soft);
+    text-decoration: none;
+    transition: background-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .mobile-bottom-nav-item:hover {
+    background: color-mix(in srgb, var(--nav-tone) 8%, transparent);
+    color: color-mix(in srgb, var(--nav-tone) 72%, var(--text));
+  }
+
+  .mobile-bottom-nav-item:active {
+    transform: translateY(1px) scale(0.98);
+  }
+
+  .mobile-bottom-nav-item-active {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--nav-tone) 16%, #ffffff),
+        color-mix(in srgb, var(--nav-tone) 8%, #ffffff)
+      );
+    color: color-mix(in srgb, var(--nav-tone) 78%, #0f172a);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--nav-tone) 32%, transparent),
+      0 8px 18px color-mix(in srgb, var(--nav-tone) 14%, transparent);
+  }
+
+  .mobile-bottom-nav-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.95rem;
+    height: 1.95rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--nav-tone) 14%, transparent);
+    color: var(--nav-tone);
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .mobile-bottom-nav-icon svg {
+    display: block;
+    width: 1.14rem;
+    height: 1.14rem;
+  }
+
+  .mobile-bottom-nav-item-active .mobile-bottom-nav-icon {
+    background: var(--nav-tone);
+    color: #ffffff;
+    box-shadow: 0 8px 16px color-mix(in srgb, var(--nav-tone) 20%, transparent);
+  }
+
+  .mobile-bottom-nav-label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.69rem;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+
+  .mobile-bottom-nav-badge {
+    position: absolute;
+    top: -0.35rem;
+    right: -0.5rem;
+    display: inline-flex;
+    min-width: 1.05rem;
+    height: 1.05rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 2px solid color-mix(in srgb, var(--surface-solid) 90%, #ffffff);
+    background: #ef4444;
+    padding: 0 0.2rem;
+    color: #ffffff;
+    font-size: 0.58rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .mobile-bottom-nav-menu {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.75rem);
+    z-index: 50;
+    width: 12rem;
+    border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+    border-radius: 1.25rem;
+    background: color-mix(in srgb, var(--surface-solid) 94%, transparent);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16);
+    backdrop-filter: blur(18px);
+    padding: 0.5rem;
+  }
+
+  .mobile-bottom-nav-menu-item {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 1rem;
+    padding: 0.55rem 0.65rem;
+    color: var(--text);
+    font-size: 0.875rem;
+    font-weight: 800;
+    transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .mobile-bottom-nav-menu-item:hover {
+    background: color-mix(in srgb, var(--nav-tone) 8%, transparent);
+    color: color-mix(in srgb, var(--nav-tone) 72%, var(--text));
+  }
+
+  .mobile-bottom-nav-menu-item-active {
+    background: color-mix(in srgb, var(--nav-tone) 16%, transparent);
+    color: color-mix(in srgb, var(--nav-tone) 78%, var(--text));
+  }
+
+  .mobile-bottom-nav-menu-icon {
+    position: relative;
+    display: inline-flex;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--nav-tone) 14%, transparent);
+    color: var(--nav-tone);
+  }
+
+  .mobile-bottom-nav-menu-icon svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .mobile-bottom-nav-menu-item-active .mobile-bottom-nav-menu-icon {
+    background: var(--nav-tone);
+    color: #ffffff;
+  }
+
+  .mobile-bottom-nav-tone-blue { --nav-tone: #2563eb; }
+  .mobile-bottom-nav-tone-emerald { --nav-tone: #059669; }
+  .mobile-bottom-nav-tone-cyan { --nav-tone: #0891b2; }
+  .mobile-bottom-nav-tone-amber { --nav-tone: #d97706; }
+  .mobile-bottom-nav-tone-violet { --nav-tone: #7c3aed; }
+
+  [data-theme="dark"] .mobile-bottom-nav-inner,
+  [data-theme="dark"] .mobile-bottom-nav-menu {
+    background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
+  }
+
+  [data-theme="dark"] .mobile-bottom-nav-item-active {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--nav-tone) 34%, #020617),
+        color-mix(in srgb, var(--nav-tone) 20%, #020617)
+      );
+    color: color-mix(in srgb, var(--nav-tone) 34%, #ffffff);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--nav-tone) 38%, transparent),
+      0 8px 18px color-mix(in srgb, var(--nav-tone) 10%, transparent);
+  }
+
+  [data-theme="dark"] .mobile-bottom-nav-badge {
+    border-color: color-mix(in srgb, var(--surface-solid) 92%, #020617);
+  }
+
+  @media (min-width: 768px) {
+    .mobile-bottom-nav {
+      max-width: none;
+    }
   }
 
   .notification-dot {
