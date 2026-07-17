@@ -34,14 +34,14 @@ export function AdminAccessCenter({
   useEffect(() => {
     let isMounted = true;
 
-    async function loadTeachers() {
+    async function loadAccessData() {
       setLoadState('loading');
 
       try {
-        const [teacherResponse, userResponse] = await Promise.all([
-          api.getTeachers(),
-          api.getUsers().catch(() => ({ data: [] as AppUser[] })),
-        ]);
+        const userResponse = await api.getUsers().catch(() => ({ data: [] as AppUser[] }));
+        const teacherResponse = showTeacherAdmin
+          ? await api.getTeachers()
+          : { data: [] as Teacher[] };
 
         if (!isMounted) {
           return;
@@ -57,12 +57,12 @@ export function AdminAccessCenter({
       }
     }
 
-    void loadTeachers();
+    void loadAccessData();
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [showTeacherAdmin]);
 
   const filteredTeachers = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -283,14 +283,16 @@ export function AdminAccessCenter({
 
   return (
     <section className="mt-6 space-y-5">
-      <div className="grid gap-3 sm:grid-cols-2">
-        {explanationCards.map((item) => (
-          <article className={`rounded-[1.5rem] border p-4 ${item.tone}`} key={item.title}>
-            <p className="text-sm font-black">{item.title}</p>
-            <p className="mt-2 text-xs leading-5 opacity-90">{item.description}</p>
-          </article>
-        ))}
-      </div>
+      {showTeacherAdmin ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {explanationCards.map((item) => (
+            <article className={`rounded-[1.5rem] border p-4 ${item.tone}`} key={item.title}>
+              <p className="text-sm font-black">{item.title}</p>
+              <p className="mt-2 text-xs leading-5 opacity-90">{item.description}</p>
+            </article>
+          ))}
+        </div>
+      ) : null}
 
       <UserManagementPanel
         newUser={newUser}

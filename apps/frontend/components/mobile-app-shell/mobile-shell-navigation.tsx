@@ -6,6 +6,7 @@ import {
   getPrimaryNavigation,
   getPrimaryRole,
   getSectionFromPath,
+  type NavigationItem,
 } from '../../lib/navigation.config';
 import { clearBrowserSession } from '../../lib/session';
 import { NotificationBadge } from '../ui/notification-badge';
@@ -152,6 +153,23 @@ export function BottomNavigation({
 }) {
   const primaryNavItems = getPrimaryNavigation(roles);
   const section = getSectionFromPath(pathname);
+  const [openMoreHref, setOpenMoreHref] = useState<string | null>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setOpenMoreHref(null);
+  }, [pathname]);
+
+  useEffect(() => {
+    function closeMenu(event: MouseEvent) {
+      if (!navRef.current?.contains(event.target as Node)) {
+        setOpenMoreHref(null);
+      }
+    }
+
+    document.addEventListener('mousedown', closeMenu);
+    return () => document.removeEventListener('mousedown', closeMenu);
+  }, []);
 
   return (
     <nav
@@ -159,6 +177,7 @@ export function BottomNavigation({
       className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[456px] px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] md:w-1/2 md:max-w-none"
     >
       <div
+        ref={navRef}
         className="bottom-nav mx-auto grid gap-1 rounded-[1.75rem] p-2 backdrop-blur-xl"
         style={{ gridTemplateColumns: `repeat(${primaryNavItems.length}, minmax(0, 1fr))` }}
       >
@@ -167,29 +186,124 @@ export function BottomNavigation({
             href: item.href,
             pathname,
             section,
+            children: item.children,
+          });
+          const open = openMoreHref === item.href;
+
+          return (
+            <div className="relative" key={item.href}>
+              {item.children?.length ? (
+                <>
+                  <button
+                    aria-expanded={open}
+                    className={cn(
+                      'flex w-full flex-col items-center justify-center rounded-2xl px-2 py-2 text-[0.68rem] font-bold transition',
+                      active || open
+                        ? 'nav-item-active text-white'
+                        : 'text-muted hover:bg-brand-50 hover:text-brand-700',
+                    )}
+                    onClick={() => setOpenMoreHref((current) => current === item.href ? null : item.href)}
+                    type="button"
+                  >
+                    <BottomNavContent
+                      item={item}
+                      notificationBadgeCount={notificationBadgeCount}
+                    />
+                  </button>
+                  {open ? (
+                    <MoreNavigationMenu
+                      items={item.children}
+                      notificationBadgeCount={notificationBadgeCount}
+                      pathname={pathname}
+                      section={section}
+                    />
+                  ) : null}
+                </>
+              ) : (
+                <Link
+                  className={cn(
+                    'flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-[0.68rem] font-bold transition',
+                    active
+                      ? 'nav-item-active text-white'
+                      : 'text-muted hover:bg-brand-50 hover:text-brand-700',
+                  )}
+                  href={item.href}
+                >
+                  <BottomNavContent
+                    item={item}
+                    notificationBadgeCount={notificationBadgeCount}
+                  />
+                </Link>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+function BottomNavContent({
+  item,
+  notificationBadgeCount,
+}: {
+  item: NavigationItem;
+  notificationBadgeCount: number;
+}) {
+  return (
+    <>
+      <span className="relative grid size-5 place-items-center text-lg leading-none">
+        <NavigationIcon icon={item.icon} />
+        {item.badge === 'notifications' ? <NotificationBadge count={notificationBadgeCount} /> : null}
+      </span>
+      <span className="mt-1">{item.label}</span>
+    </>
+  );
+}
+
+function MoreNavigationMenu({
+  items,
+  notificationBadgeCount,
+  pathname,
+  section,
+}: {
+  items: NavigationItem[];
+  notificationBadgeCount: number;
+  pathname: string;
+  section: string | null;
+}) {
+  return (
+    <div className="surface-card absolute right-0 bottom-[calc(100%+0.75rem)] z-50 w-48 rounded-[1.25rem] p-2 shadow-xl">
+      <div className="grid gap-1">
+        {items.map((child) => {
+          const active = isBottomNavItemActive({
+            href: child.href,
+            pathname,
+            section,
+            children: child.children,
           });
 
           return (
             <Link
               className={cn(
-                'flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-[0.68rem] font-bold transition',
+                'flex min-w-0 items-center gap-3 rounded-2xl px-3 py-2 text-sm font-bold transition',
                 active
-                  ? 'nav-item-active text-white'
-                  : 'text-muted hover:bg-brand-50 hover:text-brand-700',
+                  ? 'bg-brand-600 text-white'
+                  : 'text-ink hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-white/10 dark:hover:text-white',
               )}
-              href={item.href}
-              key={item.href}
+              href={child.href}
+              key={child.href}
             >
-              <span className="relative grid size-5 place-items-center text-lg leading-none">
-                <NavigationIcon icon={item.icon} />
-                {item.badge === 'notifications' ? <NotificationBadge count={notificationBadgeCount} /> : null}
+              <span className="relative grid size-5 shrink-0 place-items-center text-base leading-none">
+                <NavigationIcon icon={child.icon} />
+                {child.badge === 'notifications' ? <NotificationBadge count={notificationBadgeCount} /> : null}
               </span>
-              <span className="mt-1">{item.label}</span>
+              <span className="truncate">{child.label}</span>
             </Link>
           );
         })}
       </div>
-    </nav>
+    </div>
   );
 }
 

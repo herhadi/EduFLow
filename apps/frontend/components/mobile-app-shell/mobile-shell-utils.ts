@@ -2,6 +2,7 @@ import {
   getCurrentSessionUser,
 } from '../../lib/session';
 import {
+  type NavigationItem,
   type UserRole,
 } from '../../lib/navigation.config';
 
@@ -32,14 +33,25 @@ export function hasRoleNamespaceAccess(primaryRole: UserRole, requiredRole: User
 }
 
 export function isBottomNavItemActive({
+  children,
   href,
   pathname,
   section,
 }: {
+  children?: NavigationItem[];
   href: string;
   pathname: string;
   section: string | null;
 }) {
+  if (children?.some((child) => isBottomNavItemActive({
+    children: child.children,
+    href: child.href,
+    pathname,
+    section,
+  }))) {
+    return true;
+  }
+
   if (href === '/admin' || href === '/admin/data') {
     return (
       section === 'admin' &&

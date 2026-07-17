@@ -7,6 +7,10 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 ## 2026-07-17
 
 - Memperhalus transisi login mobile: setelah autentikasi berhasil halaman menahan status "Membuka beranda" dan memakai redirect `replace` ke dashboard role agar form login tidak sempat muncul lagi sebelum dashboard selesai dimuat.
+- Memperbaiki `/system/access` agar root tidak lagi memanggil daftar guru akademik ketika panel guru tidak ditampilkan, sehingga halaman User & Hak Akses tidak terkena 403 dari endpoint `/academic/teachers`.
+- Menyembunyikan card edukasi nonaktif/hapus permanen guru dari `/system/access` karena konteks tersebut milik operator saat mengelola data guru, bukan root support teknis.
+- Merapikan bottom navbar mobile agar role dengan banyak menu tetap maksimal lima item utama; route yang jarang dipakai dipindahkan ke popover `Lainnya`/`Setting` tanpa menghapus akses halaman.
+- Merapikan layout desktop `/teacher/dashboard`: ringkasan agenda dibuat lebih simetris dan aksi lanjutan diisi beberapa card relevan agar grid tidak terlihat kosong.
 
 ## 2026-07-16
 

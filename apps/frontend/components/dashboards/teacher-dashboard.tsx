@@ -32,8 +32,15 @@ export function TeacherHome({
       </section>
 
       <TeacherDashboardSummary isHomeroom={isHomeroom} />
-      <RoleSection description="Akses akademik yang jarang dibuka dari navbar utama." title="Aksi Lanjutan">
+      <RoleSection description="Akses pendukung yang sekarang diringkas dari navbar mobile." title="Aksi Lanjutan">
         <RoleActionCard href="/teacher/teaching-plans" label="Perangkat Ajar" description="Kelola program, modul ajar, KKTP, dan buku KBM." />
+        <RoleActionCard href="/teacher/notifications" label="Inbox Guru" description="Lihat notifikasi revisi, presensi, dan tindak lanjut akademik." />
+        <RoleActionCard href="/teacher/profile" label="Profil & Telegram" description="Kelola foto profil, sandi, sesi aktif, dan aktivasi Telegram." />
+        {isHomeroom ? (
+          <RoleActionCard href="/homeroom/leave-requests" label="Izin/Sakit" description="Review pengajuan izin atau sakit dari wali murid kelas binaan." />
+        ) : (
+          <RoleActionCard href="/teacher/schedules" label="Jadwal Mengajar" description="Cek jadwal mingguan dan perubahan efektif yang berlaku." />
+        )}
       </RoleSection>
     </>
   );
@@ -127,9 +134,9 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
   ].filter((item): item is { href: string; label: string; value: string } => Boolean(item));
 
   return (
-    <section className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
+    <section className="mt-6 grid items-start gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
       <div className="surface-card rounded-[2rem] p-4 sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(340px,0.9fr)] lg:items-start">
           <div className="min-w-0">
             <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-700">Agenda Hari Ini</p>
             <h2 className="mt-1 text-lg font-black tracking-tight text-slate-900 sm:text-xl">
@@ -139,7 +146,9 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
               {formatReadableDate(today)} · {weeklyToday.length} sesi pada jadwal mingguan.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:min-w-56">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">
+            <TeacherMiniStat label="Total agenda" value={agendas.length} tone="primary" />
+            <TeacherMiniStat label="Jadwal hari ini" value={weeklyToday.length} tone="neutral" />
             <TeacherMiniStat label="Sudah submit" value={todaySubmitted.length} tone="success" />
             <TeacherMiniStat label="Belum submit" value={todayPending.length} tone={todayPending.length ? 'warning' : 'neutral'} />
           </div>
