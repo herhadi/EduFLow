@@ -75,7 +75,7 @@ export function AppTopBar({
   const displayRole = getPrimaryRole(currentUser?.roles ?? []).replaceAll('_', ' ');
 
   return (
-    <header className="app-topbar top-0 z-30 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur-xl sm:sticky sm:px-6">
+    <header className="app-topbar px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur-xl sm:px-6">
       <div className="flex items-center justify-between gap-3">
         <Link className="flex items-center gap-3" href="/">
           <span className="grid size-10 place-items-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1">
@@ -111,7 +111,7 @@ export function AppTopBar({
           >
             Keluar
           </button>
-          <div className="relative sm:hidden" ref={menuRef}>
+          <div className="relative isolate sm:hidden" ref={menuRef}>
             <button
               aria-expanded={menuOpen}
               aria-label="Buka menu pengguna"
@@ -122,12 +122,12 @@ export function AppTopBar({
               ⋮
             </button>
             {menuOpen ? (
-              <div className="surface-card absolute top-10 right-0 z-50 grid w-24 grid-cols-[2rem_1fr] items-center gap-1 rounded-xl p-1.5 shadow-xl">
-                <div className="grid place-items-center">
+              <div className="surface-card absolute right-0 top-[calc(100%+0.5rem)] z-[220] grid w-28 gap-1.5 rounded-xl p-1.5 shadow-xl">
+                <div className="grid h-8 place-items-center rounded-lg border border-blue-100 bg-white/70 dark:border-[var(--border)] dark:bg-[var(--surface-soft)]">
                   <ThemeToggle compact showLabel={false} />
                 </div>
                 <button
-                  className="h-8 rounded-lg bg-red-600 px-2 text-center text-xs font-black text-white transition hover:bg-red-700"
+                  className="h-8 w-full rounded-lg bg-red-600 px-2 text-center text-xs font-black text-white transition hover:bg-red-700"
                   onClick={() => void handleLogout()}
                   type="button"
                 >

@@ -157,6 +157,9 @@
   }
 
   .app-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 120;
     border-bottom: 1px solid var(--border);
     background: color-mix(in srgb, var(--surface-solid) 82%, transparent);
     box-shadow: 0 8px 30px rgba(15, 23, 42, 0.05);
@@ -923,45 +926,67 @@
     right: 0;
     bottom: 0;
     left: 0;
-    z-index: 40;
+    z-index: 120;
     max-width: 456px;
     margin-inline: auto;
-    padding: 0 0.75rem calc(0.65rem + env(safe-area-inset-bottom));
+    padding: 0 0.25rem calc(0.65rem + env(safe-area-inset-bottom));
     pointer-events: none;
   }
 
   .mobile-bottom-nav-inner {
     display: grid;
-    max-width: 32rem;
+    width: 100%;
+    max-width: 35rem;
     margin-inline: auto;
-    gap: 0.35rem;
+    gap: 0.3rem;
     border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-    border-radius: 1.65rem;
+    border-radius: 1.25rem;
     background: color-mix(in srgb, var(--surface-solid) 94%, #ffffff 6%);
     box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16);
     backdrop-filter: blur(18px);
-    padding: 0.42rem;
+    padding: 0.32rem;
     pointer-events: auto;
   }
 
   .mobile-bottom-nav-item {
     position: relative;
     display: inline-flex;
+    width: 100%;
     min-width: 0;
     min-height: 3.55rem;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 0.2rem;
-    border-radius: 1.2rem;
+    border-radius: 0.9rem;
     color: var(--text-soft);
     text-decoration: none;
     transition: background-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
   }
 
+  .mobile-bottom-nav-item > * {
+    position: relative;
+    z-index: 1;
+  }
+
   .mobile-bottom-nav-item:hover {
-    background: color-mix(in srgb, var(--nav-tone) 8%, transparent);
     color: color-mix(in srgb, var(--nav-tone) 72%, var(--text));
+  }
+
+  .mobile-bottom-nav-item:hover::before,
+  .mobile-bottom-nav-item-active::before {
+    position: absolute;
+    top: 0.18rem;
+    bottom: 0.18rem;
+    left: 50%;
+    width: min(4rem, 82%);
+    transform: translateX(-50%);
+    border-radius: 0.72rem;
+    content: "";
+  }
+
+  .mobile-bottom-nav-item:hover::before {
+    background: color-mix(in srgb, var(--nav-tone) 8%, transparent);
   }
 
   .mobile-bottom-nav-item:active {
@@ -969,13 +994,16 @@
   }
 
   .mobile-bottom-nav-item-active {
+    color: color-mix(in srgb, var(--nav-tone) 78%, #0f172a);
+  }
+
+  .mobile-bottom-nav-item-active::before {
     background:
       linear-gradient(
         180deg,
         color-mix(in srgb, var(--nav-tone) 16%, #ffffff),
         color-mix(in srgb, var(--nav-tone) 8%, #ffffff)
       );
-    color: color-mix(in srgb, var(--nav-tone) 78%, #0f172a);
     box-shadow:
       inset 0 0 0 1px color-mix(in srgb, var(--nav-tone) 32%, transparent),
       0 8px 18px color-mix(in srgb, var(--nav-tone) 14%, transparent);
@@ -988,7 +1016,7 @@
     justify-content: center;
     width: 1.95rem;
     height: 1.95rem;
-    border-radius: 999px;
+    border-radius: 0.75rem;
     background: color-mix(in srgb, var(--nav-tone) 14%, transparent);
     color: var(--nav-tone);
     font-weight: 800;
@@ -1002,13 +1030,20 @@
   }
 
   .mobile-bottom-nav-item-active .mobile-bottom-nav-icon {
-    background: var(--nav-tone);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--nav-tone) 92%, #ffffff),
+        var(--nav-tone)
+      );
     color: #ffffff;
-    box-shadow: 0 8px 16px color-mix(in srgb, var(--nav-tone) 20%, transparent);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, #ffffff 24%, transparent),
+      0 8px 16px color-mix(in srgb, var(--nav-tone) 20%, transparent);
   }
 
   .mobile-bottom-nav-label {
-    max-width: 100%;
+    max-width: calc(100% - 0.2rem);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1040,7 +1075,7 @@
     position: absolute;
     right: 0;
     bottom: calc(100% + 0.75rem);
-    z-index: 50;
+    z-index: 130;
     width: 12rem;
     border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
     border-radius: 1.25rem;
@@ -1109,13 +1144,16 @@
   }
 
   [data-theme="dark"] .mobile-bottom-nav-item-active {
+    color: color-mix(in srgb, var(--nav-tone) 34%, #ffffff);
+  }
+
+  [data-theme="dark"] .mobile-bottom-nav-item-active::before {
     background:
       linear-gradient(
         180deg,
         color-mix(in srgb, var(--nav-tone) 34%, #020617),
         color-mix(in srgb, var(--nav-tone) 20%, #020617)
       );
-    color: color-mix(in srgb, var(--nav-tone) 34%, #ffffff);
     box-shadow:
       inset 0 0 0 1px color-mix(in srgb, var(--nav-tone) 38%, transparent),
       0 8px 18px color-mix(in srgb, var(--nav-tone) 10%, transparent);

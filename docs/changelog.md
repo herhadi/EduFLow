@@ -14,6 +14,11 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Merapikan layout desktop `/teacher/dashboard`: ringkasan agenda dibuat lebih simetris dan aksi lanjutan diisi beberapa card relevan agar grid tidak terlihat kosong.
 - Membersihkan shortcut dashboard statis yang menduplikasi navbar utama; card yang mengulang menu langsung diubah menjadi info non-clickable atau dihapus, sementara link ke menu tersembunyi `Lainnya`/`Setting` tetap dipertahankan.
 - Memperbarui style bottom navbar mobile dengan container blur, tone warna per item, icon bubble, badge notifikasi yang lebih rapi, dan active state yang tetap terbaca di light/dark mode.
+- Menyesuaikan active state bottom navbar agar frame ikon+label tetap seragam lebarnya antar item, bukan mengikuti panjang label.
+- Menampilkan badge notifikasi pada parent menu `Lainnya` untuk guru/wali kelas karena Inbox berada di dalam popover menu tersebut.
+- Merapikan menu titik tiga mobile topbar agar toggle tema dan tombol keluar tersusun vertikal dengan lebar menu yang konsisten.
+- Menaikkan z-index bottom navbar, popover `Lainnya`, dan menu titik tiga mobile agar selalu tampil di atas card halaman.
+- Merapikan dropdown titik tiga mobile agar toggle tema dan tombol keluar tetap menempel di bawah tombol pada semua lebar layar.
 
 ## 2026-07-16
 

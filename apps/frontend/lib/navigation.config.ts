@@ -74,6 +74,7 @@ const teacherNavigation: NavigationItem[] = [
     href: '/teacher/profile',
     label: 'Lainnya',
     icon: '☰',
+    badge: 'notifications',
     children: [
       { href: '/teacher/teaching-plans', label: 'Perangkat', icon: '▤' },
       { href: '/teacher/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
@@ -91,6 +92,7 @@ const homeroomNavigation: NavigationItem[] = [
     href: '/teacher/profile',
     label: 'Lainnya',
     icon: '☰',
+    badge: 'notifications',
     children: [
       { href: '/homeroom/students', label: 'Kelas Binaan', icon: '☷' },
       { href: '/homeroom/leave-requests', label: 'Izin/Sakit', icon: '✓' },
