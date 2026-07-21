@@ -119,7 +119,7 @@ export function OperationsCenter() {
         ) : null}
 
         <div className="mt-5 rounded-2xl border border-sky-100 bg-sky-50/80 p-3 shadow-sm dark:border-sky-400/20 dark:bg-sky-400/10 dark:shadow-none sm:p-4">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             <MetricCard
               label="CPU Load"
               tone={dashboard.runtime.cpu.loadPercent >= 80 ? 'danger' : dashboard.runtime.cpu.loadPercent >= 60 ? 'warning' : 'info'}
@@ -141,14 +141,9 @@ export function OperationsCenter() {
               value={formatNumber(dashboard.requests.requestsPerMinute)}
             />
             <MetricCard
-              label="4xx/menit"
-              tone={(dashboard.requests.clientErrorsPerMinute ?? 0) > 0 ? 'warning' : 'info'}
-              value={formatNumber(dashboard.requests.clientErrorsPerMinute ?? 0)}
-            />
-            <MetricCard
-              label="5xx/menit"
-              tone={(dashboard.requests.serverErrorsPerMinute ?? 0) > 0 ? 'danger' : 'info'}
-              value={formatNumber(dashboard.requests.serverErrorsPerMinute ?? 0)}
+              label="Error/menit"
+              tone={(dashboard.requests.serverErrorsPerMinute ?? 0) > 0 ? 'danger' : (dashboard.requests.errorsPerMinute ?? 0) > 0 ? 'warning' : 'info'}
+              value={formatNumber(dashboard.requests.errorsPerMinute ?? 0)}
             />
             <MetricCard
               label="Uptime"

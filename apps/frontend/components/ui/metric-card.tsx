@@ -26,7 +26,7 @@ export function MetricCard({
         toneClass[tone],
       )}
     >
-      <p className="relative text-xs font-semibold leading-4 text-slate-600 dark:text-slate-200 sm:text-sm">{label}</p>
+      <p className="relative min-h-8 text-xs font-semibold leading-4 text-slate-600 dark:text-slate-200 sm:text-sm">{label}</p>
       <strong className="relative mt-1.5 block text-2xl font-black sm:text-3xl">
         {formatNumber(value)}
       </strong>

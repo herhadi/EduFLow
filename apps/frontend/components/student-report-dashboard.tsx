@@ -106,25 +106,16 @@ export function StudentReportDashboard() {
   return (
     <section className="mt-8 space-y-5">
       <div className="rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
-              Report Siswa
-            </p>
-            <h2 className="mt-1 text-2xl font-black text-slate-900 dark:text-[var(--text)]">
-              Presensi dan Risiko Siswa
-            </h2>
-            <p className="mt-1 text-sm text-muted">
-              Nilai harian akan tampil di detail siswa setelah modul penilaian aktif.
-            </p>
-          </div>
-          <button
-            className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white transition hover:bg-brand-700"
-            onClick={() => void loadReport()}
-            type="button"
-          >
-            Terapkan Filter
-          </button>
+        <div>
+          <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
+            Report Siswa
+          </p>
+          <h2 className="mt-1 text-2xl font-black text-slate-900 dark:text-[var(--text)]">
+            Presensi dan Risiko Siswa
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            Nilai harian akan tampil di detail siswa setelah modul penilaian aktif.
+          </p>
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-6">
@@ -188,6 +179,15 @@ export function StudentReportDashboard() {
               <option value="LOW">Rendah</option>
             </select>
           </label>
+          <div className="md:col-span-2 md:col-start-5">
+            <button
+              className="min-h-11 w-full rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white transition hover:bg-brand-700"
+              onClick={() => void loadReport()}
+              type="button"
+            >
+              Terapkan Filter
+            </button>
+          </div>
         </div>
       </div>
 
