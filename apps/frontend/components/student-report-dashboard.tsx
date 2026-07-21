@@ -118,8 +118,8 @@ export function StudentReportDashboard() {
           </p>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-6">
-          <label className="grid gap-2 text-xs font-black text-slate-700 dark:text-[var(--text-soft)] md:col-span-2">
+        <div className="mt-5 grid gap-3 md:grid-cols-[minmax(7rem,0.8fr)_repeat(4,minmax(0,1fr))_minmax(10rem,12rem)]">
+          <label className="grid gap-2 text-xs font-black text-slate-700 dark:text-[var(--text-soft)]">
             Kelas
             <select
               className="min-w-0 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]"
@@ -179,7 +179,7 @@ export function StudentReportDashboard() {
               <option value="LOW">Rendah</option>
             </select>
           </label>
-          <div className="md:col-span-2 md:col-start-5">
+          <div className="self-end">
             <button
               className="min-h-11 w-full rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white transition hover:bg-brand-700"
               onClick={() => void loadReport()}

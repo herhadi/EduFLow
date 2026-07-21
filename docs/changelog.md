@@ -8,7 +8,7 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 
 - Menambahkan radius bawah halus pada header aplikasi mobile agar visualnya selaras dengan bottom navbar tanpa membuat header terasa seperti card besar.
 - Memperjelas monitoring traffic API root ops dengan mempertahankan ringkasan `Error/menit` dan menampilkan detail error API terbaru, termasuk pemisahan 4xx/5xx.
-- Merapikan report siswa KS agar tombol `Terapkan Filter` berada bersama pilihan filter, serta menyamakan tinggi label metric card agar nilai KBM desktop tetap sejajar.
+- Merapikan report siswa KS agar dropdown kelas lebih proporsional, tombol `Terapkan Filter` sejajar di kanan baris filter, serta menyamakan tinggi label metric card agar nilai KBM desktop tetap sejajar.
 
 ## 2026-07-17
 
