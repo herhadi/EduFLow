@@ -33,8 +33,11 @@ export const emptyOperationsDashboard: OperationsDashboard = {
     windowSeconds: 300,
     requestsPerMinute: 0,
     errorsPerMinute: 0,
+    clientErrorsPerMinute: 0,
+    serverErrorsPerMinute: 0,
     averageDurationMs: 0,
     recentRequests: 0,
+    recentErrors: [],
   },
   queueTotals: {
     waiting: 0,

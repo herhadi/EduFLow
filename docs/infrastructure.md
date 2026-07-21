@@ -143,15 +143,22 @@ Halaman operasional root memakai endpoint `GET /api/operations/dashboard`.
 
 Informasi utama:
 
-- Ringkasan runtime paling atas: CPU load, RAM server, RAM backend, request/menit, error/menit, dan uptime.
+- Ringkasan runtime paling atas: CPU load, RAM server, RAM backend, request/menit, 4xx/menit, 5xx/menit, dan uptime.
 - Health service: database, Redis, queue, worker, notification, dan storage R2.
 - Runtime backend: uptime proses, CPU load, RAM server, dan RAM proses backend.
-- Traffic API: request per menit, error per menit, rata-rata durasi request, dan jumlah request pada window 5 menit.
+- Traffic API: request per menit, error 4xx/5xx per menit, rata-rata durasi request, jumlah request pada window 5 menit, dan daftar error API terbaru.
 - Queue: waiting, active, failed, delayed, dan completed untuk reminder guru, attendance summary, notification send, dan report daily.
 - Failed job: daftar job gagal terbaru, payload, retry, dan discard.
 - Storage: jumlah file dan ukuran bucket R2 bila kredensial Cloudflare tersedia.
 
 Metrik request disimpan in-memory oleh backend melalui `RequestMetricsService`. Data ini ringan dan cukup untuk support teknis cepat, tetapi akan reset saat container backend restart. Untuk kebutuhan multi sekolah yang lebih besar, metrik jangka panjang dapat dipindah ke stack observability khusus seperti Prometheus/Grafana atau log aggregator.
+
+Error API dibedakan agar root tidak salah membaca kondisi:
+
+- 4xx: request ditolak, tidak valid, token/session bermasalah, akses ditolak, atau endpoint tidak ditemukan.
+- 5xx: error backend yang perlu dicek lebih cepat melalui log dan failed job terkait.
+
+Panel error terbaru menampilkan method, path, status code, durasi, waktu, dan pesan singkat dari interceptor backend.
 
 ### Warna Status
 

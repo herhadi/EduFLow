@@ -119,7 +119,7 @@ export function OperationsCenter() {
         ) : null}
 
         <div className="mt-5 rounded-2xl border border-sky-100 bg-sky-50/80 p-3 shadow-sm dark:border-sky-400/20 dark:bg-sky-400/10 dark:shadow-none sm:p-4">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
             <MetricCard
               label="CPU Load"
               tone={dashboard.runtime.cpu.loadPercent >= 80 ? 'danger' : dashboard.runtime.cpu.loadPercent >= 60 ? 'warning' : 'info'}
@@ -141,9 +141,14 @@ export function OperationsCenter() {
               value={formatNumber(dashboard.requests.requestsPerMinute)}
             />
             <MetricCard
-              label="Error/menit"
-              tone={dashboard.requests.errorsPerMinute > 0 ? 'danger' : 'info'}
-              value={formatNumber(dashboard.requests.errorsPerMinute)}
+              label="4xx/menit"
+              tone={(dashboard.requests.clientErrorsPerMinute ?? 0) > 0 ? 'warning' : 'info'}
+              value={formatNumber(dashboard.requests.clientErrorsPerMinute ?? 0)}
+            />
+            <MetricCard
+              label="5xx/menit"
+              tone={(dashboard.requests.serverErrorsPerMinute ?? 0) > 0 ? 'danger' : 'info'}
+              value={formatNumber(dashboard.requests.serverErrorsPerMinute ?? 0)}
             />
             <MetricCard
               label="Uptime"
@@ -196,7 +201,7 @@ export function OperationsCenter() {
           <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">
             <p className="font-black text-slate-900 dark:text-[var(--text)]">Traffic API</p>
             <p className="mt-1">
-              {formatNumber(dashboard.requests.recentRequests)} request dalam {Math.round(dashboard.requests.windowSeconds / 60)} menit terakhir · rata-rata {dashboard.requests.averageDurationMs} ms.
+              {formatNumber(dashboard.requests.recentRequests)} request dalam {Math.round(dashboard.requests.windowSeconds / 60)} menit terakhir · rata-rata {dashboard.requests.averageDurationMs} ms · error {formatNumber(dashboard.requests.errorsPerMinute ?? 0)}/menit.
             </p>
           </div>
           <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">
@@ -217,6 +222,48 @@ export function OperationsCenter() {
           {dashboard.storageSummary ? (
             <p className="mt-1">Bucket <strong>{dashboard.storageSummary.bucket}</strong> · <strong>{formatNumber(dashboard.storageSummary.objectCount)}</strong> file · <strong>{formatBytes(dashboard.storageSummary.totalSizeBytes)}</strong>{dashboard.storageSummary.isPartial ? ' (minimum, pemindaian dibatasi 10.000 file)' : ''}</p>
           ) : <p className="mt-1 text-amber-700 dark:text-amber-200">{dashboard.storageError ?? 'Storage aktif, tetapi detail penggunaan belum tersedia.'}</p>}
+        </div>
+        <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="font-black text-slate-900 dark:text-[var(--text)]">Error API Terbaru</p>
+              <p className="mt-1 text-xs text-muted">
+                4xx biasanya akses/validasi/token, sedangkan 5xx perlu dicek sebagai error backend.
+              </p>
+            </div>
+            <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-slate-700 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]">
+              {formatNumber(dashboard.requests.recentErrors?.length ?? 0)} item
+            </span>
+          </div>
+          {dashboard.requests.recentErrors?.length ? (
+            <div className="mt-4 grid gap-2">
+              {dashboard.requests.recentErrors.map((error) => (
+                <article
+                  className="grid gap-2 rounded-lg border border-slate-200 bg-white p-3 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] sm:grid-cols-[auto_1fr_auto] sm:items-center"
+                  key={`${error.recordedAt}-${error.method}-${error.path}-${error.statusCode}`}
+                >
+                  <span className={`inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-black ${error.statusCode >= 500 ? 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-200' : 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200'}`}>
+                    {error.statusCode}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate font-black text-slate-900 dark:text-[var(--text)]">
+                      {error.method} {error.path}
+                    </p>
+                    <p className="mt-0.5 line-clamp-2 text-xs text-muted">
+                      {error.error || (error.statusCode >= 500 ? 'Error backend tanpa pesan detail.' : 'Request ditolak, tidak valid, atau tidak ditemukan.')}
+                    </p>
+                  </div>
+                  <p className="text-xs font-bold text-muted sm:text-right">
+                    {formatErrorTime(error.recordedAt)} · {formatNumber(error.durationMs)} ms
+                  </p>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-4 rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-sm font-bold text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100">
+              Belum ada error API dalam window monitoring.
+            </p>
+          )}
         </div>
       </div>
 
@@ -324,4 +371,11 @@ export function OperationsCenter() {
       ) : null}
     </section>
   );
+}
+
+function formatErrorTime(value: string) {
+  return new Date(value).toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }

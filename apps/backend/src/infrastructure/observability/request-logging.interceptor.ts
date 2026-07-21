@@ -44,6 +44,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
 
     this.requestMetrics.record({
       durationMs,
+      error: error?.message,
       method: request.method,
       path: request.originalUrl,
       statusCode: error?.status ?? 'OK',

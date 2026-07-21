@@ -161,8 +161,9 @@
     top: 0;
     z-index: 120;
     border-bottom: 1px solid var(--border);
-    background: color-mix(in srgb, var(--surface-solid) 82%, transparent);
-    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.05);
+    border-radius: 0 0 1.25rem 1.25rem;
+    background: color-mix(in srgb, var(--surface-solid) 86%, transparent);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
   }
 
   .surface-card {

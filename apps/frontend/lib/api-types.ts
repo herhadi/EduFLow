@@ -441,8 +441,18 @@ export interface OperationsDashboard {
     windowSeconds: number;
     requestsPerMinute: number;
     errorsPerMinute: number;
+    clientErrorsPerMinute: number;
+    serverErrorsPerMinute: number;
     averageDurationMs: number;
     recentRequests: number;
+    recentErrors: Array<{
+      durationMs: number;
+      error?: string;
+      method: string;
+      path: string;
+      recordedAt: string;
+      statusCode: number;
+    }>;
   };
   queueTotals: {
     waiting: number;

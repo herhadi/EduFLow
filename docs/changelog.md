@@ -4,6 +4,11 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis granular tetap dilacak melalui riwayat Git dan dokumen domain terkait.
 
+## 2026-07-21
+
+- Menambahkan radius bawah halus pada header aplikasi mobile agar visualnya selaras dengan bottom navbar tanpa membuat header terasa seperti card besar.
+- Memperjelas monitoring traffic API root ops dengan memisahkan error `4xx/menit` dan `5xx/menit`, serta menampilkan detail error API terbaru.
+
 ## 2026-07-17
 
 - Memperhalus transisi login mobile: setelah autentikasi berhasil halaman menahan status "Membuka beranda" dan memakai redirect `replace` ke dashboard role agar form login tidak sempat muncul lagi sebelum dashboard selesai dimuat.
