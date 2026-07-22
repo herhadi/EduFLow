@@ -6,6 +6,8 @@ export const notificationApi = {
     request<ApiResponse<NotificationLog[]>>('/notifications/sent'),
   getMyNotifications: () =>
     request<ApiResponse<NotificationLog[]>>('/notifications/mine'),
+  getMySentNotifications: () =>
+    request<ApiResponse<NotificationLog[]>>('/notifications/mine/sent'),
   markMyNotificationAsRead: (id: string) =>
     request<ApiResponse<NotificationLog>>(`/notifications/mine/${id}/read`, { method: 'PATCH' }),
   getFailedNotifications: () =>

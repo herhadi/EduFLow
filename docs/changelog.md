@@ -4,6 +4,12 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis granular tetap dilacak melalui riwayat Git dan dokumen domain terkait.
 
+## 2026-07-22
+
+- Menyeragamkan layout inbox semua role menjadi dua card: kategori di kiri dan isi notifikasi di kanan, dengan kategori standar seperti email: `Inbox`, `Terkirim`, dan `Gagal`.
+- Menambahkan daftar `Terkirim` personal untuk aksi guru/KS/orang tua yang menghasilkan notifikasi, termasuk badge `Dibaca` atau `Belum dibaca` berdasarkan `readAt` penerima.
+- Membatasi notifikasi izin/sakit siswa agar tidak masuk inbox Kepala Sekolah; alur review tetap berada pada operator sekolah dan wali kelas.
+
 ## 2026-07-21
 
 - Menambahkan radius bawah halus pada header aplikasi mobile agar visualnya selaras dengan bottom navbar tanpa membuat header terasa seperti card besar.

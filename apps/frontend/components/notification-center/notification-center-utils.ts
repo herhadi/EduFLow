@@ -1,4 +1,4 @@
-export type NotificationTab = 'inbox' | 'sent' | 'pending' | 'failed' | 'retry';
+export type NotificationTab = 'inbox' | 'sent' | 'failed';
 export type PersonalInboxRole = 'teacher' | 'principal' | 'parent';
 
 export const notificationTabs: Array<{ id: NotificationTab; label: string; description: string }> = [
@@ -13,19 +13,9 @@ export const notificationTabs: Array<{ id: NotificationTab; label: string; descr
     description: 'Riwayat notifikasi yang berhasil dikirim.',
   },
   {
-    id: 'pending',
-    label: 'Pending',
-    description: 'Notifikasi yang sedang menunggu diproses worker.',
-  },
-  {
     id: 'failed',
     label: 'Gagal',
     description: 'Notifikasi gagal yang perlu dicek operator.',
-  },
-  {
-    id: 'retry',
-    label: 'Retry',
-    description: 'Kirim ulang notifikasi gagal ke queue.',
   },
 ];
 
@@ -52,7 +42,6 @@ export function getPersonalNotificationLabel(
     if (templateKey?.startsWith('attendance.teacher.not-submitted')) return 'Belum Submit';
     if (templateKey?.startsWith('attendance.correction.')) return 'Koreksi Penting';
     if (templateKey?.startsWith('teacher.substitute.')) return 'Guru Pengganti';
-    if (templateKey?.startsWith('student-leave.')) return 'Izin/Sakit Siswa';
     if (templateKey?.startsWith('school.summary.')) return 'Ringkasan Sekolah';
     if (templateKey?.startsWith('academic.announcement.')) return 'Pengumuman Akademik';
     return 'Informasi Kepala Sekolah';

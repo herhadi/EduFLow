@@ -6,7 +6,7 @@ import {
   api,
   type NotificationLog,
 } from '../lib/api';
-import { getNotificationAccess, type NotificationAccess } from '../lib/navigation.config';
+import { getNotificationAccess } from '../lib/navigation.config';
 import { dispatchNotificationChanged } from '../lib/notifications';
 import { getCurrentSessionUser } from '../lib/session';
 import {
@@ -27,46 +27,41 @@ export function NotificationCenter() {
   const [personalInboxRole, setPersonalInboxRole] = useState<
     'teacher' | 'principal' | 'parent' | null
   >(null);
-  const [notificationAccess, setNotificationAccess] = useState<NotificationAccess | null>(null);
   const [myNotifications, setMyNotifications] = useState<NotificationLog[]>([]);
+  const [mySentNotifications, setMySentNotifications] = useState<NotificationLog[]>([]);
   const [activeTab, setActiveTab] = useState<NotificationTab>('inbox');
   const [loadState, setLoadState] = useState<LoadState>('idle');
-  const [actionState, setActionState] = useState<LoadState>('idle');
-  const [message, setMessage] = useState<string | null>(null);
   const [sent, setSent] = useState<NotificationLog[]>([]);
-  const [pending, setPending] = useState<NotificationLog[]>([]);
   const [failed, setFailed] = useState<NotificationLog[]>([]);
-  const [retry, setRetry] = useState<NotificationLog[]>([]);
 
   async function loadNotifications() {
     setLoadState('loading');
 
     try {
       const access = getNotificationAccess(getCurrentSessionUser()?.roles ?? []);
-      setNotificationAccess(access);
       setPersonalInboxRole(access.mode === 'personal' ? access.audience : null);
 
       if (access.mode === 'personal') {
-        const response = await api.getMyNotifications();
+        const [response, sentResponse] = await Promise.all([
+          api.getMyNotifications(),
+          api.getMySentNotifications(),
+        ]);
         setMyNotifications(response.data);
+        setMySentNotifications(sentResponse.data);
         setLoadState('success');
         return;
       }
 
-      const [mineResponse, sentResponse, pendingResponse, failedResponse, retryResponse] =
+      const [mineResponse, sentResponse, failedResponse] =
         await Promise.all([
           api.getMyNotifications(),
           api.getSentNotifications(),
-          api.getPendingNotifications(),
           api.getFailedNotifications(),
-          access.canRetry ? api.getRetryNotifications() : Promise.resolve({ data: [] }),
         ]);
 
       setMyNotifications(mineResponse.data);
       setSent(sentResponse.data);
-      setPending(pendingResponse.data);
       setFailed(failedResponse.data);
-      setRetry(retryResponse.data);
       setLoadState('success');
     } catch {
       setLoadState('error');
@@ -89,35 +84,18 @@ export function NotificationCenter() {
         loadState={loadState}
         onRefresh={loadNotifications}
         role={personalInboxRole}
+        sentItems={mySentNotifications}
       />
     );
   }
 
-  const visibleTabs = notificationAccess?.mode === 'operational' && !notificationAccess.canRetry
-    ? notificationTabs.filter((tab) => tab.id !== 'retry')
-    : notificationTabs;
-
-  async function handleRetry(notification: NotificationLog) {
-    setActionState('loading');
-    setMessage(null);
-
-    try {
-      const response = await api.retryNotification(notification.id);
-      setMessage(response.message ?? 'Retry berhasil dikirim ke queue.');
-      await loadNotifications();
-      setActiveTab('pending');
-      setActionState('success');
-    } catch {
-      setMessage('Retry gagal. Pastikan backend dan Redis berjalan.');
-      setActionState('error');
-    }
-  }
+  const visibleTabs = notificationTabs;
 
   return (
-    <section className="mt-6 grid min-w-0 gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
+    <section className="mt-6 grid min-w-0 gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
       <aside className="surface-card min-w-0 rounded-[2rem] p-4 sm:p-5">
         <p className="px-3 text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
-          Notifikasi
+          Kategori
         </p>
         <nav className="no-scrollbar mt-4 flex gap-2 overflow-x-auto lg:block lg:space-y-2 lg:overflow-visible">
           {visibleTabs.map((tab) => (
@@ -162,12 +140,6 @@ export function NotificationCenter() {
           </div>
         ) : null}
 
-        {message ? (
-          <p className="mt-5 rounded-xl bg-slate-50 p-3 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-200">
-            {message}
-          </p>
-        ) : null}
-
         <div className="mt-6 min-w-0">
           {activeTab === 'sent' ? <NotificationTable items={sent} /> : null}
           {activeTab === 'inbox' ? (
@@ -176,16 +148,8 @@ export function NotificationCenter() {
               onOpen={openOperationalNotification}
             />
           ) : null}
-          {activeTab === 'pending' ? <NotificationTable items={pending} /> : null}
           {activeTab === 'failed' ? (
             <NotificationTable items={failed} />
-          ) : null}
-          {activeTab === 'retry' && notificationAccess?.mode === 'operational' && notificationAccess.canRetry ? (
-            <NotificationTable
-              actionState={actionState}
-              items={retry}
-              onRetry={handleRetry}
-            />
           ) : null}
         </div>
       </Card>
@@ -201,15 +165,11 @@ export function NotificationCenter() {
       return sent.length;
     }
 
-    if (tab === 'pending') {
-      return pending.length;
-    }
-
     if (tab === 'failed') {
       return failed.length;
     }
 
-    return retry.length;
+    return 0;
   }
 
   async function openOperationalNotification(item: NotificationLog) {

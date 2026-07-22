@@ -16,6 +16,14 @@ export class NotificationController {
     );
   }
 
+  @Get('mine/sent')
+  getMineSent(@Req() request: RequestWithUser) {
+    return this.notificationService.getMineSent(
+      request.user.id,
+      request.user.roles ?? [],
+    );
+  }
+
   @Patch('mine/:id/read')
   markMineAsRead(@Req() request: RequestWithUser, @Param('id') id: string) {
     return this.notificationService.markAsRead(

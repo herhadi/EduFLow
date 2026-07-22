@@ -44,16 +44,98 @@ export class NotificationService implements OnModuleInit {
     return ok(
       await this.prisma.notificationLog.findMany({
         where: {
-          OR: [
-            { recipientUserId: userId },
-            ...(scope.recipients.length && scope.allowedTemplates.length ? [{
-              recipient: { in: scope.recipients },
-              OR: scope.allowedTemplates.map((templateKey) => ({
-                templateKey: { startsWith: templateKey },
-              })),
+          AND: [
+            {
+              OR: [
+                { recipientUserId: userId },
+                ...(scope.recipients.length && scope.allowedTemplates.length ? [{
+                  recipient: { in: scope.recipients },
+                  OR: scope.allowedTemplates.map((templateKey) => ({
+                    templateKey: { startsWith: templateKey },
+                  })),
+                }] : []),
+              ],
+            },
+            ...(scope.blockedTemplates.length ? [{
+              NOT: {
+                OR: scope.blockedTemplates.map((templateKey) => ({
+                  templateKey: { startsWith: templateKey },
+                })),
+              },
             }] : []),
           ],
         },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+    );
+  }
+
+  async getMineSent(userId: string, roles: string[]) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { teacherProfile: { select: { id: true } } },
+    });
+    const entityFilters: Array<{ entityType: string; entityIds: string[]; templatePrefix: string }> = [];
+
+    if (roles.includes('guru') || roles.includes('wali_kelas')) {
+      const teacherId = user?.teacherProfile?.id;
+
+      if (teacherId) {
+        const teachingPlans = await this.prisma.teachingPlan.findMany({
+          where: { teacherId, deletedAt: null },
+          select: { id: true },
+        });
+
+        entityFilters.push({
+          entityType: 'TeachingPlan',
+          entityIds: teachingPlans.map((plan) => plan.id),
+          templatePrefix: 'teaching-plan.submitted',
+        });
+      }
+    }
+
+    if (roles.includes('kepala_sekolah')) {
+      const reviewedPlans = await this.prisma.teachingPlan.findMany({
+        where: { reviewedById: userId, deletedAt: null },
+        select: { id: true },
+      });
+
+      entityFilters.push({
+        entityType: 'TeachingPlan',
+        entityIds: reviewedPlans.map((plan) => plan.id),
+        templatePrefix: 'teaching-plan.',
+      });
+    }
+
+    if (roles.includes('orang_tua')) {
+      const leaveRequests = await this.prisma.studentLeaveRequest.findMany({
+        where: { requestedById: userId, deletedAt: null },
+        select: { id: true },
+      });
+
+      entityFilters.push({
+        entityType: 'StudentLeaveRequest',
+        entityIds: leaveRequests.map((request) => request.id),
+        templatePrefix: 'student-leave.requested',
+      });
+    }
+
+    const filters = entityFilters
+      .filter((filter) => filter.entityIds.length > 0)
+      .map((filter) => ({
+        entityType: filter.entityType,
+        entityId: { in: filter.entityIds },
+        templateKey: { startsWith: filter.templatePrefix },
+      }));
+
+    if (!filters.length) {
+      return ok([]);
+    }
+
+    return ok(
+      await this.prisma.notificationLog.findMany({
+        where: { OR: filters },
         orderBy: { createdAt: 'desc' },
         take: 100,
       }),
@@ -123,6 +205,9 @@ export class NotificationService implements OnModuleInit {
         : roles.includes('orang_tua')
           ? ['attendance.summary.', 'student-leave.', 'academic.announcement.']
           : [];
+    const blockedTemplates = roles.includes('kepala_sekolah')
+      ? ['student-leave.']
+      : [];
 
     if (roles.includes('orang_tua')) {
       const guardians = await this.prisma.guardian.findMany({
@@ -138,6 +223,7 @@ export class NotificationService implements OnModuleInit {
     return {
       recipients: [...new Set(recipients.filter((recipient): recipient is string => Boolean(recipient)))],
       allowedTemplates,
+      blockedTemplates,
     };
   }
 
@@ -292,10 +378,14 @@ export class NotificationService implements OnModuleInit {
   }
 
   private isPersonalNotification(
-    scope: { recipients: string[]; allowedTemplates: string[] },
+    scope: { recipients: string[]; allowedTemplates: string[]; blockedTemplates: string[] },
     userId: string,
     notification: { recipientUserId: string | null; recipient: string; templateKey: string | null },
   ) {
+    if (scope.blockedTemplates.some((templateKey) => notification.templateKey?.startsWith(templateKey))) {
+      return false;
+    }
+
     return notification.recipientUserId === userId || (
       scope.recipients.includes(notification.recipient) &&
       scope.allowedTemplates.some((templateKey) => notification.templateKey?.startsWith(templateKey))
