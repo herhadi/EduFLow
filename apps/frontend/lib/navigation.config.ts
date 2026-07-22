@@ -15,6 +15,7 @@ export interface NavigationItem {
   badge?: 'notifications';
   children?: NavigationItem[];
   roles?: UserRole[];
+  tone?: 'amber' | 'blue' | 'cyan' | 'emerald' | 'violet';
 }
 
 export type NotificationAccess =
@@ -22,93 +23,94 @@ export type NotificationAccess =
   | { mode: 'operational'; canRetry: boolean };
 
 const rootNavigation: NavigationItem[] = [
-  { href: '/system/dashboard', label: 'Sistem', icon: '⌂' },
-  { href: '/operations', label: 'Ops', icon: '●' },
-  { href: '/system/access', label: 'Akses', icon: '⚙' },
-  { href: '/system/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
+  { href: '/system/dashboard', label: 'Sistem', icon: 'home' },
+  { href: '/operations', label: 'Ops', icon: 'activity' },
+  { href: '/system/access', label: 'Akses', icon: 'access' },
+  { href: '/system/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
   {
     href: '/system/profile',
     label: 'Setting',
-    icon: '☰',
+    icon: 'more',
     children: [
       { href: '/system/telegram', label: 'Telegram', icon: 'telegram' },
-      { href: '/system/audit', label: 'Audit', icon: '◇' },
-      { href: '/system/profile', label: 'Profil', icon: '👤' },
+      { href: '/system/audit', label: 'Audit', icon: 'audit' },
+      { href: '/system/profile', label: 'Profil', icon: 'profile' },
     ],
   },
 ];
 
 const operatorNavigation: NavigationItem[] = [
-  { href: '/admin/dashboard', label: 'Beranda', icon: '⌂' },
-  { href: '/admin/data', label: 'Master', icon: '☷' },
-  { href: '/admin/schedules', label: 'Jadwal', icon: '▦' },
-  { href: '/admin/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
-  { href: '/admin/profile', label: 'Profil', icon: '👤' },
+  { href: '/admin/dashboard', label: 'Beranda', icon: 'home' },
+  { href: '/admin/data', label: 'Master', icon: 'database' },
+  { href: '/admin/schedules', label: 'Jadwal', icon: 'schedule' },
+  { href: '/admin/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
+  { href: '/admin/profile', label: 'Profil', icon: 'profile' },
 ];
 
 const principalNavigation: NavigationItem[] = [
-  { href: '/principal/dashboard', label: 'Beranda', icon: '⌂' },
-  { href: '/principal/kbm', label: 'KBM', icon: '▦' },
-  { href: '/principal/student-reports', label: 'Siswa', icon: '▣' },
-  { href: '/principal/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
+  { href: '/principal/dashboard', label: 'Beranda', icon: 'home' },
+  { href: '/principal/kbm', label: 'KBM', icon: 'kbm', tone: 'amber' },
+  { href: '/principal/student-reports', label: 'Siswa', icon: 'students', tone: 'cyan' },
+  { href: '/principal/notifications', label: 'Pesan', icon: 'message', badge: 'notifications', tone: 'violet' },
   {
     href: '/principal/profile',
     label: 'Lainnya',
-    icon: '☰',
+    icon: 'more',
+    tone: 'emerald',
     children: [
-      { href: '/principal/teacher-performance', label: 'Guru', icon: '◈' },
-      { href: '/principal/review', label: 'Review', icon: '✓' },
-      { href: '/principal/exports', label: 'Export', icon: '⇩' },
-      { href: '/principal/audit', label: 'Audit', icon: '◇' },
-      { href: '/principal/profile', label: 'Profil', icon: '👤' },
+      { href: '/principal/teacher-performance', label: 'Guru', icon: 'teacher', tone: 'blue' },
+      { href: '/principal/review', label: 'Review', icon: 'review' },
+      { href: '/principal/exports', label: 'Export', icon: 'download' },
+      { href: '/principal/audit', label: 'Audit', icon: 'audit' },
+      { href: '/principal/profile', label: 'Profil', icon: 'profile' },
     ],
   },
 ];
 
 const teacherNavigation: NavigationItem[] = [
-  { href: '/teacher/dashboard', label: 'Beranda', icon: '⌂' },
-  { href: '/teacher/schedules', label: 'Jadwal', icon: '▦' },
-  { href: '/teacher/attendance', label: 'Presensi', icon: '✓' },
-  { href: '/teacher/assessments', label: 'Nilai', icon: '▣' },
+  { href: '/teacher/dashboard', label: 'Beranda', icon: 'home' },
+  { href: '/teacher/schedules', label: 'Jadwal', icon: 'schedule' },
+  { href: '/teacher/attendance', label: 'Presensi', icon: 'attendance' },
+  { href: '/teacher/assessments', label: 'Nilai', icon: 'grades' },
   {
     href: '/teacher/profile',
     label: 'Lainnya',
-    icon: '☰',
+    icon: 'more',
     badge: 'notifications',
     children: [
-      { href: '/teacher/teaching-plans', label: 'Perangkat', icon: '▤' },
-      { href: '/teacher/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
-      { href: '/teacher/profile', label: 'Profil', icon: '👤' },
+      { href: '/teacher/teaching-plans', label: 'Perangkat', icon: 'document' },
+      { href: '/teacher/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
+      { href: '/teacher/profile', label: 'Profil', icon: 'profile' },
     ],
   },
 ];
 
 const homeroomNavigation: NavigationItem[] = [
-  { href: '/teacher/dashboard', label: 'Beranda', icon: '⌂' },
-  { href: '/teacher/schedules', label: 'Jadwal', icon: '▦' },
-  { href: '/teacher/attendance', label: 'Presensi', icon: '✓' },
-  { href: '/teacher/assessments', label: 'Nilai', icon: '▣' },
+  { href: '/teacher/dashboard', label: 'Beranda', icon: 'home' },
+  { href: '/teacher/schedules', label: 'Jadwal', icon: 'schedule' },
+  { href: '/teacher/attendance', label: 'Presensi', icon: 'attendance' },
+  { href: '/teacher/assessments', label: 'Nilai', icon: 'grades' },
   {
     href: '/teacher/profile',
     label: 'Lainnya',
-    icon: '☰',
+    icon: 'more',
     badge: 'notifications',
     children: [
-      { href: '/homeroom/students', label: 'Kelas Binaan', icon: '☷' },
-      { href: '/homeroom/leave-requests', label: 'Izin/Sakit', icon: '✓' },
-      { href: '/teacher/teaching-plans', label: 'Perangkat', icon: '▤' },
-      { href: '/teacher/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
-      { href: '/teacher/profile', label: 'Profil', icon: '👤' },
+      { href: '/homeroom/students', label: 'Kelas Binaan', icon: 'students' },
+      { href: '/homeroom/leave-requests', label: 'Izin/Sakit', icon: 'permit' },
+      { href: '/teacher/teaching-plans', label: 'Perangkat', icon: 'document' },
+      { href: '/teacher/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
+      { href: '/teacher/profile', label: 'Profil', icon: 'profile' },
     ],
   },
 ];
 
 const parentNavigation: NavigationItem[] = [
-  { href: '/parent/dashboard', label: 'Beranda', icon: '⌂' },
-  { href: '/parent/reports', label: 'Riwayat', icon: '▣' },
-  { href: '/parent/permits', label: 'Izin', icon: '✓' },
-  { href: '/parent/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
-  { href: '/parent/profile', label: 'Profil', icon: '👤' },
+  { href: '/parent/dashboard', label: 'Beranda', icon: 'home' },
+  { href: '/parent/reports', label: 'Riwayat', icon: 'history' },
+  { href: '/parent/permits', label: 'Izin', icon: 'permit' },
+  { href: '/parent/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
+  { href: '/parent/profile', label: 'Profil', icon: 'profile' },
 ];
 
 const roleNavigation: Record<UserRole, NavigationItem[]> = {
@@ -118,19 +120,19 @@ const roleNavigation: Record<UserRole, NavigationItem[]> = {
   guru: teacherNavigation,
   wali_kelas: homeroomNavigation,
   tu: [
-    { href: '/tu/dashboard', label: 'Home', icon: '⌂' },
-    { href: '/tu/data', label: 'Data', icon: '☷' },
-    { href: '/tu/import-data', label: 'Import', icon: '⇧' },
-    { href: '/tu/reports', label: 'Report', icon: '▣' },
-    { href: '/tu/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
-    { href: '/tu/profile', label: 'Profil', icon: '👤' },
+    { href: '/tu/dashboard', label: 'Home', icon: 'home' },
+    { href: '/tu/data', label: 'Data', icon: 'database' },
+    { href: '/tu/import-data', label: 'Import', icon: 'upload' },
+    { href: '/tu/reports', label: 'Report', icon: 'report' },
+    { href: '/tu/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
+    { href: '/tu/profile', label: 'Profil', icon: 'profile' },
   ],
   bk: [
-    { href: '/bk/dashboard', label: 'Home', icon: '⌂' },
-    { href: '/bk/students', label: 'Siswa', icon: '☷' },
-    { href: '/bk/reports', label: 'Laporan', icon: '▣' },
-    { href: '/bk/notifications', label: 'Inbox', icon: '✉', badge: 'notifications' },
-    { href: '/bk/profile', label: 'Profil', icon: '👤' },
+    { href: '/bk/dashboard', label: 'Home', icon: 'home' },
+    { href: '/bk/students', label: 'Siswa', icon: 'students' },
+    { href: '/bk/reports', label: 'Laporan', icon: 'report' },
+    { href: '/bk/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
+    { href: '/bk/profile', label: 'Profil', icon: 'profile' },
   ],
   orang_tua: parentNavigation,
 };

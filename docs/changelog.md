@@ -9,6 +9,9 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Menyeragamkan layout inbox semua role menjadi dua card: kategori di kiri dan isi notifikasi di kanan, dengan kategori standar seperti email: `Inbox`, `Terkirim`, dan `Gagal`.
 - Menambahkan daftar `Terkirim` personal untuk aksi guru/KS/orang tua yang menghasilkan notifikasi, termasuk badge `Dibaca` atau `Belum dibaca` berdasarkan `readAt` penerima.
 - Membatasi notifikasi izin/sakit siswa agar tidak masuk inbox Kepala Sekolah; alur review tetap berada pada operator sekolah dan wali kelas.
+- Mengganti label bottom navbar `Inbox` menjadi `Pesan` untuk semua role tanpa mengubah route dan badge notifikasi.
+- Mengganti simbol bottom navbar menjadi ikon lucide yang lebih representatif untuk siswa, guru, KBM, riwayat, jadwal, nilai, laporan, pesan, dan menu lainnya; ikon guru dibedakan dari ikon profil, dan KBM dibedakan dari Review.
+- Membedakan tone warna bottom navbar KS untuk `KBM`, `Siswa`, `Pesan`, `Lainnya`, dan `Guru` agar tidak saling tabrakan di mobile.
 
 ## 2026-07-21
 

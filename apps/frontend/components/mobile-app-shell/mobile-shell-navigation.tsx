@@ -1,5 +1,27 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import {
+  Activity,
+  BarChart3,
+  BookOpen,
+  CalendarDays,
+  CheckSquare,
+  ClipboardCheck,
+  Database,
+  Download,
+  FileCheck2,
+  FileText,
+  History,
+  Home,
+  Mail,
+  MoreHorizontal,
+  Presentation,
+  ShieldCheck,
+  Upload,
+  UserCog,
+  UserRound,
+  UsersRound,
+} from 'lucide-react';
 import { api } from '../../lib/api';
 import { cn } from '../../lib/cn';
 import {
@@ -189,7 +211,7 @@ export function BottomNavigation({
             children: item.children,
           });
           const open = openMoreHref === item.href;
-          const toneClass = getBottomNavToneClass(index);
+          const toneClass = getBottomNavToneClass(index, item.tone);
 
           return (
             <div className="relative" key={item.href}>
@@ -277,19 +299,20 @@ function MoreNavigationMenu({
   return (
     <div className="mobile-bottom-nav-menu">
       <div className="grid gap-1">
-        {items.map((child) => {
+        {items.map((child, index) => {
           const active = isBottomNavItemActive({
             href: child.href,
             pathname,
             section,
             children: child.children,
           });
+          const itemToneClass = child.tone ? getBottomNavToneClass(index, child.tone) : toneClass;
 
           return (
             <Link
               className={cn(
                 'mobile-bottom-nav-menu-item',
-                toneClass,
+                itemToneClass,
                 active && 'mobile-bottom-nav-menu-item-active',
               )}
               href={child.href}
@@ -308,7 +331,7 @@ function MoreNavigationMenu({
   );
 }
 
-function getBottomNavToneClass(index: number) {
+function getBottomNavToneClass(index: number, tone?: NavigationItem['tone']) {
   const tones = [
     'mobile-bottom-nav-tone-blue',
     'mobile-bottom-nav-tone-emerald',
@@ -317,10 +340,20 @@ function getBottomNavToneClass(index: number) {
     'mobile-bottom-nav-tone-violet',
   ];
 
+  if (tone) {
+    return `mobile-bottom-nav-tone-${tone}`;
+  }
+
   return tones[index % tones.length];
 }
 
 function NavigationIcon({ icon }: { icon?: string }) {
+  const Icon = icon ? navigationIcons[icon] : null;
+
+  if (Icon) {
+    return <Icon aria-hidden="true" className="size-4" strokeWidth={2.4} />;
+  }
+
   if (icon === 'telegram') {
     return (
       <svg
@@ -348,3 +381,28 @@ function NavigationIcon({ icon }: { icon?: string }) {
 
   return <>{icon}</>;
 }
+
+const navigationIcons: Record<string, typeof Home> = {
+  access: UserCog,
+  activity: Activity,
+  attendance: CheckSquare,
+  audit: ShieldCheck,
+  'clipboard-check': ClipboardCheck,
+  database: Database,
+  document: FileText,
+  download: Download,
+  grades: BarChart3,
+  history: History,
+  home: Home,
+  kbm: BookOpen,
+  message: Mail,
+  more: MoreHorizontal,
+  permit: FileCheck2,
+  profile: UserRound,
+  report: BarChart3,
+  review: ClipboardCheck,
+  schedule: CalendarDays,
+  students: UsersRound,
+  teacher: Presentation,
+  upload: Upload,
+};
