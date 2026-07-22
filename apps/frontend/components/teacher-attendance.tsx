@@ -10,8 +10,10 @@ import {
   AttendanceSummary,
 } from './teacher-attendance/attendance-editor-sections';
 import {
+  formatClassPhotoSize,
   getChecklistLabel,
   getToday,
+  prepareClassPhotoForUpload,
   type AttendanceMode,
 } from './teacher-attendance/teacher-attendance-utils';
 import { Button } from './ui/button';
@@ -25,6 +27,7 @@ export function TeacherAttendance() {
   const [agendas, setAgendas] = useState<DailyAgenda[]>([]);
   const [attendance, setAttendance] = useState<Attendance | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
+  const [photoInfo, setPhotoInfo] = useState('');
   const [saving, setSaving] = useState(false);
   const [mode, setMode] = useState<AttendanceMode>('list');
   const [page, setPage] = useState(1);
@@ -105,6 +108,7 @@ export function TeacherAttendance() {
       toast.success('Presensi tersimpan. Ringkasan kehadiran diproses untuk wali murid.');
       setAttendance(null);
       setPhoto(null);
+      setPhotoInfo('');
       await load();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Presensi gagal disimpan.');
@@ -126,6 +130,31 @@ export function TeacherAttendance() {
     );
   }
 
+  async function handlePhotoChange(file?: File) {
+    if (!file) {
+      setPhoto(null);
+      setPhotoInfo('');
+      setChecklist((current) => ({ ...current, classPhotoDone: false }));
+      return;
+    }
+
+    try {
+      const prepared = await prepareClassPhotoForUpload(file);
+      setPhoto(prepared);
+      setPhotoInfo(
+        prepared.size < file.size
+          ? `Dikompresi dari ${formatClassPhotoSize(file.size)} menjadi ${formatClassPhotoSize(prepared.size)}.`
+          : `Ukuran foto ${formatClassPhotoSize(prepared.size)}.`,
+      );
+      setChecklist((current) => ({ ...current, classPhotoDone: true }));
+    } catch (error) {
+      setPhoto(null);
+      setPhotoInfo('');
+      setChecklist((current) => ({ ...current, classPhotoDone: Boolean(attendance?.classPhotoName) }));
+      toast.error(error instanceof Error ? error.message : 'Foto kelas gagal disiapkan.');
+    }
+  }
+
   if (attendance) {
     const selectedItem = attendance.items.find((item) => item.id === selectedItemId) ?? attendance.items[0];
     const canSubmit = Boolean(
@@ -141,19 +170,24 @@ export function TeacherAttendance() {
         <AttendanceHeader
           classPhotoName={attendance.classPhotoName}
           onPickPhoto={() => cameraRef.current?.click()}
-          photoName={photo?.name}
+          photoName={photo ? `${photo.name} (${formatClassPhotoSize(photo.size)})` : undefined}
         />
         <input
           accept="image/jpeg,image/png,image/webp"
           capture="environment"
           className="sr-only"
           onChange={(event) => {
-            setPhoto(event.target.files?.[0] ?? null);
-            setChecklist((current) => ({ ...current, classPhotoDone: Boolean(event.target.files?.[0]) }));
+            void handlePhotoChange(event.target.files?.[0]);
+            event.target.value = '';
           }}
           ref={cameraRef}
           type="file"
         />
+        {photoInfo ? (
+          <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-100">
+            {photoInfo}
+          </p>
+        ) : null}
 
         <SurfaceCard>
           <div>

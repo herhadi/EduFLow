@@ -32,7 +32,7 @@ export class AttendanceController {
   @RequirePermissions(PERMISSIONS.ATTENDANCE_MANAGE)
   @Post(':id/class-photo')
   @UseInterceptors(FileInterceptor('file', {
-    limits: { fileSize: 10 * 1024 * 1024 },
+    limits: { fileSize: 1024 * 1024 },
     fileFilter: (_request, file, callback) => {
       const supported = ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype);
       callback(supported ? null : new BadRequestException('Foto kelas harus JPEG, PNG, atau WebP'), supported);

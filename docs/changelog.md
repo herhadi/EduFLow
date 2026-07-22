@@ -4,6 +4,11 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis granular tetap dilacak melalui riwayat Git dan dokumen domain terkait.
 
+## 2026-07-23
+
+- Menyiapkan agenda UAT hari ini untuk skenario presensi ulang, termasuk agenda khusus `UAT Foto Kelas` agar guru bisa menguji pengambilan foto kelas dari browser HP.
+- Menambahkan kompresi foto kelas di browser sebelum upload dengan target di bawah 1 MB, menampilkan informasi ukuran hasil kompresi, dan membatasi upload backend maksimal 1 MB.
+
 ## 2026-07-22
 
 - Menyeragamkan layout inbox semua role menjadi dua card: kategori di kiri dan isi notifikasi di kanan, dengan kategori standar seperti email: `Inbox`, `Terkirim`, dan `Gagal`.
