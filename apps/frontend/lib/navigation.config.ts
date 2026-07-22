@@ -15,7 +15,6 @@ export interface NavigationItem {
   badge?: 'notifications';
   children?: NavigationItem[];
   roles?: UserRole[];
-  tone?: 'amber' | 'blue' | 'cyan' | 'emerald' | 'violet';
 }
 
 export type NotificationAccess =
@@ -49,16 +48,15 @@ const operatorNavigation: NavigationItem[] = [
 
 const principalNavigation: NavigationItem[] = [
   { href: '/principal/dashboard', label: 'Beranda', icon: 'home' },
-  { href: '/principal/kbm', label: 'KBM', icon: 'kbm', tone: 'amber' },
-  { href: '/principal/student-reports', label: 'Siswa', icon: 'students', tone: 'cyan' },
-  { href: '/principal/notifications', label: 'Pesan', icon: 'message', badge: 'notifications', tone: 'violet' },
+  { href: '/principal/kbm', label: 'KBM', icon: 'kbm' },
+  { href: '/principal/student-reports', label: 'Siswa', icon: 'students' },
+  { href: '/principal/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
   {
     href: '/principal/profile',
     label: 'Lainnya',
     icon: 'more',
-    tone: 'emerald',
     children: [
-      { href: '/principal/teacher-performance', label: 'Guru', icon: 'teacher', tone: 'blue' },
+      { href: '/principal/teacher-performance', label: 'Guru', icon: 'teacher' },
       { href: '/principal/review', label: 'Review', icon: 'review' },
       { href: '/principal/exports', label: 'Export', icon: 'download' },
       { href: '/principal/audit', label: 'Audit', icon: 'audit' },

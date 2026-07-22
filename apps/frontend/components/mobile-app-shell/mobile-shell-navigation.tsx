@@ -211,7 +211,7 @@ export function BottomNavigation({
             children: item.children,
           });
           const open = openMoreHref === item.href;
-          const toneClass = getBottomNavToneClass(index, item.tone);
+          const toneClass = getBottomNavToneClass(index);
 
           return (
             <div className="relative" key={item.href}>
@@ -306,7 +306,7 @@ function MoreNavigationMenu({
             section,
             children: child.children,
           });
-          const itemToneClass = child.tone ? getBottomNavToneClass(index, child.tone) : toneClass;
+          const itemToneClass = getBottomNavToneClass(index);
 
           return (
             <Link
@@ -331,7 +331,7 @@ function MoreNavigationMenu({
   );
 }
 
-function getBottomNavToneClass(index: number, tone?: NavigationItem['tone']) {
+function getBottomNavToneClass(index: number) {
   const tones = [
     'mobile-bottom-nav-tone-blue',
     'mobile-bottom-nav-tone-emerald',
@@ -339,10 +339,6 @@ function getBottomNavToneClass(index: number, tone?: NavigationItem['tone']) {
     'mobile-bottom-nav-tone-amber',
     'mobile-bottom-nav-tone-violet',
   ];
-
-  if (tone) {
-    return `mobile-bottom-nav-tone-${tone}`;
-  }
 
   return tones[index % tones.length];
 }

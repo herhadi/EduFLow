@@ -11,7 +11,7 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Membatasi notifikasi izin/sakit siswa agar tidak masuk inbox Kepala Sekolah; alur review tetap berada pada operator sekolah dan wali kelas.
 - Mengganti label bottom navbar `Inbox` menjadi `Pesan` untuk semua role tanpa mengubah route dan badge notifikasi.
 - Mengganti simbol bottom navbar menjadi ikon lucide yang lebih representatif untuk siswa, guru, KBM, riwayat, jadwal, nilai, laporan, pesan, dan menu lainnya; ikon guru dibedakan dari ikon profil, dan KBM dibedakan dari Review.
-- Membedakan tone warna bottom navbar KS untuk `KBM`, `Siswa`, `Pesan`, `Lainnya`, dan `Guru` agar tidak saling tabrakan di mobile.
+- Menetapkan aturan global tone bottom navbar berdasarkan posisi item 1-5, sehingga warna selalu berbeda walaupun isi menu tiap role tidak sama.
 
 ## 2026-07-21
 
