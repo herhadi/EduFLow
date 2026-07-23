@@ -172,6 +172,7 @@ export interface Schedule {
   class: SchoolClass;
   subject: Subject;
   teacher: Teacher;
+  timeSlot?: Pick<AcademicTimeSlot, 'id' | 'name' | 'periodNumber'> | null;
   revisions?: Array<{
     id: string;
     semesterId: string;
@@ -187,6 +188,7 @@ export interface Schedule {
     class: SchoolClass;
     subject: Subject;
     teacher: Teacher;
+    timeSlot?: Pick<AcademicTimeSlot, 'id' | 'name' | 'periodNumber'> | null;
     reason?: string | null;
   }>;
 }

@@ -152,6 +152,7 @@ export class TeacherPortalService {
         class: true,
         subject: true,
         teacher: true,
+        timeSlot: true,
         revisions: {
           include: { semester: true, class: true, subject: true, teacher: true, timeSlot: true },
           orderBy: { effectiveFrom: 'asc' },

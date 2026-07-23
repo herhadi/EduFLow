@@ -6,6 +6,8 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 
 ## 2026-07-23
 
+- Mengelompokkan tabel `/admin/schedules` menjadi collapsible per hari saat filter `Semua Hari` dengan default tertutup, sementara filter hari spesifik tetap memakai tabel biasa.
+- Menambahkan label kanan pada `Jadwal mengajar mingguan` guru dan menggabungkan jam pelajaran berurutan menjadi badge seperti `Jam ke-1, 2`.
 - Menyiapkan agenda UAT hari ini untuk skenario presensi ulang, termasuk agenda khusus `UAT Foto Kelas` agar guru bisa menguji pengambilan foto kelas dari browser HP.
 - Menambahkan kompresi foto kelas di browser sebelum upload dengan target di bawah 1 MB, menampilkan informasi ukuran hasil kompresi, dan membatasi upload backend maksimal 1 MB.
 - Memperkaya `/principal/kbm` agar KS dapat mengeklik kategori kelas hari ini dan melihat detail agenda: materi/catatan KBM, checklist presensi, kendala, guru pengganti, serta link foto kelas dari storage.
@@ -14,6 +16,7 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Menyesuaikan foto kelas agar object baru di storage memakai disposition `inline` untuk preview browser, serta menaikkan kualitas/dimensi kompresi agar ukuran hasil foto tidak terlalu kecil.
 - Merapikan detail Pantauan Kelas Hari Ini di desktop menjadi grid 4 kolom agar KS dapat memantau lebih banyak kelas tanpa scroll panjang.
 - Menambahkan kompresi otomatis foto profil di browser sebelum upload; backend tetap membatasi foto profil maksimal 2 MB sebagai pagar akhir.
+- Membuat koordinat lokasi foto kelas pada monitoring KS dapat diklik untuk membuka titik Google Maps.
 
 ## 2026-07-22
 

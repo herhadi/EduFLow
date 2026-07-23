@@ -412,7 +412,19 @@ function PrincipalClassDetailCard({
               </p>
             ) : null}
             <p className="mt-1 font-semibold text-muted">
-              Lokasi: {formatPhotoLocation(item)}
+              Lokasi:{' '}
+              {getPhotoMapsUrl(item) ? (
+                <a
+                  className="font-black text-brand-700 underline decoration-brand-300 underline-offset-2 transition hover:text-brand-900 dark:text-blue-100 dark:decoration-blue-300"
+                  href={getPhotoMapsUrl(item) ?? undefined}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {formatPhotoLocation(item)}
+                </a>
+              ) : (
+                formatPhotoLocation(item)
+              )}
             </p>
           </div>
           {item.classPhotoUrl ? (
@@ -473,6 +485,14 @@ function formatPhotoLocation(item: KbmTodayItem) {
 
   const accuracy = item.classPhotoAccuracy ? ` · akurasi ${Math.round(item.classPhotoAccuracy)} m` : '';
   return `${item.classPhotoLatitude.toFixed(6)}, ${item.classPhotoLongitude.toFixed(6)}${accuracy}`;
+}
+
+function getPhotoMapsUrl(item: KbmTodayItem) {
+  if (item.classPhotoLatitude === null || item.classPhotoLatitude === undefined || item.classPhotoLongitude === null || item.classPhotoLongitude === undefined) {
+    return null;
+  }
+
+  return `https://www.google.com/maps?q=${item.classPhotoLatitude},${item.classPhotoLongitude}`;
 }
 
 function MetricSection({
