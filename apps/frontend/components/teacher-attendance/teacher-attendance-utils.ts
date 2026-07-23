@@ -13,6 +13,12 @@ export const classPhotoMaxUploadBytes = 950 * 1024;
 export type AttendanceMode = 'list' | 'quick';
 
 export type ChecklistKey = 'teacherPresent' | 'studentAttendanceDone' | 'classPhotoDone';
+export type ClassPhotoMetadata = {
+  accuracy?: number;
+  latitude?: number;
+  longitude?: number;
+  takenAt: string;
+};
 
 export function getToday() {
   return new Date().toISOString().slice(0, 10);
@@ -32,13 +38,45 @@ export function formatClassPhotoSize(size: number) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export async function prepareClassPhotoForUpload(file: File) {
-  if (!file.type.startsWith('image/')) {
-    throw new Error('File foto harus berupa gambar.');
+export async function getClassPhotoMetadata(): Promise<ClassPhotoMetadata> {
+  const takenAt = new Date().toISOString();
+
+  if (!('geolocation' in navigator)) {
+    return { takenAt };
   }
 
-  if (file.size <= classPhotoMaxUploadBytes && ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-    return file;
+  try {
+    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        maximumAge: 30_000,
+        timeout: 6_000,
+      });
+    });
+
+    return {
+      accuracy: position.coords.accuracy,
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      takenAt,
+    };
+  } catch {
+    return { takenAt };
+  }
+}
+
+export function formatClassPhotoLocation(metadata?: ClassPhotoMetadata | null) {
+  if (metadata?.latitude === undefined || metadata.longitude === undefined) {
+    return 'Lokasi tidak tersedia';
+  }
+
+  const accuracy = metadata.accuracy ? ` · akurasi ${Math.round(metadata.accuracy)} m` : '';
+  return `${metadata.latitude.toFixed(6)}, ${metadata.longitude.toFixed(6)}${accuracy}`;
+}
+
+export async function prepareClassPhotoForUpload(file: File, metadata: ClassPhotoMetadata) {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('File foto harus berupa gambar.');
   }
 
   const image = await loadImage(file);
@@ -61,6 +99,7 @@ export async function prepareClassPhotoForUpload(file: File) {
     canvas.height = Math.max(1, Math.round(image.naturalHeight * ratio));
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    drawClassPhotoWatermark(context, canvas, metadata);
 
     for (const quality of qualities) {
       const blob = await canvasToBlob(canvas, 'image/jpeg', quality);
@@ -112,4 +151,41 @@ function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number) 
 function blobToFile(blob: Blob, source: File) {
   const name = source.name.replace(/\.[^.]+$/, '') || 'foto-kelas';
   return new File([blob], `${name}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
+}
+
+function drawClassPhotoWatermark(
+  context: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  metadata: ClassPhotoMetadata,
+) {
+  const lines = [
+    `EduFlow · ${formatClassPhotoTakenAt(metadata.takenAt)}`,
+    formatClassPhotoLocation(metadata),
+  ];
+  const fontSize = Math.max(16, Math.round(canvas.width * 0.022));
+  const padding = Math.max(12, Math.round(canvas.width * 0.018));
+  const lineHeight = Math.round(fontSize * 1.35);
+  const boxHeight = padding * 2 + lineHeight * lines.length;
+
+  context.save();
+  context.fillStyle = 'rgba(15, 23, 42, 0.72)';
+  context.fillRect(0, canvas.height - boxHeight, canvas.width, boxHeight);
+  context.font = `700 ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+  context.fillStyle = '#ffffff';
+  lines.forEach((line, index) => {
+    context.fillText(line, padding, canvas.height - boxHeight + padding + lineHeight * (index + 0.75));
+  });
+  context.restore();
+}
+
+function formatClassPhotoTakenAt(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat('id-ID', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
 }

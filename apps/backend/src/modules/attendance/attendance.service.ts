@@ -272,6 +272,7 @@ export class AttendanceService {
     attendanceId: string,
     userId: string,
     file: { buffer: Buffer; originalname: string; mimetype: string; size: number },
+    metadata?: Record<string, string | undefined>,
   ) {
     const attendance = await this.prisma.attendance.findUnique({
       where: { id: attendanceId },
@@ -283,6 +284,7 @@ export class AttendanceService {
 
     const key = `attendance/${attendance.agendaId}/${randomUUID()}${extname(file.originalname).toLowerCase()}`;
     const stored = await this.storage.upload({ buffer: file.buffer, key, name: file.originalname, mimeType: file.mimetype });
+    const photoMetadata = this.normalizeClassPhotoMetadata(metadata);
     const updated = await this.prisma.attendance.update({
       where: { id: attendance.id },
       data: {
@@ -291,6 +293,10 @@ export class AttendanceService {
         classPhotoMimeType: stored.mimeType,
         classPhotoSize: stored.size,
         classPhotoUploadedAt: new Date(),
+        classPhotoTakenAt: photoMetadata.takenAt,
+        classPhotoLatitude: photoMetadata.latitude,
+        classPhotoLongitude: photoMetadata.longitude,
+        classPhotoAccuracy: photoMetadata.accuracy,
       },
       include: {
         items: { include: { student: true, enrollment: true } },
@@ -299,6 +305,47 @@ export class AttendanceService {
     if (attendance.classPhotoKey) await this.storage.delete(attendance.classPhotoKey).catch(() => undefined);
     await this.auditService.record({ action: 'attendance.class-photo-uploaded', entityType: 'Attendance', entityId: attendance.id, before: attendance, after: updated, userId });
     return { data: updated, message: 'Foto kelas berhasil diunggah.' };
+  }
+
+  private normalizeClassPhotoMetadata(metadata?: Record<string, string | undefined>) {
+    const takenAt = metadata?.takenAt ? new Date(metadata.takenAt) : new Date();
+    if (Number.isNaN(takenAt.getTime())) {
+      throw new BadRequestException('Waktu pengambilan foto tidak valid');
+    }
+
+    const latitude = this.parseOptionalNumber(metadata?.latitude, 'Latitude foto kelas');
+    const longitude = this.parseOptionalNumber(metadata?.longitude, 'Longitude foto kelas');
+    const accuracy = this.parseOptionalNumber(metadata?.accuracy, 'Akurasi lokasi foto kelas');
+
+    if (latitude !== null && (latitude < -90 || latitude > 90)) {
+      throw new BadRequestException('Latitude foto kelas tidak valid');
+    }
+    if (longitude !== null && (longitude < -180 || longitude > 180)) {
+      throw new BadRequestException('Longitude foto kelas tidak valid');
+    }
+    if (accuracy !== null && accuracy < 0) {
+      throw new BadRequestException('Akurasi lokasi foto kelas tidak valid');
+    }
+
+    return {
+      takenAt,
+      latitude,
+      longitude,
+      accuracy,
+    };
+  }
+
+  private parseOptionalNumber(value: string | undefined, label: string) {
+    if (value === undefined || value === '') {
+      return null;
+    }
+
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      throw new BadRequestException(`${label} tidak valid`);
+    }
+
+    return parsed;
   }
 
   private async ensureTeacherOwnsAgenda(

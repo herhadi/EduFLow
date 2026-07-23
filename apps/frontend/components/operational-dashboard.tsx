@@ -248,6 +248,7 @@ function PrincipalKbmStrip({ summary }: { summary: OperationalDashboardSummary }
 function PrincipalClassMonitor({ summary }: { summary: OperationalDashboardSummary }) {
   const kbm = summary.kbm ?? emptySummary.kbm!;
   const [filter, setFilter] = useState<ClassMonitorFilter>('IN_PROGRESS');
+  const [expandedAgendaId, setExpandedAgendaId] = useState<string | null>(null);
   const todayItems = kbm.todayItems ?? [];
   const filterCards = [
     { key: 'all', label: 'Semua', value: summary.classes.totalToday, tone: 'info' },
@@ -283,7 +284,10 @@ function PrincipalClassMonitor({ summary }: { summary: OperationalDashboardSumma
           <button
             className={`rounded-xl border p-3 text-left transition hover:-translate-y-0.5 ${getClassMonitorTone(item.tone)} ${filter === item.key ? 'ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-slate-950' : ''}`}
             key={item.key}
-            onClick={() => setFilter(item.key)}
+            onClick={() => {
+              setFilter(item.key);
+              setExpandedAgendaId(null);
+            }}
             type="button"
           >
             <strong className="block text-xl font-black">{formatNumber(item.value)}</strong>
@@ -295,7 +299,12 @@ function PrincipalClassMonitor({ summary }: { summary: OperationalDashboardSumma
       <div className="mt-3 grid gap-2 lg:grid-cols-2">
         {visibleItems.length ? (
           visibleItems.map((item) => (
-            <PrincipalClassDetailCard item={item} key={item.agendaId} />
+            <PrincipalClassDetailCard
+              expanded={expandedAgendaId === item.agendaId}
+              item={item}
+              key={item.agendaId}
+              onToggle={() => setExpandedAgendaId((current) => current === item.agendaId ? null : item.agendaId)}
+            />
           ))
         ) : (
           <p className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-sm font-bold text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-100">
@@ -307,7 +316,15 @@ function PrincipalClassMonitor({ summary }: { summary: OperationalDashboardSumma
   );
 }
 
-function PrincipalClassDetailCard({ item }: { item: KbmTodayItem }) {
+function PrincipalClassDetailCard({
+  expanded,
+  item,
+  onToggle,
+}: {
+  expanded: boolean;
+  item: KbmTodayItem;
+  onToggle: () => void;
+}) {
   const checklist = [
     { done: item.teacherPresent === true, label: 'Guru' },
     { done: item.studentAttendanceDone === true, label: 'Presensi' },
@@ -317,7 +334,11 @@ function PrincipalClassDetailCard({ item }: { item: KbmTodayItem }) {
 
   return (
     <article className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-[var(--border)] dark:bg-[var(--surface-soft)]">
-      <div className="flex flex-wrap items-start justify-between gap-2">
+      <button
+        className="flex w-full flex-wrap items-start justify-between gap-2 text-left"
+        onClick={onToggle}
+        type="button"
+      >
         <div className="min-w-0">
           <p className="truncate text-sm font-black text-slate-900 dark:text-slate-100">
             {item.className} · {item.subjectName}
@@ -329,7 +350,7 @@ function PrincipalClassDetailCard({ item }: { item: KbmTodayItem }) {
         <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${getAgendaStatusClass(item.status)}`}>
           {getAgendaStatusLabel(item.status)}
         </span>
-      </div>
+      </button>
 
       {item.substituteTeacherName ? (
         <p className="mt-2 rounded-xl bg-emerald-50 px-2.5 py-2 text-xs font-bold text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-100">
@@ -348,6 +369,15 @@ function PrincipalClassDetailCard({ item }: { item: KbmTodayItem }) {
         ))}
       </div>
 
+      <button
+        className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-brand-700 transition hover:border-brand-500 dark:border-slate-700 dark:bg-slate-950 dark:text-blue-100"
+        onClick={onToggle}
+        type="button"
+      >
+        {expanded ? 'Tutup detail' : 'Lihat materi, foto, dan lokasi'}
+      </button>
+
+      {expanded ? (
       <div className="mt-3 space-y-2 text-xs">
         <div className="rounded-xl bg-white p-2.5 dark:bg-slate-950">
           <p className="font-black text-slate-900 dark:text-slate-100">Materi/Catatan KBM</p>
@@ -369,6 +399,14 @@ function PrincipalClassDetailCard({ item }: { item: KbmTodayItem }) {
                 ? `${item.classPhotoName}${item.classPhotoSize ? ` · ${formatBytes(item.classPhotoSize)}` : ''}`
                 : 'Belum ada foto kelas.'}
             </p>
+            {item.classPhotoTakenAt ? (
+              <p className="mt-1 font-semibold text-muted">
+                Diambil: {formatDateTime(item.classPhotoTakenAt)}
+              </p>
+            ) : null}
+            <p className="mt-1 font-semibold text-muted">
+              Lokasi: {formatPhotoLocation(item)}
+            </p>
           </div>
           {item.classPhotoUrl ? (
             <a
@@ -382,6 +420,7 @@ function PrincipalClassDetailCard({ item }: { item: KbmTodayItem }) {
           ) : null}
         </div>
       </div>
+      ) : null}
     </article>
   );
 }
@@ -408,6 +447,25 @@ function isSubmittedAttendanceState(state?: string | null) {
 function formatBytes(size: number) {
   if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`;
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatDateTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat('id-ID', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
+}
+
+function formatPhotoLocation(item: KbmTodayItem) {
+  if (item.classPhotoLatitude === null || item.classPhotoLatitude === undefined || item.classPhotoLongitude === null || item.classPhotoLongitude === undefined) {
+    return 'Tidak tersedia';
+  }
+
+  const accuracy = item.classPhotoAccuracy ? ` · akurasi ${Math.round(item.classPhotoAccuracy)} m` : '';
+  return `${item.classPhotoLatitude.toFixed(6)}, ${item.classPhotoLongitude.toFixed(6)}${accuracy}`;
 }
 
 function MetricSection({

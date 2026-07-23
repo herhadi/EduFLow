@@ -10,9 +10,12 @@ import {
   AttendanceSummary,
 } from './teacher-attendance/attendance-editor-sections';
 import {
+  formatClassPhotoLocation,
   formatClassPhotoSize,
+  getClassPhotoMetadata,
   getChecklistLabel,
   getToday,
+  type ClassPhotoMetadata,
   prepareClassPhotoForUpload,
   type AttendanceMode,
 } from './teacher-attendance/teacher-attendance-utils';
@@ -28,6 +31,7 @@ export function TeacherAttendance() {
   const [attendance, setAttendance] = useState<Attendance | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoInfo, setPhotoInfo] = useState('');
+  const [photoMetadata, setPhotoMetadata] = useState<ClassPhotoMetadata | null>(null);
   const [saving, setSaving] = useState(false);
   const [mode, setMode] = useState<AttendanceMode>('list');
   const [page, setPage] = useState(1);
@@ -83,7 +87,7 @@ export function TeacherAttendance() {
       let current = attendance;
 
       if (photo) {
-        const uploaded = (await api.uploadAttendanceClassPhoto(current.id, photo)).data;
+        const uploaded = (await api.uploadAttendanceClassPhoto(current.id, photo, photoMetadata ?? undefined)).data;
         current = {
           ...current,
           ...uploaded,
@@ -108,6 +112,7 @@ export function TeacherAttendance() {
       toast.success('Presensi tersimpan. Ringkasan kehadiran diproses untuk wali murid.');
       setAttendance(null);
       setPhoto(null);
+      setPhotoMetadata(null);
       setPhotoInfo('');
       await load();
     } catch (error) {
@@ -133,22 +138,26 @@ export function TeacherAttendance() {
   async function handlePhotoChange(file?: File) {
     if (!file) {
       setPhoto(null);
+      setPhotoMetadata(null);
       setPhotoInfo('');
       setChecklist((current) => ({ ...current, classPhotoDone: false }));
       return;
     }
 
     try {
-      const prepared = await prepareClassPhotoForUpload(file);
+      const metadata = await getClassPhotoMetadata();
+      const prepared = await prepareClassPhotoForUpload(file, metadata);
       setPhoto(prepared);
+      setPhotoMetadata(metadata);
       setPhotoInfo(
-        prepared.size < file.size
-          ? `Dikompresi dari ${formatClassPhotoSize(file.size)} menjadi ${formatClassPhotoSize(prepared.size)}.`
-          : `Ukuran foto ${formatClassPhotoSize(prepared.size)}.`,
+        `${prepared.size < file.size
+          ? `Dikompresi dari ${formatClassPhotoSize(file.size)} menjadi ${formatClassPhotoSize(prepared.size)}`
+          : `Ukuran foto ${formatClassPhotoSize(prepared.size)}`}. ${formatClassPhotoLocation(metadata)}.`,
       );
       setChecklist((current) => ({ ...current, classPhotoDone: true }));
     } catch (error) {
       setPhoto(null);
+      setPhotoMetadata(null);
       setPhotoInfo('');
       setChecklist((current) => ({ ...current, classPhotoDone: Boolean(attendance?.classPhotoName) }));
       toast.error(error instanceof Error ? error.message : 'Foto kelas gagal disiapkan.');

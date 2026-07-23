@@ -170,6 +170,10 @@ export class ReportingService {
         issueNotes: agenda.attendance?.issueNotes ?? null,
         classPhotoName: agenda.attendance?.classPhotoName ?? null,
         classPhotoSize: agenda.attendance?.classPhotoSize ?? null,
+        classPhotoTakenAt: agenda.attendance?.classPhotoTakenAt?.toISOString() ?? null,
+        classPhotoLatitude: agenda.attendance?.classPhotoLatitude ?? null,
+        classPhotoLongitude: agenda.attendance?.classPhotoLongitude ?? null,
+        classPhotoAccuracy: agenda.attendance?.classPhotoAccuracy ?? null,
         classPhotoUrl: await this.createClassPhotoUrl(agenda.attendance),
       })));
     const followUpItems = todayItems

@@ -128,7 +128,12 @@ export const academicApi = {
   getMyAgendas: (date: string) => request<ApiResponse<DailyAgenda[]>>(`/academic/me/agendas?date=${date}`),
   openClass: (agendaId: string) => request<ApiResponse<Attendance>>('/attendance/open-class', { method: 'POST', body: JSON.stringify({ agendaId }) }),
   getAttendance: (id: string) => request<ApiResponse<Attendance>>(`/attendance/${id}`),
-  uploadAttendanceClassPhoto: (id: string, file: File) => upload<ApiResponse<Attendance>>(`/attendance/${id}/class-photo`, file),
+  uploadAttendanceClassPhoto: (id: string, file: File, metadata?: {
+    accuracy?: number;
+    latitude?: number;
+    longitude?: number;
+    takenAt?: string;
+  }) => upload<ApiResponse<Attendance>>(`/attendance/${id}/class-photo`, file, metadata),
   submitAttendance: (payload: {
     attendanceId: string;
     notes?: string;

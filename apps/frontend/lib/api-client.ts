@@ -47,9 +47,18 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function upload<T>(path: string, file: File): Promise<T> {
+export async function upload<T>(
+  path: string,
+  file: File,
+  fields?: Record<string, string | number | boolean | null | undefined>,
+): Promise<T> {
   const formData = new FormData();
   formData.append('file', file);
+  Object.entries(fields ?? {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      formData.append(key, String(value));
+    }
+  });
   const accessToken =
     typeof window === 'undefined' ? undefined : localStorage.getItem('accessToken');
 

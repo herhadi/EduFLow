@@ -100,7 +100,9 @@ Guru membuka daftar siswa kelas
   -> jika ABSENT, sistem publish attendance.student.absent
 ```
 
-Saat membuka presensi, seluruh siswa aktif berstatus `PRESENT` sebagai nilai awal. Guru dapat mengubahnya menjadi `SICK`, `EXCUSED`, atau `ABSENT`, lalu mengambil foto kelas melalui tombol kamera global pada perangkat. Foto kelas disimpan privat pada lampiran `Attendance`; saat submit, sistem mengantrekan summary harian untuk wali murid.
+Saat membuka presensi, seluruh siswa aktif berstatus `PRESENT` sebagai nilai awal. Guru dapat mengubahnya menjadi `SICK`, `EXCUSED`, atau `ABSENT`, lalu mengambil foto kelas melalui tombol kamera global pada perangkat. Foto kelas diberi watermark waktu pengambilan dan lokasi jika browser mengizinkan GPS, dikompresi sebelum upload, lalu disimpan privat pada lampiran `Attendance` bersama metadata `classPhotoTakenAt`, latitude, longitude, dan akurasi lokasi. Saat submit, sistem mengantrekan summary harian untuk wali murid.
+
+Kepala Sekolah memantau agenda harian dari `/principal/kbm`. Daftar kelas tampil ringkas per agenda dan detail materi, checklist, kendala, foto kelas, serta metadata lokasi/waktu dibuka melalui expand agar pemantauan dari HP tidak terlalu panjang.
 
 ## Flow Kelas Kosong
 

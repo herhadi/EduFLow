@@ -215,6 +215,11 @@ export interface Attendance {
   notes?: string | null;
   items: AttendanceItem[];
   classPhotoName?: string | null;
+  classPhotoSize?: number | null;
+  classPhotoTakenAt?: string | null;
+  classPhotoLatitude?: number | null;
+  classPhotoLongitude?: number | null;
+  classPhotoAccuracy?: number | null;
   teacherPresent?: boolean | null;
   studentAttendanceDone?: boolean | null;
   materialFilled?: boolean | null;
@@ -386,6 +391,10 @@ export interface OperationalDashboardSummary {
       issueNotes?: string | null;
       classPhotoName?: string | null;
       classPhotoSize?: number | null;
+      classPhotoTakenAt?: string | null;
+      classPhotoLatitude?: number | null;
+      classPhotoLongitude?: number | null;
+      classPhotoAccuracy?: number | null;
       classPhotoUrl?: string | null;
     }>;
   };

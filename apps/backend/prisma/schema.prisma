@@ -819,6 +819,10 @@ model Attendance {
   classPhotoMimeType    String?
   classPhotoSize        Int?
   classPhotoUploadedAt  DateTime?
+  classPhotoTakenAt     DateTime?
+  classPhotoLatitude    Float?
+  classPhotoLongitude   Float?
+  classPhotoAccuracy    Float?
   correctionNote        String?
   agenda                DailyAgenda      @relation(fields: [agendaId], references: [id])
   class                 Class            @relation(fields: [classId], references: [id])

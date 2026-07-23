@@ -40,10 +40,11 @@ export class AttendanceController {
   }))
   uploadClassPhoto(
     @Param('id') id: string,
+    @Body() body: Record<string, string | undefined>,
     @Req() request: RequestWithUser,
     @UploadedFile() file?: { buffer: Buffer; originalname: string; mimetype: string; size: number },
   ) {
     if (!file) throw new BadRequestException('Foto kelas wajib dipilih');
-    return this.attendanceService.uploadClassPhoto(id, request.user.id, file);
+    return this.attendanceService.uploadClassPhoto(id, request.user.id, file, body);
   }
 }
