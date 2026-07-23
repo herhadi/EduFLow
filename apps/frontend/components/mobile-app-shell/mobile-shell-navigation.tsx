@@ -149,7 +149,7 @@ export function AppTopBar({
               ⋮
             </button>
             {menuOpen ? (
-              <div className="surface-card absolute right-0 top-[calc(100%+0.5rem)] z-[220] grid w-28 gap-1.5 rounded-xl p-1.5 shadow-xl">
+              <div className="surface-card absolute right-0 top-[calc(100%+0.5rem)] z-[220] grid w-20 gap-2.5 rounded-xl p-1.5 shadow-xl">
                 <div className="grid h-8 place-items-center rounded-lg border border-blue-100 bg-white/70 dark:border-[var(--border)] dark:bg-[var(--surface-soft)]">
                   <ThemeToggle compact showLabel={false} />
                 </div>

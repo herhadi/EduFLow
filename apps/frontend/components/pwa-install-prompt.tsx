@@ -1,6 +1,8 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { cn } from '../lib/cn';
 import { Button } from './ui/button';
 
 type BeforeInstallPromptEvent = Event & {
@@ -13,8 +15,10 @@ const snoozedUntilKey = 'eduflow-pwa-install-snoozed-until';
 const snoozeMs = 60 * 60 * 1000;
 
 export function PwaInstallPrompt() {
+  const pathname = usePathname();
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
+  const hasBottomNav = pathname !== '/' && pathname !== '/login';
 
   useEffect(() => {
     if (typeof window === 'undefined' || window.matchMedia('(display-mode: standalone)').matches) {
@@ -66,7 +70,14 @@ export function PwaInstallPrompt() {
   }
 
   return (
-    <div className="fixed right-3 bottom-[6.15rem] left-3 z-[115] mx-auto max-w-md rounded-2xl border border-blue-100 bg-white p-2.5 shadow-lg dark:border-blue-400/20 dark:bg-slate-950 sm:right-5 sm:left-auto sm:w-[28rem] md:bottom-5">
+    <div
+      className={cn(
+        'fixed right-3 left-3 z-[115] mx-auto max-w-md rounded-2xl border border-blue-100 bg-white p-2.5 shadow-lg dark:border-blue-400/20 dark:bg-slate-950 sm:right-5 sm:left-auto sm:w-[28rem]',
+        hasBottomNav
+          ? 'bottom-[calc(4.95rem+env(safe-area-inset-bottom))] md:bottom-5'
+          : 'bottom-[calc(0.75rem+env(safe-area-inset-bottom))]',
+      )}
+    >
       <div className="flex items-center gap-2.5">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-black text-slate-900 dark:text-slate-100">Install EduFlow</p>
@@ -75,7 +86,7 @@ export function PwaInstallPrompt() {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
-          <Button className="bg-slate-100 px-2.5 py-1.5 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700" onClick={dismiss} size="sm" variant="ghost">Nanti</Button>
+          <Button className="border border-slate-400 bg-slate-300 px-2.5 py-1.5 text-slate-900 shadow-sm hover:border-slate-500 hover:bg-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700" onClick={dismiss} size="sm" variant="ghost">Nanti</Button>
           <Button className="px-2.5 py-1.5" onClick={() => void install()} size="sm">Install</Button>
         </div>
       </div>

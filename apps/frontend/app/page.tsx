@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { SchoolActivityCarousel } from '../components/school-activity-carousel';
-import { SchoolQuickActions } from '../components/school-quick-actions';
 import { ThemeToggle } from '../components/ui/theme-toggle';
 
 const navigationItems = [
@@ -119,13 +118,6 @@ const thumbnailItems = [
     href: '#galeri-sekolah',
     tone: 'blue',
   },
-];
-
-const quickActions = [
-  { href: '#ppdb', label: 'PPDB' },
-  { href: '/parent-portal', label: 'Ortu' },
-  { href: '#kontak', label: 'Kontak' },
-  { href: '/login', label: 'Login' },
 ];
 
 export default function LandingPage() {
@@ -475,7 +467,6 @@ export default function LandingPage() {
           </div>
         </footer>
 
-        <SchoolQuickActions actions={quickActions} />
       </div>
     </main>
   );
