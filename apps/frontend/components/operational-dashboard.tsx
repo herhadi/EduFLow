@@ -296,7 +296,7 @@ function PrincipalClassMonitor({ summary }: { summary: OperationalDashboardSumma
         ))}
       </div>
 
-      <div className="mt-3 grid gap-2 lg:grid-cols-2">
+      <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
         {visibleItems.length ? (
           visibleItems.map((item) => (
             <PrincipalClassDetailCard

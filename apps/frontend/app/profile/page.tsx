@@ -9,6 +9,7 @@ import { Button } from '../../components/ui/button';
 import { SurfaceCard } from '../../components/ui/card';
 import { fieldClass } from '../../components/ui/form';
 import { api, type AuthSession, type MyProfile } from '../../lib/api';
+import { formatImageSize, prepareProfilePhotoForUpload } from '../../lib/image-compression';
 import { clearBrowserSession } from '../../lib/session';
 
 type Status = { tone: 'success' | 'error' | 'info'; text: string } | null;
@@ -20,6 +21,7 @@ export default function ProfilePage() {
   const [sessions, setSessions] = useState<AuthSession[]>([]);
   const [currentRefreshTokenHash, setCurrentRefreshTokenHash] = useState('');
   const [status, setStatus] = useState<Status>(null);
+  const [photoUploadInfo, setPhotoUploadInfo] = useState('');
   const [savingPhoto, setSavingPhoto] = useState(false);
   const [linkingTelegram, setLinkingTelegram] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
@@ -93,11 +95,18 @@ export default function ProfilePage() {
 
     setSavingPhoto(true);
     setStatus(null);
+    setPhotoUploadInfo('');
     try {
-      const response = await api.uploadMyProfilePhoto(file);
+      const prepared = await prepareProfilePhotoForUpload(file);
+      const response = await api.uploadMyProfilePhoto(prepared);
       setCurrentUser(response.data);
       setPhotoUrl(response.data.photoUrl ?? '');
       saveProfileToSession(response.data);
+      setPhotoUploadInfo(
+        prepared.size < file.size
+          ? `Dikompresi dari ${formatImageSize(file.size)} menjadi ${formatImageSize(prepared.size)}.`
+          : `Ukuran foto ${formatImageSize(prepared.size)}.`,
+      );
       setStatus({ tone: 'success', text: 'Foto profil berhasil diperbarui.' });
     } catch (error) {
       setStatus({
@@ -234,7 +243,7 @@ export default function ProfilePage() {
               <div>
                 <p className="text-sm font-black text-slate-900 dark:text-slate-100">Foto Profil</p>
                 <p className="mt-1 text-xs font-semibold leading-5 text-muted">
-                  Pilih foto dari perangkat lokal. Format JPEG, PNG, atau WebP maksimal 2 MB.
+                  Pilih foto dari perangkat lokal. Format JPEG, PNG, atau WebP. Foto dikompresi otomatis sebelum upload.
                 </p>
                 <label className="mt-3 inline-flex cursor-pointer rounded-2xl bg-brand-600 px-4 py-3 text-xs font-black text-white transition hover:bg-brand-700">
                   {savingPhoto ? 'Mengunggah...' : 'Pilih Foto Lokal'}
@@ -242,10 +251,18 @@ export default function ProfilePage() {
                     accept="image/jpeg,image/png,image/webp"
                     className="sr-only"
                     disabled={savingPhoto}
-                    onChange={(event) => void handlePhotoUpload(event.target.files?.[0])}
+                    onChange={(event) => {
+                      void handlePhotoUpload(event.target.files?.[0]);
+                      event.target.value = '';
+                    }}
                     type="file"
                   />
                 </label>
+                {photoUploadInfo ? (
+                  <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-100">
+                    {photoUploadInfo}
+                  </p>
+                ) : null}
               </div>
 
               <div className="rounded-2xl border border-blue-100 bg-white p-4 dark:border-blue-400/20 dark:bg-slate-950">
