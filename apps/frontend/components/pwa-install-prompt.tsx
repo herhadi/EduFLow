@@ -66,20 +66,17 @@ export function PwaInstallPrompt() {
   }
 
   return (
-    <div className="fixed right-3 bottom-[7.25rem] left-3 z-[115] mx-auto max-w-md rounded-3xl border border-blue-100 bg-white p-3 shadow-xl dark:border-blue-400/20 dark:bg-slate-950 sm:right-5 sm:left-auto sm:w-96 md:bottom-5">
-      <div className="flex items-start gap-3">
-        <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-brand-600 text-sm font-black text-white">
-          EF
-        </div>
+    <div className="fixed right-3 bottom-[7.25rem] left-3 z-[115] mx-auto max-w-md rounded-2xl border border-blue-100 bg-white p-2.5 shadow-lg dark:border-blue-400/20 dark:bg-slate-950 sm:right-5 sm:left-auto sm:w-[28rem] md:bottom-5">
+      <div className="flex items-center gap-2.5">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-black text-slate-900 dark:text-slate-100">Install EduFlow</p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-muted">
-            Buka lebih cepat dari layar utama dan terasa seperti aplikasi.
+          <p className="truncate text-sm font-black text-slate-900 dark:text-slate-100">Install EduFlow</p>
+          <p className="truncate text-xs font-semibold text-muted">
+            Buka lebih cepat dari layar utama.
           </p>
-          <div className="mt-3 flex gap-2">
-            <Button onClick={() => void install()} size="sm">Install</Button>
-            <Button onClick={dismiss} size="sm" variant="ghost">Nanti</Button>
-          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <Button className="px-2.5 py-1.5" onClick={dismiss} size="sm" variant="ghost">Nanti</Button>
+          <Button className="px-2.5 py-1.5" onClick={() => void install()} size="sm">Install</Button>
         </div>
       </div>
     </div>
