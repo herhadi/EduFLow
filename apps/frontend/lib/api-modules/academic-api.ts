@@ -134,6 +134,11 @@ export const academicApi = {
     longitude?: number;
     takenAt?: string;
   }) => upload<ApiResponse<Attendance>>(`/attendance/${id}/class-photo`, file, metadata),
+  requestLateAttendanceSubmit: (id: string, reason?: string) =>
+    request<ApiResponse<{ attendanceId: string; agendaId: string }>>(`/attendance/${id}/late-submit-request`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
   submitAttendance: (payload: {
     attendanceId: string;
     notes?: string;

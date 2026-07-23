@@ -33,6 +33,9 @@ export function TeacherAttendance() {
   const [photoInfo, setPhotoInfo] = useState('');
   const [photoMetadata, setPhotoMetadata] = useState<ClassPhotoMetadata | null>(null);
   const [saving, setSaving] = useState(false);
+  const [lateSubmitRequired, setLateSubmitRequired] = useState(false);
+  const [lateSubmitReason, setLateSubmitReason] = useState('');
+  const [lateSubmitSending, setLateSubmitSending] = useState(false);
   const [mode, setMode] = useState<AttendanceMode>('list');
   const [page, setPage] = useState(1);
   const [selectedItemId, setSelectedItemId] = useState('');
@@ -68,6 +71,8 @@ export function TeacherAttendance() {
         issueNotes: '',
         materialNotes: response.data.notes ?? '',
       });
+      setLateSubmitRequired(false);
+      setLateSubmitReason('');
       setPage(1);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Kelas gagal dibuka.');
@@ -114,11 +119,38 @@ export function TeacherAttendance() {
       setPhoto(null);
       setPhotoMetadata(null);
       setPhotoInfo('');
+      setLateSubmitRequired(false);
+      setLateSubmitReason('');
       await load();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Presensi gagal disimpan.');
+      const message = error instanceof Error ? error.message : 'Presensi gagal disimpan.';
+      if (message.toLowerCase().includes('melewati tanggal agenda')) {
+        setLateSubmitRequired(true);
+      }
+      toast.error(message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function requestLateSubmit() {
+    if (!attendance) return;
+
+    setLateSubmitSending(true);
+    try {
+      await api.requestLateAttendanceSubmit(attendance.id, lateSubmitReason || checklist.issueNotes || undefined);
+      toast.success('Pengajuan presensi terlambat dikirim ke Kepala Sekolah dan operator.');
+      setAttendance(null);
+      setPhoto(null);
+      setPhotoMetadata(null);
+      setPhotoInfo('');
+      setLateSubmitRequired(false);
+      setLateSubmitReason('');
+      await load();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Pengajuan presensi terlambat gagal dikirim.');
+    } finally {
+      setLateSubmitSending(false);
     }
   }
 
@@ -301,6 +333,30 @@ export function TeacherAttendance() {
             <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700 dark:bg-amber-400/10 dark:text-amber-100">
               Lengkapi checklist wajib dan Materi/Catatan KBM. Catatan Kendala boleh kosong.
             </p>
+          ) : null}
+          {lateSubmitRequired ? (
+            <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-400/20 dark:bg-amber-400/10">
+              <p className="font-black text-amber-800 dark:text-amber-100">
+                Presensi sudah melewati tanggal agenda.
+              </p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-amber-700 dark:text-amber-100">
+                Kirim pengajuan ke Kepala Sekolah dan operator. Wali kelas tidak menerima pengajuan ini.
+              </p>
+              <textarea
+                className="mt-3 min-h-20 w-full rounded-xl border bg-white px-3 py-2 text-xs font-semibold outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]"
+                onChange={(event) => setLateSubmitReason(event.target.value)}
+                placeholder="Opsional: alasan terlambat menyelesaikan presensi."
+                value={lateSubmitReason}
+              />
+              <Button
+                className="mt-3 w-full"
+                disabled={lateSubmitSending}
+                onClick={() => void requestLateSubmit()}
+                variant="warning"
+              >
+                {lateSubmitSending ? 'Mengirim...' : 'Ajukan Presensi Terlambat'}
+              </Button>
+            </div>
           ) : null}
         </SurfaceCard>
       </section>

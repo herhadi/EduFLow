@@ -291,6 +291,72 @@ export class NotificationService implements OnModuleInit {
     });
   }
 
+  async createLateAttendanceRequestInbox(input: {
+    agendaId: string;
+    attendanceId: string;
+    className: string;
+    reason?: string | null;
+    subjectName: string;
+    teacherName: string;
+    timeRange: string;
+  }) {
+    const recipients = await this.prisma.user.findMany({
+      where: {
+        deletedAt: null,
+        roles: {
+          some: {
+            role: {
+              name: { in: ['kepala_sekolah', 'operator_sekolah'] },
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        roles: { include: { role: true } },
+      },
+    });
+
+    if (!recipients.length) return;
+
+    const reasonText = input.reason?.trim() ? ` Alasan: ${input.reason.trim()}` : '';
+    const message = `${input.teacherName} meminta izin melengkapi presensi terlambat ${input.className} · ${input.subjectName} (${input.timeRange}).${reasonText}`;
+
+    await Promise.all(recipients.map((recipient) => {
+      const roles = recipient.roles.map(({ role }) => role.name);
+      const actionUrl = roles.includes('kepala_sekolah') ? '/principal/kbm?focus=notSubmitted' : '/admin/schedules';
+
+      return this.prisma.notificationLog.upsert({
+        where: { dedupeKey: `attendance.late-submit.requested.${input.attendanceId}.${recipient.id}` },
+        update: {
+          actionUrl,
+          message,
+          readAt: null,
+          sentAt: new Date(),
+          status: NotificationStatus.SENT,
+        },
+        create: {
+          actionUrl,
+          attempts: 1,
+          channel: 'IN_APP',
+          dedupeKey: `attendance.late-submit.requested.${input.attendanceId}.${recipient.id}`,
+          entityId: input.attendanceId,
+          entityType: 'Attendance',
+          message,
+          recipient: recipient.email,
+          recipientName: recipient.name,
+          recipientUserId: recipient.id,
+          sentAt: new Date(),
+          status: NotificationStatus.SENT,
+          subject: 'Pengajuan presensi terlambat',
+          templateKey: 'attendance.late-submit.requested',
+        },
+      });
+    }));
+  }
+
   async createPasswordResetRequestInbox(input: {
     userId: string;
     name: string;

@@ -18,6 +18,8 @@ type AttendanceSummaryReport = {
   absent: number;
 };
 
+const lateSubmitToleranceMinutes = 15;
+
 @Injectable()
 export class ReportingService {
   constructor(
@@ -152,6 +154,7 @@ export class ReportingService {
     const withIssueNotes = agendas.filter((agenda) => agenda.attendance?.issueNotes);
     const substituteAgendas = agendas.filter((agenda) => agenda.substituteTeacher);
     const todayItems = await Promise.all(agendas.map(async (agenda) => ({
+        deadlineAt: this.getAgendaDeadline(agenda.date, agenda.schedule?.endsAt)?.toISOString() ?? null,
         agendaId: agenda.id,
         className: agenda.class.name,
         subjectName: agenda.subject.name,
@@ -161,6 +164,8 @@ export class ReportingService {
         endsAt: agenda.schedule?.endsAt ?? null,
         status: agenda.status,
         attendanceState: agenda.attendance?.state ?? null,
+        isLateSubmitted: this.isLateSubmit(agenda.date, agenda.schedule?.endsAt, agenda.attendance?.submittedAt ?? null),
+        isPastDue: this.isPastDue(agenda.date, agenda.schedule?.endsAt, agenda.attendance?.submittedAt ?? null),
         submittedAt: agenda.attendance?.submittedAt?.toISOString() ?? null,
         teacherPresent: agenda.attendance?.teacherPresent ?? null,
         studentAttendanceDone: agenda.attendance?.studentAttendanceDone ?? null,
@@ -261,6 +266,33 @@ export class ReportingService {
       contentType: attendance.classPhotoMimeType ?? undefined,
       disposition: 'inline',
     }).catch(() => null);
+  }
+
+  private getAgendaDeadline(date: Date, endsAt?: string | null) {
+    if (!endsAt) return null;
+
+    const [hoursText, minutesText] = endsAt.split(':');
+    const hours = Number(hoursText);
+    const minutes = Number(minutesText);
+
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+      return null;
+    }
+
+    const utc = Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      hours,
+      minutes + lateSubmitToleranceMinutes - this.getSchoolTimezoneOffsetMinutes(),
+    );
+
+    return new Date(utc);
+  }
+
+  private isPastDue(date: Date, endsAt: string | null | undefined, submittedAt: Date | null) {
+    const deadline = this.getAgendaDeadline(date, endsAt);
+    return Boolean(deadline && !submittedAt && Date.now() > deadline.getTime());
   }
 
   async exportReport({
@@ -1035,17 +1067,8 @@ export class ReportingService {
     scheduleEndsAt: string | null | undefined,
     submittedAt: Date | null,
   ) {
-    if (!scheduleEndsAt || !submittedAt) {
-      return false;
-    }
-
-    const dueAt = this.combineDateAndTime(agendaDate, scheduleEndsAt);
-
-    if (!dueAt) {
-      return false;
-    }
-
-    return submittedAt > dueAt;
+    const deadline = this.getAgendaDeadline(agendaDate, scheduleEndsAt);
+    return Boolean(deadline && submittedAt && submittedAt.getTime() > deadline.getTime());
   }
 
   private combineDateAndTime(date: Date, time: string) {

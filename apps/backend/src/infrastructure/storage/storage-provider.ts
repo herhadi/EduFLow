@@ -9,6 +9,7 @@ export interface StoredFile {
 
 export interface UploadFileInput {
   buffer: Buffer;
+  disposition?: 'attachment' | 'inline';
   key: string;
   name: string;
   mimeType: string;

@@ -5,6 +5,7 @@ import { PERMISSIONS } from '../../common/constants/permissions';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { AttendanceService } from './attendance.service';
 import { OpenClassDto } from './dto/open-class.dto';
+import { RequestLateAttendanceDto } from './dto/request-late-attendance.dto';
 import { SubmitAttendanceDto } from './dto/submit-attendance.dto';
 
 @Controller('attendance')
@@ -27,6 +28,16 @@ export class AttendanceController {
   @Post('submit')
   submit(@Body() dto: SubmitAttendanceDto, @Req() request: RequestWithUser) {
     return this.attendanceService.submit(dto, request.user.id);
+  }
+
+  @RequirePermissions(PERMISSIONS.ATTENDANCE_MANAGE)
+  @Post(':id/late-submit-request')
+  requestLateSubmit(
+    @Param('id') id: string,
+    @Body() dto: RequestLateAttendanceDto,
+    @Req() request: RequestWithUser,
+  ) {
+    return this.attendanceService.requestLateSubmit(id, request.user.id, dto);
   }
 
   @RequirePermissions(PERMISSIONS.ATTENDANCE_MANAGE)

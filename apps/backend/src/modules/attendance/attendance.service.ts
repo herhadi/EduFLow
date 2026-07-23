@@ -18,8 +18,12 @@ import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueueProducerService } from '../../queue/queue-producer.service';
 import { AuditService } from '../audit/audit.service';
+import { NotificationService } from '../notification/notification.service';
 import { OpenClassDto } from './dto/open-class.dto';
+import { RequestLateAttendanceDto } from './dto/request-late-attendance.dto';
 import { SubmitAttendanceDto } from './dto/submit-attendance.dto';
+
+const schoolTimezoneOffsetMinutes = Number(process.env.SCHOOL_TIMEZONE_OFFSET_MINUTES ?? 420);
 
 @Injectable()
 export class AttendanceService {
@@ -27,6 +31,7 @@ export class AttendanceService {
     private readonly prisma: PrismaService,
     private readonly queueProducer: QueueProducerService,
     private readonly auditService: AuditService,
+    private readonly notificationService: NotificationService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
@@ -174,6 +179,10 @@ export class AttendanceService {
 
     await this.ensureTeacherOwnsAgenda(userId, attendance.agenda);
 
+    if (this.isPastSchoolDate(attendance.agenda.date)) {
+      throw new BadRequestException('Presensi sudah melewati tanggal agenda. Ajukan koreksi/presensi terlambat ke Kepala Sekolah atau operator.');
+    }
+
     if (attendance.submittedAt || this.isSubmittedState(attendance.state)) {
       throw new BadRequestException('Attendance sudah pernah disubmit');
     }
@@ -268,6 +277,66 @@ export class AttendanceService {
     };
   }
 
+  async requestLateSubmit(attendanceId: string, userId: string, dto: RequestLateAttendanceDto) {
+    const attendance = await this.prisma.attendance.findUnique({
+      where: { id: attendanceId },
+      include: {
+        agenda: {
+          include: {
+            class: true,
+            schedule: true,
+            subject: true,
+            teacher: true,
+            substituteTeacher: true,
+          },
+        },
+      },
+    });
+
+    if (!attendance) {
+      throw new NotFoundException('Attendance tidak ditemukan');
+    }
+
+    await this.ensureTeacherOwnsAgenda(userId, attendance.agenda);
+
+    if (!this.isPastSchoolDate(attendance.agenda.date)) {
+      throw new BadRequestException('Presensi masih dapat diselesaikan hari ini tanpa pengajuan terlambat');
+    }
+
+    if (attendance.submittedAt || this.isSubmittedState(attendance.state)) {
+      throw new BadRequestException('Attendance sudah pernah disubmit');
+    }
+
+    const teacherName = attendance.agenda.substituteTeacher?.name ?? attendance.agenda.teacher.name;
+    const timeRange = this.formatScheduleRange(attendance.agenda.schedule?.startsAt, attendance.agenda.schedule?.endsAt);
+
+    await this.notificationService.createLateAttendanceRequestInbox({
+      agendaId: attendance.agendaId,
+      attendanceId: attendance.id,
+      className: attendance.agenda.class.name,
+      reason: dto.reason,
+      subjectName: attendance.agenda.subject.name,
+      teacherName,
+      timeRange,
+    });
+
+    await this.auditService.record({
+      action: 'attendance.late-submit.requested',
+      entityType: 'Attendance',
+      entityId: attendance.id,
+      after: {
+        agendaId: attendance.agendaId,
+        reason: dto.reason?.trim() || null,
+      },
+      userId,
+    });
+
+    return {
+      data: { attendanceId: attendance.id, agendaId: attendance.agendaId },
+      message: 'Pengajuan presensi terlambat dikirim ke Kepala Sekolah dan operator.',
+    };
+  }
+
   async uploadClassPhoto(
     attendanceId: string,
     userId: string,
@@ -283,7 +352,13 @@ export class AttendanceService {
     if (attendance.state !== AttendanceState.DRAFT) throw new BadRequestException('Foto kelas hanya dapat diunggah saat presensi dibuka');
 
     const key = `attendance/${attendance.agendaId}/${randomUUID()}${extname(file.originalname).toLowerCase()}`;
-    const stored = await this.storage.upload({ buffer: file.buffer, key, name: file.originalname, mimeType: file.mimetype });
+    const stored = await this.storage.upload({
+      buffer: file.buffer,
+      disposition: 'inline',
+      key,
+      name: file.originalname,
+      mimeType: file.mimetype,
+    });
     const photoMetadata = this.normalizeClassPhotoMetadata(metadata);
     const updated = await this.prisma.attendance.update({
       where: { id: attendance.id },
@@ -381,6 +456,26 @@ export class AttendanceService {
     ];
 
     return Boolean(state && submittedStates.includes(state));
+  }
+
+  private isPastSchoolDate(date: Date) {
+    return date.getTime() < this.toSchoolDateOnly(new Date()).getTime();
+  }
+
+  private toSchoolDateOnly(value: Date) {
+    const safeOffset = Number.isFinite(schoolTimezoneOffsetMinutes) ? schoolTimezoneOffsetMinutes : 420;
+    const localDate = new Date(value.getTime() + safeOffset * 60_000);
+
+    return new Date(Date.UTC(
+      localDate.getUTCFullYear(),
+      localDate.getUTCMonth(),
+      localDate.getUTCDate(),
+    ));
+  }
+
+  private formatScheduleRange(startsAt?: string | null, endsAt?: string | null) {
+    if (!startsAt || !endsAt) return 'jam belum tercatat';
+    return `${startsAt.slice(0, 5)}-${endsAt.slice(0, 5)}`;
   }
 
   private getLeaveAttendanceStatus(type: StudentLeaveRequestType) {

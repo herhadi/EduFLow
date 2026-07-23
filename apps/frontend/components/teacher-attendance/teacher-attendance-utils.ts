@@ -87,9 +87,9 @@ export async function prepareClassPhotoForUpload(file: File, metadata: ClassPhot
     throw new Error('Browser tidak bisa menyiapkan foto kelas.');
   }
 
-  const maxDimension = 1280;
+  const maxDimension = 1600;
   const baseRatio = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
-  const qualities = [0.82, 0.72, 0.62, 0.52, 0.44];
+  const qualities = [0.94, 0.9, 0.86, 0.8, 0.72, 0.62, 0.52];
   let bestBlob: Blob | null = null;
   let scale = 1;
 

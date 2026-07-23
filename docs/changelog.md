@@ -10,6 +10,8 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Menambahkan kompresi foto kelas di browser sebelum upload dengan target di bawah 1 MB, menampilkan informasi ukuran hasil kompresi, dan membatasi upload backend maksimal 1 MB.
 - Memperkaya `/principal/kbm` agar KS dapat mengeklik kategori kelas hari ini dan melihat detail agenda: materi/catatan KBM, checklist presensi, kendala, guru pengganti, serta link foto kelas dari storage.
 - Menambahkan watermark waktu dan lokasi pada foto kelas yang diambil dari browser HP, menyimpan metadata GPS/waktu di Attendance, serta membuat detail agenda KS collapse/expand agar daftar kelas tetap ringkas di mobile.
+- Menambahkan aturan presensi terlambat: submit hari yang sama setelah toleransi ditandai terlambat pada monitoring KS, sedangkan submit beda tanggal diblokir dan guru harus mengajukan presensi terlambat ke KS/operator.
+- Menyesuaikan foto kelas agar object baru di storage memakai disposition `inline` untuk preview browser, serta menaikkan kualitas/dimensi kompresi agar ukuran hasil foto tidak terlalu kecil.
 
 ## 2026-07-22
 

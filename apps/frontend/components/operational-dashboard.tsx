@@ -352,6 +352,13 @@ function PrincipalClassDetailCard({
         </span>
       </button>
 
+      {item.isPastDue || item.isLateSubmitted ? (
+        <p className="mt-2 rounded-xl bg-amber-50 px-2.5 py-2 text-xs font-black text-amber-700 dark:bg-amber-400/10 dark:text-amber-100">
+          {item.isLateSubmitted ? 'Submit terlambat' : 'Lewat batas submit'}
+          {item.deadlineAt ? ` · batas ${formatDateTime(item.deadlineAt)}` : ''}
+        </p>
+      ) : null}
+
       {item.substituteTeacherName ? (
         <p className="mt-2 rounded-xl bg-emerald-50 px-2.5 py-2 text-xs font-bold text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-100">
           Guru pengganti: {item.substituteTeacherName}

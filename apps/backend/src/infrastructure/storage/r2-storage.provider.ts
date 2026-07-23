@@ -29,7 +29,7 @@ export class R2StorageProvider implements StorageProvider {
       Key: input.key,
       Body: input.buffer,
       ContentType: input.mimeType,
-      ContentDisposition: this.contentDisposition(input.name),
+      ContentDisposition: this.contentDisposition(input.name, input.disposition),
     }));
 
     return { key: input.key, name: input.name, mimeType: input.mimeType, size: input.buffer.length };

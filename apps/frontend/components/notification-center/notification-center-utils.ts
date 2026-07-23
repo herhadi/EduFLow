@@ -40,6 +40,7 @@ export function getPersonalNotificationLabel(
     if (templateKey?.startsWith('student-grade.')) return 'Approval Nilai';
     if (templateKey?.startsWith('attendance.class.empty')) return 'Kelas Kosong';
     if (templateKey?.startsWith('attendance.teacher.not-submitted')) return 'Belum Submit';
+    if (templateKey?.startsWith('attendance.late-submit.')) return 'Presensi Terlambat';
     if (templateKey?.startsWith('attendance.correction.')) return 'Koreksi Penting';
     if (templateKey?.startsWith('teacher.substitute.')) return 'Guru Pengganti';
     if (templateKey?.startsWith('school.summary.')) return 'Ringkasan Sekolah';

@@ -52,6 +52,9 @@ Aturan:
 
 - `DRAFT` dibuat saat guru mulai presensi atau sistem membuat sesi presensi.
 - `SUBMITTED` dibuat saat guru selesai mengisi dan mengirim presensi.
+- Submit normal hanya boleh dilakukan pada tanggal agenda yang sama.
+- Jika guru submit setelah jam selesai agenda plus toleransi 15 menit tetapi masih pada tanggal yang sama, presensi tetap diterima dan dashboard KS menandainya sebagai submit terlambat.
+- Jika sudah berganti tanggal, guru tidak dapat submit normal. Guru harus mengirim pengajuan presensi terlambat yang masuk ke Kepala Sekolah dan operator sekolah, bukan ke wali kelas.
 - Approval hanya dilakukan pada `SUBMITTED` atau `CORRECTED`.
 - `APPROVED` dipakai sebagai dasar summary resmi.
 - `CORRECTION_REQUESTED` wajib menyimpan `correctionNote`.

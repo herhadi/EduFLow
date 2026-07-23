@@ -382,6 +382,9 @@ export interface OperationalDashboardSummary {
       endsAt?: string | null;
       status: string;
       attendanceState?: string | null;
+      deadlineAt?: string | null;
+      isLateSubmitted?: boolean;
+      isPastDue?: boolean;
       submittedAt?: string | null;
       teacherPresent?: boolean | null;
       studentAttendanceDone?: boolean | null;
