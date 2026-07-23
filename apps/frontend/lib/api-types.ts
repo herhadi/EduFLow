@@ -208,6 +208,33 @@ export interface DailyAgenda {
   canManageAttendance?: boolean;
 }
 
+export interface TeacherDashboardSummary {
+  agenda: {
+    total: number;
+    submitted: number;
+    pending: number;
+    next: {
+      id: string;
+      className: string;
+      subjectName: string;
+      startsAt?: string | null;
+      endsAt?: string | null;
+      state?: string | null;
+    } | null;
+  };
+  schedule: {
+    today: number;
+  };
+  teachingPlan: {
+    revision: number;
+    waiting: number;
+    approved: number;
+  };
+  assessment: {
+    draft: number;
+  };
+}
+
 export type AttendanceStatus = 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT';
 export interface AttendanceItem { id: string; status: AttendanceStatus; notes?: string | null; student: Pick<Student, 'id' | 'name'>; }
 export interface Attendance {

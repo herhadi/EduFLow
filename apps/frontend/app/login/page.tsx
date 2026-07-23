@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import { api, type LoginResult } from '../../lib/api';
@@ -191,10 +192,14 @@ export default function LoginPage() {
         <div className="mb-6 flex items-center justify-between gap-3 sm:mb-8">
           <Link className="flex min-w-0 items-center gap-3" href="/">
             <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/50 bg-white p-1 shadow-sm">
-              <img
+              <Image
                 alt="Logo sekolah"
                 className="h-full w-full object-contain"
+                height={36}
+                priority
+                sizes="36px"
                 src="/logo_sekolah.webp"
+                width={36}
               />
             </span>
             <span className="min-w-0">

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { api, type Assessment, type DailyAgenda, type Schedule, type TeachingPlan } from '../../lib/api';
+import { api, type TeacherDashboardSummary as TeacherDashboardSummaryData } from '../../lib/api';
 import { UserAvatar } from '../ui/user-avatar';
 import { type CurrentUser } from './dashboard-types';
 import { RoleActionCard, RoleSection } from './role-dashboard-shared';
@@ -45,10 +45,7 @@ export function TeacherHome({
 }
 
 function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
-  const [agendas, setAgendas] = useState<DailyAgenda[]>([]);
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [plans, setPlans] = useState<TeachingPlan[]>([]);
-  const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [summary, setSummary] = useState<TeacherDashboardSummaryData | null>(null);
   const [state, setState] = useState<'loading' | 'success' | 'error'>('loading');
   const today = useMemo(() => getLocalDateOnly(), []);
 
@@ -59,21 +56,13 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
       setState('loading');
 
       try {
-        const [agendaResponse, scheduleResponse, planResponse, assessmentResponse] = await Promise.all([
-          api.getMyAgendas(today),
-          api.getMySchedules(),
-          api.getMyTeachingPlans(),
-          api.getMyAssessments(),
-        ]);
+        const response = await api.getMyDashboard();
 
         if (ignore) {
           return;
         }
 
-        setAgendas(agendaResponse.data);
-        setSchedules(scheduleResponse.data);
-        setPlans(planResponse.data);
-        setAssessments(assessmentResponse.data);
+        setSummary(response.data);
         setState('success');
       } catch {
         if (!ignore) {
@@ -89,37 +78,30 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
     };
   }, [today]);
 
-  const submittedStates = ['SUBMITTED', 'APPROVED', 'CORRECTED', 'LOCKED'];
-  const todaySubmitted = agendas.filter((agenda) => agenda.attendance && submittedStates.includes(agenda.attendance.state));
-  const todayPending = agendas.filter((agenda) => !agenda.attendance || !submittedStates.includes(agenda.attendance.state));
-  const nextAgenda = [...todayPending, ...agendas]
-    .sort((first, second) => (first.schedule?.startsAt ?? '').localeCompare(second.schedule?.startsAt ?? ''))[0];
-  const dayOfWeek = getLocalDayOfWeek();
-  const weeklyToday = schedules.filter((schedule) => schedule.dayOfWeek === dayOfWeek);
-  const revisionPlans = plans.filter((plan) => plan.status === 'REVISION_REQUESTED');
-  const waitingPlans = plans.filter((plan) => plan.status === 'SUBMITTED');
-  const approvedPlans = plans.filter((plan) => plan.status === 'APPROVED');
-  const draftAssessments = assessments.filter((assessment) => assessment.status === 'DRAFT' || assessment.status === 'REVISION_REQUESTED');
+  const agendaSummary = summary?.agenda ?? { total: 0, submitted: 0, pending: 0, next: null };
+  const scheduleSummary = summary?.schedule ?? { today: 0 };
+  const teachingPlanSummary = summary?.teachingPlan ?? { revision: 0, waiting: 0, approved: 0 };
+  const assessmentSummary = summary?.assessment ?? { draft: 0 };
   const urgentActions = [
-    todayPending.length > 0
+    agendaSummary.pending > 0
       ? {
           href: '/teacher/attendance',
           label: 'Selesaikan presensi',
-          value: `${todayPending.length} agenda`,
+          value: `${agendaSummary.pending} agenda`,
         }
       : null,
-    revisionPlans.length > 0
+    teachingPlanSummary.revision > 0
       ? {
           href: '/teacher/teaching-plans',
           label: 'Perbaiki perangkat ajar',
-          value: `${revisionPlans.length} revisi`,
+          value: `${teachingPlanSummary.revision} revisi`,
         }
       : null,
-    draftAssessments.length > 0
+    assessmentSummary.draft > 0
       ? {
           href: '/teacher/assessments',
           label: 'Lanjutkan nilai harian',
-          value: `${draftAssessments.length} draft`,
+          value: `${assessmentSummary.draft} draft`,
         }
       : null,
     isHomeroom
@@ -132,23 +114,23 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
   ].filter((item): item is { href: string; label: string; value: string } => Boolean(item));
 
   return (
-    <section className="mt-6 grid items-start gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+    <section className="mt-6 grid min-h-[36rem] items-start gap-4 sm:min-h-[28rem] xl:min-h-[22rem] xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
       <div className="surface-card rounded-[2rem] p-4 sm:p-5">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(340px,0.9fr)] lg:items-start">
           <div className="min-w-0">
             <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-700">Agenda Hari Ini</p>
             <h2 className="mt-1 text-lg font-black tracking-tight text-slate-900 sm:text-xl">
-              {state === 'loading' ? 'Memuat ringkasan mengajar...' : `${agendas.length} agenda mengajar`}
+              {state === 'loading' ? 'Memuat ringkasan mengajar...' : `${agendaSummary.total} agenda mengajar`}
             </h2>
             <p className="mt-1 text-sm text-muted">
-              {formatReadableDate(today)} · {weeklyToday.length} sesi pada jadwal mingguan.
+              {formatReadableDate(today)} · {scheduleSummary.today} sesi pada jadwal mingguan.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">
-            <TeacherMiniStat label="Total agenda" value={agendas.length} tone="primary" />
-            <TeacherMiniStat label="Jadwal hari ini" value={weeklyToday.length} tone="neutral" />
-            <TeacherMiniStat label="Sudah submit" value={todaySubmitted.length} tone="success" />
-            <TeacherMiniStat label="Belum submit" value={todayPending.length} tone={todayPending.length ? 'warning' : 'neutral'} />
+            <TeacherMiniStat label="Total agenda" value={agendaSummary.total} tone="primary" />
+            <TeacherMiniStat label="Jadwal hari ini" value={scheduleSummary.today} tone="neutral" />
+            <TeacherMiniStat label="Sudah submit" value={agendaSummary.submitted} tone="success" />
+            <TeacherMiniStat label="Belum submit" value={agendaSummary.pending} tone={agendaSummary.pending ? 'warning' : 'neutral'} />
           </div>
         </div>
 
@@ -161,16 +143,16 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
         <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(220px,0.7fr)]">
           <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-3 dark:border-blue-400/20 dark:bg-blue-400/10">
             <p className="text-xs font-black text-brand-700">Prioritas berikutnya</p>
-            {nextAgenda ? (
+            {agendaSummary.next ? (
               <div className="mt-2 min-w-0">
                 <h3 className="truncate text-base font-black text-slate-900 dark:text-[var(--text)]">
-                  {nextAgenda.subject.name}
+                  {agendaSummary.next.subjectName}
                 </h3>
                 <p className="mt-1 text-sm font-semibold text-muted">
-                  {nextAgenda.class.name} · {nextAgenda.schedule?.startsAt ?? '--:--'}-{nextAgenda.schedule?.endsAt ?? '--:--'}
+                  {agendaSummary.next.className} · {agendaSummary.next.startsAt ?? '--:--'}-{agendaSummary.next.endsAt ?? '--:--'}
                 </p>
                 <p className="mt-2 text-xs font-black text-slate-600">
-                  {getAgendaLabel(nextAgenda)}
+                  {getAgendaLabel(agendaSummary.next.state)}
                 </p>
               </div>
             ) : (
@@ -181,7 +163,7 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-[var(--border)] dark:bg-[var(--surface-soft)]">
             <p className="text-xs font-black text-slate-600 dark:text-[var(--text-soft)]">Aksi cepat</p>
-            <div className="mt-2 space-y-2">
+            <div className="mt-2 min-h-32 space-y-2">
               {urgentActions.slice(0, 3).map((action) => (
                 <Link
                   className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-900 transition hover:border-brand-300 hover:text-brand-700 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]"
@@ -216,10 +198,10 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <TeacherMiniStat label="Revisi ajar" value={revisionPlans.length} tone={revisionPlans.length ? 'warning' : 'neutral'} />
-          <TeacherMiniStat label="Disetujui" value={approvedPlans.length} tone="success" />
-          <TeacherMiniStat label="Menunggu KS" value={waitingPlans.length} tone={waitingPlans.length ? 'primary' : 'neutral'} />
-          <TeacherMiniStat label="Draft nilai" value={draftAssessments.length} tone={draftAssessments.length ? 'warning' : 'neutral'} />
+          <TeacherMiniStat label="Revisi ajar" value={teachingPlanSummary.revision} tone={teachingPlanSummary.revision ? 'warning' : 'neutral'} />
+          <TeacherMiniStat label="Disetujui" value={teachingPlanSummary.approved} tone="success" />
+          <TeacherMiniStat label="Menunggu KS" value={teachingPlanSummary.waiting} tone={teachingPlanSummary.waiting ? 'primary' : 'neutral'} />
+          <TeacherMiniStat label="Draft nilai" value={assessmentSummary.draft} tone={assessmentSummary.draft ? 'warning' : 'neutral'} />
         </div>
       </div>
     </section>
@@ -259,12 +241,6 @@ function getLocalDateOnly() {
   return `${year}-${month}-${day}`;
 }
 
-function getLocalDayOfWeek() {
-  const day = new Date().getDay();
-
-  return day === 0 ? 7 : day;
-}
-
 function formatReadableDate(value: string) {
   const [year, month, day] = value.split('-').map(Number);
   const date = new Date(year, month - 1, day);
@@ -276,14 +252,12 @@ function formatReadableDate(value: string) {
   }).format(date);
 }
 
-function getAgendaLabel(agenda: DailyAgenda) {
-  if (agenda.attendance?.state === 'SUBMITTED') return 'Presensi sudah dikirim';
-  if (agenda.attendance?.state === 'APPROVED') return 'Presensi disetujui';
-  if (agenda.attendance?.state === 'CORRECTED') return 'Presensi sudah dikoreksi';
-  if (agenda.attendance?.state === 'LOCKED') return 'Presensi dikunci';
-  if (agenda.status === 'EMPTY') return 'Kelas kosong, perlu tindak lanjut';
-  if (agenda.substituteTeacher) return `Guru pengganti: ${agenda.substituteTeacher.name}`;
-  if (agenda.attendance) return 'Presensi sedang dikerjakan';
+function getAgendaLabel(state?: string | null) {
+  if (state === 'SUBMITTED') return 'Presensi sudah dikirim';
+  if (state === 'APPROVED') return 'Presensi disetujui';
+  if (state === 'CORRECTED') return 'Presensi sudah dikoreksi';
+  if (state === 'LOCKED') return 'Presensi dikunci';
+  if (state) return 'Presensi sedang dikerjakan';
 
   return 'Belum buka presensi';
 }

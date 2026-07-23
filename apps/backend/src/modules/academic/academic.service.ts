@@ -204,6 +204,10 @@ export class AcademicService {
     return this.teacherPortalService.getMyAgendas(userId, date);
   }
 
+  async getMyDashboard(userId: string) {
+    return this.teacherPortalService.getMyDashboard(userId);
+  }
+
   async getSchedule(id: string) {
     return this.academicScheduleService.getSchedule(id);
   }

@@ -222,6 +222,115 @@ export class TeacherPortalService {
     };
   }
 
+  async getMyDashboard(userId: string) {
+    const teacher = await this.getTeacherAccount(userId);
+    const today = this.getTodayDateOnly();
+    const dayOfWeek = this.getLocalDayOfWeek();
+    const submittedStates = ['SUBMITTED', 'APPROVED', 'CORRECTED', 'LOCKED'];
+
+    const [
+      agendas,
+      schedules,
+      revisionPlans,
+      waitingPlans,
+      approvedPlans,
+      draftAssessments,
+    ] = await Promise.all([
+      this.prisma.dailyAgenda.findMany({
+        where: {
+          date: today,
+          OR: [
+            { teacherId: teacher.id },
+            { substituteTeacherId: teacher.id },
+          ],
+        },
+        select: {
+          id: true,
+          substituteTeacherId: true,
+          teacherId: true,
+          class: { select: { id: true, name: true } },
+          subject: { select: { id: true, name: true } },
+          schedule: { select: { startsAt: true, endsAt: true } },
+          attendance: { select: { state: true } },
+        },
+        orderBy: [{ schedule: { startsAt: 'asc' } }],
+      }),
+      this.prisma.schedule.findMany({
+        where: {
+          dayOfWeek,
+          deletedAt: null,
+          OR: [
+            { teacherId: teacher.id },
+            { revisions: { some: { teacherId: teacher.id } } },
+          ],
+        },
+        include: {
+          class: true,
+          subject: true,
+          teacher: true,
+          timeSlot: true,
+          revisions: {
+            include: { class: true, subject: true, teacher: true, timeSlot: true },
+            orderBy: { effectiveFrom: 'asc' },
+          },
+        },
+      }),
+      this.prisma.teachingPlan.count({
+        where: { teacherId: teacher.id, deletedAt: null, status: 'REVISION_REQUESTED' },
+      }),
+      this.prisma.teachingPlan.count({
+        where: { teacherId: teacher.id, deletedAt: null, status: 'SUBMITTED' },
+      }),
+      this.prisma.teachingPlan.count({
+        where: { teacherId: teacher.id, deletedAt: null, status: 'APPROVED' },
+      }),
+      this.prisma.assessment.count({
+        where: { teacherId: teacher.id, deletedAt: null, status: { in: ['DRAFT', 'REVISION_REQUESTED'] } },
+      }),
+    ]);
+
+    const todaySubmitted = agendas.filter((agenda) =>
+      agenda.attendance && submittedStates.includes(agenda.attendance.state),
+    );
+    const todayPending = agendas.filter((agenda) =>
+      !agenda.attendance || !submittedStates.includes(agenda.attendance.state),
+    );
+    const nextAgenda = [...todayPending, ...agendas]
+      .sort((first, second) => (first.schedule?.startsAt ?? '').localeCompare(second.schedule?.startsAt ?? ''))[0];
+    const weeklyToday = schedules
+      .map((schedule) => getScheduleSnapshotAtDate(schedule, today))
+      .filter((schedule) => schedule.teacherId === teacher.id);
+
+    return {
+      data: {
+        agenda: {
+          total: agendas.length,
+          submitted: todaySubmitted.length,
+          pending: todayPending.length,
+          next: nextAgenda ? {
+            id: nextAgenda.id,
+            className: nextAgenda.class.name,
+            subjectName: nextAgenda.subject.name,
+            startsAt: nextAgenda.schedule?.startsAt ?? null,
+            endsAt: nextAgenda.schedule?.endsAt ?? null,
+            state: nextAgenda.attendance?.state ?? null,
+          } : null,
+        },
+        schedule: {
+          today: weeklyToday.length,
+        },
+        teachingPlan: {
+          revision: revisionPlans,
+          waiting: waitingPlans,
+          approved: approvedPlans,
+        },
+        assessment: {
+          draft: draftAssessments,
+        },
+      },
+    };
+  }
+
   private async getTeacherAccount(userId: string) {
     const teacher = await this.prisma.teacher.findFirst({
       where: { userId, deletedAt: null, isActive: true },
@@ -282,4 +391,12 @@ export class TeacherPortalService {
       this.configService.get<string>('SCHOOL_TIMEZONE_OFFSET_MINUTES') ?? this.defaultTimezoneOffsetMinutes,
     );
   }
+
+  private getLocalDayOfWeek() {
+    const timezoneOffsetMinutes = this.getSchoolTimezoneOffsetMinutes();
+    const localNow = new Date(Date.now() + timezoneOffsetMinutes * 60_000);
+    const day = localNow.getUTCDay();
+    return day === 0 ? 7 : day;
+  }
+
 }

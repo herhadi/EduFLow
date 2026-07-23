@@ -1,6 +1,6 @@
 'use client';
 
-import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { api, type SchoolYear, type Semester, type Subject, type TeachingPlan, type TeachingPlanType } from '../lib/api';
 import { openTeachingPlanAttachment } from '../lib/open-document';
 import { getPreferredSchoolYear } from '../lib/school-year';
@@ -107,7 +107,25 @@ export function TeacherTeachingPlans() {
     setAttachment(event.target.files?.[0] ?? null);
   }
 
-  const filteredSemesters = semesters.filter((semester) => semester.schoolYearId === form.schoolYearId);
+  const filteredSemesters = useMemo(
+    () => semesters.filter((semester) => semester.schoolYearId === form.schoolYearId),
+    [form.schoolYearId, semesters],
+  );
+  const subjectOptions = useMemo(
+    () => subjects.map((subject) => ({ value: subject.id, label: subject.name })),
+    [subjects],
+  );
+  const schoolYearOptions = useMemo(
+    () => schoolYears.map((item) => ({ value: item.id, label: item.name })),
+    [schoolYears],
+  );
+  const semesterOptions = useMemo(
+    () => [
+      { value: '', label: 'Tidak spesifik semester' },
+      ...filteredSemesters.map((item) => ({ value: item.id, label: item.type === 'ODD' ? 'Ganjil' : 'Genap' })),
+    ],
+    [filteredSemesters],
+  );
   const isTeachingBook = form.type === 'TEACHING_BOOK';
 
   return (
@@ -142,9 +160,9 @@ export function TeacherTeachingPlans() {
           </div>
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             <Select label="Jenis" value={form.type} onChange={(value) => { setForm({ ...form, type: value as TeachingPlanType }); setAttachment(null); }} options={planTypes} />
-            <Select label="Mata Pelajaran" value={form.subjectId} onChange={(value) => setForm({ ...form, subjectId: value })} options={subjects.map((subject) => ({ value: subject.id, label: subject.name }))} />
-            <Select label="Tahun Ajaran" value={form.schoolYearId} onChange={(value) => setForm({ ...form, schoolYearId: value, semesterId: '' })} options={schoolYears.map((item) => ({ value: item.id, label: item.name }))} />
-            <Select label="Semester (opsional)" value={form.semesterId} onChange={(value) => setForm({ ...form, semesterId: value })} options={[{ value: '', label: 'Tidak spesifik semester' }, ...filteredSemesters.map((item) => ({ value: item.id, label: item.type === 'ODD' ? 'Ganjil' : 'Genap' }))]} />
+            <Select label="Mata Pelajaran" value={form.subjectId} onChange={(value) => setForm({ ...form, subjectId: value })} options={subjectOptions} />
+            <Select label="Tahun Ajaran" value={form.schoolYearId} onChange={(value) => setForm({ ...form, schoolYearId: value, semesterId: '' })} options={schoolYearOptions} />
+            <Select label="Semester (opsional)" value={form.semesterId} onChange={(value) => setForm({ ...form, semesterId: value })} options={semesterOptions} />
             <Field label="Judul" value={form.title} onChange={(value) => setForm({ ...form, title: value })} required />
             {isTeachingBook ? (
               <div className="grid gap-2">

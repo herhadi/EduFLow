@@ -1,6 +1,7 @@
 'use client';
 
 import { compareSchoolClasses } from '@eduflow/shared';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { api, type Schedule } from '../lib/api';
 
@@ -60,9 +61,16 @@ function getPeriodLabel(group: TeachingScheduleGroup) {
   return group.periodNumbers.length ? `Jam ke-${group.periodNumbers.join(', ')}` : 'Jam aktif';
 }
 
+function getCurrentDayOfWeek() {
+  const day = new Date().getDay();
+
+  return day === 0 ? 7 : day;
+}
+
 export function TeacherScheduleList() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [state, setState] = useState<'loading' | 'success' | 'error'>('loading');
+  const currentDayOfWeek = useMemo(() => getCurrentDayOfWeek(), []);
 
   useEffect(() => {
     api
@@ -111,15 +119,43 @@ export function TeacherScheduleList() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-      {activeDays.map((day) => (
-        <article className="rounded-[1.5rem] border border-blue-100 bg-white p-3 shadow-sm sm:p-4" key={day.dayOfWeek}>
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-black text-slate-900">{day.label}</h2>
-            <span className="text-[11px] font-black text-muted">{day.groups.length} jadwal</span>
-          </div>
-          <div className="mt-2 divide-y divide-slate-100">
-            {day.groups.map((group) => (
-              <div className="grid grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-3 py-2.5" key={group.id}>
+      {activeDays.map((day) => {
+        const isToday = day.dayOfWeek === currentDayOfWeek;
+
+        return (
+          <details
+            className={[
+              'group rounded-[1.5rem] border p-3 shadow-sm transition sm:p-4',
+              isToday
+                ? 'border-brand-200 bg-blue-50/80 dark:border-blue-400/30 dark:bg-blue-400/10'
+                : 'border-blue-100 bg-white dark:border-[var(--border)] dark:bg-[var(--surface-solid)]',
+            ].join(' ')}
+            key={day.dayOfWeek}
+            open={isToday}
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-1 py-1 transition hover:bg-blue-50/70 dark:hover:bg-blue-400/10">
+              <span className="flex min-w-0 items-center gap-2">
+                <span className="text-sm font-black text-slate-900 dark:text-[var(--text)]">{day.label}</span>
+                {isToday ? (
+                  <span className="rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-black text-white">
+                    Hari ini
+                  </span>
+                ) : null}
+              </span>
+              <span className="flex shrink-0 items-center gap-2">
+                <span className="text-[11px] font-black text-muted">{day.groups.length} jadwal</span>
+                <span
+                  aria-hidden="true"
+                  className="grid grid-cols-1 gap-0.5 rounded-full border border-slate-200 bg-white p-1 shadow-sm dark:border-slate-700 dark:bg-slate-900"
+                >
+                  <ChevronUp className="size-3 text-slate-300 transition group-open:text-brand-700 dark:text-slate-600 dark:group-open:text-blue-100" strokeWidth={3} />
+                  <ChevronDown className="size-3 text-brand-700 transition group-open:text-slate-300 dark:text-blue-100 dark:group-open:text-slate-600" strokeWidth={3} />
+                </span>
+              </span>
+            </summary>
+            <div className="mt-2 divide-y divide-slate-100">
+              {day.groups.map((group) => (
+                <div className="grid grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-3 py-2.5" key={group.id}>
                   <div className="rounded-xl bg-brand-50 px-2 py-2 text-center">
                     <p className="text-[11px] font-black text-brand-700">{group.startsAt}</p>
                     <p className="mt-0.5 text-[9px] font-bold text-muted">{group.endsAt}</p>
@@ -139,11 +175,12 @@ export function TeacherScheduleList() {
                       {getPeriodLabel(group)}
                     </span>
                   </div>
-              </div>
-            ))}
-          </div>
-        </article>
-      ))}
+                </div>
+              ))}
+            </div>
+          </details>
+        );
+      })}
       {!activeDays.length ? (
         <p className="rounded-[1.5rem] border border-blue-100 bg-white p-5 text-sm font-semibold text-muted sm:col-span-2 xl:col-span-3">Belum ada jadwal mengajar.</p>
       ) : null}

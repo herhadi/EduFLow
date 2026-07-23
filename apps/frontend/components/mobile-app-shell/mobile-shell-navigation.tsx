@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import {
   Activity,
@@ -101,10 +102,14 @@ export function AppTopBar({
       <div className="flex items-center justify-between gap-3">
         <Link className="flex items-center gap-3" href="/">
           <span className="grid size-10 place-items-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1">
-            <img
+            <Image
               alt="Logo sekolah"
               className="h-full w-full object-contain"
+              height={32}
+              priority
+              sizes="32px"
               src="/logo_sekolah.webp"
+              width={32}
             />
           </span>
           <span>
@@ -121,7 +126,7 @@ export function AppTopBar({
             <p className="max-w-48 truncate text-xs font-black text-brand-700">
               Hai, {displayName}
             </p>
-            <p className="max-w-32 truncate text-[0.65rem] font-bold capitalize text-muted">
+            <p className="max-w-32 truncate text-[0.65rem] font-bold capitalize text-slate-700 dark:text-slate-300">
               {displayRole}
             </p>
           </div>

@@ -284,6 +284,11 @@ export class AcademicController {
     return this.academicService.getMyAgendas(request.user.id, date);
   }
 
+  @Get('me/dashboard')
+  getMyDashboard(@Req() request: RequestWithUser) {
+    return this.academicService.getMyDashboard(request.user.id);
+  }
+
   @RequirePermissions(PERMISSIONS.ATTENDANCE_READ)
   @Get('me/homeroom')
   getMyHomeroom(@Req() request: RequestWithUser) {

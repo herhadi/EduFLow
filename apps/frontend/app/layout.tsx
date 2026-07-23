@@ -18,8 +18,8 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/logo_sekolah.png',
-    apple: '/logo_sekolah.png',
+    icon: '/icon.svg',
+    apple: '/icon.svg',
   },
 };
 

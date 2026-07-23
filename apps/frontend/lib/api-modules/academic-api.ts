@@ -1,5 +1,5 @@
 import { request, upload } from '../api-client';
-import type { ApiResponse, AppUser, Attendance, AttendanceStatus, DailyAgenda, HomeroomOverview, Schedule, SchoolClass, SchoolYear, CloneSchoolYearMasterResult, Semester, Student, Subject, Teacher, TeacherAssignmentStatus, TeacherSchoolYearAssignment } from '../api-types';
+import type { ApiResponse, AppUser, Attendance, AttendanceStatus, DailyAgenda, HomeroomOverview, Schedule, SchoolClass, SchoolYear, CloneSchoolYearMasterResult, Semester, Student, Subject, Teacher, TeacherAssignmentStatus, TeacherDashboardSummary, TeacherSchoolYearAssignment } from '../api-types';
 
 export const academicApi = {
   getSchoolYears: () =>
@@ -126,6 +126,7 @@ export const academicApi = {
   getMySchedules: () =>
     request<ApiResponse<Schedule[]>>('/academic/me/schedules'),
   getMyAgendas: (date: string) => request<ApiResponse<DailyAgenda[]>>(`/academic/me/agendas?date=${date}`),
+  getMyDashboard: () => request<ApiResponse<TeacherDashboardSummary>>('/academic/me/dashboard'),
   openClass: (agendaId: string) => request<ApiResponse<Attendance>>('/attendance/open-class', { method: 'POST', body: JSON.stringify({ agendaId }) }),
   getAttendance: (id: string) => request<ApiResponse<Attendance>>(`/attendance/${id}`),
   uploadAttendanceClassPhoto: (id: string, file: File, metadata?: {

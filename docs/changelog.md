@@ -6,6 +6,10 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 
 ## 2026-07-23
 
+- Memperbaiki kontras teks role pada user chip topbar mobile agar lolos WCAG AA dan merapikan render opsi form perangkat ajar guru.
+- Menambahkan endpoint ringkasan `/academic/me/dashboard` agar dashboard guru tidak perlu memuat 4 endpoint list penuh hanya untuk angka beranda.
+- Mengoptimasi dashboard guru untuk Lighthouse: logo topbar/login memakai `next/image`, icon manifest memakai SVG kecil, dan section ringkasan guru diberi ruang tetap untuk menekan CLS.
+- Membuat `/teacher/schedules` default collapse per hari, dengan hari berjalan otomatis terbuka bila ada jadwal, serta memberi badge `Hari ini`, tone aktif, hover, dan indikator panah atas/bawah seperti toggle agar card terlihat bisa diklik.
 - Mengelompokkan tabel `/admin/schedules` menjadi collapsible per hari saat filter `Semua Hari` dengan default tertutup, sementara filter hari spesifik tetap memakai tabel biasa.
 - Menambahkan label kanan pada `Jadwal mengajar mingguan` guru dan menggabungkan jam pelajaran berurutan menjadi badge seperti `Jam ke-1, 2`.
 - Menyiapkan agenda UAT hari ini untuk skenario presensi ulang, termasuk agenda khusus `UAT Foto Kelas` agar guru bisa menguji pengambilan foto kelas dari browser HP.
