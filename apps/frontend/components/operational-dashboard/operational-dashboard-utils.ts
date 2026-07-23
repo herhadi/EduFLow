@@ -41,6 +41,7 @@ export const emptySummary: OperationalDashboardSummary = {
       items: [],
     },
     followUpItems: [],
+    todayItems: [],
   },
 };
 

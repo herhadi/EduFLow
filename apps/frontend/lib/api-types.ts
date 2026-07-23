@@ -367,6 +367,27 @@ export interface OperationalDashboardSummary {
       attendanceState?: string | null;
       issueNotes?: string | null;
     }>;
+    todayItems: Array<{
+      agendaId: string;
+      className: string;
+      subjectName: string;
+      teacherName: string;
+      substituteTeacherName?: string | null;
+      startsAt?: string | null;
+      endsAt?: string | null;
+      status: string;
+      attendanceState?: string | null;
+      submittedAt?: string | null;
+      teacherPresent?: boolean | null;
+      studentAttendanceDone?: boolean | null;
+      materialFilled?: boolean | null;
+      classPhotoDone?: boolean | null;
+      materialNotes?: string | null;
+      issueNotes?: string | null;
+      classPhotoName?: string | null;
+      classPhotoSize?: number | null;
+      classPhotoUrl?: string | null;
+    }>;
   };
 }
 

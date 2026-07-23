@@ -1,5 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { AgendaStatus, AssessmentStatus, AttendanceState, AttendanceStatus } from '@prisma/client';
+import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ReportExportService } from './report-export.service';
 
@@ -22,6 +23,7 @@ export class ReportingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly reportExportService: ReportExportService,
+    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
   async getOperationalToday() {
@@ -149,17 +151,7 @@ export class ReportingService {
     });
     const withIssueNotes = agendas.filter((agenda) => agenda.attendance?.issueNotes);
     const substituteAgendas = agendas.filter((agenda) => agenda.substituteTeacher);
-    const followUpItems = agendas
-      .filter(
-        (agenda) =>
-          agenda.status === AgendaStatus.EMPTY ||
-          !agenda.attendance ||
-          !isSubmittedAttendance(agenda.attendance) ||
-          checklistMissing.some((item) => item.id === agenda.id) ||
-          Boolean(agenda.attendance?.issueNotes),
-      )
-      .slice(0, 8)
-      .map((agenda) => ({
+    const todayItems = await Promise.all(agendas.map(async (agenda) => ({
         agendaId: agenda.id,
         className: agenda.class.name,
         subjectName: agenda.subject.name,
@@ -169,8 +161,27 @@ export class ReportingService {
         endsAt: agenda.schedule?.endsAt ?? null,
         status: agenda.status,
         attendanceState: agenda.attendance?.state ?? null,
+        submittedAt: agenda.attendance?.submittedAt?.toISOString() ?? null,
+        teacherPresent: agenda.attendance?.teacherPresent ?? null,
+        studentAttendanceDone: agenda.attendance?.studentAttendanceDone ?? null,
+        materialFilled: agenda.attendance?.materialFilled ?? null,
+        classPhotoDone: agenda.attendance?.classPhotoDone ?? null,
+        materialNotes: agenda.attendance?.notes ?? null,
         issueNotes: agenda.attendance?.issueNotes ?? null,
-      }));
+        classPhotoName: agenda.attendance?.classPhotoName ?? null,
+        classPhotoSize: agenda.attendance?.classPhotoSize ?? null,
+        classPhotoUrl: await this.createClassPhotoUrl(agenda.attendance),
+      })));
+    const followUpItems = todayItems
+      .filter(
+        (agenda) =>
+          agenda.status === AgendaStatus.EMPTY ||
+          !agenda.attendanceState ||
+          !isSubmittedAttendance({ state: agenda.attendanceState as AttendanceState, submittedAt: agenda.submittedAt ? new Date(agenda.submittedAt) : null }) ||
+          (agenda.attendanceState && ![agenda.teacherPresent, agenda.studentAttendanceDone, agenda.materialFilled, agenda.classPhotoDone].every(Boolean)) ||
+          Boolean(agenda.issueNotes),
+      )
+      .slice(0, 8);
 
     const studentAttendance = this.countAttendanceItems(attendanceItems);
     const totalTeachers = totalTeachingTeachers.length;
@@ -227,9 +238,25 @@ export class ReportingService {
             })),
           },
           followUpItems,
+          todayItems,
         },
       },
     };
+  }
+
+  private async createClassPhotoUrl(attendance?: {
+    classPhotoKey?: string | null;
+    classPhotoMimeType?: string | null;
+    classPhotoName?: string | null;
+  } | null) {
+    if (!attendance?.classPhotoKey) {
+      return null;
+    }
+
+    return this.storage.createDownloadUrl(attendance.classPhotoKey, attendance.classPhotoName ?? 'foto-kelas', {
+      contentType: attendance.classPhotoMimeType ?? undefined,
+      disposition: 'inline',
+    }).catch(() => null);
   }
 
   async exportReport({

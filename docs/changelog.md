@@ -8,6 +8,7 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 
 - Menyiapkan agenda UAT hari ini untuk skenario presensi ulang, termasuk agenda khusus `UAT Foto Kelas` agar guru bisa menguji pengambilan foto kelas dari browser HP.
 - Menambahkan kompresi foto kelas di browser sebelum upload dengan target di bawah 1 MB, menampilkan informasi ukuran hasil kompresi, dan membatasi upload backend maksimal 1 MB.
+- Memperkaya `/principal/kbm` agar KS dapat mengeklik kategori kelas hari ini dan melihat detail agenda: materi/catatan KBM, checklist presensi, kendala, guru pengganti, serta link foto kelas dari storage.
 
 ## 2026-07-22
 

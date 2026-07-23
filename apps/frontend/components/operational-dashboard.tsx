@@ -6,6 +6,9 @@ import { formatNumber, formatReadableDate } from '../lib/format';
 import { KbmControlPanel } from './operational-dashboard/kbm-control-panel';
 import {
   emptySummary,
+  formatTimeRange,
+  getAgendaStatusClass,
+  getAgendaStatusLabel,
   getStudentTotal,
   type PrincipalPriorityKey,
 } from './operational-dashboard/operational-dashboard-utils';
@@ -15,6 +18,8 @@ import { MetricCard } from './ui/metric-card';
 import { SurfaceCard } from './ui/card';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
+type KbmTodayItem = NonNullable<OperationalDashboardSummary['kbm']>['todayItems'][number];
+type ClassMonitorFilter = 'all' | 'IN_PROGRESS' | 'COMPLETED' | 'EMPTY' | 'NOT_SUBMITTED';
 
 export function OperationalDashboard({
   audience = 'operations',
@@ -90,25 +95,28 @@ export function OperationalDashboard({
       ) : null}
 
       <div className={audience === 'principal' ? 'grid gap-3 xl:grid-cols-2' : 'space-y-6'}>
-        <MetricSection
-          compact={audience === 'principal'}
-          description="Status semua kelas dari DailyAgenda hari ini."
-          title="Kelas Hari Ini"
-        >
-          <MetricCard label="Kelas Hari Ini" value={summary.classes.totalToday} />
-          <MetricCard
-            label="Sedang Berlangsung"
-            tone="good"
-            value={summary.classes.inProgress}
-          />
-          <MetricCard label="Selesai" tone="good" value={summary.classes.completed} />
-          <MetricCard label="Kelas Kosong" tone="danger" value={summary.classes.empty} />
-          <MetricCard
-            label="Belum Submit"
-            tone="warning"
-            value={summary.classes.notSubmitted}
-          />
-        </MetricSection>
+        {audience === 'principal' ? (
+          <PrincipalClassMonitor summary={summary} />
+        ) : (
+          <MetricSection
+            description="Status semua kelas dari DailyAgenda hari ini."
+            title="Kelas Hari Ini"
+          >
+            <MetricCard label="Kelas Hari Ini" value={summary.classes.totalToday} />
+            <MetricCard
+              label="Sedang Berlangsung"
+              tone="good"
+              value={summary.classes.inProgress}
+            />
+            <MetricCard label="Selesai" tone="good" value={summary.classes.completed} />
+            <MetricCard label="Kelas Kosong" tone="danger" value={summary.classes.empty} />
+            <MetricCard
+              label="Belum Submit"
+              tone="warning"
+              value={summary.classes.notSubmitted}
+            />
+          </MetricSection>
+        )}
 
         <MetricSection
           badge={`${formatNumber(summary.teachers.totalTeaching)} guru`}
@@ -235,6 +243,171 @@ function PrincipalKbmStrip({ summary }: { summary: OperationalDashboardSummary }
       </div>
     </SurfaceCard>
   );
+}
+
+function PrincipalClassMonitor({ summary }: { summary: OperationalDashboardSummary }) {
+  const kbm = summary.kbm ?? emptySummary.kbm!;
+  const [filter, setFilter] = useState<ClassMonitorFilter>('IN_PROGRESS');
+  const todayItems = kbm.todayItems ?? [];
+  const filterCards = [
+    { key: 'all', label: 'Semua', value: summary.classes.totalToday, tone: 'info' },
+    { key: 'IN_PROGRESS', label: 'Berjalan', value: summary.classes.inProgress, tone: 'good' },
+    { key: 'COMPLETED', label: 'Selesai', value: summary.classes.completed, tone: 'good' },
+    { key: 'EMPTY', label: 'Kosong', value: summary.classes.empty, tone: 'danger' },
+    { key: 'NOT_SUBMITTED', label: 'Belum Submit', value: summary.classes.notSubmitted, tone: 'warning' },
+  ] satisfies Array<{
+    key: ClassMonitorFilter;
+    label: string;
+    tone: 'danger' | 'good' | 'info' | 'warning';
+    value: number;
+  }>;
+  const visibleItems = todayItems.filter((item) => matchesClassMonitorFilter(item, filter));
+  const activeLabel = filterCards.find((item) => item.key === filter)?.label ?? 'Detail';
+
+  return (
+    <SurfaceCard className="rounded-[1.25rem] p-3 sm:rounded-[2rem] sm:p-4 xl:col-span-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="text-base font-black sm:text-lg">Pantauan Kelas Hari Ini</h3>
+          <p className="mt-1 text-sm text-muted">
+            Klik status untuk melihat kelas, materi KBM, checklist presensi, kendala, dan foto kelas.
+          </p>
+        </div>
+        <Badge className="w-fit" tone="brand">
+          {activeLabel}
+        </Badge>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+        {filterCards.map((item) => (
+          <button
+            className={`rounded-xl border p-3 text-left transition hover:-translate-y-0.5 ${getClassMonitorTone(item.tone)} ${filter === item.key ? 'ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-slate-950' : ''}`}
+            key={item.key}
+            onClick={() => setFilter(item.key)}
+            type="button"
+          >
+            <strong className="block text-xl font-black">{formatNumber(item.value)}</strong>
+            <span className="mt-1 block text-xs font-black text-slate-900 dark:text-slate-100">{item.label}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-3 grid gap-2 lg:grid-cols-2">
+        {visibleItems.length ? (
+          visibleItems.map((item) => (
+            <PrincipalClassDetailCard item={item} key={item.agendaId} />
+          ))
+        ) : (
+          <p className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-sm font-bold text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-100">
+            Tidak ada agenda pada kategori ini.
+          </p>
+        )}
+      </div>
+    </SurfaceCard>
+  );
+}
+
+function PrincipalClassDetailCard({ item }: { item: KbmTodayItem }) {
+  const checklist = [
+    { done: item.teacherPresent === true, label: 'Guru' },
+    { done: item.studentAttendanceDone === true, label: 'Presensi' },
+    { done: item.materialFilled === true, label: 'Materi' },
+    { done: item.classPhotoDone === true, label: 'Foto' },
+  ];
+
+  return (
+    <article className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-[var(--border)] dark:bg-[var(--surface-soft)]">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-black text-slate-900 dark:text-slate-100">
+            {item.className} · {item.subjectName}
+          </p>
+          <p className="mt-1 text-xs font-semibold text-muted">
+            {formatTimeRange(item.startsAt, item.endsAt)} · {item.teacherName}
+          </p>
+        </div>
+        <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${getAgendaStatusClass(item.status)}`}>
+          {getAgendaStatusLabel(item.status)}
+        </span>
+      </div>
+
+      {item.substituteTeacherName ? (
+        <p className="mt-2 rounded-xl bg-emerald-50 px-2.5 py-2 text-xs font-bold text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-100">
+          Guru pengganti: {item.substituteTeacherName}
+        </p>
+      ) : null}
+
+      <div className="mt-3 grid grid-cols-4 gap-1.5">
+        {checklist.map((check) => (
+          <span
+            className={`rounded-lg px-2 py-1 text-center text-[10px] font-black ${check.done ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-100' : 'bg-amber-50 text-amber-700 dark:bg-amber-400/10 dark:text-amber-100'}`}
+            key={check.label}
+          >
+            {check.label}
+          </span>
+        ))}
+      </div>
+
+      <div className="mt-3 space-y-2 text-xs">
+        <div className="rounded-xl bg-white p-2.5 dark:bg-slate-950">
+          <p className="font-black text-slate-900 dark:text-slate-100">Materi/Catatan KBM</p>
+          <p className="mt-1 leading-5 text-muted">
+            {item.materialNotes?.trim() || 'Belum ada materi/catatan KBM.'}
+          </p>
+        </div>
+        {item.issueNotes ? (
+          <div className="rounded-xl bg-amber-50 p-2.5 text-amber-800 dark:bg-amber-400/10 dark:text-amber-100">
+            <p className="font-black">Kendala</p>
+            <p className="mt-1 leading-5">{item.issueNotes}</p>
+          </div>
+        ) : null}
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white p-2.5 dark:bg-slate-950">
+          <div>
+            <p className="font-black text-slate-900 dark:text-slate-100">Foto Kelas</p>
+            <p className="mt-1 font-semibold text-muted">
+              {item.classPhotoName
+                ? `${item.classPhotoName}${item.classPhotoSize ? ` · ${formatBytes(item.classPhotoSize)}` : ''}`
+                : 'Belum ada foto kelas.'}
+            </p>
+          </div>
+          {item.classPhotoUrl ? (
+            <a
+              className="rounded-lg bg-brand-600 px-3 py-2 text-xs font-black text-white transition hover:bg-brand-700"
+              href={item.classPhotoUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Buka Foto
+            </a>
+          ) : null}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function matchesClassMonitorFilter(item: KbmTodayItem, filter: ClassMonitorFilter) {
+  if (filter === 'all') return true;
+  if (filter === 'NOT_SUBMITTED') return !isSubmittedAttendanceState(item.attendanceState) && item.status !== 'COMPLETED';
+  return item.status === filter;
+}
+
+function getClassMonitorTone(tone: 'danger' | 'good' | 'info' | 'warning') {
+  return {
+    danger: 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/20 dark:bg-rose-500/15 dark:text-rose-100',
+    good: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-100',
+    info: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-400/20 dark:bg-blue-500/15 dark:text-blue-100',
+    warning: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100',
+  }[tone];
+}
+
+function isSubmittedAttendanceState(state?: string | null) {
+  return ['SUBMITTED', 'APPROVED', 'CORRECTED', 'LOCKED'].includes(state ?? '');
+}
+
+function formatBytes(size: number) {
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function MetricSection({
