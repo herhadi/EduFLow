@@ -11,6 +11,7 @@ import {
 type AssessmentScoresEditorProps = {
   assessment: Assessment | null;
   draft: ScoreDraft;
+  embedded?: boolean;
   onDraftChange: (draft: ScoreDraft) => void;
   onSave: () => void;
   onSubmit: () => void;
@@ -20,21 +21,25 @@ type AssessmentScoresEditorProps = {
 export function AssessmentScoresEditor({
   assessment,
   draft,
+  embedded = false,
   onDraftChange,
   onSave,
   onSubmit,
   saving,
 }: AssessmentScoresEditorProps) {
   if (!assessment) {
+    if (embedded) {
+      return null;
+    }
+
     return (
       <EmptyState title="Pilih atau buat komponen nilai untuk mulai input skor siswa." />
     );
   }
 
   const editable = isAssessmentEditable(assessment.status);
-
-  return (
-    <Card>
+  const content = (
+    <>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">{assessment.title}</h3>
@@ -79,6 +84,20 @@ export function AssessmentScoresEditor({
           </div>
         ))}
       </div>
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div className="rounded-2xl border border-brand-100 bg-white p-3 dark:border-blue-400/20 dark:bg-slate-950">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Card>
+      {content}
     </Card>
   );
 }

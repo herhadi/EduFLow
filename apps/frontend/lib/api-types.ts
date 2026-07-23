@@ -892,6 +892,16 @@ export interface Assessment {
   scores?: AssessmentScore[];
 }
 
+export type AssessmentExcelPreviewRow = Record<string, string | number | null>;
+
+export interface AssessmentExcelPreview {
+  components: AssessmentExcelPreviewRow[];
+  filename: string;
+  meta: Record<string, string | number>;
+  notes: AssessmentExcelPreviewRow[];
+  recap: AssessmentExcelPreviewRow[];
+}
+
 export interface AppUser {
   id: string;
   email: string;

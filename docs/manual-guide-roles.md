@@ -552,8 +552,12 @@ Langkah penggunaan:
 5. Periksa kembali nilai dan siswa yang belum terisi.
 6. Submit sesuai alur yang tersedia.
 7. Pantau hasil review atau permintaan revisi di Inbox.
+8. Gunakan tombol **Preview Bulanan** atau **Preview Semester** untuk memeriksa rekap nilai kelas/mapel yang sedang dipilih.
+9. Jika preview sudah sesuai, klik **Download Excel**.
 
 Guru hanya dapat mengelola nilai pada kelas dan mata pelajaran yang diampu.
+
+File Excel nilai harian berisi sheet `Rekap`, `Komponen`, dan `Catatan` agar daftar siswa tetap ringkas tetapi detail komponen serta nilai yang belum lengkap tetap terlihat.
 
 Nilai yang sudah disetujui dan dikunci tidak dapat diubah melalui proses biasa.
 

@@ -1,5 +1,33 @@
-import { request } from '../api-client';
-import type { ApiResponse, Assessment, AssessmentType } from '../api-types';
+import { downloadFile, request } from '../api-client';
+import type { ApiResponse, Assessment, AssessmentExcelPreview, AssessmentType } from '../api-types';
+
+type AssessmentExportPayload = {
+  schoolYearId: string;
+  semesterId: string;
+  classId: string;
+  subjectId: string;
+  from?: string;
+  to?: string;
+};
+
+function getAssessmentExportPath(payload: AssessmentExportPayload, preview = false) {
+  const params = new URLSearchParams({
+    schoolYearId: payload.schoolYearId,
+    semesterId: payload.semesterId,
+    classId: payload.classId,
+    subjectId: payload.subjectId,
+  });
+
+  if (payload.from) {
+    params.set('from', payload.from);
+  }
+
+  if (payload.to) {
+    params.set('to', payload.to);
+  }
+
+  return `/student-grades/assessments/${preview ? 'export-preview' : 'export'}?${params}`;
+}
 
 export const gradesApi = {
   getMyAssessments: (payload?: { classId?: string; subjectId?: string; semesterId?: string }) => {
@@ -49,4 +77,8 @@ export const gradesApi = {
     }),
   submitAssessment: (id: string) =>
     request<ApiResponse<Assessment>>(`/student-grades/assessments/${id}/submit`, { method: 'POST' }),
+  getAssessmentExcelPreview: (payload: AssessmentExportPayload) =>
+    request<ApiResponse<AssessmentExcelPreview>>(getAssessmentExportPath(payload, true)),
+  downloadAssessmentExcel: (payload: AssessmentExportPayload) =>
+    downloadFile(getAssessmentExportPath(payload), 'nilai-harian.xlsx'),
 };

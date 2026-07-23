@@ -3,7 +3,7 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { api, type SchoolYear, type Semester, type Subject, type TeachingPlan, type TeachingPlanType } from '../lib/api';
 import { openTeachingPlanAttachment } from '../lib/open-document';
-import { getPreferredSchoolYear } from '../lib/school-year';
+import { getPreferredSchoolYear, getPreferredSemester } from '../lib/school-year';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { CameraCaptureButton } from './ui/camera-capture-button';
@@ -49,7 +49,17 @@ export function TeacherTeachingPlans() {
       setSubjects(subjectResponse.data);
       setSchoolYears(schoolYearResponse.data);
       setSemesters(semesterResponse.data);
-      setForm((current) => ({ ...current, subjectId: current.subjectId || subjectResponse.data[0]?.id || '', schoolYearId: current.schoolYearId || getPreferredSchoolYear(schoolYearResponse.data)?.id || '' }));
+      const defaultSchoolYear = getPreferredSchoolYear(schoolYearResponse.data);
+      const defaultSemester = defaultSchoolYear
+        ? getPreferredSemester(semesterResponse.data, defaultSchoolYear.id)
+        : undefined;
+
+      setForm((current) => ({
+        ...current,
+        semesterId: current.semesterId || defaultSemester?.id || '',
+        subjectId: current.subjectId || subjectResponse.data[0]?.id || '',
+        schoolYearId: current.schoolYearId || defaultSchoolYear?.id || '',
+      }));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Data perangkat ajar gagal dimuat.');
     } finally { setLoading(false); }
@@ -127,6 +137,18 @@ export function TeacherTeachingPlans() {
     [filteredSemesters],
   );
   const isTeachingBook = form.type === 'TEACHING_BOOK';
+
+  useEffect(() => {
+    setForm((current) => {
+      if (!current.schoolYearId) return current;
+      if (filteredSemesters.some((semester) => semester.id === current.semesterId)) return current;
+
+      return {
+        ...current,
+        semesterId: getPreferredSemester(filteredSemesters, current.schoolYearId)?.id ?? '',
+      };
+    });
+  }, [filteredSemesters]);
 
   return (
     <section className="mt-7 space-y-5">

@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { PERMISSIONS } from '../../common/constants/permissions';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { RequestWithUser } from '../../core/http/request-with-user';
@@ -19,6 +20,56 @@ export class StudentGradesController {
     @Query('semesterId') semesterId?: string,
   ) {
     return this.service.getMine(request.user.id, { classId, semesterId, subjectId });
+  }
+
+  @RequirePermissions(PERMISSIONS.STUDENT_GRADE_READ)
+  @Get('assessments/export-preview')
+  previewExport(
+    @Req() request: RequestWithUser,
+    @Query('schoolYearId') schoolYearId: string | undefined,
+    @Query('semesterId') semesterId: string | undefined,
+    @Query('classId') classId: string | undefined,
+    @Query('subjectId') subjectId: string | undefined,
+    @Query('from') from: string | undefined,
+    @Query('to') to: string | undefined,
+  ) {
+    return this.service.previewMine(request.user.id, {
+      classId,
+      from,
+      schoolYearId,
+      semesterId,
+      subjectId,
+      to,
+    });
+  }
+
+  @RequirePermissions(PERMISSIONS.STUDENT_GRADE_READ)
+  @Get('assessments/export')
+  async exportMine(
+    @Req() request: RequestWithUser,
+    @Query('schoolYearId') schoolYearId: string | undefined,
+    @Query('semesterId') semesterId: string | undefined,
+    @Query('classId') classId: string | undefined,
+    @Query('subjectId') subjectId: string | undefined,
+    @Query('from') from: string | undefined,
+    @Query('to') to: string | undefined,
+    @Res() response: Response,
+  ) {
+    const exportedReport = await this.service.exportMine(request.user.id, {
+      classId,
+      from,
+      schoolYearId,
+      semesterId,
+      subjectId,
+      to,
+    });
+
+    response.setHeader('Content-Type', exportedReport.contentType);
+    response.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${exportedReport.filename}"`,
+    );
+    response.send(exportedReport.buffer);
   }
 
   @RequirePermissions(PERMISSIONS.STUDENT_GRADE_READ)

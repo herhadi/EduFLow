@@ -254,6 +254,27 @@ Report siswa membaca `AttendanceItem` sebagai sumber presensi per siswa, mapel, 
 
 Nilai harian membaca `AssessmentScore` yang sudah disubmit. Detail report siswa menampilkan rata-rata nilai, nilai terbaru, dan riwayat singkat penilaian per mapel. Approval nilai semester tetap menjadi tahap lanjutan setelah input nilai harian stabil.
 
+### Export Excel Nilai Harian
+
+Export nilai harian tersedia untuk guru melalui `/teacher/assessments` dan endpoint `GET /api/student-grades/assessments/export`. Export mendukung report bulanan dan semesteran tanpa membuat file terlalu lebar atau sulit dibaca. Filter utama:
+
+- tahun ajaran,
+- semester,
+- kelas,
+- mata pelajaran,
+- periode tanggal untuk bulanan,
+- status submit nilai yang terlihat pada sheet komponen.
+
+Struktur workbook:
+
+| Sheet | Isi | Tujuan |
+| --- | --- | --- |
+| `Rekap` | Satu baris per siswa: No, NIS, NISN, Nama Siswa, Kelas, Mapel, Periode, kolom nilai ringkas `UH 1`, `UH 2`, dan seterusnya, Rata-rata, Komponen Terisi, Belum Terisi, Status | Dibaca cepat oleh guru, KS, atau operator |
+| `Komponen` | Kode komponen, judul, jenis, tanggal, skor maksimal, bobot, guru, status submit | Menjelaskan arti kolom `UH 1`, `UH 2`, dan seterusnya tanpa memenuhi sheet utama |
+| `Catatan` | Hanya siswa/komponen yang memiliki catatan, nilai kosong, remedial, atau anomali | Menjaga sheet utama tetap efisien tetapi informasi tindak lanjut tetap ada |
+
+Untuk export bulanan, kolom nilai hanya mengambil komponen yang tanggalnya berada dalam rentang bulan terpilih. Untuk export semesteran, kolom nilai mengambil semua komponen pada `semesterId` terpilih. Export guru mengambil nilai milik guru login pada kelas/mapel yang dipilih, termasuk draft/revisi agar guru bisa melakukan pengecekan internal; status setiap komponen tetap ditampilkan agar report resmi dapat membedakan nilai yang sudah submit dan belum.
+
 ## Catatan Implementasi
 
 ## Implementasi Perangkat Ajar Tahap Awal

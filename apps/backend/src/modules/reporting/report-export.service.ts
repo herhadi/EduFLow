@@ -1,14 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import * as XLSX from 'xlsx';
 
-type ReportRow = Record<string, string | number | null>;
+export type ReportRow = Record<string, string | number | null>;
+
+export type ExcelSheet = {
+  name: string;
+  rows: ReportRow[];
+};
 
 @Injectable()
 export class ReportExportService {
   toExcel(reportName: string, rows: ReportRow[]) {
+    return this.toExcelWorkbook([{ name: reportName, rows }]);
+  }
+
+  toExcelWorkbook(sheets: ExcelSheet[]) {
     const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    XLSX.utils.book_append_sheet(workbook, worksheet, this.toSheetName(reportName));
+
+    for (const [index, sheet] of sheets.entries()) {
+      const rows = sheet.rows.length ? sheet.rows : [{ Informasi: 'Tidak ada data' }];
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      worksheet['!cols'] = this.getColumnWidths(rows);
+      XLSX.utils.book_append_sheet(workbook, worksheet, this.toSheetName(sheet.name, index));
+    }
 
     return XLSX.write(workbook, {
       bookType: 'xlsx',
@@ -70,7 +84,23 @@ export class ReportExportService {
     );
   }
 
-  private toSheetName(reportName: string) {
-    return reportName.replace(/[\\/?*[\]:]/g, '').slice(0, 31) || 'Report';
+  private getColumnWidths(rows: ReportRow[]) {
+    const sample = rows.slice(0, 25);
+    return Object.keys(rows[0] ?? {}).map((key) => ({
+      wch: Math.max(
+        10,
+        Math.min(
+          34,
+          [key, ...sample.map((row) => row[key])]
+            .map((value) => String(value ?? '').length)
+            .reduce((max, length) => Math.max(max, length), 0) + 2,
+        ),
+      ),
+    }));
+  }
+
+  private toSheetName(reportName: string, index = 0) {
+    const suffix = index ? ` ${index + 1}` : '';
+    return `${reportName}${suffix}`.replace(/[\\/?*[\]:]/g, '').slice(0, 31) || 'Report';
   }
 }

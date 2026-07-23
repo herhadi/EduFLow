@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { MobileAppShell } from '../components/mobile-app-shell';
+import { PwaInstallPrompt } from '../components/pwa-install-prompt';
 import { PwaRegister } from '../components/pwa-register';
 import { ToastProvider } from '../components/ui/toast';
 import './globals.css';
@@ -18,8 +19,11 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: '/icon-192.png',
   },
 };
 
@@ -50,6 +54,7 @@ export default function RootLayout({
       <body>
         <ToastProvider>
           <MobileAppShell>{children}</MobileAppShell>
+          <PwaInstallPrompt />
           <PwaRegister />
         </ToastProvider>
       </body>

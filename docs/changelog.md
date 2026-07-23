@@ -10,6 +10,10 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Menambahkan endpoint ringkasan `/academic/me/dashboard` agar dashboard guru tidak perlu memuat 4 endpoint list penuh hanya untuk angka beranda.
 - Mengoptimasi dashboard guru untuk Lighthouse: logo topbar/login memakai `next/image`, icon manifest memakai SVG kecil, dan section ringkasan guru diberi ruang tetap untuk menekan CLS.
 - Membuat `/teacher/schedules` default collapse per hari, dengan hari berjalan otomatis terbuka bila ada jadwal, serta memberi badge `Hari ini`, tone aktif, hover, dan indikator panah atas/bawah seperti toggle agar card terlihat bisa diklik.
+- Merapikan `/teacher/assessments`: komponen nilai yang terbuka bisa ditutup dengan klik ulang, form `Buat Komponen Nilai` default collapse dengan ringkasan informatif, tombol `Buat Draft` dipindahkan ke bawah form dan disable sampai data wajib lengkap, serta default semester mengikuti semester berjalan lewat helper global.
+- Menyamakan default semester perangkat ajar guru agar mengikuti helper semester berjalan yang sama dengan jadwal dan nilai harian.
+- Menambahkan export Excel nilai harian guru untuk report bulanan/semesteran dengan preview rekap sebelum download, serta sheet `Rekap`, `Komponen`, dan `Catatan` agar tabel tetap informatif tetapi efisien.
+- Mengubah editor skor nilai harian menjadi expand inline di dalam item komponen nilai yang dibuka agar guru tidak perlu scroll jauh ketika daftar komponen banyak.
 - Mengelompokkan tabel `/admin/schedules` menjadi collapsible per hari saat filter `Semua Hari` dengan default tertutup, sementara filter hari spesifik tetap memakai tabel biasa.
 - Menambahkan label kanan pada `Jadwal mengajar mingguan` guru dan menggabungkan jam pelajaran berurutan menjadi badge seperti `Jam ke-1, 2`.
 - Menyiapkan agenda UAT hari ini untuk skenario presensi ulang, termasuk agenda khusus `UAT Foto Kelas` agar guru bisa menguji pengambilan foto kelas dari browser HP.
@@ -21,6 +25,7 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Merapikan detail Pantauan Kelas Hari Ini di desktop menjadi grid 4 kolom agar KS dapat memantau lebih banyak kelas tanpa scroll panjang.
 - Menambahkan kompresi otomatis foto profil di browser sebelum upload; backend tetap membatasi foto profil maksimal 2 MB sebagai pagar akhir.
 - Membuat koordinat lokasi foto kelas pada monitoring KS dapat diklik untuk membuka titik Google Maps.
+- Memperbaiki installability PWA mobile dengan icon PNG 192/512, cache service worker baru, dan prompt install EduFlow yang aman dari bottom navbar; tombol `Nanti` menunda prompt selama 1 jam.
 
 ## 2026-07-22
 
