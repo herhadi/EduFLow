@@ -4,6 +4,10 @@ Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis granular tetap dilacak melalui riwayat Git dan dokumen domain terkait.
 
+## 2026-07-24
+
+- Merapikan porsi desktop `/principal/dashboard` agar card `Meja Keputusan` dan `Antrian KS` lebih seimbang, dengan antrian diberi lebar minimum dan angka antrian dibuat stabil.
+
 ## 2026-07-23
 
 - Memperbaiki kontras teks role pada user chip topbar mobile agar lolos WCAG AA dan merapikan render opsi form perangkat ajar guru.

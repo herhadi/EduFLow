@@ -68,8 +68,8 @@ function PrincipalDecisionSummary() {
     : 'Memuat kondisi sekolah hari ini...';
 
   return (
-    <section className="mt-5 grid gap-3 xl:grid-cols-[1.35fr_0.65fr]">
-      <div className="rounded-[1.5rem] border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:rounded-[2rem] sm:p-5">
+    <section className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.12fr)_minmax(22rem,0.88fr)]">
+      <div className="h-full rounded-[1.5rem] border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:rounded-[2rem] sm:p-5">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-700">Meja keputusan</p>
           <h2 className="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-[var(--text)] sm:text-xl">Perlu Dilihat Lebih Dulu</h2>
@@ -110,7 +110,7 @@ function PrincipalDecisionSummary() {
         ) : null}
       </div>
 
-      <div className="rounded-[1.5rem] border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:rounded-[2rem] sm:p-5">
+      <div className="h-full rounded-[1.5rem] border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:rounded-[2rem] sm:p-5">
         <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-700">Antrian KS</p>
         <h2 className="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-[var(--text)] sm:text-xl">Tugas Review</h2>
         <p className="mt-1 text-sm leading-6 text-muted">
@@ -203,11 +203,11 @@ function PrincipalQueueItem({
       href={href}
     >
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-black text-slate-900 dark:text-[var(--text)]">{label}</p>
           <p className="mt-1 text-xs font-semibold leading-5 text-muted">{description}</p>
         </div>
-        <span className="rounded-xl bg-white px-3 py-2 text-lg font-black text-brand-700 dark:bg-blue-950/40 dark:text-blue-100">
+        <span className="grid min-w-12 place-items-center rounded-xl bg-white px-3 py-2 text-lg font-black text-brand-700 dark:bg-blue-950/40 dark:text-blue-100">
           {value}
         </span>
       </div>
