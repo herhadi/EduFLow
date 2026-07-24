@@ -212,7 +212,7 @@ export function TeacherPerformanceDashboard() {
                     ['safe', 'Aman', riskSummary.safe],
                   ].map(([value, label, count]) => (
                     <button
-                      className={`rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 ${
+                      className={`grid min-h-16 rounded-xl border p-2.5 text-left transition hover:-translate-y-0.5 sm:rounded-2xl sm:p-3 ${
                         riskFilter === value
                           ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
                           : 'border-blue-100 bg-white text-brand-700 dark:border-blue-400/20 dark:bg-slate-950 dark:text-blue-100'
@@ -224,8 +224,8 @@ export function TeacherPerformanceDashboard() {
                       }}
                       type="button"
                     >
-                      <span className="block text-lg font-black">{count}</span>
-                      <span className="mt-0.5 block text-[0.68rem] font-black leading-4">{label}</span>
+                      <span className="block min-h-7 text-[0.66rem] font-black leading-3.5 sm:min-h-8 sm:text-[0.68rem] sm:leading-4">{label}</span>
+                      <span className="mt-1 block self-end text-lg font-black leading-none sm:text-xl">{count}</span>
                     </button>
                   ))}
                 </div>

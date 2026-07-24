@@ -11,6 +11,9 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Memperbaiki posisi banner install PWA agar pada lebar transisi desktop-kecil tetap berada di atas bottom navbar dan baru pindah ke kanan bawah pada layar desktop penuh.
 - Menukar prioritas bottom navbar Kepala Sekolah agar `Guru` tampil langsung dan `Siswa` masuk `Lainnya`, serta merapikan `/principal/teacher-performance` dengan panel cari/filter yang lebih informatif dan grid guru dua kolom di desktop.
 - Menyesuaikan metrik kecil pada card guru di `/principal/teacher-performance` agar memenuhi lebar card dan tetap rapi di mobile.
+- Merapikan tombol filter guru pada `/principal/teacher-performance` agar label berada di atas, angka sejajar di bawah, dan ukuran card tetap compact di mobile.
+- Memusatkan kontrol jarak konten authenticated dari top header pada satu properti `padding-top` di `.mobile-app-content main`, sekaligus mengurangi padding kiri-kanan shell agar card lebih lega terutama di mobile.
+- Menambahkan kontrol global `--mobile-card-gap` dan `--mobile-card-gap-tight` agar jarak antar card/section authenticated lebih mudah disetel lintas modul.
 
 ## 2026-07-23
 

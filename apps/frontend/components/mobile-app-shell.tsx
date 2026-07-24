@@ -99,7 +99,7 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
       <div className="app-frame mx-auto min-h-dvh max-w-[456px] overflow-x-hidden md:my-3 md:min-h-[calc(100dvh-1.5rem)] md:w-[calc(100%-1.5rem)] md:max-w-none md:rounded-[2rem] xl:w-[calc(100%-2rem)]">
         <AppTopBar currentUser={currentUser} />
 
-        <div className="px-3 pt-3 pb-28 sm:px-5 md:px-6">
+        <div className="px-2 pt-0 pb-28 sm:px-4 md:px-5">
           <MobileGreeting currentUser={currentUser} />
           <div className="mobile-app-content min-w-0">{children}</div>
         </div>
