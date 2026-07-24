@@ -94,10 +94,16 @@ export function OperationalDashboard({
         </>
       ) : null}
 
-      <div className={audience === 'principal' ? 'grid gap-3 xl:grid-cols-2' : 'space-y-6'}>
-        {audience === 'principal' ? (
+      {audience === 'principal' ? (
+        <div className="space-y-3">
           <PrincipalClassMonitor summary={summary} />
-        ) : (
+          <div className="grid gap-3 xl:grid-cols-2">
+            <TeacherMetricSection compact summary={summary} />
+            <StudentMetricSection compact summary={summary} />
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
           <MetricSection
             description="Status semua kelas dari DailyAgenda hari ini."
             title="Kelas Hari Ini"
@@ -116,44 +122,10 @@ export function OperationalDashboard({
               value={summary.classes.notSubmitted}
             />
           </MetricSection>
-        )}
-
-        <MetricSection
-          badge={`${formatNumber(summary.teachers.totalTeaching)} guru`}
-          compact={audience === 'principal'}
-          description="Ringkasan guru yang mengajar dan submit presensi."
-          title="Guru"
-        >
-          <MetricCard
-            label="Total Guru Mengajar"
-            value={summary.teachers.totalTeaching}
-          />
-          <MetricCard
-            label="Sudah Submit"
-            tone="good"
-            value={summary.teachers.submitted}
-          />
-          <MetricCard
-            label="Belum Submit"
-            tone="warning"
-            value={summary.teachers.notSubmitted}
-          />
-        </MetricSection>
-      </div>
-
-      <MetricSection
-        badge={`${formatNumber(getStudentTotal(summary))} catatan`}
-        compact={audience === 'principal'}
-        description={audience === 'principal'
-          ? 'Akumulasi siswa pada agenda hari ini yang presensinya sudah submit, bukan total seluruh siswa sekolah.'
-          : 'Akumulasi AttendanceItem dari presensi yang sudah submit.'}
-        title="Siswa"
-      >
-        <MetricCard label="Hadir" tone="good" value={summary.students.present} />
-        <MetricCard label="Sakit" tone="warning" value={summary.students.sick} />
-        <MetricCard label="Izin" value={summary.students.excused} />
-        <MetricCard label="Alpha" tone="danger" value={summary.students.absent} />
-      </MetricSection>
+          <TeacherMetricSection summary={summary} />
+          <StudentMetricSection summary={summary} />
+        </div>
+      )}
 
       {audience === 'operations' ? (
         <>
@@ -208,6 +180,62 @@ export function OperationalDashboard({
         </>
       ) : null}
     </section>
+  );
+}
+
+function TeacherMetricSection({
+  compact = false,
+  summary,
+}: {
+  compact?: boolean;
+  summary: OperationalDashboardSummary;
+}) {
+  return (
+    <MetricSection
+      badge={`${formatNumber(summary.teachers.totalTeaching)} guru`}
+      compact={compact}
+      description="Ringkasan guru yang mengajar dan submit presensi."
+      title="Guru"
+    >
+      <MetricCard
+        label="Total Guru Mengajar"
+        value={summary.teachers.totalTeaching}
+      />
+      <MetricCard
+        label="Sudah Submit"
+        tone="good"
+        value={summary.teachers.submitted}
+      />
+      <MetricCard
+        label="Belum Submit"
+        tone="warning"
+        value={summary.teachers.notSubmitted}
+      />
+    </MetricSection>
+  );
+}
+
+function StudentMetricSection({
+  compact = false,
+  summary,
+}: {
+  compact?: boolean;
+  summary: OperationalDashboardSummary;
+}) {
+  return (
+    <MetricSection
+      badge={`${formatNumber(getStudentTotal(summary))} catatan`}
+      compact={compact}
+      description={compact
+        ? 'Akumulasi siswa pada agenda hari ini yang presensinya sudah submit, bukan total seluruh siswa sekolah.'
+        : 'Akumulasi AttendanceItem dari presensi yang sudah submit.'}
+      title="Siswa"
+    >
+      <MetricCard label="Hadir" tone="good" value={summary.students.present} />
+      <MetricCard label="Sakit" tone="warning" value={summary.students.sick} />
+      <MetricCard label="Izin" value={summary.students.excused} />
+      <MetricCard label="Alpha" tone="danger" value={summary.students.absent} />
+    </MetricSection>
   );
 }
 

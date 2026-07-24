@@ -7,6 +7,10 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 ## 2026-07-24
 
 - Merapikan porsi desktop `/principal/dashboard` agar card `Meja Keputusan` dan `Antrian KS` lebih seimbang, dengan antrian diberi lebar minimum dan angka antrian dibuat stabil.
+- Merapikan desktop `/principal/kbm`: card `Guru` dan `Siswa` dibuat sejajar dua kolom, sementara `Daftar Perhatian Teratas` naik menjadi grid tiga kolom di layar lebar.
+- Memperbaiki posisi banner install PWA agar pada lebar transisi desktop-kecil tetap berada di atas bottom navbar dan baru pindah ke kanan bawah pada layar desktop penuh.
+- Menukar prioritas bottom navbar Kepala Sekolah agar `Guru` tampil langsung dan `Siswa` masuk `Lainnya`, serta merapikan `/principal/teacher-performance` dengan panel cari/filter yang lebih informatif dan grid guru dua kolom di desktop.
+- Menyesuaikan metrik kecil pada card guru di `/principal/teacher-performance` agar memenuhi lebar card dan tetap rapi di mobile.
 
 ## 2026-07-23
 

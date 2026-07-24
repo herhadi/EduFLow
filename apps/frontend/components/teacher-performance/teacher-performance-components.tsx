@@ -54,7 +54,7 @@ export function TeacherCard({
 
   return (
     <article
-      className={`rounded-2xl border ${riskMeta.card} bg-white p-4 dark:bg-slate-950`}
+      className={`h-full rounded-2xl border ${riskMeta.card} bg-white p-4 dark:bg-slate-950`}
     >
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div className="min-w-0">
@@ -68,7 +68,7 @@ export function TeacherCard({
             {teacher.totalSessions} sesi · submit {teacher.submitRate}% · tepat waktu {teacher.onTimeSubmissions}
           </p>
         </div>
-        <div className="grid grid-cols-4 gap-2 text-center text-xs font-black text-slate-700 dark:text-slate-200 sm:flex sm:text-left">
+        <div className="grid w-full grid-cols-4 gap-2 text-center text-xs font-black text-slate-700 dark:text-slate-200 lg:max-w-md">
           <CompactMetric label="Submit" value={teacher.submittedSessions} />
           <CompactMetric label="Telat" tone="warning" value={teacher.lateSubmissions} />
           <CompactMetric label="Kosong" tone="danger" value={teacher.emptyClasses} />
@@ -133,7 +133,7 @@ function CompactMetric({
   }[tone];
 
   return (
-    <span className={`rounded-xl px-2 py-2 ${toneClass}`}>
+    <span className={`block min-w-0 rounded-xl px-2 py-2 ${toneClass}`}>
       <span className="block text-[0.65rem] font-bold">{label}</span>
       <span className="block text-sm">{value}</span>
     </span>

@@ -49,14 +49,14 @@ const operatorNavigation: NavigationItem[] = [
 const principalNavigation: NavigationItem[] = [
   { href: '/principal/dashboard', label: 'Beranda', icon: 'home' },
   { href: '/principal/kbm', label: 'KBM', icon: 'kbm' },
-  { href: '/principal/student-reports', label: 'Siswa', icon: 'students' },
+  { href: '/principal/teacher-performance', label: 'Guru', icon: 'teacher' },
   { href: '/principal/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
   {
     href: '/principal/profile',
     label: 'Lainnya',
     icon: 'more',
     children: [
-      { href: '/principal/teacher-performance', label: 'Guru', icon: 'teacher' },
+      { href: '/principal/student-reports', label: 'Siswa', icon: 'students' },
       { href: '/principal/review', label: 'Review', icon: 'review' },
       { href: '/principal/exports', label: 'Export', icon: 'download' },
       { href: '/principal/audit', label: 'Audit', icon: 'audit' },

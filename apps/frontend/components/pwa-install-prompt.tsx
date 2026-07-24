@@ -72,10 +72,10 @@ export function PwaInstallPrompt() {
   return (
     <div
       className={cn(
-        'fixed right-3 left-3 z-[115] mx-auto max-w-md rounded-2xl border border-blue-100 bg-white p-2.5 shadow-lg dark:border-blue-400/20 dark:bg-slate-950 sm:right-5 sm:left-auto sm:w-[28rem]',
+        'fixed right-3 left-3 z-[115] mx-auto max-w-md rounded-2xl border border-blue-100 bg-white p-2.5 shadow-lg dark:border-blue-400/20 dark:bg-slate-950',
         hasBottomNav
-          ? 'bottom-[calc(4.95rem+env(safe-area-inset-bottom))] md:bottom-5'
-          : 'bottom-[calc(0.75rem+env(safe-area-inset-bottom))]',
+          ? 'bottom-[calc(4.95rem+env(safe-area-inset-bottom))] min-[1880px]:right-5 min-[1880px]:bottom-5 min-[1880px]:left-auto min-[1880px]:w-[28rem]'
+          : 'bottom-[calc(0.75rem+env(safe-area-inset-bottom))] sm:right-5 sm:left-auto sm:w-[28rem]',
       )}
     >
       <div className="flex items-center gap-2.5">

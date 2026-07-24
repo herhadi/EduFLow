@@ -116,7 +116,7 @@ export function PrincipalPriorityPanel({
             </span>
           </div>
         </div>
-        <div className="mt-2 grid gap-2 lg:grid-cols-2">
+        <div className="mt-2 grid gap-2 lg:grid-cols-2 xl:grid-cols-3">
           {filteredFollowUpItems.length > 0 ? (
             filteredFollowUpItems.map((item) => (
               <AgendaFollowUpItem item={item} key={item.agendaId} />
