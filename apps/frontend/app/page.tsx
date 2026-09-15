@@ -1,122 +1,122 @@
-import Link from 'next/link';
-import { SchoolActivityCarousel } from '../components/school-activity-carousel';
-import { ThemeToggle } from '../components/ui/theme-toggle';
+import Link from "next/link";
+import { SchoolActivityCarousel } from "../components/school-activity-carousel";
+import { ThemeToggle } from "../components/ui/theme-toggle";
 
 const navigationItems = [
-  'Profil',
-  'Informasi',
-  'PPDB',
-  'Berita',
-  'Galeri',
-  'Kontak',
+  "Profil",
+  "Informasi",
+  "PPDB",
+  "Berita",
+  "Galeri",
+  "Kontak",
 ];
 
 const cmsFeatures = [
   {
-    icon: 'T',
-    title: 'Tailwind CSS',
+    icon: "T",
+    title: "Tailwind CSS",
     description:
-      'Tampilan bersih, responsif, dan mudah dikembangkan untuk kebutuhan website sekolah modern.',
+      "Tampilan bersih, responsif, dan mudah dikembangkan untuk kebutuhan website sekolah modern.",
   },
   {
-    icon: 'I',
-    title: 'Ikon Konsisten',
+    icon: "I",
+    title: "Ikon Konsisten",
     description:
-      'Arah visual disiapkan untuk ikon tajam dan seragam pada menu, tombol, serta kartu informasi.',
+      "Arah visual disiapkan untuk ikon tajam dan seragam pada menu, tombol, serta kartu informasi.",
   },
   {
-    icon: 'C',
-    title: 'CMS Friendly',
+    icon: "C",
+    title: "CMS Friendly",
     description:
-      'Struktur halaman mendukung konten sekolah seperti profil, berita, pengumuman, PPDB, dan galeri.',
+      "Struktur halaman mendukung konten sekolah seperti profil, berita, pengumuman, PPDB, dan galeri.",
   },
   {
-    icon: 'L',
-    title: 'Ringan & Fleksibel',
+    icon: "L",
+    title: "Ringan & Fleksibel",
     description:
-      'Tanpa pola Bootstrap yang berat, halaman tetap cepat dibuka dan nyaman di perangkat mobile.',
+      "Tanpa pola Bootstrap yang berat, halaman tetap cepat dibuka dan nyaman di perangkat mobile.",
   },
 ];
 
 const schoolHighlights = [
-  'Profil sekolah',
-  'Pengumuman online',
-  'Berita kegiatan',
-  'Galeri foto',
-  'Portal orang tua',
-  'Login operator',
+  "Profil sekolah",
+  "Pengumuman online",
+  "Berita kegiatan",
+  "Galeri foto",
+  "Portal orang tua",
+  "Login operator",
 ];
 
-const ppdbSteps = ['Data calon siswa', 'Upload berkas', 'Verifikasi panitia'];
+const ppdbSteps = ["Data calon siswa", "Upload berkas", "Verifikasi panitia"];
 
 const commentExamples = [
   {
-    author: 'Wali Murid',
-    message: 'Info jadwal kegiatan sekolahnya mudah dilihat dan jelas.',
+    author: "Wali Murid",
+    message: "Info jadwal kegiatan sekolahnya mudah dilihat dan jelas.",
   },
   {
-    author: 'Admin Sekolah',
-    message: 'Pengumuman terbaru sudah terbit di portal informasi.',
+    author: "Admin Sekolah",
+    message: "Pengumuman terbaru sudah terbit di portal informasi.",
   },
 ];
 
 const activityItems = [
-  'Komentar baru masuk',
-  'Pengumuman PPDB diperbarui',
-  'Galeri kegiatan ditambahkan',
+  "Komentar baru masuk",
+  "Pengumuman PPDB diperbarui",
+  "Galeri kegiatan ditambahkan",
 ];
 
 const newsItems = [
   {
-    label: 'Informasi',
-    title: 'Portal sekolah siap menjadi pusat publikasi resmi',
+    label: "Informasi",
+    title: "Portal sekolah siap menjadi pusat publikasi resmi",
     description:
-      'Masyarakat dapat mengakses profil sekolah, agenda, berita, pengumuman, dan layanan wali murid.',
+      "Masyarakat dapat mengakses profil sekolah, agenda, berita, pengumuman, dan layanan wali murid.",
   },
   {
-    label: 'PPDB',
-    title: 'Alur pendaftaran dapat dibuat bertahap dan mudah diikuti',
+    label: "PPDB",
+    title: "Alur pendaftaran dapat dibuat bertahap dan mudah diikuti",
     description:
-      'Konsep wizard membantu calon siswa dan wali murid memahami setiap langkah pendaftaran.',
+      "Konsep wizard membantu calon siswa dan wali murid memahami setiap langkah pendaftaran.",
   },
   {
-    label: 'Layanan',
-    title: 'Komunikasi sekolah lebih rapi dan terdokumentasi',
+    label: "Layanan",
+    title: "Komunikasi sekolah lebih rapi dan terdokumentasi",
     description:
-      'Informasi penting sekolah disajikan dalam tampilan ringkas, jelas, dan mudah dibaca.',
+      "Informasi penting sekolah disajikan dalam tampilan ringkas, jelas, dan mudah dibaca.",
   },
 ];
 
 const thumbnailItems = [
   {
-    category: 'Kegiatan',
-    title: 'Dokumentasi kegiatan belajar mengajar',
-    href: '#kegiatan-kbm',
-    tone: 'blue',
+    category: "Kegiatan",
+    title: "Dokumentasi kegiatan belajar mengajar",
+    href: "#kegiatan-kbm",
+    tone: "blue",
   },
   {
-    category: 'Info Terbaru',
-    title: 'Pengumuman sekolah untuk wali murid',
-    href: '#pengumuman-sekolah',
-    tone: 'green',
+    category: "Info Terbaru",
+    title: "Pengumuman sekolah untuk wali murid",
+    href: "#pengumuman-sekolah",
+    tone: "green",
   },
   {
-    category: 'PPDB',
-    title: 'Informasi penerimaan peserta didik baru',
-    href: '#ppdb',
-    tone: 'amber',
+    category: "PPDB",
+    title: "Informasi penerimaan peserta didik baru",
+    href: "#ppdb",
+    tone: "amber",
   },
   {
-    category: 'Prestasi',
-    title: 'Capaian siswa dan kegiatan lomba',
-    href: '#prestasi-siswa',
-    tone: 'rose',
+    category: "Prestasi",
+    title: "Capaian siswa dan kegiatan lomba",
+    href: "#prestasi-siswa",
+    tone: "rose",
   },
   {
-    category: 'Galeri',
-    title: 'Momen sekolah dan aktivitas siswa',
-    href: '#galeri-sekolah',
-    tone: 'blue',
+    category: "Galeri",
+    title: "Momen sekolah dan aktivitas siswa",
+    href: "#galeri-sekolah",
+    tone: "blue",
   },
 ];
 
@@ -126,7 +126,7 @@ export default function LandingPage() {
       <div className="school-landing-frame mx-auto min-h-dvh max-w-md overflow-x-clip min-[600px]:my-3 min-[600px]:min-h-[calc(100dvh-1.5rem)] min-[600px]:w-[calc(100%-1rem)] min-[600px]:max-w-none min-[600px]:rounded-[1.25rem] md:w-[calc(100%-1.5rem)] xl:w-[calc(100%-2rem)]">
         <div className="school-top-strip px-4 py-2 text-xs font-semibold min-[600px]:px-6">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <p>SMP Negeri 1 Pecalungan</p>
+            <p>SMP NU 01 Bawang</p>
             <p>Website sekolah modern · ringan · mobile friendly</p>
           </div>
         </div>
@@ -136,14 +136,14 @@ export default function LandingPage() {
             <Link className="flex min-w-0 items-center gap-3" href="/">
               <span className="school-brand-mark grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl p-1">
                 <img
-                  alt="Logo SMP Negeri 1 Pecalungan"
+                  alt="Logo SMP NU 01 Bawang"
                   className="h-full w-full object-contain"
                   src="/logo_sekolah.webp"
                 />
               </span>
               <span className="min-w-0">
                 <span className="block truncate text-lg font-black leading-none text-ink sm:text-xl">
-                  SMP Negeri 1 Pecalungan
+                  SMP NU 01 Bawang
                 </span>
                 <span className="mt-1 block truncate text-xs font-semibold text-muted">
                   Modern School CMS
@@ -172,7 +172,6 @@ export default function LandingPage() {
               </Link>
             </div>
           </div>
-
         </header>
 
         <nav className="school-mobile-nav-row no-scrollbar flex gap-2 overflow-x-auto px-4 py-3 min-[600px]:px-6 lg:hidden">
@@ -195,10 +194,11 @@ export default function LandingPage() {
                   DESAIN HALAMAN INI HANYA UNTUK CONTOH
                 </p>
                 <h1 className="mt-4 text-3xl font-black tracking-tight text-ink sm:text-5xl">
-                  Website sekolah yang bersih, elegan, dan siap menjadi pusat informasi.
+                  Website sekolah yang bersih, elegan, dan siap menjadi pusat
+                  informasi.
                 </h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-muted sm:text-lg">
-                  Tampilan depan SMP Negeri 1 Pecalungan dibuat seperti portal CMS
+                  Tampilan depan SMP NU 01 Bawang dibuat seperti portal CMS
                   modern: ringan, responsif, punya komponen informasi lengkap,
                   dan tetap menyatu dengan sistem sekolah EduFlow.
                 </p>
@@ -258,8 +258,8 @@ export default function LandingPage() {
                       <div
                         className={
                           index === 0
-                            ? 'school-chat-bubble p-4'
-                            : 'school-chat-bubble-alt p-4'
+                            ? "school-chat-bubble p-4"
+                            : "school-chat-bubble-alt p-4"
                         }
                         key={item.author}
                       >
@@ -285,7 +285,10 @@ export default function LandingPage() {
                 <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_0.7fr]">
                   <div className="grid gap-2">
                     {activityItems.map((item) => (
-                      <div className="school-activity-item rounded-2xl px-4 py-3" key={item}>
+                      <div
+                        className="school-activity-item rounded-2xl px-4 py-3"
+                        key={item}
+                      >
                         <p className="text-sm font-black text-ink">{item}</p>
                       </div>
                     ))}
@@ -329,18 +332,20 @@ export default function LandingPage() {
                 />
               </div>
               <div>
-                <p className="school-section-eyebrow">Sambutan Kepala Sekolah</p>
+                <p className="school-section-eyebrow">
+                  Sambutan Kepala Sekolah
+                </p>
                 <h2 className="school-section-title mt-2 text-2xl sm:text-3xl">
-                  Selamat datang di gerbang digital SMP Negeri 1 Pecalungan.
+                  Selamat datang di gerbang digital SMP NU 01 Bawang.
                 </h2>
                 <p className="mt-3 text-sm leading-7 text-muted sm:text-base">
                   Portal ini kami hadirkan sebagai ruang informasi resmi untuk
-                  siswa, wali murid, alumni, dan masyarakat. Semoga layanan digital
-                  sekolah membantu komunikasi menjadi lebih cepat, terbuka, dan
-                  tertata.
+                  siswa, wali murid, alumni, dan masyarakat. Semoga layanan
+                  digital sekolah membantu komunikasi menjadi lebih cepat,
+                  terbuka, dan tertata.
                 </p>
                 <p className="mt-3 text-sm font-black text-ink">
-                  Kepala SMP Negeri 1 Pecalungan
+                  Kepala SMP NU 01 Bawang
                 </p>
               </div>
             </div>
@@ -356,8 +361,8 @@ export default function LandingPage() {
               </h2>
             </div>
             <p className="max-w-md text-sm leading-6 text-muted">
-              Banner bergerak untuk kegiatan, pengumuman, PPDB, prestasi,
-              dan galeri dengan navigasi yang lebih jelas.
+              Banner bergerak untuk kegiatan, pengumuman, PPDB, prestasi, dan
+              galeri dengan navigasi yang lebih jelas.
             </p>
           </div>
 
@@ -372,7 +377,10 @@ export default function LandingPage() {
             </h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {schoolHighlights.map((item) => (
-                <div className="school-feature-card rounded-2xl px-4 py-3" key={item}>
+                <div
+                  className="school-feature-card rounded-2xl px-4 py-3"
+                  key={item}
+                >
                   <p className="font-black text-ink">{item}</p>
                 </div>
               ))}
@@ -416,7 +424,10 @@ export default function LandingPage() {
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
                 {ppdbSteps.map((item, index) => (
-                  <div className="school-feature-card rounded-2xl p-4" key={item}>
+                  <div
+                    className="school-feature-card rounded-2xl p-4"
+                    key={item}
+                  >
                     <p className="school-news-date">Langkah {index + 1}</p>
                     <p className="mt-2 font-black text-ink">{item}</p>
                   </div>
@@ -428,7 +439,10 @@ export default function LandingPage() {
 
         <section className="grid gap-4 px-4 pb-5 min-[600px]:px-6 lg:grid-cols-4">
           {cmsFeatures.map((item) => (
-            <article className="school-feature-card rounded-[1.25rem] p-5" key={item.title}>
+            <article
+              className="school-feature-card rounded-[1.25rem] p-5"
+              key={item.title}
+            >
               <div className="school-icon-tile">{item.icon}</div>
               <h2 className="mt-4 text-lg font-black text-ink">{item.title}</h2>
               <p className="mt-2 text-sm leading-6 text-muted">
@@ -441,7 +455,7 @@ export default function LandingPage() {
         <footer className="school-footer px-4 py-6 min-[600px]:px-6">
           <div className="grid gap-4 md:grid-cols-[1fr_0.8fr_0.8fr]">
             <div>
-              <p className="font-black text-ink">SMP Negeri 1 Pecalungan</p>
+              <p className="font-black text-ink">SMP NU 01 Bawang</p>
               <p className="mt-2 text-sm leading-6 text-muted">
                 Portal informasi sekolah modern untuk profil, berita, PPDB,
                 galeri, dan layanan wali murid.
@@ -456,7 +470,10 @@ export default function LandingPage() {
             <div>
               <p className="font-black text-ink">Akses Cepat</p>
               <div className="mt-2 flex flex-wrap gap-2">
-                <Link className="school-nav-link px-3 py-2" href="/parent-portal">
+                <Link
+                  className="school-nav-link px-3 py-2"
+                  href="/parent-portal"
+                >
                   Portal Orang Tua
                 </Link>
                 <Link className="school-nav-link px-3 py-2" href="/login">
@@ -466,7 +483,6 @@ export default function LandingPage() {
             </div>
           </div>
         </footer>
-
       </div>
     </main>
   );
