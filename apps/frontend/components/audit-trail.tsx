@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { api, type ActivityTrailItem } from '../lib/api';
+import { api, type ActivityTrailItem, type LoginAuditItem } from '../lib/api';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { EmptyState } from './ui/empty-state';
@@ -36,6 +36,7 @@ const actionTone: Record<string, string> = {
 
 export function AuditTrail() {
   const [activities, setActivities] = useState<ActivityTrailItem[]>([]);
+  const [loginAudits, setLoginAudits] = useState<LoginAuditItem[]>([]);
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const dateInputRef = useRef<HTMLInputElement>(null);
   const [selectedDate, setSelectedDate] = useState(() =>
@@ -47,8 +48,12 @@ export function AuditTrail() {
     setLoadState('loading');
 
     try {
-      const response = await api.getActivityTrail();
-      setActivities(response.data);
+      const [activityResponse, loginResponse] = await Promise.all([
+        api.getActivityTrail(),
+        api.getLoginAudit(),
+      ]);
+      setActivities(activityResponse.data);
+      setLoginAudits(loginResponse.data);
       setLoadState('success');
     } catch {
       setLoadState('error');
@@ -165,8 +170,58 @@ export function AuditTrail() {
           <EmptyState title="Belum ada aktivitas yang cocok pada tanggal ini." />
         ) : null}
       </div>
+
+      <LoginAuditPanel audits={loginAudits} selectedDate={selectedDate} query={query} />
     </SurfaceCard>
   );
+}
+
+function LoginAuditPanel({ audits, selectedDate, query }: { audits: LoginAuditItem[]; selectedDate: string; query: string }) {
+  const normalizedQuery = query.trim().toLowerCase();
+  const filtered = audits.filter((audit) => {
+    const matchesDate = !selectedDate || formatDateInput(new Date(audit.createdAt)) === selectedDate;
+    const haystack = [audit.email, audit.status, audit.ipAddress, audit.userAgent, audit.reason, audit.user?.name, audit.user?.username, ...(audit.user?.roles ?? [])].filter(Boolean).join(' ').toLowerCase();
+    return matchesDate && (!normalizedQuery || haystack.includes(normalizedQuery));
+  });
+
+  return (
+    <div className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
+      <h2 className="text-xl font-bold text-slate-900 dark:text-white">Riwayat Login Pengguna</h2>
+      <p className="mt-1 text-sm text-muted">Siapa yang login, dari IP mana, menggunakan browser/perangkat apa, dan kapan.</p>
+      <div className="mt-4 space-y-3">
+        {filtered.map((audit) => <LoginAuditCard audit={audit} key={audit.id} />)}
+        {!filtered.length ? <EmptyState title="Belum ada riwayat login yang cocok." /> : null}
+      </div>
+    </div>
+  );
+}
+
+function LoginAuditCard({ audit }: { audit: LoginAuditItem }) {
+  const statusClass = audit.status === 'SUCCESS' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-red-700 bg-red-50 border-red-200';
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white/80 p-4 dark:bg-[var(--surface-soft)]">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="font-bold text-slate-900 dark:text-white">{audit.user?.name ?? audit.email}</p>
+          <p className="text-xs text-muted">{audit.user?.username ? `@${audit.user.username} · ` : ''}{audit.user?.roles.join(', ') || 'User tidak ditemukan'}</p>
+        </div>
+        <Badge className={statusClass} tone="muted">{audit.status}</Badge>
+      </div>
+      <div className="mt-3 grid gap-1 text-xs text-muted sm:grid-cols-2">
+        <p>Waktu: {new Date(audit.createdAt).toLocaleString('id-ID')}</p>
+        <p>IP: {audit.ipAddress ?? '-'}</p>
+        <p className="sm:col-span-2">Browser/Perangkat: {getDeviceLabel(audit.userAgent)} <span className="break-all">({audit.userAgent ?? 'tidak tersedia'})</span></p>
+        {audit.reason ? <p className="sm:col-span-2">Keterangan: {audit.reason}</p> : null}
+      </div>
+    </article>
+  );
+}
+
+function getDeviceLabel(userAgent?: string | null) {
+  if (!userAgent) return 'Tidak diketahui';
+  const browser = userAgent.includes('Edg/') ? 'Microsoft Edge' : userAgent.includes('Chrome/') ? 'Google Chrome' : userAgent.includes('Firefox/') ? 'Mozilla Firefox' : userAgent.includes('Safari/') ? 'Safari' : 'Browser lain';
+  const device = /Android/i.test(userAgent) ? 'Android' : /iPhone|iPad/i.test(userAgent) ? 'iOS' : /Windows/i.test(userAgent) ? 'Windows' : /Macintosh|Mac OS X/i.test(userAgent) ? 'macOS' : /Linux/i.test(userAgent) ? 'Linux' : 'Perangkat lain';
+  return `${browser} · ${device}`;
 }
 
 function ActivityCard({ activity }: { activity: ActivityTrailItem }) {

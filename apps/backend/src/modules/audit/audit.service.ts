@@ -88,6 +88,41 @@ export class AuditService {
     return ok(activities.slice(0, 100));
   }
 
+  async getLoginAudit() {
+    const logs = await this.prisma.loginAudit.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            roles: { select: { role: { select: { name: true } } } },
+          },
+        },
+      },
+    });
+
+    return ok(logs.map((log) => ({
+      id: log.id,
+      email: log.email,
+      status: log.status,
+      ipAddress: log.ipAddress,
+      userAgent: log.userAgent,
+      reason: log.reason,
+      createdAt: log.createdAt.toISOString(),
+      user: log.user
+        ? {
+            id: log.user.id,
+            username: log.user.username,
+            name: log.user.name,
+            roles: log.user.roles.map(({ role }) => role.name),
+          }
+        : null,
+    })));
+  }
+
   async record(data: {
     userId?: string | null;
     action: string;

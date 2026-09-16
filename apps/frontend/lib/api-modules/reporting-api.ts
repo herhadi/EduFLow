@@ -1,5 +1,5 @@
 import { request } from '../api-client';
-import type { ActivityTrailItem, ApiResponse, AttendanceStatus, OperationalDashboardSummary, StudentReportDashboard, TeacherPerformanceDashboard } from '../api-types';
+import type { ActivityTrailItem, ApiResponse, AttendanceStatus, LoginAuditItem, OperationalDashboardSummary, StudentReportDashboard, TeacherPerformanceDashboard } from '../api-types';
 
 export const reportingApi = {
   getOperationalDashboard: () =>
@@ -50,4 +50,5 @@ export const reportingApi = {
     );
   },
   getActivityTrail: () => request<ApiResponse<ActivityTrailItem[]>>('/audit/activity'),
+  getLoginAudit: () => request<ApiResponse<LoginAuditItem[]>>('/audit/login'),
 };

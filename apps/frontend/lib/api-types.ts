@@ -444,6 +444,22 @@ export interface ActivityTrailItem {
   metadata?: unknown;
 }
 
+export interface LoginAuditItem {
+  id: string;
+  email: string;
+  status: 'SUCCESS' | 'FAILED' | 'LOCKED';
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  reason?: string | null;
+  createdAt: string;
+  user?: {
+    id: string;
+    username?: string | null;
+    name: string;
+    roles: string[];
+  } | null;
+}
+
 export type HealthStatus = 'Healthy' | 'Unhealthy';
 
 export interface QueueSummary {
