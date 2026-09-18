@@ -1,3 +1,4 @@
+//Cleanup worker
 const CACHE_NAME = 'eduflow-shell-v2';
 const APP_SHELL = ['/', '/manifest.webmanifest', '/icon.svg', '/icon-192.png', '/icon-512.png'];
 
