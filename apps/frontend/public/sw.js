@@ -25,7 +25,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Do not proxy third-party resources such as Cloudflare Insights through
+  // the app shell cache. A failed third-party request must remain a normal
+  // network failure instead of becoming an invalid service-worker response.
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.origin !== self.location.origin) {
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request)),
+    fetch(event.request).catch(async () => {
+      const cachedResponse = await caches.match(event.request);
+
+      return cachedResponse ?? new Response('Offline', {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      });
+    }),
   );
 });
