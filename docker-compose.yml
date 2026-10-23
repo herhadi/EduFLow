@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
+    container_name: eduflow-backend
     env_file:
       - apps/backend/.env
     environment:
@@ -35,6 +36,7 @@ services:
       dockerfile: apps/frontend/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api/backend}
+    container_name: eduflow-frontend
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api/backend}
       BACKEND_INTERNAL_API_URL: ${BACKEND_INTERNAL_API_URL:-http://backend:3001/api}
@@ -47,6 +49,7 @@ services:
 
   postgres:
     image: postgres:16-alpine
+    container_name: eduflow-postgres
     environment:
       POSTGRES_DB: eduflow
       POSTGRES_USER: eduflow
@@ -65,6 +68,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    container_name: eduflow-redis
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     restart: unless-stopped
     volumes:
