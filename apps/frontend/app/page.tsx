@@ -126,7 +126,7 @@ export default function LandingPage() {
       <div className="school-landing-frame mx-auto min-h-dvh max-w-md overflow-x-clip min-[600px]:my-3 min-[600px]:min-h-[calc(100dvh-1.5rem)] min-[600px]:w-[calc(100%-1rem)] min-[600px]:max-w-none min-[600px]:rounded-[1.25rem] md:w-[calc(100%-1.5rem)] xl:w-[calc(100%-2rem)]">
         <div className="school-top-strip px-4 py-2 text-xs font-semibold min-[600px]:px-6">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <p>SMP NU 01 Bawang</p>
+            <p>SMP N 1 Pecalungan</p>
             <p>Website sekolah modern · ringan · mobile friendly</p>
           </div>
         </div>
@@ -136,14 +136,14 @@ export default function LandingPage() {
             <Link className="flex min-w-0 items-center gap-3" href="/">
               <span className="school-brand-mark grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl p-1">
                 <img
-                  alt="Logo SMP NU 01 Bawang"
+                  alt="Logo SMP N 1 Pecalungan"
                   className="h-full w-full object-contain"
                   src="/logo_sekolah.webp"
                 />
               </span>
               <span className="min-w-0">
                 <span className="block truncate text-lg font-black leading-none text-ink sm:text-xl">
-                  SMP NU 01 Bawang
+                  SMP N 1 Pecalungan
                 </span>
                 <span className="mt-1 block truncate text-xs font-semibold text-muted">
                   Modern School CMS
@@ -198,7 +198,7 @@ export default function LandingPage() {
                   informasi.
                 </h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-muted sm:text-lg">
-                  Tampilan depan SMP NU 01 Bawang dibuat seperti portal CMS
+                  Tampilan depan SMP N 1 Pecalungan dibuat seperti portal CMS
                   modern: ringan, responsif, punya komponen informasi lengkap,
                   dan tetap menyatu dengan sistem sekolah EduFlow.
                 </p>
@@ -336,7 +336,7 @@ export default function LandingPage() {
                   Sambutan Kepala Sekolah
                 </p>
                 <h2 className="school-section-title mt-2 text-2xl sm:text-3xl">
-                  Selamat datang di gerbang digital SMP NU 01 Bawang.
+                  Selamat datang di gerbang digital SMP N 1 Pecalungan.
                 </h2>
                 <p className="mt-3 text-sm leading-7 text-muted sm:text-base">
                   Portal ini kami hadirkan sebagai ruang informasi resmi untuk
@@ -345,7 +345,7 @@ export default function LandingPage() {
                   terbuka, dan tertata.
                 </p>
                 <p className="mt-3 text-sm font-black text-ink">
-                  Kepala SMP NU 01 Bawang
+                  Kepala SMP N 1 Pecalungan
                 </p>
               </div>
             </div>
@@ -455,7 +455,7 @@ export default function LandingPage() {
         <footer className="school-footer px-4 py-6 min-[600px]:px-6">
           <div className="grid gap-4 md:grid-cols-[1fr_0.8fr_0.8fr]">
             <div>
-              <p className="font-black text-ink">SMP NU 01 Bawang</p>
+              <p className="font-black text-ink">SMP N 1 Pecalungan</p>
               <p className="mt-2 text-sm leading-6 text-muted">
                 Portal informasi sekolah modern untuk profil, berita, PPDB,
                 galeri, dan layanan wali murid.
