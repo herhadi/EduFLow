@@ -337,13 +337,13 @@ export class OperationsService {
           worker: this.toHealth(workerHealthy),
           database: database.status,
           storage: storageResult.status,
-          storageSummary: storageResult.summary,
-          storageError: storageResult.error,
           notification: this.toHealth(
             queues.find((queue) => queue.name === QUEUES.NOTIFICATION_SEND)?.status ===
               'Healthy',
           ),
         },
+        storageSummary: storageResult.summary,
+        storageError: storageResult.error,
         diagnostics: {
           databaseLatencyMs: database.latencyMs,
           redisLatencyMs: redis.latencyMs,
