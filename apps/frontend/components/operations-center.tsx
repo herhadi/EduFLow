@@ -300,7 +300,7 @@ export function OperationsCenter() {
             detailHref="#r2-usage-details"
             label="Cloudflare R2"
             status={dashboard.health.storage}
-            tone={loadState !== 'success' || dashboard.health.storage !== 'Healthy' ? 'warning' : undefined}
+            tone={loadState !== 'success' || dashboard.health.storage !== 'Healthy' || !dashboard.storageSummary ? 'warning' : 'success'}
             value={loadState !== 'success' ? 'Belum diketahui' : dashboard.health.storage === 'Healthy' && dashboard.storageSummary ? 'Terhubung' : 'Pemeriksaan gagal'}
           />
         </div>
