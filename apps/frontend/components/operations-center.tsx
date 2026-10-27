@@ -6,6 +6,7 @@ import {
   type FailedJob,
   type OperationsDashboard,
   type R2StorageRangePreview,
+  type R2StorageUsage,
   type SchoolYear,
 } from '../lib/api';
 import { formatNumber } from '../lib/format';
@@ -42,6 +43,8 @@ export function OperationsCenter() {
   const [r2Prefix, setR2Prefix] = useState('');
   const [r2Preview, setR2Preview] = useState<R2StorageRangePreview | null>(null);
   const [r2Busy, setR2Busy] = useState(false);
+  const [r2Usage, setR2Usage] = useState<R2StorageUsage | null>(null);
+  const [r2UsageState, setR2UsageState] = useState<LoadState>('idle');
   const restoreInputRef = useRef<HTMLInputElement>(null);
 
   async function loadDashboard() {
@@ -59,7 +62,20 @@ export function OperationsCenter() {
   useEffect(() => {
     void loadDashboard();
     void loadBackups();
+    void loadR2Usage();
   }, []);
+
+  async function loadR2Usage() {
+    setR2UsageState('loading');
+    try {
+      const response = await api.getR2Usage();
+      setR2Usage(response.data);
+      setR2UsageState('success');
+    } catch {
+      setR2Usage(null);
+      setR2UsageState('error');
+    }
+  }
 
   async function loadBackups() {
     const schoolYearResponse = await api.getSchoolYears();
@@ -329,6 +345,39 @@ export function OperationsCenter() {
             </p>
           )}
         </div>
+      </div>
+
+      <div className="surface-card rounded-lg p-4 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold">Cloudflare R2 Usage</h2>
+            <p className="mt-1 text-sm text-muted">Ringkasan ukuran dan jumlah objek bucket yang terhubung ke EduFlow.</p>
+          </div>
+          <Button onClick={() => void loadR2Usage()} disabled={r2UsageState === 'loading'}>
+            {r2UsageState === 'loading' ? 'Memuat...' : 'Refresh Usage'}
+          </Button>
+        </div>
+        {r2UsageState === 'error' ? (
+          <p className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+            Usage belum tersedia. Periksa konfigurasi R2 dan izin Cloudflare Analytics atau izin membaca daftar objek bucket.
+          </p>
+        ) : r2Usage ? (
+          <>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-xl border border-[var(--border)] p-4"><p className="text-sm text-muted">Bucket</p><p className="mt-1 break-all text-lg font-bold">{r2Usage.bucket}</p></div>
+              <div className="rounded-xl border border-[var(--border)] p-4"><p className="text-sm text-muted">Total objek</p><p className="mt-1 text-2xl font-bold">{formatNumber(r2Usage.objectCount)}{r2Usage.isPartial ? '+' : ''}</p></div>
+              <div className="rounded-xl border border-[var(--border)] p-4"><p className="text-sm text-muted">Ukuran tersimpan</p><p className="mt-1 text-2xl font-bold">{formatBytes(r2Usage.totalSizeBytes)}</p></div>
+              <div className="rounded-xl border border-[var(--border)] p-4"><p className="text-sm text-muted">Status data</p><p className="mt-1 text-lg font-bold">{r2Usage.isPartial ? 'Estimasi parsial' : 'Tersedia'}</p></div>
+            </div>
+            <p className="mt-3 text-xs text-muted">
+              Diperiksa: {new Date(r2Usage.checkedAt).toLocaleString('id-ID')} · Sumber: {r2Usage.source}.
+              {r2Usage.isPartial ? ' Hasil parsial karena batas listing 10.000 objek; gunakan Cloudflare Analytics untuk angka yang lebih lengkap.' : ''}
+              {' '}Ukuran storage bukan tagihan biaya R2.
+            </p>
+          </>
+        ) : (
+          <p className="mt-4 text-sm text-muted">{r2UsageState === 'loading' ? 'Mengambil data pemakaian R2...' : 'Klik Refresh Usage untuk memuat data.'}</p>
+        )}
       </div>
 
       <div className="surface-card rounded-lg p-4 sm:p-6">

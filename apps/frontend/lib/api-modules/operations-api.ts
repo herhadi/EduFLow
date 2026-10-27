@@ -1,5 +1,5 @@
 import { download, downloadPost, request, restoreBackup } from '../api-client';
-import type { ApiResponse, OperationsBackups, OperationsDashboard, R2StorageDeleteResult, R2StorageRangePreview, TelegramOperationsStatus } from '../api-types';
+import type { ApiResponse, OperationsBackups, OperationsDashboard, R2StorageDeleteResult, R2StorageRangePreview, R2StorageUsage, TelegramOperationsStatus } from '../api-types';
 
 export const operationsApi = {
   getOperationsDashboard: () =>
@@ -18,6 +18,7 @@ export const operationsApi = {
   createDailyBackup: () => download('/operations/backups/daily'),
   restoreDailyBackup: (file: File) => restoreBackup<ApiResponse<{ filename: string }>>(file),
   createAcademicYearBackup: (schoolYearId: string) => request<ApiResponse<{ filename: string }>>('/operations/backups/academic-year', { method: 'POST', body: JSON.stringify({ schoolYearId }) }),
+  getR2Usage: () => request<ApiResponse<R2StorageUsage>>('/operations/storage/usage'),
   listR2Objects: (from: string, to: string, prefix?: string) => {
     const query = new URLSearchParams({ from, to });
     if (prefix?.trim()) query.set('prefix', prefix.trim());

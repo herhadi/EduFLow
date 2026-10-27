@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-27
+
+- Menambahkan kartu Cloudflare R2 Usage di `/operations` dan endpoint `GET /api/operations/storage/usage`, termasuk jumlah objek, total ukuran, sumber data, waktu pemeriksaan, indikator data parsial, serta dokumentasi terkait.
+
 Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
 Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis granular tetap dilacak melalui riwayat Git dan dokumen domain terkait.

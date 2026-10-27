@@ -167,6 +167,20 @@ export class OperationsService {
     return { data: { filename: file.originalname }, message: 'Restore selesai. Muat ulang aplikasi.' };
   }
 
+  async getR2Usage() {
+    const summary = await this.storage.getUsageSummary();
+    return {
+      data: {
+        bucket: summary.bucket,
+        objectCount: summary.objectCount,
+        totalSizeBytes: summary.totalSizeBytes,
+        isPartial: summary.isPartial,
+        checkedAt: new Date().toISOString(),
+        source: this.configService.get<string>('CLOUDFLARE_API_TOKEN') ? 'Cloudflare Analytics (fallback: S3 listing)' : 'S3 listing',
+      },
+    };
+  }
+
   async listR2Objects(from: string, to: string, prefix: string | undefined) {
     const range = this.parseR2DateRange(from, to);
     const normalizedPrefix = this.validateR2Prefix(prefix);

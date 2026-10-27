@@ -246,3 +246,12 @@ Panel pengelolaan tersedia di `/operations` pada bagian **Cloudflare R2 — Back
 - Pastikan rentang tanggal dan prefix benar.
 - Jangan menjalankan hapus saat upload/replace file masih aktif pada prefix yang sama.
 - Jalankan preview ulang bila backend menolak karena data berubah.
+
+
+## Pemantauan Cloudflare R2 Usage
+
+Bagian **Cloudflare R2 Usage** di `/operations` menampilkan nama bucket, jumlah objek, total ukuran, sumber data, dan waktu pemeriksaan. Tombol **Refresh Usage** meminta data terbaru.
+
+Backend menggunakan Cloudflare Analytics bila `CLOUDFLARE_API_TOKEN` tersedia dan query Analytics berhasil. Jika Analytics tidak tersedia, backend menghitung objek melalui S3 listing hingga 10.000 objek. Bila batas tersebut tercapai, `isPartial=true` dan UI menandai hasil sebagai parsial. Untuk bucket besar, gunakan Analytics dan pastikan token Cloudflare mempunyai izin baca analytics yang sesuai.
+
+Angka ukuran adalah pemakaian payload objek, bukan estimasi tagihan. Biaya aktual bergantung pada metrik dan tarif Cloudflare R2, termasuk operasi Class A/Class B dan transfer data yang relevan.

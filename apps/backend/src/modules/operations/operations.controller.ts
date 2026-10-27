@@ -61,6 +61,12 @@ export class OperationsController {
     return this.operationsService.createAcademicYearBackup(body.schoolYearId, request.user.id);
   }
 
+  @Get('storage/usage')
+  @RequirePermissions(PERMISSIONS.SYSTEM_RECOVERY_MANAGE)
+  getR2Usage() {
+    return this.operationsService.getR2Usage();
+  }
+
   @Get('storage/objects')
   @RequirePermissions(PERMISSIONS.SYSTEM_RECOVERY_MANAGE)
   listR2Objects(@Query('from') from: string, @Query('to') to: string, @Query('prefix') prefix?: string) {

@@ -550,6 +550,14 @@ export interface OperationsDashboard {
 }
 export interface BackupFile { filename: string; size: number; createdAt: string; }
 export interface OperationsBackups { daily: BackupFile[]; academicYears: SchoolYear[]; }
+export interface R2StorageUsage {
+  bucket: string;
+  objectCount: number;
+  totalSizeBytes: number;
+  isPartial: boolean;
+  checkedAt: string;
+  source: string;
+}
 export interface R2StorageObject {
   key: string;
   size: number;

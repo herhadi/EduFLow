@@ -931,6 +931,14 @@ Dokumentasi lengkap:
 docs/backup-recovery.md
 ```
 
+### Cloudflare R2 Usage
+
+```http
+GET /api/operations/storage/usage
+```
+
+Memerlukan permission `system.recovery.manage`. Response menampilkan nama bucket, jumlah objek, total ukuran byte, waktu pemeriksaan, sumber data, dan flag `isPartial`. Backend mencoba Cloudflare Analytics terlebih dahulu jika `CLOUDFLARE_API_TOKEN` tersedia, lalu fallback ke listing S3 yang dibatasi 10.000 objek. Jika `isPartial=true`, jumlah dan ukuran adalah batas bawah, bukan total lengkap.
+
 ### Cloudflare R2: Preview, Backup, dan Hapus Berdasarkan Rentang
 
 Semua endpoint memerlukan autentikasi dan permission `system.recovery.manage` (role root pada seed default).
