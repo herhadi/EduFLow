@@ -268,7 +268,7 @@ export class OperationsService {
   }
 
   private parseR2DateRange(from: string, to: string) {
-    const validDay = (value: string) => /^\\d{4}-\\d{2}-\\d{2}$/.test(value) &&
+    const validDay = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) &&
       !Number.isNaN(Date.parse(`${value}T00:00:00.000Z`)) &&
       new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) === value;
     if (!from || !to || !validDay(from) || !validDay(to)) {
