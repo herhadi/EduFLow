@@ -52,6 +52,8 @@ export class AcademicCalendarService {
       startsAt: dto.startsAt ?? existing.startsAt.toISOString(),
       endsAt: dto.endsAt ?? existing.endsAt.toISOString(),
       blocksAgenda: dto.blocksAgenda ?? existing.blocksAgenda,
+      scheduleShiftFromDay: dto.scheduleShiftFromDay === undefined ? existing.scheduleShiftFromDay : dto.scheduleShiftFromDay,
+      scheduleShiftToDay: dto.scheduleShiftToDay === undefined ? existing.scheduleShiftToDay : dto.scheduleShiftToDay,
     });
     const updated = await this.prisma.academicCalendarEvent.update({
       where: { id },
@@ -98,6 +100,8 @@ export class AcademicCalendarService {
     startsAt: string;
     endsAt: string;
     blocksAgenda?: boolean;
+    scheduleShiftFromDay?: number | null;
+    scheduleShiftToDay?: number | null;
   }) {
     const [schoolYear, semester] = await Promise.all([
       this.prisma.schoolYear.findFirst({ where: { id: dto.schoolYearId, deletedAt: null } }),
@@ -113,6 +117,16 @@ export class AcademicCalendarService {
     const startsAt = this.toDateOnly(dto.startsAt);
     const endsAt = this.toDateOnly(dto.endsAt);
     if (endsAt < startsAt) throw new BadRequestException('Tanggal akhir tidak boleh lebih awal dari tanggal mulai');
+    const shiftFrom = dto.scheduleShiftFromDay ?? null;
+    const shiftTo = dto.scheduleShiftToDay ?? null;
+    if ((shiftFrom === null) !== (shiftTo === null)) throw new BadRequestException('Hari asal dan hari tujuan pergeseran harus diisi berpasangan');
+    if (shiftFrom !== null && shiftTo !== null) {
+      if (shiftFrom === shiftTo) throw new BadRequestException('Hari asal dan tujuan upacara harus berbeda');
+      if (startsAt.getTime() !== endsAt.getTime()) throw new BadRequestException('Agenda pergeseran upacara harus menggunakan satu tanggal tujuan');
+      const targetDay = startsAt.getUTCDay() || 7;
+      if (targetDay !== shiftTo) throw new BadRequestException('Tanggal agenda harus sesuai dengan hari tujuan yang dipilih');
+      if (dto.blocksAgenda) throw new BadRequestException('Agenda pergeseran upacara tidak boleh memblokir agenda pelajaran');
+    }
     if (startsAt < this.toDateOnly(schoolYear.startsAt.toISOString()) || endsAt > this.toDateOnly(schoolYear.endsAt.toISOString())) {
       throw new BadRequestException('Rentang event harus berada dalam tahun ajaran yang dipilih');
     }
@@ -125,7 +139,9 @@ export class AcademicCalendarService {
       type: dto.type,
       startsAt,
       endsAt,
-      blocksAgenda: dto.blocksAgenda ?? true,
+      blocksAgenda: shiftFrom !== null && shiftTo !== null ? false : (dto.blocksAgenda ?? true),
+      scheduleShiftFromDay: shiftFrom,
+      scheduleShiftToDay: shiftTo,
     };
   }
 

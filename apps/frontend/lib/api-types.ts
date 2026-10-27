@@ -118,6 +118,8 @@ export interface AcademicCalendarEvent {
   startsAt: string;
   endsAt: string;
   blocksAgenda: boolean;
+  scheduleShiftFromDay?: number | null;
+  scheduleShiftToDay?: number | null;
   semester?: Semester | null;
 }
 
@@ -199,6 +201,9 @@ export interface DailyAgenda {
   id: string;
   date: string;
   status: string;
+  effectivePeriodNumber?: number | null;
+  effectiveStartsAt?: string | null;
+  effectiveEndsAt?: string | null;
   class: SchoolClass;
   subject: Subject;
   teacher: Teacher;

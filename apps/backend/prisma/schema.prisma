@@ -430,6 +430,8 @@ model AcademicCalendarEvent {
   startsAt     DateTime                  @db.Date
   endsAt       DateTime                  @db.Date
   blocksAgenda Boolean                   @default(true)
+  scheduleShiftFromDay Int?
+  scheduleShiftToDay   Int?
   schoolYear   SchoolYear                @relation(fields: [schoolYearId], references: [id])
   semester     Semester?                 @relation(fields: [semesterId], references: [id])
   createdAt    DateTime                  @default(now())
@@ -773,6 +775,9 @@ model DailyAgenda {
   teacherId           String       @db.Uuid
   substituteTeacherId String?      @db.Uuid
   date                DateTime     @db.Date
+  effectivePeriodNumber Int?
+  effectiveStartsAt   String?
+  effectiveEndsAt     String?
   status              AgendaStatus @default(SCHEDULED)
   schedule            Schedule?    @relation(fields: [scheduleId], references: [id])
   schoolYear          SchoolYear   @relation(fields: [schoolYearId], references: [id])

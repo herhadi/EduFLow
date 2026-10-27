@@ -36,6 +36,10 @@ function getCalendarMonths(schoolYear?: SchoolYear) {
 }
 
 const weekdayLabels = ['Sn', 'Sl', 'Rb', 'Km', 'Jm', 'Sb', 'Mg'];
+const schoolDays = [
+  { value: 1, label: 'Senin' }, { value: 2, label: 'Selasa' }, { value: 3, label: 'Rabu' },
+  { value: 4, label: 'Kamis' }, { value: 5, label: 'Jumat' }, { value: 6, label: 'Sabtu' }, { value: 7, label: 'Minggu' },
+];
 
 export function AcademicCalendarManagement() {
   const toast = useToast();
@@ -51,6 +55,9 @@ export function AcademicCalendarManagement() {
     endsAt: '',
     description: '',
     blocksAgenda: true,
+    shiftSchedule: false,
+    scheduleShiftFromDay: 1,
+    scheduleShiftToDay: 4,
   });
 
   const selectedSchoolYear = useMemo(
@@ -107,7 +114,9 @@ export function AcademicCalendarManagement() {
         startsAt: form.startsAt,
         endsAt: form.endsAt,
         description: form.description.trim() || undefined,
-        blocksAgenda: form.blocksAgenda,
+        blocksAgenda: form.shiftSchedule ? false : form.blocksAgenda,
+        scheduleShiftFromDay: form.shiftSchedule ? form.scheduleShiftFromDay : null,
+        scheduleShiftToDay: form.shiftSchedule ? form.scheduleShiftToDay : null,
       });
       setEvents((current) => [...current, response.data].sort((a, b) => a.startsAt.localeCompare(b.startsAt)));
       setForm((current) => ({ ...current, title: '', description: '' }));
@@ -177,10 +186,32 @@ export function AcademicCalendarManagement() {
           <label className="grid gap-1 text-sm font-semibold text-slate-700">Keterangan
             <textarea className="min-h-20 rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600" onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} value={form.description} />
           </label>
-          <label className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 px-3 py-3 text-sm font-semibold text-amber-900">
+          <div className="rounded-xl border border-sky-100 bg-sky-50 p-3">
+            <label className="flex items-center gap-3 text-sm font-bold text-sky-950">
+              <input checked={form.shiftSchedule} onChange={(event) => setForm((current) => ({ ...current, shiftSchedule: event.target.checked, type: event.target.checked ? 'SCHOOL_ACTIVITY' : current.type, blocksAgenda: event.target.checked ? false : current.blocksAgenda }))} type="checkbox" />
+              Pergeseran jadwal upacara untuk minggu ini
+            </label>
+            {form.shiftSchedule ? <>
+              <p className="mt-2 text-xs leading-5 text-sky-900">Jadwal hari asal bergeser −1 jam, hari tujuan +1 jam. Penyesuaian hanya berlaku pada minggu tanggal kegiatan ini.</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-1 text-sm font-semibold text-slate-700">Hari asal upacara
+                  <select className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal" value={form.scheduleShiftFromDay} onChange={(event) => setForm((current) => ({ ...current, scheduleShiftFromDay: Number(event.target.value) }))}>
+                    {schoolDays.map((day) => <option key={day.value} value={day.value}>{day.label}</option>)}
+                  </select>
+                </label>
+                <label className="grid gap-1 text-sm font-semibold text-slate-700">Hari tujuan upacara
+                  <select className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal" value={form.scheduleShiftToDay} onChange={(event) => setForm((current) => ({ ...current, scheduleShiftToDay: Number(event.target.value) }))}>
+                    {schoolDays.filter((day) => day.value !== form.scheduleShiftFromDay).map((day) => <option key={day.value} value={day.value}>{day.label}</option>)}
+                  </select>
+                </label>
+              </div>
+              <p className="mt-2 text-xs font-semibold text-sky-900">Tanggal event harus jatuh pada hari tujuan. Slot jam ke-1 di hari tujuan dipakai untuk upacara.</p>
+            </> : null}
+          </div>
+          {!form.shiftSchedule ? <label className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 px-3 py-3 text-sm font-semibold text-amber-900">
             <input checked={form.blocksAgenda} onChange={(event) => setForm((current) => ({ ...current, blocksAgenda: event.target.checked }))} type="checkbox" />
             Blokir pembuatan agenda pada rentang ini
-          </label>
+          </label> : null}
           <button className="rounded-xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300" disabled={isSaving} type="submit">Tambah Event Kaldik</button>
         </form>
       </section>
@@ -194,7 +225,7 @@ export function AcademicCalendarManagement() {
               <div className="min-w-0">
                 <p className="font-black text-slate-900">{event.title}</p>
                 <p className="mt-1 text-sm font-semibold text-slate-600">{formatDate(event.startsAt)}{event.startsAt.slice(0, 10) !== event.endsAt.slice(0, 10) ? ` - ${formatDate(event.endsAt)}` : ''}</p>
-                <p className="mt-1 text-xs font-bold text-brand-700">{eventTypes.find((item) => item.value === event.type)?.label} {event.blocksAgenda ? '· Blokir agenda' : '· Tidak memblokir agenda'}</p>
+                <p className="mt-1 text-xs font-bold text-brand-700">{eventTypes.find((item) => item.value === event.type)?.label} {event.scheduleShiftFromDay && event.scheduleShiftToDay ? `· Upacara ${schoolDays.find((day) => day.value === event.scheduleShiftFromDay)?.label} → ${schoolDays.find((day) => day.value === event.scheduleShiftToDay)?.label}` : event.blocksAgenda ? '· Blokir agenda' : '· Tidak memblokir agenda'}</p>
                 {event.description ? <p className="mt-2 text-sm text-muted">{event.description}</p> : null}
               </div>
               <button className="rounded-lg bg-rose-50 px-3 py-2 text-xs font-black text-rose-700 hover:bg-rose-100" onClick={() => void handleDelete(event)} type="button">Hapus</button>

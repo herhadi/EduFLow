@@ -1,6 +1,6 @@
 import { AcademicCalendarEventType } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsBoolean, IsDateString, IsEnum, IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 
 export class UpdateAcademicCalendarEventDto {
   @IsOptional()
@@ -31,4 +31,18 @@ export class UpdateAcademicCalendarEventDto {
   @Type(() => Boolean)
   @IsBoolean()
   blocksAgenda?: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(7)
+  scheduleShiftFromDay?: number | null;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(7)
+  scheduleShiftToDay?: number | null;
 }

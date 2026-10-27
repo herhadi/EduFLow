@@ -18,7 +18,7 @@ export function AgendaCard({ agenda, onOpen }: AgendaCardProps) {
     <article className="surface-card flex flex-wrap items-center justify-between gap-3 rounded-[2rem] p-5">
       <div>
         <p className="text-xs font-black text-brand-700">
-          {agenda.schedule?.startsAt ?? 'Jam belum diatur'} · {agenda.class.name}
+          {agenda.effectivePeriodNumber ? `Jam ke-${agenda.effectivePeriodNumber} · ` : ''}{agenda.effectiveStartsAt ?? agenda.schedule?.startsAt ?? 'Jam belum diatur'}{agenda.effectiveEndsAt ? `–${agenda.effectiveEndsAt}` : agenda.schedule?.endsAt ? `–${agenda.schedule.endsAt}` : ''} · {agenda.class.name}
         </p>
         <h2 className="mt-1 text-lg font-black">{agenda.subject.name}</h2>
         {agenda.substituteTeacher ? (
