@@ -42,7 +42,6 @@ export function AcademicCalendarManagement() {
   const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
   const [events, setEvents] = useState<AcademicCalendarEvent[]>([]);
   const [schoolYearId, setSchoolYearId] = useState('');
-  const [visibleMonthStart, setVisibleMonthStart] = useState(0);
   const [selectedDate, setSelectedDate] = useState(toIsoDate(new Date()));
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
@@ -59,7 +58,6 @@ export function AcademicCalendarManagement() {
     [schoolYearId, schoolYears],
   );
   const calendarMonths = useMemo(() => getCalendarMonths(selectedSchoolYear), [selectedSchoolYear]);
-  const visibleMonths = calendarMonths.slice(visibleMonthStart, visibleMonthStart + 4);
   const selectedDateEvents = events.filter((event) => event.startsAt.slice(0, 10) <= selectedDate && event.endsAt.slice(0, 10) >= selectedDate);
 
   async function loadSchoolYears() {
@@ -85,7 +83,7 @@ export function AcademicCalendarManagement() {
   }
 
   useEffect(() => { void loadSchoolYears(); }, []);
-  useEffect(() => { void loadEvents(schoolYearId); setVisibleMonthStart(0); }, [schoolYearId]);
+  useEffect(() => { void loadEvents(schoolYearId); }, [schoolYearId]);
 
   useEffect(() => {
     if (!selectedSchoolYear || form.startsAt) return;
@@ -139,10 +137,7 @@ export function AcademicCalendarManagement() {
   }
 
   function goToToday() {
-    const today = new Date();
-    const monthIndex = calendarMonths.findIndex((month) => month.getFullYear() === today.getFullYear() && month.getMonth() === today.getMonth());
-    if (monthIndex >= 0) setVisibleMonthStart(Math.floor(monthIndex / 4) * 4);
-    selectCalendarDate(today);
+    selectCalendarDate(new Date());
   }
 
   return (
@@ -223,16 +218,12 @@ export function AcademicCalendarManagement() {
         <div className="p-4 sm:p-6">
           <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-600">Tampilan 4 bulan</p>
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-600">Tahun ajaran penuh</p>
               <h3 className="mt-1 text-lg font-black text-slate-900">
-                {visibleMonths.length ? `${new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(visibleMonths[0])} – ${new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(visibleMonths[visibleMonths.length - 1])}` : 'Kalender belum tersedia'}
+                {calendarMonths.length ? `${new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(calendarMonths[0])} – ${new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(calendarMonths[calendarMonths.length - 1])}` : 'Kalender belum tersedia'}
               </h3>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40" disabled={visibleMonthStart === 0} onClick={() => setVisibleMonthStart((value) => Math.max(0, value - 4))} type="button">← Sebelumnya</button>
-              <button className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50" onClick={goToToday} type="button">Hari ini</button>
-              <button className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40" disabled={visibleMonthStart >= 8} onClick={() => setVisibleMonthStart((value) => Math.min(8, value + 4))} type="button">Berikutnya →</button>
-            </div>
+            <button className="self-start rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50" onClick={goToToday} type="button">Pilih hari ini</button>
           </div>
           <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
             {eventTypes.map((item) => (
@@ -242,8 +233,8 @@ export function AcademicCalendarManagement() {
               </span>
             ))}
           </div>
-          <div className="mt-5 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
-            {visibleMonths.map((month) => {
+          <div className="mt-5 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {calendarMonths.map((month) => {
               const monthStartDay = (month.getDay() + 6) % 7;
               const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
               const cells = Array.from({ length: Math.ceil((monthStartDay + daysInMonth) / 7) * 7 }, (_, index) => index - monthStartDay + 1);
