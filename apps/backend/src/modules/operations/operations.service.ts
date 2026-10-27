@@ -625,9 +625,9 @@ export class OperationsService {
     } catch (error) {
       const name = error instanceof Error ? error.name : 'UnknownError';
       return {
-        status: 'Healthy',
+        status: 'Unhealthy',
         summary: null,
-        error: `Storage aktif, tetapi detail penggunaan belum tersedia (${name}). Pastikan credential memiliki izin list bucket atau Cloudflare Analytics.`,
+        error: `Pemeriksaan Cloudflare R2 gagal (${name}). Periksa koneksi, credential, dan izin Cloudflare Analytics atau listing objek.`,
       };
     }
   }

@@ -33,6 +33,7 @@ export function OperationsCenter() {
   const [dashboard, setDashboard] =
     useState<OperationsDashboard>(emptyOperationsDashboard);
   const [loadState, setLoadState] = useState<LoadState>('idle');
+  const [dashboardUpdatedAt, setDashboardUpdatedAt] = useState<Date | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<FailedJob | null>(null);
   const [backups, setBackups] = useState(emptyOperationsBackups);
@@ -53,6 +54,7 @@ export function OperationsCenter() {
     try {
       const response = await api.getOperationsDashboard();
       setDashboard(response.data);
+      setDashboardUpdatedAt(new Date());
       setLoadState('success');
     } catch {
       setLoadState('error');
@@ -85,7 +87,27 @@ export function OperationsCenter() {
   }
   async function createDailyBackup() { setBackupState('loading'); try { await api.createDailyBackup(); setMessage('Backup harian sedang diunduh ke perangkat ini.'); } catch { setMessage('Backup harian gagal dibuat.'); } finally { setBackupState('idle'); } }
   async function createAcademicBackup() { if (!schoolYearId) return; setBackupState('loading'); try { const response = await api.createAcademicYearBackup(schoolYearId); setMessage(response.message ?? 'Arsip tahun ajaran berhasil dibuat.'); } catch { setMessage('Arsip tahun ajaran gagal dibuat.'); } finally { setBackupState('idle'); } }
-  async function restoreBackup(file?: File) { if (!file || !window.confirm('Restore akan menimpa seluruh database. Lanjutkan?')) return; setBackupState('loading'); try { const response = await api.restoreDailyBackup(file); setMessage(response.message ?? 'Restore selesai.'); } catch { setMessage('Restore gagal.'); } finally { setBackupState('idle'); } }
+  async function restoreBackup(file?: File) {
+    if (!file) return;
+    const confirmation = window.prompt(
+      `RESTORE DATABASE — TINDAKAN DESTRUKTIF\n\nFile: ${file.name}\nUkuran: ${formatBytes(file.size)}\n\nDatabase akan ditimpa oleh isi backup ini. Pastikan file benar dan backup terbaru sudah aman.\n\nKetik RESTORE untuk melanjutkan:`,
+    );
+    if (confirmation !== 'RESTORE') {
+      setMessage('Restore dibatalkan. Tidak ada perubahan database yang dijalankan.');
+      return;
+    }
+    setBackupState('loading');
+    try {
+      const response = await api.restoreDailyBackup(file);
+      setMessage(response.message ?? `Restore dari ${file.name} selesai.`);
+      await loadDashboard();
+    } catch (error) {
+      setMessage(error instanceof Error ? `Restore gagal: ${error.message}` : 'Restore gagal. Periksa log backend.');
+    } finally {
+      setBackupState('idle');
+      if (restoreInputRef.current) restoreInputRef.current.value = '';
+    }
+  }
 
   async function previewR2Range() {
     if (!r2From || !r2To || r2From > r2To) {
@@ -184,11 +206,16 @@ export function OperationsCenter() {
               Status runtime untuk database, Redis, queue, worker, dan notifikasi.
             </p>
           </div>
-          <Button
-            onClick={() => void loadDashboard()}
-          >
-            Refresh
-          </Button>
+          <div className="flex flex-col items-start gap-2 sm:items-end">
+            <Button disabled={loadState === 'loading'} onClick={() => void loadDashboard()}>
+              {loadState === 'loading' ? 'Memuat...' : 'Refresh'}
+            </Button>
+            <p aria-live="polite" className="text-xs text-muted">
+              {dashboardUpdatedAt
+                ? `Terakhir dimuat ${dashboardUpdatedAt.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'medium', timeStyle: 'short' })} WIB`
+                : loadState === 'loading' ? 'Memuat data operasional...' : 'Data belum berhasil dimuat.'}
+            </p>
+          </div>
         </div>
 
         {loadState === 'error' ? (
@@ -273,8 +300,8 @@ export function OperationsCenter() {
             detailHref="#r2-usage-details"
             label="Cloudflare R2"
             status={dashboard.health.storage}
-            tone={!dashboard.storageSummary && dashboard.storageError ? 'warning' : undefined}
-            value="Terhubung"
+            tone={loadState !== 'success' || dashboard.health.storage !== 'Healthy' ? 'warning' : undefined}
+            value={loadState !== 'success' ? 'Belum diketahui' : dashboard.health.storage === 'Healthy' && dashboard.storageSummary ? 'Terhubung' : 'Pemeriksaan gagal'}
           />
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-3">

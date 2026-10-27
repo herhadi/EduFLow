@@ -3,7 +3,9 @@
 ## 2026-10-27
 
 - Menambahkan kartu rincian Cloudflare R2 di `/operations` dan endpoint `GET /api/operations/storage/usage`, termasuk jumlah objek, total ukuran, sumber data, waktu pemeriksaan, indikator data parsial, serta dokumentasi terkait.
-- Memperjelas health card R2 dengan status `Terhubung` dan tautan `Lihat rincian` menuju kartu rincian penggunaan; menghapus kartu `Cloudflare R2 Storage` yang menduplikasi informasi tersebut.
+- Memperjelas health card R2 dengan tautan `Lihat rincian` dan menghapus kartu duplikat; status R2 kini bergantung pada hasil pemeriksaan storage, bukan label `Terhubung` statis.
+- Menambahkan waktu pemuatan terakhir dan indikator loading pada refresh Dashboard Operasional.
+- Memperkuat konfirmasi Restore Backup dengan nama/ukuran file dan konfirmasi ketik `RESTORE`; dashboard dimuat ulang setelah restore berhasil.
 
 Catatan perubahan penting yang bersifat operasional dan arsitektural.
 

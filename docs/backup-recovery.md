@@ -80,6 +80,7 @@ Langkah yang dilakukan:
 
 Checklist sebelum restore:
 
+- UI `/operations` menampilkan nama dan ukuran file yang dipilih, lalu meminta administrator mengetik persis `RESTORE`; jika konfirmasi tidak cocok, restore dibatalkan,
 - pastikan file backup benar,
 - hentikan backend sementara jika restore dilakukan di production,
 - informasikan operator sekolah,
@@ -250,7 +251,7 @@ Panel pengelolaan tersedia di `/operations` pada bagian **Cloudflare R2 — Back
 
 ## Pemantauan Cloudflare R2 Usage
 
-Bagian **Cloudflare R2 Usage** di `/operations` menampilkan nama bucket, jumlah objek, total ukuran, sumber data, dan waktu pemeriksaan. Tombol **Refresh Usage** meminta data terbaru.
+Bagian **Rincian Cloudflare R2** di `/operations` menampilkan nama bucket, jumlah objek, total ukuran, sumber data, dan waktu pemeriksaan. Tombol **Refresh Usage** meminta data terbaru. Kartu status R2 pada dashboard hanya menampilkan **Terhubung** jika pemeriksaan storage berhasil dan ringkasan penggunaan tersedia; jika pemeriksaan gagal, UI menampilkan **Pemeriksaan gagal**. Kegagalan pemeriksaan bukan bukti mutlak bahwa bucket tidak ada, sehingga koneksi, credential, dan izin perlu diperiksa.
 
 Backend menggunakan Cloudflare Analytics bila `CLOUDFLARE_API_TOKEN` tersedia dan query Analytics berhasil. Jika Analytics tidak tersedia, backend menghitung objek melalui S3 listing hingga 10.000 objek. Bila batas tersebut tercapai, `isPartial=true` dan UI menandai hasil sebagai parsial. Untuk bucket besar, gunakan Analytics dan pastikan token Cloudflare mempunyai izin baca analytics yang sesuai.
 
