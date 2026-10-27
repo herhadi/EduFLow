@@ -380,7 +380,45 @@ Gunakan tabel jadwal untuk:
 - mengisi alasan revisi;
 - melihat atau membatalkan histori revisi.
 
-## 3.12 Generate Agenda Harian
+## 3.12 Pergeseran Jadwal Upacara pada Minggu Tertentu
+
+Fitur ini dipakai Operator Sekolah ketika upacara atau kegiatan rutin dipindahkan dari hari biasanya ke hari lain dalam **minggu yang sama**. Contohnya, upacara yang biasanya berlangsung pada Senin dipindahkan ke Sabtu. Sistem menyesuaikan jam agenda pelajaran pada hari asal dan hari tujuan untuk minggu tersebut, tanpa mengubah jadwal reguler permanen.
+
+### Cara mengaturnya
+
+1. Buka **Jadwal** melalui `/admin/schedules` atau halaman Kalender Pendidikan di `/admin/akademik/kalender`.
+2. Tambahkan atau edit event kalender untuk tanggal tujuan pelaksanaan upacara/kegiatan.
+3. Isi tanggal event sebagai **satu tanggal tujuan** (tanggal mulai dan selesai sama).
+4. Pilih **hari asal pergeseran** dan **hari tujuan pergeseran**. Keduanya wajib diisi dan tidak boleh sama.
+5. Pastikan tanggal event benar-benar berada pada hari tujuan yang dipilih.
+6. Pastikan opsi **Blokir pembuatan agenda** tidak aktif untuk event pergeseran ini.
+7. Simpan event. Sistem akan menyesuaikan agenda yang sudah digenerate pada minggu yang terdampak.
+
+### Apa yang berubah?
+
+- Pada **hari asal**, agenda pelajaran digeser satu nomor jam lebih awal.
+- Pada **hari tujuan**, agenda pelajaran digeser satu nomor jam lebih lambat.
+- Pergeseran hanya berlaku pada minggu kalender yang memuat tanggal event; jadwal reguler untuk minggu lain tidak berubah.
+- Slot jam pada hari terkait harus sudah dikonfigurasi dan memiliki nomor jam yang valid. Jika slot tujuan tidak tersedia, periksa konfigurasi jam pelajaran.
+- Saat event ditambah, diubah, atau dihapus, sistem mencoba menyelaraskan kembali agenda yang sudah digenerate pada rentang minggu yang terdampak. Operator tidak perlu selalu menghapus dan generate ulang seluruh agenda.
+
+### Agenda yang sudah memiliki aktivitas
+
+Penyesuaian otomatis ditujukan untuk agenda yang masih berstatus terjadwal dan belum memiliki aktivitas yang harus dipertahankan. Agenda yang sudah dimulai, presensinya sudah terisi/dikirim, sudah selesai, atau dibatalkan tidak ditimpa oleh rekonsiliasi otomatis. Periksa kasus tersebut secara manual bila perubahan kalender dibuat setelah KBM berlangsung.
+
+### Contoh
+
+Misalnya, upacara yang biasanya pada Senin dipindah ke Sabtu:
+
+- Senin pada minggu tersebut: agenda pelajaran bergeser satu jam lebih awal.
+- Sabtu pada minggu tersebut: agenda pelajaran bergeser satu jam lebih lambat.
+- Senin dan Sabtu pada minggu berikutnya: kembali memakai jadwal reguler, kecuali Operator membuat event pergeseran baru untuk minggu itu.
+
+**Catatan:** fitur ini menggeser nomor/jam pelajaran agenda, bukan memindahkan seluruh jadwal mingguan secara permanen. Setelah menyimpan event, periksa agenda hari asal dan hari tujuan untuk memastikan slot jam sudah sesuai.
+
+---
+
+## 3.13 Generate Agenda Harian
 
 1. Buka `/admin/schedules`.
 2. Pilih kelas atau gunakan opsi semua kelas VII–IX.
@@ -391,7 +429,7 @@ Gunakan tabel jadwal untuk:
 
 Agenda tidak dibuat pada tanggal yang diblokir oleh kalender pendidikan.
 
-## 3.13 Checklist Sebelum KBM
+## 3.14 Checklist Sebelum KBM
 
 Sebelum kegiatan belajar berjalan, pastikan:
 
@@ -407,7 +445,7 @@ Sebelum kegiatan belajar berjalan, pastikan:
 - akun guru dapat login;
 - Telegram pengguna penting sudah aktif.
 
-## 3.14 Monitoring dan Notification Center
+## 3.15 Monitoring dan Notification Center
 
 Operator dapat memeriksa:
 
@@ -419,7 +457,7 @@ Operator dapat memeriksa:
 
 Sebelum retry, pastikan kegagalan tidak disebabkan oleh data penerima yang salah atau provider yang masih bermasalah.
 
-## 3.15 Perintah Telegram Operator
+## 3.16 Perintah Telegram Operator
 
 Setelah Telegram aktif, operator dapat menggunakan:
 
