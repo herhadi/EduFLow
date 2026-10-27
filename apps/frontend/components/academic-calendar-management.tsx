@@ -42,6 +42,8 @@ export function AcademicCalendarManagement() {
   const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
   const [events, setEvents] = useState<AcademicCalendarEvent[]>([]);
   const [schoolYearId, setSchoolYearId] = useState('');
+  const [visibleMonthStart, setVisibleMonthStart] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(toIsoDate(new Date()));
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
     title: '',
@@ -57,6 +59,8 @@ export function AcademicCalendarManagement() {
     [schoolYearId, schoolYears],
   );
   const calendarMonths = useMemo(() => getCalendarMonths(selectedSchoolYear), [selectedSchoolYear]);
+  const visibleMonths = calendarMonths.slice(visibleMonthStart, visibleMonthStart + 4);
+  const selectedDateEvents = events.filter((event) => event.startsAt.slice(0, 10) <= selectedDate && event.endsAt.slice(0, 10) >= selectedDate);
 
   async function loadSchoolYears() {
     try {
@@ -81,7 +85,7 @@ export function AcademicCalendarManagement() {
   }
 
   useEffect(() => { void loadSchoolYears(); }, []);
-  useEffect(() => { void loadEvents(schoolYearId); }, [schoolYearId]);
+  useEffect(() => { void loadEvents(schoolYearId); setVisibleMonthStart(0); }, [schoolYearId]);
 
   useEffect(() => {
     if (!selectedSchoolYear || form.startsAt) return;
@@ -130,7 +134,15 @@ export function AcademicCalendarManagement() {
 
   function selectCalendarDate(date: Date) {
     const value = toIsoDate(date);
+    setSelectedDate(value);
     setForm((current) => ({ ...current, startsAt: value, endsAt: value }));
+  }
+
+  function goToToday() {
+    const today = new Date();
+    const monthIndex = calendarMonths.findIndex((month) => month.getFullYear() === today.getFullYear() && month.getMonth() === today.getMonth());
+    if (monthIndex >= 0) setVisibleMonthStart(Math.floor(monthIndex / 4) * 4);
+    selectCalendarDate(today);
   }
 
   return (
@@ -197,52 +209,108 @@ export function AcademicCalendarManagement() {
         </div>
       </section>
 
-      <section className="xl:col-span-2 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
-        <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Kalender Pendidikan</p>
-        <h2 className="mt-1 text-2xl font-black text-ink">Kaldik {selectedSchoolYear?.name ?? ''}</h2>
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {calendarMonths.map((month) => {
-            const monthStartDay = (month.getDay() + 6) % 7;
-            const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
-            const cells = Array.from({ length: monthStartDay + daysInMonth }, (_, index) => index - monthStartDay + 1);
-
-            return (
-              <article className="rounded-xl border border-slate-100 p-3" key={month.toISOString()}>
-                <h3 className="text-sm font-black text-slate-900">
-                  {new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(month)}
-                </h3>
-                <div className="mt-3 grid grid-cols-7 gap-1 text-center">
-                  {weekdayLabels.map((label) => <span className="text-[10px] font-black text-slate-400" key={label}>{label}</span>)}
-                  {cells.map((day, index) => {
-                    if (day < 1) return <span key={`empty-${index}`} />;
-                    const date = new Date(month.getFullYear(), month.getMonth(), day);
-                    const isoDate = toIsoDate(date);
-                    const matchingEvent = events.find((event) => event.startsAt.slice(0, 10) <= isoDate && event.endsAt.slice(0, 10) >= isoDate);
-                    const selected = form.startsAt === isoDate || form.endsAt === isoDate;
-
-                    return (
-                      <button
-                        aria-label={`Pilih ${formatDate(isoDate)}`}
-                        className={[
-                          'relative grid aspect-square min-w-0 place-items-center rounded-lg text-xs font-bold transition',
-                          matchingEvent?.blocksAgenda ? 'bg-rose-100 text-rose-800 hover:bg-rose-200' : '',
-                          matchingEvent && !matchingEvent.blocksAgenda ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : '',
-                          !matchingEvent ? 'text-slate-700 hover:bg-blue-50' : '',
-                          selected ? 'ring-2 ring-brand-600 ring-offset-1' : '',
-                        ].join(' ')}
-                        key={isoDate}
-                        onClick={() => selectCalendarDate(date)}
-                        title={matchingEvent?.title}
-                        type="button"
-                      >
-                        {day}
+      <section className="xl:col-span-2 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-900 px-5 py-6 text-white sm:px-7">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-200">Kalender Akademik</p>
+          <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-black sm:text-3xl">Kalender Pendidikan</h2>
+              <p className="mt-2 text-sm leading-6 text-blue-100">Libur, ujian, dan kegiatan penting dalam satu tampilan.</p>
+            </div>
+            <span className="rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold">{selectedSchoolYear?.name ?? 'Pilih tahun ajaran'}</span>
+          </div>
+        </div>
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-600">Tampilan 4 bulan</p>
+              <h3 className="mt-1 text-lg font-black text-slate-900">
+                {visibleMonths.length ? `${new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(visibleMonths[0])} – ${new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(visibleMonths[visibleMonths.length - 1])}` : 'Kalender belum tersedia'}
+              </h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40" disabled={visibleMonthStart === 0} onClick={() => setVisibleMonthStart((value) => Math.max(0, value - 4))} type="button">← Sebelumnya</button>
+              <button className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50" onClick={goToToday} type="button">Hari ini</button>
+              <button className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40" disabled={visibleMonthStart >= 8} onClick={() => setVisibleMonthStart((value) => Math.min(8, value + 4))} type="button">Berikutnya →</button>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+            {eventTypes.map((item) => (
+              <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600" key={item.value}>
+                <span className={`h-2.5 w-2.5 rounded-full ${item.value === 'HOLIDAY' ? 'bg-rose-500' : item.value === 'EXAM' ? 'bg-violet-500' : item.value === 'SCHOOL_ACTIVITY' ? 'bg-sky-500' : item.value === 'NON_TEACHING_DAY' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                {item.label}
+              </span>
+            ))}
+          </div>
+          <div className="mt-5 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
+            {visibleMonths.map((month) => {
+              const monthStartDay = (month.getDay() + 6) % 7;
+              const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+              const cells = Array.from({ length: Math.ceil((monthStartDay + daysInMonth) / 7) * 7 }, (_, index) => index - monthStartDay + 1);
+              const monthEvents = events.filter((event) => {
+                const monthKey = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`;
+                return event.startsAt.slice(0, 7) <= monthKey && event.endsAt.slice(0, 7) >= monthKey;
+              });
+              return (
+                <article className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4" key={month.toISOString()}>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-base font-black capitalize text-slate-900 sm:text-lg">{new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(month)}</h3>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500">{monthEvents.length} agenda</span>
+                  </div>
+                  <div className="mt-4 grid grid-cols-7 gap-1 text-center">
+                    {weekdayLabels.map((label) => <span className="pb-1 text-[10px] font-black text-slate-400 sm:text-xs" key={label}>{label}</span>)}
+                    {cells.map((day, index) => {
+                      if (day < 1 || day > daysInMonth) return <span aria-hidden="true" className="aspect-square" key={`empty-${index}`} />;
+                      const date = new Date(month.getFullYear(), month.getMonth(), day);
+                      const isoDate = toIsoDate(date);
+                      const matchingEvents = events.filter((event) => event.startsAt.slice(0, 10) <= isoDate && event.endsAt.slice(0, 10) >= isoDate);
+                      const selected = selectedDate === isoDate;
+                      const today = toIsoDate(new Date()) === isoDate;
+                      const holiday = matchingEvents.some((event) => event.type === 'HOLIDAY' || event.type === 'NON_TEACHING_DAY');
+                      return (
+                        <button
+                          aria-label={`Pilih ${formatDate(isoDate)}`}
+                          aria-pressed={selected}
+                          className={`relative flex aspect-square min-w-0 flex-col items-center justify-center rounded-xl border text-xs font-bold transition sm:text-sm ${selected ? 'border-brand-600 bg-brand-600 text-white shadow-md' : today ? 'border-brand-300 bg-blue-50 text-brand-700' : holiday ? 'border-rose-100 bg-rose-50 text-rose-800 hover:bg-rose-100' : 'border-transparent text-slate-700 hover:border-slate-200 hover:bg-slate-50'}`}
+                          key={isoDate}
+                          onClick={() => selectCalendarDate(date)}
+                          title={matchingEvents.map((event) => event.title).join(' • ') || formatDate(isoDate)}
+                          type="button"
+                        >
+                          <span>{day}</span>
+                          <span className="mt-1 flex h-1.5 items-center justify-center gap-0.5">
+                            {matchingEvents.slice(0, 3).map((event) => <span className={`h-1.5 w-1.5 rounded-full ${selected ? 'bg-white' : event.type === 'HOLIDAY' ? 'bg-rose-500' : event.type === 'EXAM' ? 'bg-violet-500' : event.type === 'SCHOOL_ACTIVITY' ? 'bg-sky-500' : event.type === 'NON_TEACHING_DAY' ? 'bg-amber-500' : 'bg-emerald-500'}`} key={event.id} />)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {monthEvents.length ? <div className="mt-4 space-y-2 border-t border-slate-100 pt-3">
+                    {monthEvents.slice(0, 3).map((event) => (
+                      <button className="flex w-full min-w-0 items-center gap-2 text-left" key={event.id} onClick={() => selectCalendarDate(new Date(`${event.startsAt.slice(0, 10)}T00:00:00`))} type="button">
+                        <span className={`h-2 w-2 shrink-0 rounded-full ${event.type === 'HOLIDAY' ? 'bg-rose-500' : event.type === 'EXAM' ? 'bg-violet-500' : event.type === 'SCHOOL_ACTIVITY' ? 'bg-sky-500' : event.type === 'NON_TEACHING_DAY' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                        <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-700">{event.title}</span>
+                        <span className="shrink-0 text-[10px] text-slate-500">{event.startsAt.slice(8, 10)}</span>
                       </button>
-                    );
-                  })}
-                </div>
-              </article>
-            );
-          })}
+                    ))}
+                    {monthEvents.length > 3 ? <p className="pl-4 text-[10px] font-semibold text-slate-400">+{monthEvents.length - 3} agenda lainnya</p> : null}
+                  </div> : <p className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-400">Belum ada agenda bulan ini.</p>}
+                </article>
+              );
+            })}
+          </div>
+          <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 sm:p-5">
+            <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-700">Tanggal terpilih</p>
+            <h3 className="mt-1 text-lg font-black text-slate-900">{formatDate(selectedDate)}</h3>
+            {selectedDateEvents.length ? <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {selectedDateEvents.map((event) => (
+                <article className="flex min-w-0 items-start justify-between gap-3 rounded-xl border border-white bg-white p-3" key={event.id}>
+                  <div className="min-w-0"><p className="break-words text-sm font-black text-slate-900">{event.title}</p><p className="mt-1 text-xs text-slate-500">{eventTypes.find((item) => item.value === event.type)?.label}</p>{event.description ? <p className="mt-1 text-xs text-slate-500">{event.description}</p> : null}</div>
+                  <button className="shrink-0 rounded-lg bg-rose-50 px-2.5 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100" onClick={() => void handleDelete(event)} type="button">Hapus</button>
+                </article>
+              ))}
+            </div> : <p className="mt-2 text-sm text-slate-600">Belum ada agenda pada tanggal ini. Pilih tanggal untuk mengisi tanggal kegiatan di formulir.</p>}
+          </div>
         </div>
       </section>
     </div>
