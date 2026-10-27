@@ -10,7 +10,7 @@ import { QUEUES } from '@eduflow/shared';
 import { Job, Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
-import { STORAGE_PROVIDER, StorageObject, StorageProvider } from '../../infrastructure/storage/storage-provider';
+import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
 import { TelegramBotService } from '../../infrastructure/telegram/telegram-bot.service';
 import { RequestMetricsService } from '../../infrastructure/observability/request-metrics.service';
 
