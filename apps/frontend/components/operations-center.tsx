@@ -270,11 +270,11 @@ export function OperationsCenter() {
             value={formatNumber((dashboard.queueTotals.notification?.waiting ?? 0) + (dashboard.queueTotals.notification?.failed ?? 0))}
           />
           <HealthCard
-            detail={dashboard.storageSummary ? formatBytes(dashboard.storageSummary.totalSizeBytes) : 'usage tidak tersedia'}
+            detailHref="#r2-usage-details"
             label="Cloudflare R2"
             status={dashboard.health.storage}
             tone={!dashboard.storageSummary && dashboard.storageError ? 'warning' : undefined}
-            value={dashboard.storageSummary ? `${formatNumber(dashboard.storageSummary.objectCount)} file` : 'Aktif'}
+            value="Terhubung"
           />
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -296,12 +296,6 @@ export function OperationsCenter() {
               Waiting {formatNumber(dashboard.queueTotals.attendance?.waiting ?? 0)} · Active {formatNumber(dashboard.queueTotals.attendance?.active ?? 0)} · Failed {formatNumber(dashboard.queueTotals.attendance?.failed ?? 0)}
             </p>
           </div>
-        </div>
-        <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">
-          <p className="font-black text-slate-900 dark:text-[var(--text)]">Cloudflare R2 Storage</p>
-          {dashboard.storageSummary ? (
-            <p className="mt-1">Bucket <strong>{dashboard.storageSummary.bucket}</strong> · <strong>{formatNumber(dashboard.storageSummary.objectCount)}</strong> file · <strong>{formatBytes(dashboard.storageSummary.totalSizeBytes)}</strong>{dashboard.storageSummary.isPartial ? ' (minimum, pemindaian dibatasi 10.000 file)' : ''}</p>
-          ) : <p className="mt-1 text-amber-700 dark:text-amber-200">{dashboard.storageError ?? 'Storage aktif, tetapi detail penggunaan belum tersedia.'}</p>}
         </div>
         <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -347,10 +341,10 @@ export function OperationsCenter() {
         </div>
       </div>
 
-      <div className="surface-card rounded-lg p-4 sm:p-6">
+      <div id="r2-usage-details" className="surface-card scroll-mt-6 rounded-lg p-4 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-bold">Cloudflare R2 Usage</h2>
+            <h2 className="text-lg font-bold">Rincian Cloudflare R2</h2>
             <p className="mt-1 text-sm text-muted">Ringkasan ukuran dan jumlah objek bucket yang terhubung ke EduFlow.</p>
           </div>
           <Button onClick={() => void loadR2Usage()} disabled={r2UsageState === 'loading'}>

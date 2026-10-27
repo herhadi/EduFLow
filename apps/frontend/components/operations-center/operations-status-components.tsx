@@ -6,12 +6,14 @@ import { Card } from '../ui/card';
 
 export function HealthCard({
   detail,
+  detailHref,
   label,
   status,
   tone,
   value,
 }: {
   detail?: string;
+  detailHref?: string;
   label: string;
   status: HealthStatus;
   tone?: 'danger' | 'success' | 'warning';
@@ -23,7 +25,7 @@ export function HealthCard({
     <Card className="rounded-2xl p-4 shadow-none sm:p-4" tone={cardTone}>
       <p className="text-sm font-semibold text-slate-600 dark:text-[var(--text-soft)]">{label}</p>
       <strong className="mt-2 block text-lg">{value ?? status}</strong>
-      <p className="mt-1 text-xs font-semibold opacity-80">{detail ?? status}</p>
+      <p className="mt-1 text-xs font-semibold opacity-80">{detailHref ? <a className="text-sky-700 underline underline-offset-2 hover:text-sky-900 dark:text-sky-300 dark:hover:text-sky-200" href={detailHref}>Lihat rincian</a> : detail ?? status}</p>
     </Card>
   );
 }

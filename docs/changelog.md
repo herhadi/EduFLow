@@ -2,7 +2,8 @@
 
 ## 2026-10-27
 
-- Menambahkan kartu Cloudflare R2 Usage di `/operations` dan endpoint `GET /api/operations/storage/usage`, termasuk jumlah objek, total ukuran, sumber data, waktu pemeriksaan, indikator data parsial, serta dokumentasi terkait.
+- Menambahkan kartu rincian Cloudflare R2 di `/operations` dan endpoint `GET /api/operations/storage/usage`, termasuk jumlah objek, total ukuran, sumber data, waktu pemeriksaan, indikator data parsial, serta dokumentasi terkait.
+- Memperjelas health card R2 dengan status `Terhubung` dan tautan `Lihat rincian` menuju kartu rincian penggunaan; menghapus kartu `Cloudflare R2 Storage` yang menduplikasi informasi tersebut.
 
 Catatan perubahan penting yang bersifat operasional dan arsitektural.
 
