@@ -51,7 +51,7 @@ EduFlow memakai permission-based RBAC. Role hanya kumpulan permission, bukan log
 | `reporting.manage` | Mengelola job atau konfigurasi laporan |
 | `audit.read` | Membaca audit trail |
 | `user.manage` | Mengelola user, role, dan permission |
-| `system.recovery.manage` | Mengelola backup, restore, dan recovery sistem |
+| `system.recovery.manage` | Mengelola backup/restore/recovery sistem dan lifecycle objek Cloudflare R2 berdasarkan rentang waktu |
 
 ## Matrix Role Ke Permission
 

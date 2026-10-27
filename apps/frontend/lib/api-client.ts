@@ -118,6 +118,44 @@ export async function download(path: string) {
   URL.revokeObjectURL(url);
 }
 
+export async function downloadPost(path: string, body: unknown, fallbackFilename: string) {
+  const token = localStorage.getItem('accessToken');
+  const response = await fetch(`${getApiUrl()}${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (response.status === 401) {
+    clearSessionAndRedirect();
+    throw new Error('Session berakhir. Silakan login ulang.');
+  }
+
+  if (!response.ok) {
+    let message = `Download gagal: ${response.status}`;
+    try {
+      const errorBody = (await response.json()) as { message?: string | string[] };
+      const responseMessage = Array.isArray(errorBody.message) ? errorBody.message.join(', ') : errorBody.message;
+      if (responseMessage) message = responseMessage;
+    } catch {
+      // Response error bukan JSON; gunakan status sebagai pesan fallback.
+    }
+    throw new Error(message);
+  }
+
+  const blob = await response.blob();
+  const filename = response.headers.get('content-disposition')?.match(/filename="?([^";]+)"?/)?.[1] ?? fallbackFilename;
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = decodeURIComponent(filename);
+  link.click();
+  URL.revokeObjectURL(objectUrl);
+}
+
 export async function downloadFile(path: string, fallbackFilename: string) {
   const token = localStorage.getItem('accessToken');
   const response = await fetch(`${getApiUrl()}${path}`, {

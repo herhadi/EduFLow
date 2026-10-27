@@ -5,6 +5,7 @@ import {
   api,
   type FailedJob,
   type OperationsDashboard,
+  type R2StorageRangePreview,
   type SchoolYear,
 } from '../lib/api';
 import { formatNumber } from '../lib/format';
@@ -36,6 +37,11 @@ export function OperationsCenter() {
   const [backups, setBackups] = useState(emptyOperationsBackups);
   const [backupState, setBackupState] = useState<'idle' | 'loading'>('idle');
   const [schoolYearId, setSchoolYearId] = useState('');
+  const [r2From, setR2From] = useState(() => new Date(Date.now() - 6 * 86_400_000).toISOString().slice(0, 10));
+  const [r2To, setR2To] = useState(() => new Date().toISOString().slice(0, 10));
+  const [r2Prefix, setR2Prefix] = useState('');
+  const [r2Preview, setR2Preview] = useState<R2StorageRangePreview | null>(null);
+  const [r2Busy, setR2Busy] = useState(false);
   const restoreInputRef = useRef<HTMLInputElement>(null);
 
   async function loadDashboard() {
@@ -64,6 +70,69 @@ export function OperationsCenter() {
   async function createDailyBackup() { setBackupState('loading'); try { await api.createDailyBackup(); setMessage('Backup harian sedang diunduh ke perangkat ini.'); } catch { setMessage('Backup harian gagal dibuat.'); } finally { setBackupState('idle'); } }
   async function createAcademicBackup() { if (!schoolYearId) return; setBackupState('loading'); try { const response = await api.createAcademicYearBackup(schoolYearId); setMessage(response.message ?? 'Arsip tahun ajaran berhasil dibuat.'); } catch { setMessage('Arsip tahun ajaran gagal dibuat.'); } finally { setBackupState('idle'); } }
   async function restoreBackup(file?: File) { if (!file || !window.confirm('Restore akan menimpa seluruh database. Lanjutkan?')) return; setBackupState('loading'); try { const response = await api.restoreDailyBackup(file); setMessage(response.message ?? 'Restore selesai.'); } catch { setMessage('Restore gagal.'); } finally { setBackupState('idle'); } }
+
+  async function previewR2Range() {
+    if (!r2From || !r2To || r2From > r2To) {
+      setMessage('Rentang tanggal R2 tidak valid.');
+      return;
+    }
+    setR2Busy(true);
+    try {
+      const response = await api.listR2Objects(r2From, r2To, r2Prefix);
+      setR2Preview(response.data);
+      setMessage(response.data.truncated
+        ? `Preview dibatasi ${response.data.maxObjects} objek. Persempit tanggal atau isi prefix sebelum backup/hapus.`
+        : `Preview R2 selesai: ${response.data.objectCount} objek.`);
+    } catch (error) {
+      setR2Preview(null);
+      setMessage(error instanceof Error ? error.message : 'Gagal memuat objek R2.');
+    } finally {
+      setR2Busy(false);
+    }
+  }
+
+  async function backupR2Range() {
+    if (!r2Preview || r2Preview.from !== r2From || r2Preview.to !== r2To || r2Preview.prefix !== (r2Prefix.trim() || null) || r2Preview.truncated || r2Preview.objectCount === 0) {
+      setMessage('Muat preview rentang R2 yang valid sebelum membuat backup.');
+      return;
+    }
+    if (!window.confirm(`Unduh arsip ZIP berisi ${r2Preview.objectCount} objek R2 (${formatBytes(r2Preview.totalSizeBytes)})? Arsip hanya diunduh ke perangkat ini.`)) return;
+    setR2Busy(true);
+    try {
+      await api.downloadR2Backup(r2From, r2To, r2Prefix);
+      setMessage('Backup R2 berhasil diunduh.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Backup R2 gagal dibuat.');
+    } finally {
+      setR2Busy(false);
+    }
+  }
+
+  async function deleteR2Range() {
+    if (!r2Preview || r2Preview.from !== r2From || r2Preview.to !== r2To || r2Preview.prefix !== (r2Prefix.trim() || null) || r2Preview.truncated || r2Preview.objectCount === 0) {
+      setMessage('Muat preview rentang R2 yang valid sebelum menghapus.');
+      return;
+    }
+    const confirmation = window.prompt(`PENGHAPUSAN PERMANEN: ${r2Preview.objectCount} objek R2 (${formatBytes(r2Preview.totalSizeBytes)}). Ketik persis DELETE R2 OBJECTS untuk melanjutkan.`);
+    if (confirmation !== 'DELETE R2 OBJECTS') return;
+    setR2Busy(true);
+    try {
+      const response = await api.deleteR2Range({
+        from: r2From,
+        to: r2To,
+        ...(r2Prefix.trim() ? { prefix: r2Prefix.trim() } : {}),
+        confirmation,
+        expectedCount: r2Preview.objectCount,
+        expectedSizeBytes: r2Preview.totalSizeBytes,
+      });
+      setMessage(response.message ?? 'Objek R2 dihapus.');
+      setR2Preview(null);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Penghapusan R2 gagal.');
+    } finally {
+      setR2Busy(false);
+    }
+  }
 
   async function handleRetry(job: FailedJob) {
     setMessage(null);
@@ -268,6 +337,43 @@ export function OperationsCenter() {
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-4"><p className="font-bold">Backup Harian</p><p className="mt-1 text-sm text-muted">Snapshot seluruh database untuk disimpan di perangkat ini.</p><div className="mt-4 grid gap-2 sm:grid-cols-2"><button className="school-primary-button rounded-xl px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60" disabled={backupState === 'loading'} onClick={() => void createDailyBackup()} type="button">{backupState === 'loading' ? 'Menyiapkan...' : 'Download Backup'}</button><button className="secondary-button rounded-xl px-4 py-2 text-sm font-black" onClick={() => restoreInputRef.current?.click()} type="button">Restore Backup</button><input accept=".dump" className="hidden" onChange={(event) => void restoreBackup(event.target.files?.[0])} ref={restoreInputRef} type="file" /></div></section>
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-4"><p className="font-bold">Arsip Tahun Ajaran</p><p className="mt-1 text-sm text-muted">Simpan snapshot relasional untuk tahun ajaran terpilih.</p><div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]"><select className="min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 text-sm" onChange={(event) => setSchoolYearId(event.target.value)} value={schoolYearId}><option value="">Pilih tahun ajaran</option>{backups.academicYears.map((year) => <option key={year.id} value={year.id}>{year.name}</option>)}</select><button className="secondary-button rounded-xl px-4 py-2 text-sm font-black disabled:cursor-not-allowed disabled:opacity-60" disabled={!schoolYearId || backupState === 'loading'} onClick={() => void createAcademicBackup()} type="button">Arsipkan</button></div></section>
         </div>
+      </div>
+
+      <div className="surface-card rounded-lg p-4 sm:p-6">
+        <div>
+          <h2 className="text-lg font-bold">Cloudflare R2 — Backup & Hapus berdasarkan Waktu</h2>
+          <p className="mt-1 text-sm text-muted">Filter berdasarkan waktu modifikasi objek R2 (rentang tanggal UTC, termasuk seluruh hari awal dan akhir). Backup diunduh sebagai ZIP; penghapusan permanen dan hanya untuk rentang yang sudah dipreview.</p>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <label className="grid gap-1 text-sm font-semibold">Tanggal awal (UTC)<input className="min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] px-3" type="date" value={r2From} max={r2To} onChange={(event) => { setR2From(event.target.value); setR2Preview(null); }} /></label>
+          <label className="grid gap-1 text-sm font-semibold">Tanggal akhir (UTC)<input className="min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] px-3" type="date" value={r2To} min={r2From} onChange={(event) => { setR2To(event.target.value); setR2Preview(null); }} /></label>
+          <label className="grid gap-1 text-sm font-semibold md:col-span-2">Prefix / folder opsional<input className="min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] px-3" placeholder="mis. uploads/teachers/" maxLength={200} value={r2Prefix} onChange={(event) => { setR2Prefix(event.target.value); setR2Preview(null); }} /></label>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button className="school-primary-button rounded-xl px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60" disabled={r2Busy || !r2From || !r2To || r2From > r2To} onClick={() => void previewR2Range()} type="button">{r2Busy ? 'Memproses...' : 'Preview Objek'}</button>
+          <button className="secondary-button rounded-xl px-4 py-2 text-sm font-black disabled:cursor-not-allowed disabled:opacity-60" disabled={r2Busy || !r2Preview || r2Preview.truncated || r2Preview.objectCount === 0 || r2Preview.from !== r2From || r2Preview.to !== r2To || r2Preview.prefix !== (r2Prefix.trim() || null)} onClick={() => void backupR2Range()} type="button">Download Backup ZIP</button>
+          <button className="rounded-xl border border-red-300 px-4 py-2 text-sm font-black text-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-500/40 dark:text-red-200" disabled={r2Busy || !r2Preview || r2Preview.truncated || r2Preview.objectCount === 0 || r2Preview.from !== r2From || r2Preview.to !== r2To || r2Preview.prefix !== (r2Prefix.trim() || null)} onClick={() => void deleteR2Range()} type="button">Hapus Objek Rentang</button>
+        </div>
+        {r2Preview ? (
+          <div className="mt-4 space-y-3">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-[var(--border)] p-3"><p className="text-xs text-muted">Objek cocok</p><p className="text-xl font-bold">{formatNumber(r2Preview.objectCount)}{r2Preview.truncated ? '+' : ''}</p></div>
+              <div className="rounded-xl border border-[var(--border)] p-3"><p className="text-xs text-muted">Ukuran total</p><p className="text-xl font-bold">{formatBytes(r2Preview.totalSizeBytes)}</p></div>
+              <div className="rounded-xl border border-[var(--border)] p-3"><p className="text-xs text-muted">Prefix</p><p className="break-all font-bold">{r2Preview.prefix || 'Semua prefix'}</p></div>
+            </div>
+            {r2Preview.truncated ? <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">Hasil melebihi batas {r2Preview.maxObjects} objek. Backup dan hapus nonaktif demi keamanan. Persempit tanggal atau gunakan prefix.</p> : null}
+            {r2Preview.objects.length ? (
+              <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+                <table className="w-full min-w-[620px] text-left text-sm">
+                  <thead className="bg-[var(--surface-soft)]"><tr><th className="p-3">Key</th><th className="p-3">Waktu modifikasi (UTC)</th><th className="p-3 text-right">Ukuran</th></tr></thead>
+                  <tbody>{r2Preview.objects.slice(0, 100).map((object) => <tr className="border-t border-[var(--border)]" key={object.key}><td className="max-w-[420px] break-all p-3">{object.key}</td><td className="whitespace-nowrap p-3">{new Date(object.lastModified).toLocaleString('id-ID', { timeZone: 'UTC', hour12: false })}</td><td className="whitespace-nowrap p-3 text-right">{formatBytes(object.size)}</td></tr>)}</tbody>
+                </table>
+                {r2Preview.objects.length > 100 ? <p className="border-t border-[var(--border)] p-3 text-xs text-muted">Menampilkan 100 objek pertama dari {r2Preview.objects.length} objek preview.</p> : null}
+              </div>
+            ) : <p className="rounded-xl border border-[var(--border)] p-4 text-sm text-muted">Tidak ada objek pada rentang waktu ini.</p>}
+            <p className="text-xs text-muted">Server mengecek ulang jumlah dan ukuran objek sebelum menghapus serta mencatat aktivitas ke audit trail. Backup ZIP mencakup manifest.json. Batas default backup: 128 MiB; jumlah objek maksimal per operasi: 1.000.</p>
+          </div>
+        ) : <p className="mt-4 text-sm text-muted">Pilih tanggal lalu klik Preview Objek. Penghapusan tidak berjalan otomatis saat preview atau backup.</p>}
       </div>
 
       <div className="rounded-[2rem] border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">

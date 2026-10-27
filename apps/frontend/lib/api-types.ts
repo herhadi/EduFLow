@@ -550,6 +550,29 @@ export interface OperationsDashboard {
 }
 export interface BackupFile { filename: string; size: number; createdAt: string; }
 export interface OperationsBackups { daily: BackupFile[]; academicYears: SchoolYear[]; }
+export interface R2StorageObject {
+  key: string;
+  size: number;
+  lastModified: string;
+  etag?: string | null;
+}
+export interface R2StorageRangePreview {
+  from: string;
+  to: string;
+  prefix: string | null;
+  objects: R2StorageObject[];
+  objectCount: number;
+  totalSizeBytes: number;
+  truncated: boolean;
+  maxObjects: number;
+}
+export interface R2StorageDeleteResult {
+  deletedCount: number;
+  totalSizeBytes: number;
+  from: string;
+  to: string;
+  prefix: string | null;
+}
 export interface TelegramOperationsStatus {
   config: {
     botTokenConfigured: boolean;

@@ -22,6 +22,18 @@ export interface StorageUsageSummary {
   isPartial: boolean;
 }
 
+export interface StorageObject {
+  key: string;
+  size: number;
+  lastModified: string;
+  etag?: string | null;
+}
+
+export interface StorageObjectRange {
+  objects: StorageObject[];
+  truncated: boolean;
+}
+
 export interface StorageProvider {
   upload(input: UploadFileInput): Promise<StoredFile>;
   createDownloadUrl(key: string, downloadName: string, options?: {
@@ -31,4 +43,7 @@ export interface StorageProvider {
   delete(key: string): Promise<void>;
   healthCheck(): Promise<void>;
   getUsageSummary(): Promise<StorageUsageSummary>;
+  listObjectsByModifiedRange(from: Date, to: Date, prefix?: string, limit?: number): Promise<StorageObjectRange>;
+  downloadObject(key: string): Promise<Buffer>;
+  deleteObjects(keys: string[]): Promise<void>;
 }

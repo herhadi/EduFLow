@@ -1,8 +1,8 @@
-import { DeleteObjectCommand, GetObjectCommand, HeadBucketCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, DeleteObjectsCommand, GetObjectCommand, HeadBucketCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { StorageProvider, StorageUsageSummary, StoredFile, UploadFileInput } from './storage-provider';
+import { StorageObject, StorageObjectRange, StorageProvider, StorageUsageSummary, StoredFile, UploadFileInput } from './storage-provider';
 
 @Injectable()
 export class R2StorageProvider implements StorageProvider {
@@ -56,6 +56,55 @@ export class R2StorageProvider implements StorageProvider {
   async healthCheck() {
     const { bucket, client } = this.connection();
     await client.send(new HeadBucketCommand({ Bucket: bucket }));
+  }
+
+  async listObjectsByModifiedRange(from: Date, to: Date, prefix?: string, limit = 1_000): Promise<StorageObjectRange> {
+    const { bucket, client } = this.connection();
+    const objects: StorageObject[] = [];
+    let continuationToken: string | undefined;
+    do {
+      const page = await client.send(new ListObjectsV2Command({
+        Bucket: bucket,
+        ...(prefix ? { Prefix: prefix } : {}),
+        ContinuationToken: continuationToken,
+      }));
+      for (const item of page.Contents ?? []) {
+        if (!item.Key || !item.LastModified) continue;
+        const modifiedAt = item.LastModified.getTime();
+        if (modifiedAt < from.getTime() || modifiedAt > to.getTime()) continue;
+        objects.push({
+          key: item.Key,
+          size: item.Size ?? 0,
+          lastModified: item.LastModified.toISOString(),
+          etag: item.ETag ?? null,
+        });
+        if (objects.length > limit) return { objects: objects.slice(0, limit), truncated: true };
+      }
+      continuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
+    } while (continuationToken);
+    return { objects, truncated: false };
+  }
+
+  async downloadObject(key: string): Promise<Buffer> {
+    const { bucket, client } = this.connection();
+    const response = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+    if (!response.Body) throw new ServiceUnavailableException(`Objek R2 tidak dapat dibaca: ${key}`);
+    return Buffer.from(await response.Body.transformToByteArray());
+  }
+
+  async deleteObjects(keys: string[]): Promise<void> {
+    if (!keys.length) return;
+    const { bucket, client } = this.connection();
+    for (let index = 0; index < keys.length; index += 1_000) {
+      const batch = keys.slice(index, index + 1_000);
+      const response = await client.send(new DeleteObjectsCommand({
+        Bucket: bucket,
+        Delete: { Objects: batch.map((Key) => ({ Key })), Quiet: true },
+      }));
+      if (response.Errors?.length) {
+        throw new ServiceUnavailableException(`R2 gagal menghapus ${response.Errors.length} objek; error pertama: ${response.Errors[0].Code ?? 'Unknown'}`);
+      }
+    }
   }
 
   async getUsageSummary(): Promise<StorageUsageSummary> {

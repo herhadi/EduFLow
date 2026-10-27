@@ -931,6 +931,47 @@ Dokumentasi lengkap:
 docs/backup-recovery.md
 ```
 
+### Cloudflare R2: Preview, Backup, dan Hapus Berdasarkan Rentang
+
+Semua endpoint memerlukan autentikasi dan permission `system.recovery.manage` (role root pada seed default).
+
+Preview objek yang terakhir dimodifikasi pada rentang tanggal UTC:
+
+```http
+GET /api/operations/storage/objects?from=2026-10-01&to=2026-10-07&prefix=uploads/
+```
+
+Response `data` memuat `objects` (key, ukuran, lastModified, ETag), `objectCount`, `totalSizeBytes`, `truncated`, dan batas maksimum 1.000 objek. Jika `truncated=true`, perkecil rentang atau gunakan prefix; backup/hapus ditolak sampai hasil berada dalam batas.
+
+Unduh arsip ZIP berdasarkan rentang yang sama:
+
+```http
+POST /api/operations/storage/backup
+Content-Type: application/json
+
+{ "from": "2026-10-01", "to": "2026-10-07", "prefix": "uploads/" }
+```
+
+ZIP berisi objek cocok dan `manifest.json` yang mencatat object key asli, path arsip, ukuran, dan waktu modifikasi. Batas ukuran data mentah backup default 128 MiB dan dapat diubah melalui `R2_BACKUP_MAX_BYTES`. Arsip diunduh langsung ke perangkat admin, tidak disimpan kembali ke bucket R2.
+
+Penghapusan rentang:
+
+```http
+POST /api/operations/storage/delete
+Content-Type: application/json
+
+{
+  "from": "2026-10-01",
+  "to": "2026-10-07",
+  "prefix": "uploads/",
+  "confirmation": "DELETE R2 OBJECTS",
+  "expectedCount": 12,
+  "expectedSizeBytes": 456789
+}
+```
+
+`expectedCount` dan `expectedSizeBytes` wajib sama persis dengan preview terbaru. Server memindai ulang sebelum menghapus untuk menolak jika objek berubah sejak preview. Penghapusan tidak bisa dibatalkan; unduh backup terlebih dahulu bila data masih diperlukan. Tanggal awal mencakup 00:00:00.000 UTC dan tanggal akhir sampai 23:59:59.999 UTC.
+
 ## Import Data API
 
 ```http

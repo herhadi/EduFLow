@@ -5,11 +5,12 @@ import { spawn } from 'node:child_process';
 import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
 import { cpus, freemem, loadavg, totalmem } from 'node:os';
 import { join } from 'node:path';
+import { deflateRawSync } from 'node:zlib';
 import { QUEUES } from '@eduflow/shared';
 import { Job, Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
-import { STORAGE_PROVIDER, StorageProvider } from '../../infrastructure/storage/storage-provider';
+import { STORAGE_PROVIDER, StorageObject, StorageProvider } from '../../infrastructure/storage/storage-provider';
 import { TelegramBotService } from '../../infrastructure/telegram/telegram-bot.service';
 import { RequestMetricsService } from '../../infrastructure/observability/request-metrics.service';
 
@@ -25,6 +26,91 @@ const monitoredQueues = [
   QUEUES.NOTIFICATION_SEND,
   QUEUES.REPORT_DAILY,
 ] as const;
+
+const R2_RANGE_MAX_OBJECTS = 1_000;
+const DEFAULT_R2_BACKUP_MAX_BYTES = 128 * 1024 * 1024;
+
+function crc32(buffer: Buffer): number {
+  let crc = 0xffffffff;
+  for (const byte of buffer) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function zipDosDateTime(value: string) {
+  const date = new Date(value);
+  const year = Math.max(1980, date.getUTCFullYear());
+  return {
+    time: ((date.getUTCHours() & 0x1f) << 11) | ((date.getUTCMinutes() & 0x3f) << 5) | (Math.floor(date.getUTCSeconds() / 2) & 0x1f),
+    date: (((year - 1980) & 0x7f) << 9) | (((date.getUTCMonth() + 1) & 0x0f) << 5) | (date.getUTCDate() & 0x1f),
+  };
+}
+
+function buildZipArchive(files: Array<{ name: string; content: Buffer; modifiedAt: string }>): Buffer {
+  const localParts: Buffer[] = [];
+  const centralParts: Buffer[] = [];
+  let offset = 0;
+  let centralSize = 0;
+  for (const file of files) {
+    const name = Buffer.from(file.name, 'utf8');
+    const compressed = deflateRawSync(file.content);
+    const checksum = crc32(file.content);
+    const { time, date } = zipDosDateTime(file.modifiedAt);
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(20, 4);
+    local.writeUInt16LE(0x0800, 6);
+    local.writeUInt16LE(8, 8);
+    local.writeUInt16LE(time, 10);
+    local.writeUInt16LE(date, 12);
+    local.writeUInt32LE(checksum, 14);
+    local.writeUInt32LE(compressed.length, 18);
+    local.writeUInt32LE(file.content.length, 22);
+    local.writeUInt16LE(name.length, 26);
+    local.writeUInt16LE(0, 28);
+    localParts.push(local, name, compressed);
+
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(20, 4);
+    central.writeUInt16LE(20, 6);
+    central.writeUInt16LE(0x0800, 8);
+    central.writeUInt16LE(8, 10);
+    central.writeUInt16LE(time, 12);
+    central.writeUInt16LE(date, 14);
+    central.writeUInt32LE(checksum, 16);
+    central.writeUInt32LE(compressed.length, 20);
+    central.writeUInt32LE(file.content.length, 24);
+    central.writeUInt16LE(name.length, 28);
+    central.writeUInt16LE(0, 30);
+    central.writeUInt16LE(0, 32);
+    central.writeUInt16LE(0, 34);
+    central.writeUInt16LE(0, 36);
+    central.writeUInt32LE(0, 38);
+    central.writeUInt32LE(offset, 42);
+    centralParts.push(central, name);
+    centralSize += central.length + name.length;
+    offset += local.length + name.length + compressed.length;
+  }
+
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(0, 4);
+  end.writeUInt16LE(0, 6);
+  end.writeUInt16LE(files.length, 8);
+  end.writeUInt16LE(files.length, 10);
+  end.writeUInt32LE(centralSize, 12);
+  end.writeUInt32LE(offset, 16);
+  end.writeUInt16LE(0, 20);
+  return Buffer.concat([...localParts, ...centralParts, end]);
+}
+
+function safeArchivePath(key: string) {
+  const normalized = key.replace(/^\/+/, '').split('/').map((part) => part === '.' || part === '..' ? '_' : part).join('/');
+  return normalized || 'unnamed-object';
+}
 
 @Injectable()
 export class OperationsService {
@@ -79,6 +165,128 @@ export class OperationsService {
       child.stdin.end(file.buffer);
     });
     return { data: { filename: file.originalname }, message: 'Restore selesai. Muat ulang aplikasi.' };
+  }
+
+  async listR2Objects(from: string, to: string, prefix: string | undefined) {
+    const range = this.parseR2DateRange(from, to);
+    const normalizedPrefix = this.validateR2Prefix(prefix);
+    const result = await this.storage.listObjectsByModifiedRange(range.from, range.to, normalizedPrefix, R2_RANGE_MAX_OBJECTS);
+    return { data: {
+      from, to, prefix: normalizedPrefix ?? null,
+      objects: result.objects,
+      objectCount: result.objects.length,
+      totalSizeBytes: result.objects.reduce((total, object) => total + object.size, 0),
+      truncated: result.truncated,
+      maxObjects: R2_RANGE_MAX_OBJECTS,
+    } };
+  }
+
+  async createR2RangeBackup(from: string, to: string, prefix: string | undefined, userId: string) {
+    const range = this.parseR2DateRange(from, to);
+    const normalizedPrefix = this.validateR2Prefix(prefix);
+    const result = await this.storage.listObjectsByModifiedRange(range.from, range.to, normalizedPrefix, R2_RANGE_MAX_OBJECTS);
+    if (result.truncated) throw new BadRequestException(`Rentang berisi lebih dari ${R2_RANGE_MAX_OBJECTS} objek. Persempit tanggal atau isi prefix.`);
+    if (!result.objects.length) throw new BadRequestException('Tidak ada objek R2 pada rentang waktu ini.');
+    const totalSizeBytes = result.objects.reduce((total, object) => total + object.size, 0);
+    const maxBytes = Number(this.configService.get<string>('R2_BACKUP_MAX_BYTES') ?? DEFAULT_R2_BACKUP_MAX_BYTES);
+    if (!Number.isSafeInteger(maxBytes) || maxBytes <= 0) throw new BadRequestException('R2_BACKUP_MAX_BYTES harus berupa integer positif.');
+    if (totalSizeBytes > maxBytes) {
+      throw new BadRequestException(`Ukuran backup ${totalSizeBytes} byte melewati batas ${maxBytes} byte. Persempit tanggal atau isi prefix.`);
+    }
+
+    const files: Array<{ name: string; content: Buffer; modifiedAt: string }> = [];
+    const manifestObjects: Array<{ key: string; archivePath: string; size: number; lastModified: string }> = [];
+    for (const object of result.objects) {
+      const buffer = await this.storage.downloadObject(object.key);
+      const archivePath = `objects/${safeArchivePath(object.key)}`;
+      files.push({ name: archivePath, content: buffer, modifiedAt: object.lastModified });
+      manifestObjects.push({ key: object.key, archivePath, size: object.size, lastModified: object.lastModified });
+    }
+    files.push({
+      name: 'manifest.json',
+      content: Buffer.from(JSON.stringify({
+        exportedAt: new Date().toISOString(),
+        bucket: this.configService.get<string>('R2_BUCKET_NAME') ?? null,
+        from, to, prefix: normalizedPrefix ?? null,
+        objectCount: result.objects.length,
+        totalSizeBytes,
+        objects: manifestObjects,
+      }, null, 2), 'utf8'),
+      modifiedAt: new Date().toISOString(),
+    });
+    const archive = buildZipArchive(files);
+    const filename = `eduflow-r2-${from}-to-${to}.zip`;
+    await this.auditService.record({
+      userId,
+      action: 'storage.r2.backup-range.created',
+      entityType: 'R2Storage',
+      entityId: `${from}:${to}`,
+      after: { from, to, prefix: normalizedPrefix ?? null, objectCount: result.objects.length, totalSizeBytes, filename },
+    });
+    return { filename, archive, objectCount: result.objects.length, totalSizeBytes };
+  }
+
+  async deleteR2Range(from: string, to: string, prefix: string | undefined, confirmation: string | undefined, expectedCount: number | undefined, expectedSizeBytes: number | undefined, userId: string) {
+    if (confirmation !== 'DELETE R2 OBJECTS') throw new BadRequestException('Ketik DELETE R2 OBJECTS untuk mengonfirmasi penghapusan.');
+    if (expectedCount === undefined || !Number.isSafeInteger(expectedCount) || expectedCount < 0 ||
+        expectedSizeBytes === undefined || !Number.isSafeInteger(expectedSizeBytes) || expectedSizeBytes < 0) {
+      throw new BadRequestException('Preview jumlah dan ukuran objek wajib dikirim ulang sebelum penghapusan.');
+    }
+    const range = this.parseR2DateRange(from, to);
+    const normalizedPrefix = this.validateR2Prefix(prefix);
+    const result = await this.storage.listObjectsByModifiedRange(range.from, range.to, normalizedPrefix, R2_RANGE_MAX_OBJECTS);
+    if (result.truncated) throw new BadRequestException(`Rentang berisi lebih dari ${R2_RANGE_MAX_OBJECTS} objek. Persempit tanggal atau isi prefix.`);
+    const actualSizeBytes = result.objects.reduce((total, object) => total + object.size, 0);
+    if (result.objects.length !== expectedCount || actualSizeBytes !== expectedSizeBytes) {
+      throw new BadRequestException('Isi R2 berubah sejak preview. Muat ulang preview sebelum menghapus.');
+    }
+    if (!result.objects.length) throw new BadRequestException('Tidak ada objek R2 yang cocok untuk dihapus.');
+    try {
+      await this.storage.deleteObjects(result.objects.map((object) => object.key));
+    } catch (error) {
+      await this.auditService.record({
+        userId,
+        action: 'storage.r2.delete-range.failed',
+        entityType: 'R2Storage',
+        entityId: `${from}:${to}`,
+        after: { from, to, prefix: normalizedPrefix ?? null, attemptedCount: result.objects.length, totalSizeBytes: actualSizeBytes, error: error instanceof Error ? error.name : 'UnknownError' },
+      });
+      throw error;
+    }
+    await this.auditService.record({
+      userId,
+      action: 'storage.r2.delete-range.completed',
+      entityType: 'R2Storage',
+      entityId: `${from}:${to}`,
+      before: { from, to, prefix: normalizedPrefix ?? null, objectCount: result.objects.length, totalSizeBytes: actualSizeBytes },
+      after: { deletedCount: result.objects.length, totalSizeBytes: actualSizeBytes },
+    });
+    return {
+      data: { deletedCount: result.objects.length, totalSizeBytes: actualSizeBytes, from, to, prefix: normalizedPrefix ?? null },
+      message: `${result.objects.length} objek R2 berhasil dihapus.`,
+    };
+  }
+
+  private parseR2DateRange(from: string, to: string) {
+    const validDay = (value: string) => /^\\d{4}-\\d{2}-\\d{2}$/.test(value) &&
+      !Number.isNaN(Date.parse(`${value}T00:00:00.000Z`)) &&
+      new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) === value;
+    if (!from || !to || !validDay(from) || !validDay(to)) {
+      throw new BadRequestException('Tanggal from dan to wajib menggunakan format YYYY-MM-DD yang valid.');
+    }
+    const start = new Date(`${from}T00:00:00.000Z`);
+    const end = new Date(`${to}T23:59:59.999Z`);
+    if (start.getTime() > end.getTime()) throw new BadRequestException('Tanggal awal tidak boleh melewati tanggal akhir.');
+    return { from: start, to: end };
+  }
+
+  private validateR2Prefix(prefix?: string) {
+    const normalized = prefix?.trim();
+    if (!normalized) return undefined;
+    if (normalized.length > 200 || /[\\r\\n\\0]/.test(normalized)) {
+      throw new BadRequestException('Prefix maksimal 200 karakter dan tidak boleh memuat karakter kontrol.');
+    }
+    return normalized;
   }
 
   private async backupDirectory(kind: string) { const directory = join(process.env.BACKUP_DIR ?? '/app/backups', kind); await mkdir(directory, { recursive: true }); return directory; }

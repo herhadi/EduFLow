@@ -215,3 +215,34 @@ Target awal:
 - Simpan backup di storage terenkripsi.
 - Batasi akses backup hanya untuk admin teknis.
 - Jangan kirim backup lewat chat publik.
+
+## Backup dan Penghapusan Cloudflare R2 Berdasarkan Rentang Waktu
+
+Panel pengelolaan tersedia di `/operations` pada bagian **Cloudflare R2 — Backup & Hapus berdasarkan Waktu**. Pengguna harus memiliki permission `system.recovery.manage`; pada konfigurasi seed default, permission ini hanya diberikan kepada role `root`.
+
+### Alur aman
+
+1. Pilih tanggal awal dan akhir. Filter memakai waktu modifikasi objek (`LastModified`) dalam UTC; kedua tanggal inklusif penuh, dari 00:00:00.000 UTC pada tanggal awal sampai 23:59:59.999 UTC pada tanggal akhir.
+2. Opsional, masukkan prefix untuk membatasi folder/key, misalnya `uploads/teachers/`.
+3. Klik **Preview Objek** untuk melihat daftar key, waktu modifikasi, jumlah objek, dan ukuran total. Preview tidak mengubah storage.
+4. **Download Backup ZIP** mengunduh objek yang cocok beserta `manifest.json` ke perangkat admin.
+5. Hapus hanya setelah memastikan preview dan backup sesuai. Klik **Hapus Objek Rentang**, kemudian ketik persis `DELETE R2 OBJECTS`.
+6. Backend menghitung ulang rentang dan menolak aksi jika jumlah atau ukuran berubah sejak preview. Hasil operasi dicatat dalam audit trail.
+
+### Batas dan konfigurasi
+
+- Maksimal 1.000 objek per preview, backup, atau penghapusan. Jika hasil melebihi batas, gunakan rentang lebih sempit atau prefix.
+- Ukuran objek mentah yang dibackup default maksimal 128 MiB agar proses ZIP tidak menggunakan memori berlebihan. Sesuaikan di environment backend dengan `R2_BACKUP_MAX_BYTES=134217728` (nilai dalam byte). Bila dinaikkan, pertimbangkan kapasitas RAM container/backend.
+- ZIP disusun dari objek yang dipilih dan berisi `manifest.json`; arsip tidak disimpan ke bucket R2. Simpan hasil download pada lokasi aman/terenkripsi dan verifikasi sebelum penghapusan.
+- Penghapusan objek R2 permanen dari perspektif aplikasi dan tidak memiliki tombol undo. Jangan menganggap aksi ini sebagai pengganti lifecycle policy atau versi immutable.
+- Backup range ini mem-backup objek terpilih, bukan konfigurasi bucket, lifecycle/CORS policy, atau metadata eksternal yang tidak diekspos oleh S3 API.
+- Credential R2 S3 (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`) harus sudah valid. Credential membutuhkan izin list/read untuk preview dan backup serta write/delete untuk penghapusan.
+- Jika preview menunjukkan ukuran 0 byte tetapi objek cocok, tetap cek jumlah dan daftar key; object kosong merupakan objek sah.
+
+### Validasi sebelum menghapus
+
+- Unduh dan buka ZIP terlebih dahulu.
+- Cocokkan jumlah objek dan ukuran total pada manifest.
+- Pastikan rentang tanggal dan prefix benar.
+- Jangan menjalankan hapus saat upload/replace file masih aktif pada prefix yang sama.
+- Jalankan preview ulang bila backend menolak karena data berubah.

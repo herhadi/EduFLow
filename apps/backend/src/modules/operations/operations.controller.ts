@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PERMISSIONS } from '../../common/constants/permissions';
@@ -59,6 +59,29 @@ export class OperationsController {
   @RequirePermissions(PERMISSIONS.SYSTEM_RECOVERY_MANAGE)
   createAcademicYearBackup(@Body() body: { schoolYearId: string }, @Req() request: RequestWithUser) {
     return this.operationsService.createAcademicYearBackup(body.schoolYearId, request.user.id);
+  }
+
+  @Get('storage/objects')
+  @RequirePermissions(PERMISSIONS.SYSTEM_RECOVERY_MANAGE)
+  listR2Objects(@Query('from') from: string, @Query('to') to: string, @Query('prefix') prefix?: string) {
+    return this.operationsService.listR2Objects(from, to, prefix);
+  }
+
+  @Post('storage/backup')
+  @RequirePermissions(PERMISSIONS.SYSTEM_RECOVERY_MANAGE)
+  async backupR2Range(@Body() body: { from: string; to: string; prefix?: string }, @Req() request: RequestWithUser, @Res() response: Response) {
+    const { filename, archive, objectCount, totalSizeBytes } = await this.operationsService.createR2RangeBackup(body.from, body.to, body.prefix, request.user.id);
+    response.setHeader('Content-Type', 'application/zip');
+    response.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    response.setHeader('X-R2-Object-Count', String(objectCount));
+    response.setHeader('X-R2-Total-Size-Bytes', String(totalSizeBytes));
+    response.send(archive);
+  }
+
+  @Post('storage/delete')
+  @RequirePermissions(PERMISSIONS.SYSTEM_RECOVERY_MANAGE)
+  deleteR2Range(@Body() body: { from: string; to: string; prefix?: string; confirmation?: string; expectedCount?: number; expectedSizeBytes?: number }, @Req() request: RequestWithUser) {
+    return this.operationsService.deleteR2Range(body.from, body.to, body.prefix, body.confirmation, body.expectedCount, body.expectedSizeBytes, request.user.id);
   }
 
   @Post('jobs/retry')
