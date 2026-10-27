@@ -36,6 +36,14 @@ Operator sekolah mengelola data yang bersifat konfigurasi akademik sekolah:
 
 Kaldik (kalender pendidikan) dipakai untuk menentukan hari efektif, libur, ujian, kegiatan sekolah, dan pengecualian jadwal. Event Kaldik yang memiliki `blocksAgenda` menjadi sumber tunggal untuk melewati pembuatan `DailyAgenda`.
 
+### Pergeseran Jadwal Upacara
+
+Jika kegiatan sekolah menyebabkan upacara dipindahkan dari hari reguler ke hari lain, operator dapat mengaktifkan opsi pergeseran jadwal pada event Kaldik. Operator memilih hari asal dan hari tujuan; pilihan hari tidak dikunci pada lima hari sekolah dan mendukung konfigurasi enam hari.
+
+Pergeseran hanya berlaku pada minggu kalender yang memuat event tersebut. Slot pelajaran pada hari asal bergeser satu periode lebih awal untuk mengisi waktu upacara yang tidak lagi berlangsung di hari itu, sedangkan slot pada hari tujuan bergeser satu periode lebih lambat untuk memberi ruang upacara. Minggu berikutnya kembali ke jadwal reguler kecuali ada event pergeseran lain.
+
+Pengaturan pergeseran juga direkonsiliasi terhadap agenda yang sudah digenerate. Saat event dibuat, diubah, atau dihapus, agenda yang masih berstatus `SCHEDULED`, belum memiliki presensi, dan terkait jadwal aktif dapat disesuaikan tanpa menghapus seluruh agenda minggu tersebut. Agenda yang sudah dikerjakan atau memiliki presensi tidak ditimpa.
+
 Di backend, alur akademik dibagi ke service kecil agar aturan setiap area tidak bercampur: `AcademicMasterService` untuk master sekolah, `AcademicCalendarService` untuk Kaldik, `AcademicScheduleService` untuk jadwal/revisi, `AgendaGenerationService` untuk generate agenda, `AgendaManagementService` untuk agenda harian/guru pengganti, `TeacherAcademicService` untuk administrasi guru, `TeacherPortalService` untuk endpoint personal guru/wali kelas, dan `StudentAcademicService` untuk daftar siswa akademik.
 
 Admin teknis tidak sama dengan TU. Dalam EduFlow, `root` dipakai untuk support teknis dan recovery, sedangkan pekerjaan operasional akademik harian sekolah memakai `operator_sekolah` dan `tu`.
