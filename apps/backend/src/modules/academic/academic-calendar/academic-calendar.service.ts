@@ -4,6 +4,8 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../audit/audit.service';
 import { CreateAcademicCalendarEventDto } from '../dto/create-academic-calendar-event.dto';
 import { UpdateAcademicCalendarEventDto } from '../dto/update-academic-calendar-event.dto';
+import { applyScheduleShiftForDate } from '../schedules/agenda-generation-utils';
+import { getDateRange, getDayOfWeek, getScheduleSnapshotAtDate } from '../schedules/schedule-utils';
 
 @Injectable()
 export class AcademicCalendarService {
@@ -28,6 +30,8 @@ export class AcademicCalendarService {
       data: event,
       include: { semester: true },
     });
+
+    await this.reconcileGeneratedAgendas(created.schoolYearId, created.startsAt, created.endsAt);
 
     await this.auditService.record({
       action: 'academic-calendar.event.created',
@@ -61,6 +65,9 @@ export class AcademicCalendarService {
       include: { semester: true },
     });
 
+    await this.reconcileGeneratedAgendas(existing.schoolYearId, existing.startsAt, existing.endsAt);
+    await this.reconcileGeneratedAgendas(updated.schoolYearId, updated.startsAt, updated.endsAt);
+
     await this.auditService.record({
       action: 'academic-calendar.event.updated',
       entityType: 'AcademicCalendarEvent',
@@ -80,6 +87,8 @@ export class AcademicCalendarService {
       where: { id },
       data: { deletedAt: new Date() },
     });
+    await this.reconcileGeneratedAgendas(existing.schoolYearId, existing.startsAt, existing.endsAt);
+
     await this.auditService.record({
       action: 'academic-calendar.event.deleted',
       entityType: 'AcademicCalendarEvent',
@@ -89,6 +98,79 @@ export class AcademicCalendarService {
     });
 
     return { data: deleted, message: 'Event Kaldik dihapus.' };
+  }
+
+  /**
+   * Reapply calendar schedule shifts to already-generated agendas in the affected week.
+   * Only untouched SCHEDULED agendas are changed; anything a teacher has started,
+   * completed, cancelled, or linked to attendance is deliberately preserved.
+   */
+  private async reconcileGeneratedAgendas(schoolYearId: string, startsAt: Date, endsAt: Date) {
+    const affectedDates = getDateRange(startsAt, endsAt);
+    const weeks = new Map<string, { start: Date; end: Date }>();
+    for (const date of affectedDates) {
+      const weekStart = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+      weekStart.setUTCDate(weekStart.getUTCDate() - (getDayOfWeek(weekStart) - 1));
+      const weekEnd = new Date(weekStart);
+      weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
+      weeks.set(weekStart.toISOString().slice(0, 10), { start: weekStart, end: weekEnd });
+    }
+
+    for (const week of weeks.values()) {
+      const [events, timeSlots, agendas] = await Promise.all([
+        this.prisma.academicCalendarEvent.findMany({
+          where: {
+            schoolYearId,
+            deletedAt: null,
+            scheduleShiftFromDay: { not: null },
+            scheduleShiftToDay: { not: null },
+            startsAt: { gte: week.start, lte: week.end },
+          },
+          select: { startsAt: true, scheduleShiftFromDay: true, scheduleShiftToDay: true },
+        }),
+        this.prisma.academicTimeSlot.findMany({
+          where: { schoolYearId, deletedAt: null, isActive: true },
+          select: {
+            id: true, schoolYearId: true, dayOfWeek: true, periodNumber: true,
+            startsAt: true, endsAt: true, isActive: true, isAssignable: true, deletedAt: true,
+          },
+        }),
+        this.prisma.dailyAgenda.findMany({
+          where: {
+            schoolYearId,
+            date: { gte: week.start, lte: week.end },
+            status: 'SCHEDULED',
+            attendance: { is: null },
+            scheduleId: { not: null },
+            schedule: { is: { deletedAt: null } },
+          },
+          include: { schedule: { include: { revisions: { orderBy: { effectiveFrom: 'asc' } } } },
+          },
+        }),
+      ]);
+
+      for (const agenda of agendas) {
+        if (!agenda.schedule) continue;
+        const day = getDayOfWeek(agenda.date);
+        const relevantShift = events.some((event) =>
+          event.scheduleShiftFromDay != null &&
+          event.scheduleShiftToDay != null &&
+          (day === event.scheduleShiftFromDay || day === event.scheduleShiftToDay),
+        );
+        if (!relevantShift && agenda.effectivePeriodNumber == null) continue;
+
+        const snapshot = getScheduleSnapshotAtDate(agenda.schedule, agenda.date);
+        const effective = applyScheduleShiftForDate(snapshot, agenda.date, events, timeSlots);
+        await this.prisma.dailyAgenda.update({
+          where: { id: agenda.id },
+          data: {
+            effectivePeriodNumber: effective.effectivePeriodNumber ?? null,
+            effectiveStartsAt: effective.startsAt ?? null,
+            effectiveEndsAt: effective.endsAt ?? null,
+          },
+        });
+      }
+    }
   }
 
   private async validateAcademicCalendarEvent(dto: {
