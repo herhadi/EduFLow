@@ -28,7 +28,12 @@ type ShiftTimeSlot = {
 
 export function applyScheduleShiftForDate<Schedule extends {
   schoolYearId: string; dayOfWeek: number; timeSlotId?: string | null; startsAt: string; endsAt: string;
-}>(schedule: Schedule, date: Date, events: ShiftEvent[], timeSlots: ShiftTimeSlot[]) {
+}>(
+  schedule: Schedule,
+  date: Date,
+  events: ShiftEvent[],
+  timeSlots: ShiftTimeSlot[],
+): Schedule & { effectivePeriodNumber?: number } {
   const dayOfWeek = getDayOfWeek(date);
   const weekStart = (value: Date) => {
     const start = new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));

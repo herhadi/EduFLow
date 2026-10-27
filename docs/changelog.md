@@ -13,6 +13,7 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Mendokumentasikan endpoint, batas ukuran/jumlah, timezone UTC, permission, dan prosedur backup/penghapusan R2 di `docs/api-endpoints.md`, `docs/backup-recovery.md`, dan `docs/permission-matrix.md`.
 - Menambahkan pergeseran jadwal upacara mingguan berbasis kalender akademik, termasuk pilihan hari asal/tujuan yang fleksibel untuk konfigurasi sekolah enam hari.
 - Menyesuaikan agenda yang sudah digenerate setelah pengaturan pergeseran kalender dibuat, diubah, atau dihapus; hanya agenda berstatus `SCHEDULED` tanpa presensi yang diperbarui, sedangkan agenda yang sudah dikerjakan dipertahankan.
+- Memperbaiki tipe hasil helper pergeseran jadwal agar `effectivePeriodNumber` opsional dikenali TypeScript dan build backend dapat dilanjutkan.
 
 ## 2026-07-24
 
