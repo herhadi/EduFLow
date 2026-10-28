@@ -1,3 +1,10 @@
+## 2026-10-28
+
+- Merancang ulang Kaldik menjadi kalender bulanan interaktif: klik tanggal untuk membuka dialog tambah kegiatan, klik kegiatan untuk mengedit, dan navigasi bulan dalam urutan tahun ajaran Juli–Juni.
+- Menyediakan pola tanggal satu hari, rentang tanggal, dan beberapa tanggal tidak berurutan; mendukung penyuntingan dan penghapusan kegiatan dari dialog serta daftar kegiatan.
+- Mempertahankan penanda Upacara Hari Nasional, pengaturan Apel Pagi, aturan blokir agenda, dan konsistensi tampilan dark/light mode.
+- Melengkapi frontend API client untuk baca, tambah, ubah, dan hapus kegiatan Kaldik.
+
 # Changelog
 
 Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis granular tetap dilacak melalui riwayat Git dan dokumen domain terkait.

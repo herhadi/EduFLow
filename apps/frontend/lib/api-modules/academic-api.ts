@@ -1,7 +1,15 @@
 import { request, upload } from '../api-client';
-import type { ApiResponse, AppUser, Attendance, AttendanceStatus, DailyAgenda, HomeroomOverview, Schedule, SchoolClass, SchoolYear, CloneSchoolYearMasterResult, Semester, Student, Subject, Teacher, TeacherAssignmentStatus, TeacherDashboardSummary, TeacherSchoolYearAssignment } from '../api-types';
+import type { ApiResponse, AppUser, Attendance, AttendanceStatus, DailyAgenda, HomeroomOverview, Schedule, SchoolClass, SchoolYear, CloneSchoolYearMasterResult, Semester, Student, Subject, Teacher, TeacherAssignmentStatus, TeacherDashboardSummary, TeacherSchoolYearAssignment, AcademicCalendarEvent, AcademicCalendarEventType } from '../api-types';
 
 export const academicApi = {
+  getAcademicCalendarEvents: (schoolYearId: string) =>
+    request<ApiResponse<AcademicCalendarEvent[]>>('/academic/calendar/events?schoolYearId=' + encodeURIComponent(schoolYearId)),
+  createAcademicCalendarEvent: (payload: { schoolYearId: string; title: string; type: AcademicCalendarEventType; startsAt: string; endsAt: string; description?: string; blocksAgenda?: boolean }) =>
+    request<ApiResponse<AcademicCalendarEvent>>('/academic/calendar/events', { method: 'POST', body: JSON.stringify(payload) }),
+  updateAcademicCalendarEvent: (id: string, payload: Partial<{ title: string; type: AcademicCalendarEventType; startsAt: string; endsAt: string; description: string | null; blocksAgenda: boolean }>) =>
+    request<ApiResponse<AcademicCalendarEvent>>('/academic/calendar/events/' + id, { method: 'PATCH', body: JSON.stringify(payload) }),
+  deleteAcademicCalendarEvent: (id: string) =>
+    request<ApiResponse<AcademicCalendarEvent>>('/academic/calendar/events/' + id, { method: 'DELETE' }),
   getSchoolYears: () =>
     request<ApiResponse<SchoolYear[]>>('/academic/school-years'),
   createSchoolYear: (payload: { name: string }) =>

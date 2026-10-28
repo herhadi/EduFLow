@@ -1078,3 +1078,14 @@ Setiap pengguna wajib:
 - melaporkan dugaan akses tidak sah.
 
 Seluruh tindakan penting dapat dicatat dalam audit trail sesuai konfigurasi sistem.
+
+
+## Kaldik — Kalender Pendidikan
+
+1. Pilih tahun ajaran. Kalender selalu disusun dari **Juli sampai Juni**; gunakan tombol panah untuk berpindah bulan.
+2. Klik tanggal pada kalender atau tombol **Tambah Kegiatan**. Tanggal yang diklik otomatis menjadi tanggal kegiatan.
+3. Pilih jenis kegiatan dan isi nama kegiatan.
+4. Pilih pola tanggal: **Satu hari** untuk peringatan, **Rentang** untuk libur beberapa hari, atau **Beberapa tanggal** untuk tanggal tidak berurutan.
+5. Isi keterangan dan tentukan apakah kegiatan memblokir pembuatan agenda. **Upacara Hari Nasional** dikenali dari dropdown jenis kegiatan, bukan dari nama yang diketik.
+6. Tekan **Simpan Kegiatan**. Untuk mengedit, klik kegiatan di kalender/daftar; untuk menghapus, gunakan tombol **Hapus**.
+7. Pengaturan **Apel Pagi** tetap tersedia di sisi kalender dan disimpan per tahun ajaran.
