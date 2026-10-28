@@ -45,7 +45,11 @@ export function applyScheduleShiftForDate<Schedule extends {
     return start.getTime();
   };
   const upacaraEvent = events.find((item) => weekStart(item.startsAt) === weekStart(date) && /upacara/i.test(item.title ?? ''));
-  const fixedShift = Boolean(upacaraEvent && (dayOfWeek === 1 || dayOfWeek === 4));
+  const upacaraTargetDay = upacaraEvent ? getDayOfWeek(upacaraEvent.startsAt) : null;
+  // Upacara normally falls on Monday. If Kaldik marks it on another day,
+  // move Monday's lesson sequence one period earlier and the marked day one period later.
+  const fixedShift = Boolean(upacaraTargetDay !== null && upacaraTargetDay !== 1 &&
+    (dayOfWeek === 1 || dayOfWeek === upacaraTargetDay));
   const legacyEvent = events.find((item) => item.scheduleShiftFromDay != null && item.scheduleShiftToDay != null &&
     weekStart(item.startsAt) === weekStart(date) && (dayOfWeek === item.scheduleShiftFromDay || dayOfWeek === item.scheduleShiftToDay));
   let effective: Schedule & { effectivePeriodNumber?: number; skipAgenda?: boolean } = schedule;

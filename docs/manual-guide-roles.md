@@ -386,13 +386,14 @@ Gunakan tabel jadwal untuk:
 
 ## 3.12 Pergeseran Jadwal Upacara dan Apel Pagi
 
-Kaldik tahunan menjadi acuan kegiatan khusus saat Operator melakukan generate agenda. Untuk upacara, Operator cukup menambahkan event pada tanggal pelaksanaan dengan judul yang memuat kata **Upacara**. Tidak perlu memilih hari asal atau hari tujuan.
+Kaldik tahunan menjadi acuan kegiatan khusus saat Operator melakukan generate agenda. Untuk upacara yang dipindahkan dari hari Senin, Operator cukup menambahkan event pada tanggal pelaksanaan dengan judul yang memuat kata **Upacara**. Hari pelaksanaan dibaca langsung dari tanggal event; tidak perlu memilih hari asal atau hari tujuan.
 
 ### Aturan upacara
 
-- Pada minggu yang memiliki event Upacara, jadwal Senin bergeser satu nomor jam lebih awal.
-- Pada Kamis di minggu yang sama, jadwal bergeser satu nomor jam lebih lambat.
+- Jika upacara ditandai pada hari selain Senin, jadwal Senin pada minggu tersebut bergeser satu nomor jam lebih awal dan jadwal pada hari upacara bergeser satu nomor jam lebih lambat.
+- Hari tujuan tidak dikunci ke Kamis; bisa Selasa, Rabu, Kamis, Jumat, Sabtu, atau hari lain yang ditandai di Kaldik.
 - Jika pergeseran Senin menghasilkan jam ke-0, agenda jam pelajaran pertama dilewati; sistem tidak membuat nomor jam ke-0.
+- Jika upacara tetap pada hari Senin, tidak ada pergeseran antarhari.
 - Hari lain tetap mengikuti jadwal normal, kecuali ada konfigurasi apel pagi.
 - Upacara harus dicatat sebagai event satu tanggal dan tidak memblokir agenda melalui opsi kalender.
 
