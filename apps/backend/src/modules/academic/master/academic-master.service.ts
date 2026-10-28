@@ -31,7 +31,7 @@ export class AcademicMasterService {
   async updateMorningAssemblySettings(id: string, dto: { enabled: boolean; startsAt: string; endsAt: string }) {
     const schoolYear = await this.prisma.schoolYear.findFirst({ where: { id, deletedAt: null } });
     if (!schoolYear) throw new NotFoundException('Tahun ajaran tidak ditemukan');
-    const pattern = /^([01]\\d|2[0-3]):[0-5]\\d$/;
+    const pattern = /^([01]\d|2[0-3]):[0-5]\d$/;
     if (typeof dto.enabled !== 'boolean' || !pattern.test(dto.startsAt) || !pattern.test(dto.endsAt)) throw new BadRequestException('Status dan waktu apel pagi tidak valid.');
     if (dto.startsAt >= dto.endsAt) throw new BadRequestException('Waktu selesai apel pagi harus setelah waktu mulai.');
     const updated = await this.prisma.schoolYear.update({ where: { id }, data: {

@@ -221,7 +221,7 @@ export class AcademicCalendarService {
       type: dto.type,
       startsAt,
       endsAt,
-      blocksAgenda: shiftFrom !== null && shiftTo !== null ? false : (dto.blocksAgenda ?? true),
+      blocksAgenda: /upacara/i.test(dto.title) || (shiftFrom !== null && shiftTo !== null) ? false : (dto.blocksAgenda ?? true),
       scheduleShiftFromDay: shiftFrom,
       scheduleShiftToDay: shiftTo,
     };
