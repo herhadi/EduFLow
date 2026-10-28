@@ -30,7 +30,7 @@ function getCalendarMonths(schoolYear?: SchoolYear) {
   if (!schoolYear) return [];
   // Nama tahun ajaran menjadi acuan utama agar data startsAt lama/tidak konsisten
   // tidak membuat tahun ajaran 2026/2027 tampil mulai Juli 2025.
-  const match = schoolYear.name.match(/(\\d{4})\\s*[/-]\\s*(\\d{4})/);
+  const match = schoolYear.name.match(/(\d{4})\s*[/-]\s*(\d{4})/);
   const startsAt = new Date(dateInput(schoolYear.startsAt) + 'T00:00:00');
   const firstYear = match ? Number(match[1]) : startsAt.getMonth() >= 6 ? startsAt.getFullYear() : startsAt.getFullYear() - 1;
   return Array.from({ length: 12 }, (_, index) => new Date(firstYear, 6 + index, 1));
