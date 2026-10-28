@@ -125,7 +125,7 @@ export function TeacherScheduleList() {
     const rows = schedulesByDay.flatMap((day) => day.groups.map((group) =>
       '<tr><td>' + day.label + '</td><td>' + group.startsAt + '–' + group.endsAt + '</td><td>' + getPeriodLabel(group) + '</td><td>' + escapeHtml(group.subjectName) + '</td><td>' + escapeHtml(group.className) + '</td><td>' + escapeHtml(group.schedules[0]?.room ?? '-') + '</td></tr>',
     )).join('');
-    const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=900,height=700');
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (!printWindow) {
       window.alert('Popup diblokir browser. Izinkan popup untuk mencetak jadwal ke PDF.');
       return;
