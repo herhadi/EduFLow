@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { api, type TeacherDashboardSummary as TeacherDashboardSummaryData } from '../../lib/api';
+import { api, type Schedule, type TeacherDashboardSummary as TeacherDashboardSummaryData } from '../../lib/api';
 import { UserAvatar } from '../ui/user-avatar';
 import { type CurrentUser } from './dashboard-types';
 import { RoleActionCard, RoleSection } from './role-dashboard-shared';
@@ -46,6 +46,8 @@ export function TeacherHome({
 
 function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
   const [summary, setSummary] = useState<TeacherDashboardSummaryData | null>(null);
+  const [todaySchedules, setTodaySchedules] = useState<Schedule[]>([]);
+  const [scheduleState, setScheduleState] = useState<'loading' | 'success' | 'error'>('loading');
   const [state, setState] = useState<'loading' | 'success' | 'error'>('loading');
   const today = useMemo(() => getLocalDateOnly(), []);
 
@@ -57,6 +59,13 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
 
       try {
         const response = await api.getMyDashboard();
+        void api.getMySchedules().then((scheduleResponse) => {
+          if (!ignore) {
+            const todayDay = new Date().getDay() || 7;
+            setTodaySchedules(scheduleResponse.data.filter((item) => item.dayOfWeek === todayDay).sort((a, b) => a.startsAt.localeCompare(b.startsAt)));
+            setScheduleState('success');
+          }
+        }).catch(() => { if (!ignore) setScheduleState('error'); });
 
         if (ignore) {
           return;
@@ -139,6 +148,39 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
             Ringkasan guru belum bisa dimuat. Menu tetap bisa dibuka dari pintasan di bawah.
           </p>
         ) : null}
+
+        <div className="mt-5 border-t border-slate-100 pt-4 dark:border-[var(--border)]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-base font-black text-slate-900 dark:text-[var(--text)]">Jadwal Mengajar Hari Ini</h3>
+              <p className="mt-1 text-sm text-muted">Lihat kelas dan buka presensi langsung dari sini.</p>
+            </div>
+            <Link className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:border-brand-300 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]" href="/teacher/schedules">Jadwal lengkap</Link>
+          </div>
+          {scheduleState === 'loading' ? <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-muted dark:bg-[var(--surface-soft)]">Memuat jadwal hari ini…</p> : null}
+          {scheduleState === 'error' ? <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100">Jadwal hari ini belum bisa dimuat. Buka halaman jadwal untuk mencoba lagi.</p> : null}
+          {scheduleState === 'success' && todaySchedules.length === 0 ? <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm font-semibold text-muted dark:bg-[var(--surface-soft)]">Tidak ada jadwal mengajar hari ini.</p> : null}
+          {scheduleState === 'success' && todaySchedules.length > 0 ? (
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {todaySchedules.map((item) => (
+                <article className="flex min-w-0 flex-col justify-between gap-3 rounded-2xl border border-slate-200 p-3 dark:border-[var(--border)]" key={item.id}>
+                  <div className="flex items-start gap-3">
+                    <div className="shrink-0 rounded-xl bg-blue-50 px-2.5 py-2 text-center dark:bg-blue-400/10">
+                      <p className="text-xs font-black text-brand-700 dark:text-blue-100">{item.startsAt}</p>
+                      <p className="text-[10px] font-semibold text-muted">{item.endsAt}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="truncate text-sm font-black text-slate-900 dark:text-[var(--text)]">{item.subject.name}</h4>
+                      <p className="mt-1 text-sm text-muted">{item.class.name}{item.room ? ' · Ruang ' + item.room : ''}</p>
+                      {item.timeSlot?.periodNumber ? <p className="mt-1 text-xs text-muted">Jam ke-{item.timeSlot.periodNumber}</p> : null}
+                    </div>
+                  </div>
+                  <Link className="inline-flex min-h-10 items-center justify-center rounded-xl bg-brand-600 px-3 py-2 text-sm font-bold text-white transition hover:bg-brand-700" href="/teacher/attendance">Buka Presensi <span aria-hidden="true" className="ml-2">→</span></Link>
+                </article>
+              ))}
+            </div>
+          ) : null}
+        </div>
 
         <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(220px,0.7fr)]">
           <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-3 dark:border-blue-400/20 dark:bg-blue-400/10">
