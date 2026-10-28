@@ -33,6 +33,7 @@ export function TeacherTeachingPlans() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingPlanId, setUploadingPlanId] = useState<string | null>(null);
+  const [selectedAttachments, setSelectedAttachments] = useState<Record<string, File | null>>({});
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [attachment, setAttachment] = useState<File | null>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -82,11 +83,24 @@ export function TeacherTeachingPlans() {
   }
 
   async function submitPlan(plan: TeachingPlan) {
+    setUploadingPlanId(plan.id);
     try {
+      const selectedFile = selectedAttachments[plan.id];
+      if (selectedFile) {
+        await api.uploadTeachingPlanAttachment(plan.id, selectedFile);
+      }
       const response = await api.submitTeachingPlan(plan.id);
       setPlans((current) => current.map((item) => item.id === plan.id ? response.data : item));
-      toast.success(response.message ?? 'Perangkat ajar berhasil disubmit.');
-    } catch (error) { toast.error(error instanceof Error ? error.message : 'Submit gagal.'); }
+      setSelectedAttachments((current) => ({ ...current, [plan.id]: null }));
+      toast.success(response.message ?? 'Perangkat ajar berhasil dikirim ke Kepala Sekolah.');
+    } catch (error) { toast.error(error instanceof Error ? error.message : 'Pengajuan gagal dikirim.'); }
+    finally { setUploadingPlanId(null); }
+  }
+
+  function previewSelectedAttachment(file: File) {
+    const previewUrl = URL.createObjectURL(file);
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
+    window.setTimeout(() => URL.revokeObjectURL(previewUrl), 60_000);
   }
 
   async function openAttachment(plan: TeachingPlan) {
@@ -245,92 +259,118 @@ export function TeacherTeachingPlans() {
         </SurfaceFormCard>
       ) : null}
 
-      <div className="space-y-3">
+      <div className="space-y-6">
         {loading ? <LoadingState label="Memuat perangkat ajar..." /> : null}
-        {plans.map((plan) => (
-          <SurfaceCard className="rounded-[1.75rem]" key={plan.id}>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div><p className="text-xs font-black text-brand-700">{getPlanTypeLabel(plan.type)}</p><h3 className="mt-1 text-lg font-black">{plan.title}</h3><p className="mt-1 text-sm text-muted">{plan.subject.name} · {plan.schoolYear.name}{plan.semester ? ` · ${plan.semester.type === 'ODD' ? 'Ganjil' : 'Genap'}` : ''}</p></div>
-              <TeachingPlanStatus status={plan.status} />
-            </div>
-            {plan.attachmentKey || plan.attachmentUrl ? (
-              <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 dark:border-blue-400/20 dark:bg-blue-500/10 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <p className="text-xs font-black uppercase tracking-[0.1em] text-brand-700">
-                    Dokumen Terlampir
-                  </p>
-                  <p className="mt-1 truncate text-sm font-bold text-slate-900 dark:text-slate-100">
-                    {plan.attachmentName ?? (plan.type === 'TEACHING_BOOK' ? 'Foto Buku KBM' : 'Dokumen perangkat ajar')}
-                  </p>
-                  {plan.attachmentSize ? (
-                    <p className="mt-0.5 text-xs font-semibold text-muted">
-                      {formatFileSize(plan.attachmentSize)}
-                    </p>
-                  ) : null}
-                </div>
-                <Button
-                  onClick={() => void openAttachment(plan)}
-                  variant="outline"
-                >
-                  {plan.type === 'TEACHING_BOOK' ? 'Buka Foto' : 'Buka Dokumen'}
-                </Button>
+        {!loading ? (
+          <>
+            <section className="space-y-3">
+              <div>
+                <h2 className="text-lg font-black text-slate-900 dark:text-slate-100">Perangkat Ajar Disetujui</h2>
+                <p className="mt-1 text-sm text-muted">Dokumen yang sudah disetujui Kepala Sekolah dapat dibuka kembali di sini.</p>
               </div>
-            ) : (
-              <EmptyState className="mt-4 py-2 text-xs" title="Belum ada dokumen terlampir." />
-            )}
-            {plan.reviewNote ? (
-              <div className="mt-4 rounded-2xl bg-amber-50 p-3 text-sm font-semibold text-amber-900 dark:bg-amber-500/15 dark:text-amber-100">
-                <div className="flex flex-wrap gap-2">
-                  <Badge className="bg-white text-amber-800 dark:bg-slate-950 dark:text-amber-100" tone="warning">
-                    Prioritas: {getRevisionPriorityLabel(plan.reviewPriority)}
-                  </Badge>
-                  {plan.reviewSection ? (
-                    <Badge className="bg-white text-amber-800 dark:bg-slate-950 dark:text-amber-100" tone="warning">
-                      {plan.reviewSection}
-                    </Badge>
-                  ) : null}
-                </div>
-                <p className="mt-3">Catatan KS: {plan.reviewNote}</p>
+              {plans.filter((plan) => plan.status === 'APPROVED').map((plan) => (
+                <SurfaceCard className="rounded-[1.5rem]" key={plan.id}>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-black text-brand-700">{getPlanTypeLabel(plan.type)}</p>
+                      <h3 className="mt-1 break-words text-lg font-black text-slate-900 dark:text-slate-100">{plan.title}</h3>
+                      <p className="mt-1 text-sm text-muted">{plan.subject.name} · {plan.schoolYear.name}{plan.semester ? ` · ${plan.semester.type === 'ODD' ? 'Ganjil' : 'Genap'}` : ''}</p>
+                    </div>
+                    <TeachingPlanStatus status={plan.status} />
+                  </div>
+                  <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 dark:border-blue-400/20 dark:bg-blue-500/10 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-xs font-black uppercase tracking-[0.1em] text-brand-700">Dokumen Terlampir</p>
+                      <p className="mt-1 break-words text-sm font-bold text-slate-900 dark:text-slate-100">{plan.attachmentName ?? (plan.type === 'TEACHING_BOOK' ? 'Foto Buku KBM' : 'Dokumen perangkat ajar')}</p>
+                      {plan.attachmentSize ? <p className="mt-0.5 text-xs font-semibold text-muted">{formatFileSize(plan.attachmentSize)}</p> : null}
+                    </div>
+                    <Button className="w-full sm:w-auto" disabled={!hasPlanAttachment(plan)} onClick={() => void openAttachment(plan)} variant="outline">
+                      {plan.type === 'TEACHING_BOOK' ? 'Buka Foto' : 'Buka Dokumen'}
+                    </Button>
+                  </div>
+                  {!hasPlanAttachment(plan) ? <p className="mt-2 text-xs text-muted">Belum ada lampiran pada perangkat ajar ini.</p> : null}
+                </SurfaceCard>
+              ))}
+              {!plans.some((plan) => plan.status === 'APPROVED') ? (
+                <EmptyState className="py-4" title="Belum ada perangkat ajar yang disetujui." />
+              ) : null}
+            </section>
+            <section className="space-y-3">
+              <div>
+                <h2 className="text-lg font-black text-slate-900 dark:text-slate-100">Riwayat Pengajuan</h2>
+                <p className="mt-1 text-sm text-muted">Periksa catatan revisi, lampiran, dan kirim kembali dokumen yang perlu diperbaiki.</p>
               </div>
-            ) : null}
-            <div className="mt-4 flex flex-wrap gap-2">
-              {plan.status === 'DRAFT' || plan.status === 'REVISION_REQUESTED' ? (
-                <label className="cursor-pointer rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-black text-brand-700 transition hover:border-brand-600 dark:border-blue-400/20 dark:bg-blue-500/10 dark:text-blue-100">
-                  {uploadingPlanId === plan.id ? 'Mengunggah...' : plan.attachmentKey || plan.attachmentUrl ? 'Ganti Lampiran' : 'Upload Lampiran'}
-                  <input
-                    accept={getAttachmentAccept(plan.type)}
-                    className="sr-only"
-                    disabled={uploadingPlanId === plan.id}
-                    onChange={(event) => {
-                      void uploadExistingAttachment(plan, event.target.files?.[0]);
-                      event.currentTarget.value = '';
-                    }}
-                    type="file"
-                  />
-                </label>
+              {plans.filter((plan) => plan.status !== 'APPROVED').map((plan) => (
+                <SurfaceCard className="rounded-[1.75rem]" key={plan.id}>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-black text-brand-700">{getPlanTypeLabel(plan.type)}</p>
+                      <h3 className="mt-1 break-words text-lg font-black text-slate-900 dark:text-slate-100">{plan.title}</h3>
+                      <p className="mt-1 text-sm text-muted">{plan.subject.name} · {plan.schoolYear.name}{plan.semester ? ` · ${plan.semester.type === 'ODD' ? 'Ganjil' : 'Genap'}` : ''}</p>
+                    </div>
+                    <TeachingPlanStatus status={plan.status} />
+                  </div>
+                  {plan.reviewNote ? (
+                    <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-400/25 dark:bg-amber-500/10">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="bg-white text-amber-800 dark:bg-slate-950 dark:text-amber-100" tone="warning">Prioritas: {getRevisionPriorityLabel(plan.reviewPriority)}</Badge>
+                        {plan.reviewSection ? <Badge tone="warning">{plan.reviewSection}</Badge> : null}
+                      </div>
+                      <p className="mt-2 font-semibold text-amber-950 dark:text-amber-100">Catatan KS</p>
+                      <p className="mt-1 text-amber-900 dark:text-amber-100">{plan.reviewNote}</p>
+                    </div>
+                  ) : null}
+                  <div className="mt-4 rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+                    <p className="text-xs font-black uppercase tracking-[0.1em] text-slate-600 dark:text-slate-300">Dokumen Terlampir</p>
+                    {hasPlanAttachment(plan) ? (
+                      <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="break-words text-sm font-bold text-slate-900 dark:text-slate-100">{plan.attachmentName ?? (plan.type === 'TEACHING_BOOK' ? 'Foto Buku KBM' : 'Dokumen perangkat ajar')}</p>
+                          {plan.attachmentSize ? <p className="mt-1 text-xs text-muted">{formatFileSize(plan.attachmentSize)}</p> : null}
+                        </div>
+                        <Button className="w-full sm:w-auto" onClick={() => void openAttachment(plan)} size="sm" variant="outline">
+                          {plan.type === 'TEACHING_BOOK' ? 'Buka Foto' : 'Buka Dokumen'}
+                        </Button>
+                      </div>
+                    ) : <p className="mt-2 text-sm text-muted">Belum ada dokumen yang diunggah.</p>}
+                    {(plan.status === 'DRAFT' || plan.status === 'REVISION_REQUESTED') ? (
+                      <div className="mt-4 space-y-3 border-t border-slate-100 pt-4 dark:border-slate-700">
+                        <label className="block text-sm font-bold text-slate-800 dark:text-slate-100">
+                          {selectedAttachments[plan.id] ? 'Berkas baru dipilih' : 'Pilih dokumen untuk diunggah atau mengganti lampiran'}
+                        </label>
+                        <input
+                          accept={getAttachmentAccept(plan.type)}
+                          className="block w-full min-w-0 cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:font-bold file:text-slate-800 hover:file:bg-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:file:bg-slate-800 dark:file:text-slate-100"
+                          disabled={uploadingPlanId === plan.id}
+                          onChange={(event) => setSelectedAttachments((current) => ({ ...current, [plan.id]: event.target.files?.[0] ?? null }))}
+                          type="file"
+                        />
+                        {selectedAttachments[plan.id] ? (
+                          <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/70">
+                            <p className="break-words text-sm font-bold text-slate-900 dark:text-slate-100">{selectedAttachments[plan.id]!.name}</p>
+                            <p className="mt-1 text-xs text-muted">{formatFileSize(selectedAttachments[plan.id]!.size)} · Belum diunggah</p>
+                            <Button className="mt-3 w-full sm:w-auto" onClick={() => previewSelectedAttachment(selectedAttachments[plan.id]!)} size="sm" variant="outline">Pratinjau berkas terpilih</Button>
+                          </div>
+                        ) : null}
+                        <p className="text-xs text-muted">Pilih berkas, periksa pratinjau, lalu tekan tombol kirim. Lampiran baru akan diunggah saat pengajuan dikirim.</p>
+                        <Button
+                          className="w-full sm:w-auto"
+                          disabled={uploadingPlanId === plan.id || (!selectedAttachments[plan.id] && !hasPlanAttachment(plan))}
+                          onClick={() => void submitPlan(plan)}
+                          size="md"
+                        >
+                          {uploadingPlanId === plan.id ? 'Mengunggah & mengirim...' : 'Kirim ke KS'}
+                        </Button>
+                      </div>
+                    ) : null}
+                  </div>
+                </SurfaceCard>
+              ))}
+              {!plans.some((plan) => plan.status !== 'APPROVED') ? (
+                <EmptyState className="py-4" title="Tidak ada riwayat pengajuan." />
               ) : null}
-              {plan.status === 'DRAFT' || plan.status === 'REVISION_REQUESTED' ? (
-                <Button
-                  disabled={!hasPlanAttachment(plan)}
-                  onClick={() => void submitPlan(plan)}
-                  size="sm"
-                >
-                  Kirim ke KS
-                </Button>
-              ) : null}
-            </div>
-            {(plan.status === 'DRAFT' || plan.status === 'REVISION_REQUESTED') && !hasPlanAttachment(plan) ? (
-              <p className="mt-2 text-xs font-bold text-amber-700">
-                Upload lampiran terlebih dahulu sebelum dikirim ke Kepala Sekolah.
-              </p>
-            ) : null}
-          </SurfaceCard>
-        ))}
-        {!loading && !plans.length ? (
-          <EmptyState
-            description="Klik Buat Draft untuk membuat dokumen pertama."
-            title="Belum ada perangkat ajar."
-          />
+            </section>
+          </>
         ) : null}
       </div>
     </section>
