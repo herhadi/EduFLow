@@ -109,7 +109,7 @@ export interface Semester {
   schoolYear?: SchoolYear;
 }
 
-export type AcademicCalendarEventType = 'HOLIDAY' | 'EXAM' | 'SCHOOL_ACTIVITY' | 'NON_TEACHING_DAY' | 'OTHER';
+export type AcademicCalendarEventType = 'HOLIDAY' | 'EXAM' | 'SCHOOL_ACTIVITY' | 'NATIONAL_CEREMONY' | 'NON_TEACHING_DAY' | 'OTHER';
 
 export interface AcademicCalendarEvent {
   id: string;

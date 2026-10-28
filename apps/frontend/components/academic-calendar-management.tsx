@@ -9,6 +9,7 @@ const eventTypes: Array<{ value: AcademicCalendarEventType; label: string; block
   { value: 'HOLIDAY', label: 'Libur', blocksAgenda: true },
   { value: 'EXAM', label: 'Ujian / Asesmen', blocksAgenda: true },
   { value: 'SCHOOL_ACTIVITY', label: 'Kegiatan Sekolah', blocksAgenda: true },
+  { value: 'NATIONAL_CEREMONY', label: 'Upacara Hari Nasional', blocksAgenda: false },
   { value: 'NON_TEACHING_DAY', label: 'Hari Non-KBM', blocksAgenda: true },
   { value: 'OTHER', label: 'Lainnya', blocksAgenda: false },
 ];
@@ -79,7 +80,7 @@ export function AcademicCalendarManagement() {
       const response = await api.getAcademicCalendarEvents(nextSchoolYearId);
       setEvents(response.data);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Event Kaldik gagal dimuat.', 'Kaldik');
+      toast.error(error instanceof Error ? error.message : 'Kegiatan Kaldik gagal dimuat.', 'Kaldik');
     }
   }
 
@@ -116,7 +117,7 @@ export function AcademicCalendarManagement() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!schoolYearId || !form.title.trim() || !form.startsAt || !form.endsAt) {
-      toast.warning('Lengkapi judul dan rentang tanggal event.', 'Kaldik');
+      toast.warning('Lengkapi nama kegiatan dan rentang tanggal.', 'Kaldik');
       return;
     }
 
@@ -125,11 +126,11 @@ export function AcademicCalendarManagement() {
       const response = await api.createAcademicCalendarEvent({
         schoolYearId,
         title: form.title.trim(),
-        type: /upacara/i.test(form.title) ? 'SCHOOL_ACTIVITY' : form.type,
+        type: form.type,
         startsAt: form.startsAt,
         endsAt: form.endsAt,
         description: form.description.trim() || undefined,
-        blocksAgenda: /upacara/i.test(form.title) ? false : form.blocksAgenda,
+        blocksAgenda: form.type === 'NATIONAL_CEREMONY' ? false : form.blocksAgenda,
       });
       setEvents((current) => [...current, response.data].sort((a, b) => a.startsAt.localeCompare(b.startsAt)));
       setForm((current) => ({ ...current, title: '', description: '' }));
@@ -164,79 +165,79 @@ export function AcademicCalendarManagement() {
 
   return (
     <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-      <section className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
+      <section className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6">
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">Master Kaldik</p>
         <h2 className="mt-1 text-2xl font-black text-ink">Tandai Tanggal Penting</h2>
-        <p className="mt-1 text-sm leading-6 text-muted">Event yang memblokir agenda akan dilewati saat agenda harian dibuat.</p>
+        <p className="mt-1 text-sm leading-6 text-muted">Kegiatan yang memblokir agenda akan dilewati saat agenda harian dibuat.</p>
 
-        <label className="mt-5 grid gap-1 text-sm font-semibold text-slate-700">
+        <label className="mt-5 grid gap-1 text-sm font-semibold text-slate-700 dark:text-slate-200">
           Tahun ajaran
-          <select className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-brand-600" onChange={(event) => setSchoolYearId(event.target.value)} value={schoolYearId}>
+          <select className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal text-slate-900 outline-none focus:border-brand-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100" onChange={(event) => setSchoolYearId(event.target.value)} value={schoolYearId}>
             {schoolYears.map((year) => <option key={year.id} value={year.id}>{year.name}</option>)}
           </select>
         </label>
 
-        <form className="mt-4 grid gap-3 rounded-2xl border border-sky-100 bg-sky-50 p-4" onSubmit={saveMorningAssembly}>
-          <div><h3 className="font-black text-sky-950">Apel Pagi</h3><p className="mt-1 text-xs leading-5 text-sky-900">Jika aktif, seluruh jam pelajaran pada tanggal tanpa upacara digeser sesuai durasi apel.</p></div>
-          <label className="flex items-center gap-3 text-sm font-semibold text-slate-800"><input checked={assemblyForm.enabled} onChange={(event) => setAssemblyForm((current) => ({ ...current, enabled: event.target.checked }))} type="checkbox" /> Aktifkan apel pagi</label>
+        <form className="mt-4 grid gap-3 rounded-2xl border border-sky-100 bg-sky-50 p-4 dark:border-slate-700 dark:bg-slate-800" onSubmit={saveMorningAssembly}>
+          <div><h3 className="font-black text-sky-950 dark:text-sky-100">Apel Pagi</h3><p className="mt-1 text-xs leading-5 text-sky-900 dark:text-slate-300">Jika aktif, seluruh jam pelajaran pada tanggal tanpa upacara digeser sesuai durasi apel.</p></div>
+          <label className="flex items-center gap-3 text-sm font-semibold text-slate-800 dark:text-slate-200"><input checked={assemblyForm.enabled} onChange={(event) => setAssemblyForm((current) => ({ ...current, enabled: event.target.checked }))} type="checkbox" /> Aktifkan apel pagi</label>
           <div className="grid grid-cols-2 gap-3">
-            <label className="grid gap-1 text-sm font-semibold text-slate-700">Mulai<input className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-normal" disabled={!assemblyForm.enabled} onChange={(event) => setAssemblyForm((current) => ({ ...current, startsAt: event.target.value }))} required type="time" value={assemblyForm.startsAt} /></label>
-            <label className="grid gap-1 text-sm font-semibold text-slate-700">Selesai<input className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-normal" disabled={!assemblyForm.enabled} onChange={(event) => setAssemblyForm((current) => ({ ...current, endsAt: event.target.value }))} required type="time" value={assemblyForm.endsAt} /></label>
+            <label className="grid gap-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Mulai<input className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-normal text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100" disabled={!assemblyForm.enabled} onChange={(event) => setAssemblyForm((current) => ({ ...current, startsAt: event.target.value }))} required type="time" value={assemblyForm.startsAt} /></label>
+            <label className="grid gap-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Selesai<input className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-normal text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100" disabled={!assemblyForm.enabled} onChange={(event) => setAssemblyForm((current) => ({ ...current, endsAt: event.target.value }))} required type="time" value={assemblyForm.endsAt} /></label>
           </div>
-          <button className="rounded-xl border border-sky-200 bg-white px-4 py-2 text-sm font-black text-sky-900 disabled:opacity-50" disabled={isSavingAssembly || !schoolYearId} type="submit">{isSavingAssembly ? 'Menyimpan...' : 'Simpan Pengaturan Apel'}</button>
+          <button className="rounded-xl border border-sky-200 bg-white px-4 py-2 text-sm font-black text-sky-900 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-900 dark:text-sky-200" disabled={isSavingAssembly || !schoolYearId} type="submit">{isSavingAssembly ? 'Menyimpan...' : 'Simpan Pengaturan Apel'}</button>
         </form>
 
         <form className="mt-4 grid gap-3" onSubmit={handleSubmit}>
-          <label className="grid gap-1 text-sm font-semibold text-slate-700">Jenis event
-            <select className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-brand-600" onChange={(event) => {
+          <label className="grid gap-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Jenis kegiatan
+            <select className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal text-slate-900 outline-none focus:border-brand-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100" onChange={(event) => {
               const type = event.target.value as AcademicCalendarEventType;
               setForm((current) => ({ ...current, type, blocksAgenda: eventTypes.find((item) => item.value === type)?.blocksAgenda ?? current.blocksAgenda }));
             }} value={form.type}>
               {eventTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
             </select>
           </label>
-          <label className="grid gap-1 text-sm font-semibold text-slate-700">Judul event
-            <input className="rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600" onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Contoh: Libur Idulfitri" value={form.title} />
+          <label className="grid gap-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Nama kegiatan
+            <input className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal text-slate-900 outline-none focus:border-brand-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100" onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Contoh: Upacara Hari Pahlawan atau Libur Idulfitri" value={form.title} />
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="grid gap-1 text-sm font-semibold text-slate-700">Mulai
-              <input className="rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600" onChange={(event) => setForm((current) => ({ ...current, startsAt: event.target.value }))} required type="date" value={form.startsAt} />
+            <label className="grid gap-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Mulai
+              <input className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal text-slate-900 outline-none focus:border-brand-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100" onChange={(event) => setForm((current) => ({ ...current, startsAt: event.target.value }))} required type="date" value={form.startsAt} />
             </label>
-            <label className="grid gap-1 text-sm font-semibold text-slate-700">Sampai
-              <input className="rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600" onChange={(event) => setForm((current) => ({ ...current, endsAt: event.target.value }))} required type="date" value={form.endsAt} />
+            <label className="grid gap-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Sampai
+              <input className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal text-slate-900 outline-none focus:border-brand-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100" onChange={(event) => setForm((current) => ({ ...current, endsAt: event.target.value }))} required type="date" value={form.endsAt} />
             </label>
           </div>
-          <label className="grid gap-1 text-sm font-semibold text-slate-700">Keterangan
-            <textarea className="min-h-20 rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600" onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} value={form.description} />
+          <label className="grid gap-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Keterangan
+            <textarea className="min-h-20 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal text-slate-900 outline-none focus:border-brand-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100" onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} value={form.description} />
           </label>
-          {!/upacara/i.test(form.title) ? <label className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 px-3 py-3 text-sm font-semibold text-amber-900">
+          {form.type !== 'NATIONAL_CEREMONY' ? <label className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 px-3 py-3 text-sm font-semibold text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-200">
             <input checked={form.blocksAgenda} onChange={(event) => setForm((current) => ({ ...current, blocksAgenda: event.target.checked }))} type="checkbox" />
             Blokir pembuatan agenda pada rentang ini
-          </label> : <p className="rounded-xl border border-sky-100 bg-sky-50 px-3 py-3 text-sm text-sky-900">Upacara menerapkan pergeseran jadwal otomatis untuk minggu ini.</p>}
-          <button className="rounded-xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300" disabled={isSaving} type="submit">Tambah Event Kaldik</button>
+          </label> : <p className="rounded-xl border border-sky-100 bg-sky-50 px-3 py-3 text-sm text-sky-900 dark:border-sky-800 dark:bg-slate-800 dark:text-sky-200">Upacara Hari Nasional menerapkan pergeseran jadwal otomatis untuk minggu ini.</p>}
+          <button className="rounded-xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300 dark:disabled:bg-slate-700" disabled={isSaving} type="submit">Tambah Kegiatan</button>
         </form>
       </section>
 
-      <section className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-6">
+      <section className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6">
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">{selectedSchoolYear?.name ?? 'Tahun Ajaran'}</p>
-        <h2 className="mt-1 text-2xl font-black text-ink">Daftar Event Kaldik</h2>
+        <h2 className="mt-1 text-2xl font-black text-ink">Daftar Kegiatan Kaldik</h2>
         <div className="mt-5 space-y-3">
           {events.map((event) => (
-            <article className="flex items-start justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4" key={event.id}>
+            <article className="flex items-start justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800" key={event.id}>
               <div className="min-w-0">
-                <p className="font-black text-slate-900">{event.title}</p>
-                <p className="mt-1 text-sm font-semibold text-slate-600">{formatDate(event.startsAt)}{event.startsAt.slice(0, 10) !== event.endsAt.slice(0, 10) ? ` - ${formatDate(event.endsAt)}` : ''}</p>
-                <p className="mt-1 text-xs font-bold text-brand-700">{eventTypes.find((item) => item.value === event.type)?.label} {/upacara/i.test(event.title) ? '· Pergeseran otomatis minggu upacara' : event.blocksAgenda ? '· Blokir agenda' : '· Tidak memblokir agenda'}</p>
+                <p className="font-black text-slate-900 dark:text-slate-100">{event.title}</p>
+                <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">{formatDate(event.startsAt)}{event.startsAt.slice(0, 10) !== event.endsAt.slice(0, 10) ? ` - ${formatDate(event.endsAt)}` : ''}</p>
+                <p className="mt-1 text-xs font-bold text-brand-700 dark:text-sky-300">{eventTypes.find((item) => item.value === event.type)?.label} {event.type === 'NATIONAL_CEREMONY' ? '· Pergeseran otomatis minggu upacara' : event.blocksAgenda ? '· Blokir agenda' : '· Tidak memblokir agenda'}</p>
                 {event.description ? <p className="mt-2 text-sm text-muted">{event.description}</p> : null}
               </div>
               <button className="rounded-lg bg-rose-50 px-3 py-2 text-xs font-black text-rose-700 hover:bg-rose-100" onClick={() => void handleDelete(event)} type="button">Hapus</button>
             </article>
           ))}
-          {!events.length ? <p className="rounded-xl border border-dashed border-slate-200 p-5 text-sm font-semibold text-muted">Belum ada event Kaldik pada tahun ajaran ini.</p> : null}
+          {!events.length ? <p className="rounded-xl border border-dashed border-slate-200 p-5 text-sm font-semibold text-muted dark:border-slate-700">Belum ada event Kaldik pada tahun ajaran ini.</p> : null}
         </div>
       </section>
 
-      <section className="xl:col-span-2 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <section className="xl:col-span-2 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <div className="bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-900 px-5 py-6 text-white sm:px-7">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-200">Kalender Akademik</p>
           <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -251,7 +252,7 @@ export function AcademicCalendarManagement() {
           <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-600">Tahun ajaran penuh</p>
-              <h3 className="mt-1 text-lg font-black text-slate-900">
+              <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-slate-100">
                 {calendarMonths.length ? `${new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(calendarMonths[0])} – ${new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(calendarMonths[calendarMonths.length - 1])}` : 'Kalender belum tersedia'}
               </h3>
             </div>
@@ -275,9 +276,9 @@ export function AcademicCalendarManagement() {
                 return event.startsAt.slice(0, 7) <= monthKey && event.endsAt.slice(0, 7) >= monthKey;
               });
               return (
-                <article className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4" key={month.toISOString()}>
+                <article className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800 sm:p-4" key={month.toISOString()}>
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-base font-black capitalize text-slate-900 sm:text-lg">{new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(month)}</h3>
+                    <h3 className="text-base font-black capitalize text-slate-900 dark:text-slate-100 sm:text-lg">{new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(month)}</h3>
                     <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500">{monthEvents.length} agenda</span>
                   </div>
                   <div className="mt-4 grid grid-cols-7 gap-1 text-center">
@@ -308,31 +309,31 @@ export function AcademicCalendarManagement() {
                       );
                     })}
                   </div>
-                  {monthEvents.length ? <div className="mt-4 space-y-2 border-t border-slate-100 pt-3">
+                  {monthEvents.length ? <div className="mt-4 space-y-2 border-t border-slate-100 pt-3 dark:border-slate-700">
                     {monthEvents.slice(0, 3).map((event) => (
                       <button className="flex w-full min-w-0 items-center gap-2 text-left" key={event.id} onClick={() => selectCalendarDate(new Date(`${event.startsAt.slice(0, 10)}T00:00:00`))} type="button">
                         <span className={`h-2 w-2 shrink-0 rounded-full ${event.type === 'HOLIDAY' ? 'bg-rose-500' : event.type === 'EXAM' ? 'bg-violet-500' : event.type === 'SCHOOL_ACTIVITY' ? 'bg-sky-500' : event.type === 'NON_TEACHING_DAY' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
-                        <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-700">{event.title}</span>
+                        <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-700 dark:text-slate-200">{event.title}</span>
                         <span className="shrink-0 text-[10px] text-slate-500">{event.startsAt.slice(8, 10)}</span>
                       </button>
                     ))}
                     {monthEvents.length > 3 ? <p className="pl-4 text-[10px] font-semibold text-slate-400">+{monthEvents.length - 3} agenda lainnya</p> : null}
-                  </div> : <p className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-400">Belum ada agenda bulan ini.</p>}
+                  </div> : <p className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-700 text-xs text-slate-400">Belum ada agenda bulan ini.</p>}
                 </article>
               );
             })}
           </div>
-          <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 sm:p-5">
+          <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 dark:border-slate-700 dark:bg-slate-800 sm:p-5">
             <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-700">Tanggal terpilih</p>
-            <h3 className="mt-1 text-lg font-black text-slate-900">{formatDate(selectedDate)}</h3>
+            <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-slate-100">{formatDate(selectedDate)}</h3>
             {selectedDateEvents.length ? <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {selectedDateEvents.map((event) => (
-                <article className="flex min-w-0 items-start justify-between gap-3 rounded-xl border border-white bg-white p-3" key={event.id}>
-                  <div className="min-w-0"><p className="break-words text-sm font-black text-slate-900">{event.title}</p><p className="mt-1 text-xs text-slate-500">{eventTypes.find((item) => item.value === event.type)?.label}</p>{event.description ? <p className="mt-1 text-xs text-slate-500">{event.description}</p> : null}</div>
+                <article className="flex min-w-0 items-start justify-between gap-3 rounded-xl border border-white bg-white p-3 dark:border-slate-700 dark:bg-slate-900" key={event.id}>
+                  <div className="min-w-0"><p className="break-words text-sm font-black text-slate-900 dark:text-slate-100">{event.title}</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{eventTypes.find((item) => item.value === event.type)?.label}</p>{event.description ? <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{event.description}</p> : null}</div>
                   <button className="shrink-0 rounded-lg bg-rose-50 px-2.5 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100" onClick={() => void handleDelete(event)} type="button">Hapus</button>
                 </article>
               ))}
-            </div> : <p className="mt-2 text-sm text-slate-600">Belum ada agenda pada tanggal ini. Pilih tanggal untuk mengisi tanggal kegiatan di formulir.</p>}
+            </div> : <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Belum ada agenda pada tanggal ini. Pilih tanggal untuk mengisi tanggal kegiatan di formulir.</p>}
           </div>
         </div>
       </section>

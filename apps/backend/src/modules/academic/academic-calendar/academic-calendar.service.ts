@@ -40,12 +40,12 @@ export class AcademicCalendarService {
       after: created,
     });
 
-    return { data: created, message: 'Event Kaldik berhasil ditambahkan.' };
+    return { data: created, message: 'Kegiatan Kaldik berhasil ditambahkan.' };
   }
 
   async updateAcademicCalendarEvent(id: string, dto: UpdateAcademicCalendarEventDto) {
     const existing = await this.prisma.academicCalendarEvent.findFirst({ where: { id, deletedAt: null } });
-    if (!existing) throw new NotFoundException('Event Kaldik tidak ditemukan');
+    if (!existing) throw new NotFoundException('Kegiatan Kaldik tidak ditemukan');
 
     const event = await this.validateAcademicCalendarEvent({
       schoolYearId: existing.schoolYearId,
@@ -76,12 +76,12 @@ export class AcademicCalendarService {
       after: updated,
     });
 
-    return { data: updated, message: 'Event Kaldik berhasil diperbarui.' };
+    return { data: updated, message: 'Kegiatan Kaldik berhasil diperbarui.' };
   }
 
   async deleteAcademicCalendarEvent(id: string) {
     const existing = await this.prisma.academicCalendarEvent.findFirst({ where: { id, deletedAt: null } });
-    if (!existing) throw new NotFoundException('Event Kaldik tidak ditemukan');
+    if (!existing) throw new NotFoundException('Kegiatan Kaldik tidak ditemukan');
 
     const deleted = await this.prisma.academicCalendarEvent.update({
       where: { id },
@@ -97,7 +97,7 @@ export class AcademicCalendarService {
       after: deleted,
     });
 
-    return { data: deleted, message: 'Event Kaldik dihapus.' };
+    return { data: deleted, message: 'Kegiatan Kaldik dihapus.' };
   }
 
   /**
@@ -122,11 +122,13 @@ export class AcademicCalendarService {
           where: {
             schoolYearId,
             deletedAt: null,
-            scheduleShiftFromDay: { not: null },
-            scheduleShiftToDay: { not: null },
+            OR: [
+              { scheduleShiftFromDay: { not: null }, scheduleShiftToDay: { not: null } },
+              { type: 'NATIONAL_CEREMONY' },
+            ],
             startsAt: { gte: week.start, lte: week.end },
           },
-          select: { startsAt: true, scheduleShiftFromDay: true, scheduleShiftToDay: true },
+          select: { startsAt: true, type: true, title: true, scheduleShiftFromDay: true, scheduleShiftToDay: true },
         }),
         this.prisma.academicTimeSlot.findMany({
           where: { schoolYearId, deletedAt: null, isActive: true },
@@ -153,9 +155,9 @@ export class AcademicCalendarService {
         if (!agenda.schedule) continue;
         const day = getDayOfWeek(agenda.date);
         const relevantShift = events.some((event) =>
-          event.scheduleShiftFromDay != null &&
-          event.scheduleShiftToDay != null &&
-          (day === event.scheduleShiftFromDay || day === event.scheduleShiftToDay),
+          (event.type === 'NATIONAL_CEREMONY' && (day === 1 || day === getDayOfWeek(event.startsAt))) ||
+          (event.scheduleShiftFromDay != null && event.scheduleShiftToDay != null &&
+            (day === event.scheduleShiftFromDay || day === event.scheduleShiftToDay)),
         );
         if (!relevantShift && agenda.effectivePeriodNumber == null) continue;
 
@@ -194,7 +196,7 @@ export class AcademicCalendarService {
 
     if (!schoolYear) throw new NotFoundException('Tahun ajaran tidak ditemukan');
     if (dto.semesterId && !semester) throw new BadRequestException('Semester tidak berada pada tahun ajaran yang dipilih');
-    if (!dto.title.trim()) throw new BadRequestException('Judul event Kaldik wajib diisi');
+    if (!dto.title.trim()) throw new BadRequestException('Nama kegiatan Kaldik wajib diisi');
 
     const startsAt = this.toDateOnly(dto.startsAt);
     const endsAt = this.toDateOnly(dto.endsAt);
@@ -202,8 +204,8 @@ export class AcademicCalendarService {
     const shiftFrom = dto.scheduleShiftFromDay ?? null;
     const shiftTo = dto.scheduleShiftToDay ?? null;
     if ((shiftFrom === null) !== (shiftTo === null)) throw new BadRequestException('Hari asal dan hari tujuan pergeseran harus diisi berpasangan');
-    if (/upacara/i.test(dto.title) && startsAt.getTime() !== endsAt.getTime()) {
-      throw new BadRequestException('Event Upacara harus menggunakan satu tanggal pelaksanaan.');
+    if (dto.type === 'NATIONAL_CEREMONY' && startsAt.getTime() !== endsAt.getTime()) {
+      throw new BadRequestException('Upacara Hari Nasional harus menggunakan satu tanggal pelaksanaan.');
     }
     if (shiftFrom !== null && shiftTo !== null) {
       if (shiftFrom === shiftTo) throw new BadRequestException('Hari asal dan tujuan upacara harus berbeda');
@@ -224,7 +226,7 @@ export class AcademicCalendarService {
       type: dto.type,
       startsAt,
       endsAt,
-      blocksAgenda: /upacara/i.test(dto.title) || (shiftFrom !== null && shiftTo !== null) ? false : (dto.blocksAgenda ?? true),
+      blocksAgenda: dto.type === 'NATIONAL_CEREMONY' || (shiftFrom !== null && shiftTo !== null) ? false : (dto.blocksAgenda ?? true),
       scheduleShiftFromDay: shiftFrom,
       scheduleShiftToDay: shiftTo,
     };

@@ -16,6 +16,7 @@ enum AcademicCalendarEventType {
   HOLIDAY
   EXAM
   SCHOOL_ACTIVITY
+  NATIONAL_CEREMONY
   NON_TEACHING_DAY
   OTHER
 }

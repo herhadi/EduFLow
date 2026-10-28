@@ -1,0 +1,1 @@
+ALTER TYPE "AcademicCalendarEventType" ADD VALUE 'NATIONAL_CEREMONY';

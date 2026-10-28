@@ -20,7 +20,8 @@ export function getEffectiveSchedulesForDate<Schedule extends {
     .filter((schedule) => schedule.dayOfWeek === dayOfWeek && (!classIds || classIds.has(schedule.classId)));
 }
 
-type ShiftEvent = { startsAt: Date; title?: string; scheduleShiftFromDay: number | null; scheduleShiftToDay: number | null };
+type ShiftEvent = { startsAt: Date; title?: string; type?: string; scheduleShiftFromDay: number | null; scheduleShiftToDay: number | null };
+function isNationalCeremony(item: ShiftEvent) { return item.type === 'NATIONAL_CEREMONY' || /upacara/i.test(item.title ?? ''); }
 type MorningAssemblySettings = { enabled: boolean; startsAt: string; endsAt: string };
 function clockMinutes(value: string) { const [h, m] = value.split(':').map(Number); return h * 60 + m; }
 function shiftClock(value: string, delta: number) {
@@ -44,7 +45,7 @@ export function applyScheduleShiftForDate<Schedule extends {
     start.setUTCDate(start.getUTCDate() - (getDayOfWeek(start) - 1));
     return start.getTime();
   };
-  const upacaraEvent = events.find((item) => weekStart(item.startsAt) === weekStart(date) && /upacara/i.test(item.title ?? ''));
+  const upacaraEvent = events.find((item) => weekStart(item.startsAt) === weekStart(date) && isNationalCeremony(item));
   const upacaraTargetDay = upacaraEvent ? getDayOfWeek(upacaraEvent.startsAt) : null;
   // Upacara normally falls on Monday. If Kaldik marks it on another day,
   // move Monday's lesson sequence one period earlier and the marked day one period later.
@@ -68,7 +69,7 @@ export function applyScheduleShiftForDate<Schedule extends {
     if (!targetSlot) throw new BadRequestException(`Pergeseran jadwal ${getAgendaDateKey(date)} tidak dapat dilakukan: slot jam ke-${targetPeriod} belum dikonfigurasi pada hari sekolah tersebut.`);
     effective = { ...schedule, timeSlotId: targetSlot.id, startsAt: targetSlot.startsAt, endsAt: targetSlot.endsAt, effectivePeriodNumber: targetPeriod };
   }
-  const upacaraToday = events.some((item) => getAgendaDateKey(item.startsAt) === getAgendaDateKey(date) && /upacara/i.test(item.title ?? ''));
+  const upacaraToday = events.some((item) => getAgendaDateKey(item.startsAt) === getAgendaDateKey(date) && isNationalCeremony(item));
   if (morningAssembly?.enabled && !upacaraToday) {
     const duration = clockMinutes(morningAssembly.endsAt) - clockMinutes(morningAssembly.startsAt);
     if (duration > 0) effective = { ...effective, startsAt: shiftClock(effective.startsAt, duration), endsAt: shiftClock(effective.endsAt, duration) };

@@ -292,7 +292,7 @@ export class AgendaGenerationService {
     const [events, timeSlots, schoolYear] = await Promise.all([
       this.prisma.academicCalendarEvent.findMany({
         where: { schoolYearId, deletedAt: null, startsAt: { gte: queryStartsAt, lte: queryEndsAt } },
-        select: { startsAt: true, title: true, scheduleShiftFromDay: true, scheduleShiftToDay: true },
+        select: { startsAt: true, title: true, type: true, scheduleShiftFromDay: true, scheduleShiftToDay: true },
       }),
       this.prisma.academicTimeSlot.findMany({
         where: { schoolYearId, deletedAt: null, isActive: true },

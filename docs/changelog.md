@@ -5,7 +5,8 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 ## 2026-10-28
 
 - Menambahkan konfigurasi apel pagi per tahun ajaran dengan status aktif/nonaktif dan waktu mulai/selesai yang fleksibel; generate agenda menggeser waktu pelajaran sesuai durasi apel dan melewati pergeseran apel pada tanggal upacara.
-- Menyederhanakan penandaan upacara di Kaldik: cukup mencantumkan tanggal dengan judul “Upacara”; pergeseran Senin/hari pelaksanaan upacara yang ditandai di Kaldik diterapkan otomatis saat generate agenda.
+- Menambahkan jenis kegiatan khusus “Upacara Hari Nasional” pada Kaldik; penyesuaian jadwal mengenali kode jenis kegiatan, tidak bergantung pada ejaan nama, dan otomatis mengatur pergeseran jadwal mingguan.
+- Mengganti label formulir Kaldik dari “event” menjadi “kegiatan” dan memperbaiki kontras komponen kalender agar mengikuti dark/light mode.
 - Memperbarui manual operator untuk konfigurasi apel pagi dan aturan generate agenda berdasarkan Kaldik.
 
 ## 2026-10-27
