@@ -28,8 +28,11 @@ function formatDate(value: string) {
 function formatMonth(date: Date) { return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(date); }
 function getCalendarMonths(schoolYear?: SchoolYear) {
   if (!schoolYear) return [];
+  // Nama tahun ajaran menjadi acuan utama agar data startsAt lama/tidak konsisten
+  // tidak membuat tahun ajaran 2026/2027 tampil mulai Juli 2025.
+  const match = schoolYear.name.match(/(\\d{4})\\s*[/-]\\s*(\\d{4})/);
   const startsAt = new Date(dateInput(schoolYear.startsAt) + 'T00:00:00');
-  const firstYear = startsAt.getMonth() >= 6 ? startsAt.getFullYear() : startsAt.getFullYear() - 1;
+  const firstYear = match ? Number(match[1]) : startsAt.getMonth() >= 6 ? startsAt.getFullYear() : startsAt.getFullYear() - 1;
   return Array.from({ length: 12 }, (_, index) => new Date(firstYear, 6 + index, 1));
 }
 function blankForm(date: string) {
@@ -224,6 +227,36 @@ export function AcademicCalendarManagement() {
             <button className="rounded-xl border border-sky-200 bg-white px-3 py-2.5 text-sm font-black text-sky-900 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-900 dark:text-sky-200" disabled={savingAssembly || !schoolYearId} type="submit">{savingAssembly ? 'Menyimpan...' : 'Simpan Pengaturan Apel'}</button>
           </form>
         </aside>
+      </div>
+    </section>
+
+    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-600">Tinjauan Tahunan</p><h2 className="mt-1 text-xl font-black text-slate-900 dark:text-slate-100">Review Kaldik 1 Tahun</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Ringkasan 12 bulan tahun ajaran Juli–Juni. Pilih bulan untuk membuka kalender detail.</p></div>
+        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">{selectedSchoolYear?.name ?? 'Tahun ajaran'}</span>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+        {months.map((month, index) => {
+          const monthStart = isoDate(month);
+          const monthEnd = isoDate(new Date(month.getFullYear(), month.getMonth() + 1, 0));
+          const monthDays = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+          const monthOffset = (month.getDay() + 6) % 7;
+          const monthCells = Array.from({ length: Math.ceil((monthOffset + monthDays) / 7) * 7 }, (_, cell) => cell - monthOffset + 1);
+          const monthEventCount = events.filter((item) => item.startsAt.slice(0, 10) <= monthEnd && item.endsAt.slice(0, 10) >= monthStart).length;
+          return <button aria-label={'Buka kalender ' + formatMonth(month)} aria-pressed={index === monthIndex} className={'min-w-0 rounded-xl border p-3 text-left transition ' + (index === monthIndex ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-200 dark:border-brand-500 dark:bg-brand-950/40 dark:ring-brand-900' : 'border-slate-200 bg-white hover:border-brand-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-500')} key={monthStart} onClick={() => { setMonthIndex(index); setSelectedDate(monthStart); }} type="button">
+            <span className="flex items-start justify-between gap-1"><span className="truncate text-sm font-black capitalize text-slate-900 dark:text-slate-100">{formatMonth(month)}</span><span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200">{monthEventCount}</span></span>
+            <span className="mt-2 grid grid-cols-7 gap-y-1 text-center">
+              {weekdays.map((day) => <span className="text-[9px] font-bold text-slate-400" key={day}>{day.slice(0, 1)}</span>)}
+              {monthCells.map((day, cellIndex) => {
+                if (day < 1 || day > monthDays) return <span className="h-4" key={'blank-' + cellIndex} />;
+                const date = isoDate(new Date(month.getFullYear(), month.getMonth(), day));
+                const hasActivity = events.some((item) => item.startsAt.slice(0, 10) <= date && item.endsAt.slice(0, 10) >= date);
+                return <span className={'flex h-4 items-center justify-center rounded text-[9px] ' + (date === selectedDate ? 'bg-brand-600 font-black text-white' : hasActivity ? 'bg-sky-100 font-bold text-sky-800 dark:bg-sky-900 dark:text-sky-100' : 'text-slate-600 dark:text-slate-300')} key={date}>{day}</span>;
+              })}
+            </span>
+            <span className="mt-2 block text-[10px] text-slate-500 dark:text-slate-400">{monthEventCount} kegiatan</span>
+          </button>;
+        })}
       </div>
     </section>
 
