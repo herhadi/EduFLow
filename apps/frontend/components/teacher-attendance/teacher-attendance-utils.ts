@@ -7,7 +7,7 @@ export const attendanceStatuses: Array<{ value: AttendanceStatus; label: string 
   { value: 'ABSENT', label: 'Alpha' },
 ];
 
-export const teacherAttendancePageSize = 10;
+export const teacherAttendancePageSize = 12;
 export const classPhotoMaxUploadBytes = 950 * 1024;
 
 export type AttendanceMode = 'list' | 'quick';

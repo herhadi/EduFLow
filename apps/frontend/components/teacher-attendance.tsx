@@ -36,7 +36,7 @@ export function TeacherAttendance() {
   const [lateSubmitRequired, setLateSubmitRequired] = useState(false);
   const [lateSubmitReason, setLateSubmitReason] = useState('');
   const [lateSubmitSending, setLateSubmitSending] = useState(false);
-  const [mode, setMode] = useState<AttendanceMode>('list');
+  const [mode, setMode] = useState<AttendanceMode>('quick');
   const [page, setPage] = useState(1);
   const [selectedItemId, setSelectedItemId] = useState('');
   const [checklist, setChecklist] = useState({

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { type Attendance, type AttendanceStatus } from '../../lib/api';
 import { CameraCaptureButton } from '../ui/camera-capture-button';
 import { Pagination } from '../ui/pagination';
@@ -62,7 +62,7 @@ export function AttendanceListMode({
 
   return (
     <>
-      <div className="mt-4 grid gap-2 md:grid-cols-2">
+      <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
         {visibleItems.map((item) => (
           <div
             className="grid grid-cols-[minmax(0,1fr)_8.5rem] items-center gap-3 rounded-2xl border border-slate-100 bg-white px-3 py-3 dark:border-[var(--border)] dark:bg-[var(--surface-solid)]"
@@ -104,25 +104,43 @@ export function AttendanceQuickMode({
   onUpdate: (id: string, status: AttendanceStatus) => void;
   selectedItemId: string;
 }) {
+  const [studentSearch, setStudentSearch] = useState('');
   const selectedItem = attendance.items.find((item) => item.id === selectedItemId) ?? attendance.items[0];
+  const filteredItems = attendance.items.filter((item) =>
+    item.student.name.toLocaleLowerCase('id-ID').includes(studentSearch.trim().toLocaleLowerCase('id-ID')),
+  );
 
   return (
     <div className="mt-4 grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3 dark:border-blue-400/20 dark:bg-blue-400/10 sm:grid-cols-[minmax(0,1fr)_12rem]">
-      <label className="grid gap-2 text-sm font-bold">
-        Pilih Siswa
-        <select
-          className="min-w-0 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]"
-          onChange={(event) => onSelect(event.target.value)}
-          value={selectedItem?.id ?? ''}
-        >
-          {attendance.items.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.student.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="grid gap-2 text-sm font-bold">
+      <div className="grid gap-2 text-sm font-bold">
+        <label className="grid gap-2">
+          Cari Siswa
+          <input
+            className="min-w-0 rounded-2xl border bg-white px-4 py-3 font-normal outline-none placeholder:text-slate-400 focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]"
+            onChange={(event) => setStudentSearch(event.target.value)}
+            placeholder="Ketik nama siswa..."
+            type="search"
+            value={studentSearch}
+          />
+        </label>
+        <label className="grid gap-2">
+          Pilih Siswa
+          <select
+            className="min-w-0 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]"
+            onChange={(event) => onSelect(event.target.value)}
+            value={selectedItem?.id ?? ''}
+          >
+            {filteredItems.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.student.name}
+              </option>
+            ))}
+            {!filteredItems.length ? <option value="" disabled>Tidak ada siswa yang cocok</option> : null}
+          </select>
+          <span className="text-xs font-medium text-muted">{filteredItems.length} dari {attendance.items.length} siswa</span>
+        </label>
+      </div>
+      <label className="grid content-start gap-2 text-sm font-bold">
         Status
         <select
           className="min-w-0 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]"
