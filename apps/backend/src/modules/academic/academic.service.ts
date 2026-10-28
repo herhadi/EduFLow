@@ -49,6 +49,10 @@ export class AcademicService {
     return this.academicMasterService.createSchoolYear(dto);
   }
 
+  async updateMorningAssemblySettings(id: string, dto: { enabled: boolean; startsAt: string; endsAt: string }) {
+    return this.academicMasterService.updateMorningAssemblySettings(id, dto);
+  }
+
   async cloneSchoolYearMaster(dto: CloneSchoolYearMasterDto) {
     return this.academicMasterService.cloneSchoolYearMaster(dto);
   }

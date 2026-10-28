@@ -323,6 +323,10 @@ Slot yang sudah dipakai tidak dapat dihapus agar histori tetap aman.
 
 Perubahan kalender tidak otomatis menghapus agenda yang sudah dibuat. Periksa agenda bila kalender diubah setelah proses generate.
 
+Untuk kegiatan **Upacara**, cukup masukkan event dengan judul yang memuat kata “Upacara” pada tanggal pelaksanaannya. Saat generate agenda, sistem otomatis menerapkan pergeseran tetap pada minggu tersebut: jadwal Senin bergeser satu jam pelajaran lebih awal dan jadwal Kamis satu jam pelajaran lebih akhir. Tidak perlu mengatur hari asal atau tujuan. Agenda Senin pada jam ke-1 dilewati karena tidak ada jam ke-0.
+
+Pengaturan **Apel Pagi** berada pada halaman Kalender Pendidikan di bawah pilihan tahun ajaran. Operator dapat mengaktifkan atau menonaktifkannya serta mengatur waktu mulai dan selesai. Jika aktif, agenda pada tanggal tanpa upacara digeser sebesar durasi apel; misalnya apel 06.50–07.10 menggeser seluruh waktu pelajaran 20 menit. Pada tanggal upacara, pergeseran apel tidak diterapkan. Aturan berlaku saat agenda digenerate; agenda yang sudah ada tidak otomatis diganti.
+
 ## 3.9 Import Data Guru dan Siswa
 
 1. Buka `/admin/import-data`.

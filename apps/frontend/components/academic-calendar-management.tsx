@@ -36,11 +36,6 @@ function getCalendarMonths(schoolYear?: SchoolYear) {
 }
 
 const weekdayLabels = ['Sn', 'Sl', 'Rb', 'Km', 'Jm', 'Sb', 'Mg'];
-const schoolDays = [
-  { value: 1, label: 'Senin' }, { value: 2, label: 'Selasa' }, { value: 3, label: 'Rabu' },
-  { value: 4, label: 'Kamis' }, { value: 5, label: 'Jumat' }, { value: 6, label: 'Sabtu' }, { value: 7, label: 'Minggu' },
-];
-
 export function AcademicCalendarManagement() {
   const toast = useToast();
   const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
@@ -48,6 +43,8 @@ export function AcademicCalendarManagement() {
   const [schoolYearId, setSchoolYearId] = useState('');
   const [selectedDate, setSelectedDate] = useState(toIsoDate(new Date()));
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingAssembly, setIsSavingAssembly] = useState(false);
+  const [assemblyForm, setAssemblyForm] = useState({ enabled: false, startsAt: '06:50', endsAt: '07:10' });
   const [form, setForm] = useState({
     title: '',
     type: 'HOLIDAY' as AcademicCalendarEventType,
@@ -55,9 +52,6 @@ export function AcademicCalendarManagement() {
     endsAt: '',
     description: '',
     blocksAgenda: true,
-    shiftSchedule: false,
-    scheduleShiftFromDay: 1,
-    scheduleShiftToDay: 4,
   });
 
   const selectedSchoolYear = useMemo(
@@ -91,12 +85,33 @@ export function AcademicCalendarManagement() {
 
   useEffect(() => { void loadSchoolYears(); }, []);
   useEffect(() => { void loadEvents(schoolYearId); }, [schoolYearId]);
+  useEffect(() => {
+    if (!selectedSchoolYear) return;
+    setAssemblyForm({
+      enabled: selectedSchoolYear.morningAssemblyEnabled ?? false,
+      startsAt: selectedSchoolYear.morningAssemblyStartsAt ?? '06:50',
+      endsAt: selectedSchoolYear.morningAssemblyEndsAt ?? '07:10',
+    });
+  }, [selectedSchoolYear]);
 
   useEffect(() => {
     if (!selectedSchoolYear || form.startsAt) return;
     const startsAt = toDateInput(selectedSchoolYear.startsAt);
     setForm((current) => ({ ...current, startsAt, endsAt: startsAt }));
   }, [form.startsAt, selectedSchoolYear]);
+
+  async function saveMorningAssembly(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!schoolYearId) return;
+    setIsSavingAssembly(true);
+    try {
+      const response = await api.updateMorningAssemblySettings(schoolYearId, assemblyForm);
+      setSchoolYears((current) => current.map((year) => year.id === schoolYearId ? response.data : year));
+      toast.success(response.message ?? 'Pengaturan apel pagi disimpan.', 'Apel Pagi');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Pengaturan apel pagi gagal disimpan.', 'Apel Pagi');
+    } finally { setIsSavingAssembly(false); }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -114,9 +129,7 @@ export function AcademicCalendarManagement() {
         startsAt: form.startsAt,
         endsAt: form.endsAt,
         description: form.description.trim() || undefined,
-        blocksAgenda: form.shiftSchedule ? false : form.blocksAgenda,
-        scheduleShiftFromDay: form.shiftSchedule ? form.scheduleShiftFromDay : null,
-        scheduleShiftToDay: form.shiftSchedule ? form.scheduleShiftToDay : null,
+        blocksAgenda: /upacara/i.test(form.title) ? false : form.blocksAgenda,
       });
       setEvents((current) => [...current, response.data].sort((a, b) => a.startsAt.localeCompare(b.startsAt)));
       setForm((current) => ({ ...current, title: '', description: '' }));
@@ -163,6 +176,16 @@ export function AcademicCalendarManagement() {
           </select>
         </label>
 
+        <form className="mt-4 grid gap-3 rounded-2xl border border-sky-100 bg-sky-50 p-4" onSubmit={saveMorningAssembly}>
+          <div><h3 className="font-black text-sky-950">Apel Pagi</h3><p className="mt-1 text-xs leading-5 text-sky-900">Jika aktif, seluruh jam pelajaran pada tanggal tanpa upacara digeser sesuai durasi apel.</p></div>
+          <label className="flex items-center gap-3 text-sm font-semibold text-slate-800"><input checked={assemblyForm.enabled} onChange={(event) => setAssemblyForm((current) => ({ ...current, enabled: event.target.checked }))} type="checkbox" /> Aktifkan apel pagi</label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="grid gap-1 text-sm font-semibold text-slate-700">Mulai<input className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-normal" disabled={!assemblyForm.enabled} onChange={(event) => setAssemblyForm((current) => ({ ...current, startsAt: event.target.value }))} required type="time" value={assemblyForm.startsAt} /></label>
+            <label className="grid gap-1 text-sm font-semibold text-slate-700">Selesai<input className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-normal" disabled={!assemblyForm.enabled} onChange={(event) => setAssemblyForm((current) => ({ ...current, endsAt: event.target.value }))} required type="time" value={assemblyForm.endsAt} /></label>
+          </div>
+          <button className="rounded-xl border border-sky-200 bg-white px-4 py-2 text-sm font-black text-sky-900 disabled:opacity-50" disabled={isSavingAssembly || !schoolYearId} type="submit">{isSavingAssembly ? 'Menyimpan...' : 'Simpan Pengaturan Apel'}</button>
+        </form>
+
         <form className="mt-4 grid gap-3" onSubmit={handleSubmit}>
           <label className="grid gap-1 text-sm font-semibold text-slate-700">Jenis event
             <select className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal outline-none focus:border-brand-600" onChange={(event) => {
@@ -186,32 +209,10 @@ export function AcademicCalendarManagement() {
           <label className="grid gap-1 text-sm font-semibold text-slate-700">Keterangan
             <textarea className="min-h-20 rounded-xl border border-slate-200 px-3 py-3 text-sm font-normal outline-none focus:border-brand-600" onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} value={form.description} />
           </label>
-          <div className="rounded-xl border border-sky-100 bg-sky-50 p-3">
-            <label className="flex items-center gap-3 text-sm font-bold text-sky-950">
-              <input checked={form.shiftSchedule} onChange={(event) => setForm((current) => ({ ...current, shiftSchedule: event.target.checked, type: event.target.checked ? 'SCHOOL_ACTIVITY' : current.type, blocksAgenda: event.target.checked ? false : current.blocksAgenda }))} type="checkbox" />
-              Pergeseran jadwal upacara untuk minggu ini
-            </label>
-            {form.shiftSchedule ? <>
-              <p className="mt-2 text-xs leading-5 text-sky-900">Jadwal hari asal bergeser −1 jam, hari tujuan +1 jam. Penyesuaian hanya berlaku pada minggu tanggal kegiatan ini.</p>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <label className="grid gap-1 text-sm font-semibold text-slate-700">Hari asal upacara
-                  <select className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal" value={form.scheduleShiftFromDay} onChange={(event) => setForm((current) => ({ ...current, scheduleShiftFromDay: Number(event.target.value) }))}>
-                    {schoolDays.map((day) => <option key={day.value} value={day.value}>{day.label}</option>)}
-                  </select>
-                </label>
-                <label className="grid gap-1 text-sm font-semibold text-slate-700">Hari tujuan upacara
-                  <select className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-normal" value={form.scheduleShiftToDay} onChange={(event) => setForm((current) => ({ ...current, scheduleShiftToDay: Number(event.target.value) }))}>
-                    {schoolDays.filter((day) => day.value !== form.scheduleShiftFromDay).map((day) => <option key={day.value} value={day.value}>{day.label}</option>)}
-                  </select>
-                </label>
-              </div>
-              <p className="mt-2 text-xs font-semibold text-sky-900">Tanggal event harus jatuh pada hari tujuan. Slot jam ke-1 di hari tujuan dipakai untuk upacara.</p>
-            </> : null}
-          </div>
-          {!form.shiftSchedule ? <label className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 px-3 py-3 text-sm font-semibold text-amber-900">
+          {!/upacara/i.test(form.title) ? <label className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 px-3 py-3 text-sm font-semibold text-amber-900">
             <input checked={form.blocksAgenda} onChange={(event) => setForm((current) => ({ ...current, blocksAgenda: event.target.checked }))} type="checkbox" />
             Blokir pembuatan agenda pada rentang ini
-          </label> : null}
+          </label> : <p className="rounded-xl border border-sky-100 bg-sky-50 px-3 py-3 text-sm text-sky-900">Upacara menerapkan pergeseran jadwal otomatis untuk minggu ini.</p>}
           <button className="rounded-xl bg-brand-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300" disabled={isSaving} type="submit">Tambah Event Kaldik</button>
         </form>
       </section>
@@ -225,7 +226,7 @@ export function AcademicCalendarManagement() {
               <div className="min-w-0">
                 <p className="font-black text-slate-900">{event.title}</p>
                 <p className="mt-1 text-sm font-semibold text-slate-600">{formatDate(event.startsAt)}{event.startsAt.slice(0, 10) !== event.endsAt.slice(0, 10) ? ` - ${formatDate(event.endsAt)}` : ''}</p>
-                <p className="mt-1 text-xs font-bold text-brand-700">{eventTypes.find((item) => item.value === event.type)?.label} {event.scheduleShiftFromDay && event.scheduleShiftToDay ? `· Upacara ${schoolDays.find((day) => day.value === event.scheduleShiftFromDay)?.label} → ${schoolDays.find((day) => day.value === event.scheduleShiftToDay)?.label}` : event.blocksAgenda ? '· Blokir agenda' : '· Tidak memblokir agenda'}</p>
+                <p className="mt-1 text-xs font-bold text-brand-700">{eventTypes.find((item) => item.value === event.type)?.label} {/upacara/i.test(event.title) ? '· Pergeseran otomatis minggu upacara' : event.blocksAgenda ? '· Blokir agenda' : '· Tidak memblokir agenda'}</p>
                 {event.description ? <p className="mt-2 text-sm text-muted">{event.description}</p> : null}
               </div>
               <button className="rounded-lg bg-rose-50 px-3 py-2 text-xs font-black text-rose-700 hover:bg-rose-100" onClick={() => void handleDelete(event)} type="button">Hapus</button>

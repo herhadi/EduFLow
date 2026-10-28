@@ -89,6 +89,9 @@ export interface SchoolYear {
   name: string;
   startsAt: string;
   endsAt: string;
+  morningAssemblyEnabled?: boolean;
+  morningAssemblyStartsAt?: string;
+  morningAssemblyEndsAt?: string;
 }
 
 export interface CloneSchoolYearMasterResult {

@@ -44,6 +44,12 @@ export class AcademicController {
   }
 
   @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Patch('school-years/:id/morning-assembly')
+  updateMorningAssemblySettings(@Param('id') id: string, @Body() dto: { enabled: boolean; startsAt: string; endsAt: string }) {
+    return this.academicService.updateMorningAssemblySettings(id, dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
   @Post('school-years/clone-master')
   cloneSchoolYearMaster(@Body() dto: CloneSchoolYearMasterDto) {
     return this.academicService.cloneSchoolYearMaster(dto);

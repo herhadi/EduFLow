@@ -315,9 +315,12 @@ model RolePermission {
 model SchoolYear {
   id                 String                        @id @default(uuid()) @db.Uuid
   name               String                        @unique
-  startsAt           DateTime
-  endsAt             DateTime
-  semesters          Semester[]
+  startsAt                    DateTime
+  endsAt                      DateTime
+  morningAssemblyEnabled      Boolean   @default(false)
+  morningAssemblyStartsAt     String    @default("06:50")
+  morningAssemblyEndsAt       String    @default("07:10")
+  semesters                   Semester[]
   classes            Class[]
   enrollments        StudentEnrollment[]
   schedules          Schedule[]

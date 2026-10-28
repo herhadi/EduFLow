@@ -20,7 +20,13 @@ export function getEffectiveSchedulesForDate<Schedule extends {
     .filter((schedule) => schedule.dayOfWeek === dayOfWeek && (!classIds || classIds.has(schedule.classId)));
 }
 
-type ShiftEvent = { startsAt: Date; scheduleShiftFromDay: number | null; scheduleShiftToDay: number | null };
+type ShiftEvent = { startsAt: Date; title?: string; scheduleShiftFromDay: number | null; scheduleShiftToDay: number | null };
+type MorningAssemblySettings = { enabled: boolean; startsAt: string; endsAt: string };
+function clockMinutes(value: string) { const [h, m] = value.split(':').map(Number); return h * 60 + m; }
+function shiftClock(value: string, delta: number) {
+  const total = (clockMinutes(value) + delta + 1440) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
 type ShiftTimeSlot = {
   id: string; schoolYearId: string; dayOfWeek: number; periodNumber: number | null;
   startsAt: string; endsAt: string; isActive: boolean; isAssignable: boolean; deletedAt: Date | null;
@@ -29,39 +35,41 @@ type ShiftTimeSlot = {
 export function applyScheduleShiftForDate<Schedule extends {
   schoolYearId: string; dayOfWeek: number; timeSlotId?: string | null; startsAt: string; endsAt: string;
 }>(
-  schedule: Schedule,
-  date: Date,
-  events: ShiftEvent[],
-  timeSlots: ShiftTimeSlot[],
-): Schedule & { effectivePeriodNumber?: number } {
+  schedule: Schedule, date: Date, events: ShiftEvent[], timeSlots: ShiftTimeSlot[],
+  morningAssembly?: MorningAssemblySettings,
+): Schedule & { effectivePeriodNumber?: number; skipAgenda?: boolean } {
   const dayOfWeek = getDayOfWeek(date);
   const weekStart = (value: Date) => {
     const start = new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
-    start.setUTCDate(start.getUTCDate() - (getDayOfWeek(value) - 1));
+    start.setUTCDate(start.getUTCDate() - (getDayOfWeek(start) - 1));
     return start.getTime();
   };
-  const event = events.find((item) =>
-    item.scheduleShiftFromDay != null && item.scheduleShiftToDay != null &&
-    weekStart(item.startsAt) === weekStart(date) &&
-    (dayOfWeek === item.scheduleShiftFromDay || dayOfWeek === item.scheduleShiftToDay));
-  if (!event) return schedule;
-
-  const delta = dayOfWeek === event.scheduleShiftFromDay ? -1 : 1;
-  const currentSlot = timeSlots.find((slot) => slot.id === schedule.timeSlotId) ??
-    timeSlots.find((slot) => slot.schoolYearId === schedule.schoolYearId && slot.dayOfWeek === dayOfWeek &&
-      slot.startsAt === schedule.startsAt && slot.endsAt === schedule.endsAt && slot.deletedAt === null);
-  if (!currentSlot || currentSlot.periodNumber == null) {
-    throw new BadRequestException(`Pergeseran jadwal ${getAgendaDateKey(date)} gagal: slot waktu pelajaran belum memiliki nomor jam.`);
+  const upacaraEvent = events.find((item) => weekStart(item.startsAt) === weekStart(date) && /upacara/i.test(item.title ?? ''));
+  const fixedShift = Boolean(upacaraEvent && (dayOfWeek === 1 || dayOfWeek === 4));
+  const legacyEvent = events.find((item) => item.scheduleShiftFromDay != null && item.scheduleShiftToDay != null &&
+    weekStart(item.startsAt) === weekStart(date) && (dayOfWeek === item.scheduleShiftFromDay || dayOfWeek === item.scheduleShiftToDay));
+  let effective: Schedule & { effectivePeriodNumber?: number; skipAgenda?: boolean } = schedule;
+  if (fixedShift || legacyEvent) {
+    const delta = fixedShift ? (dayOfWeek === 1 ? -1 : 1) :
+      (dayOfWeek === legacyEvent!.scheduleShiftFromDay ? -1 : 1);
+    const currentSlot = timeSlots.find((slot) => slot.id === schedule.timeSlotId) ??
+      timeSlots.find((slot) => slot.schoolYearId === schedule.schoolYearId && slot.dayOfWeek === dayOfWeek &&
+        slot.startsAt === schedule.startsAt && slot.endsAt === schedule.endsAt && slot.deletedAt === null);
+    if (!currentSlot || currentSlot.periodNumber == null) throw new BadRequestException(`Pergeseran jadwal ${getAgendaDateKey(date)} gagal: slot waktu pelajaran belum memiliki nomor jam.`);
+    const targetPeriod = currentSlot.periodNumber + delta;
+    if (targetPeriod < 1) return { ...schedule, skipAgenda: true };
+    const candidates = timeSlots.filter((slot) => slot.schoolYearId === schedule.schoolYearId &&
+      slot.dayOfWeek === dayOfWeek && slot.periodNumber === targetPeriod && slot.isActive && slot.deletedAt === null);
+    const targetSlot = candidates.find((slot) => slot.isAssignable) ?? candidates[0];
+    if (!targetSlot) throw new BadRequestException(`Pergeseran jadwal ${getAgendaDateKey(date)} tidak dapat dilakukan: slot jam ke-${targetPeriod} belum dikonfigurasi pada hari sekolah tersebut.`);
+    effective = { ...schedule, timeSlotId: targetSlot.id, startsAt: targetSlot.startsAt, endsAt: targetSlot.endsAt, effectivePeriodNumber: targetPeriod };
   }
-  const targetPeriod = currentSlot.periodNumber + delta;
-  if (targetPeriod < 1) throw new BadRequestException('Pergeseran jadwal menghasilkan nomor jam yang tidak valid.');
-  const candidates = timeSlots.filter((slot) => slot.schoolYearId === schedule.schoolYearId &&
-    slot.dayOfWeek === dayOfWeek && slot.periodNumber === targetPeriod && slot.isActive && slot.deletedAt === null);
-  const targetSlot = candidates.find((slot) => slot.isAssignable) ?? candidates[0];
-  if (!targetSlot) {
-    throw new BadRequestException(`Pergeseran jadwal ${getAgendaDateKey(date)} tidak dapat dilakukan: slot jam ke-${targetPeriod} belum dikonfigurasi pada hari sekolah tersebut.`);
+  const upacaraToday = events.some((item) => getAgendaDateKey(item.startsAt) === getAgendaDateKey(date) && /upacara/i.test(item.title ?? ''));
+  if (morningAssembly?.enabled && !upacaraToday) {
+    const duration = clockMinutes(morningAssembly.endsAt) - clockMinutes(morningAssembly.startsAt);
+    if (duration > 0) effective = { ...effective, startsAt: shiftClock(effective.startsAt, duration), endsAt: shiftClock(effective.endsAt, duration) };
   }
-  return { ...schedule, timeSlotId: targetSlot.id, startsAt: targetSlot.startsAt, endsAt: targetSlot.endsAt, effectivePeriodNumber: targetPeriod };
+  return effective;
 }
 
 export function buildDailyAgendaCreateData(schedule: {

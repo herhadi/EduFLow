@@ -2,6 +2,12 @@
 
 Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis granular tetap dilacak melalui riwayat Git dan dokumen domain terkait.
 
+## 2026-10-28
+
+- Menambahkan konfigurasi apel pagi per tahun ajaran dengan status aktif/nonaktif dan waktu mulai/selesai yang fleksibel; generate agenda menggeser waktu pelajaran sesuai durasi apel dan melewati pergeseran apel pada tanggal upacara.
+- Menyederhanakan penandaan upacara di Kaldik: cukup mencantumkan tanggal dengan judul “Upacara”; pergeseran Senin/Kamis diterapkan otomatis saat generate agenda.
+- Memperbarui manual operator untuk konfigurasi apel pagi dan aturan generate agenda berdasarkan Kaldik.
+
 ## 2026-10-27
 
 - Memperbarui `docs/manual-guide-roles.md` dengan panduan penggunaan pergeseran jadwal mingguan: konfigurasi hari asal/tujuan, perubahan jam agenda, rekonsiliasi agenda yang sudah digenerate, dan batas minggu berlakunya.

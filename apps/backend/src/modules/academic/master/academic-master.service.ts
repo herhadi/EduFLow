@@ -28,6 +28,23 @@ export class AcademicMasterService {
     };
   }
 
+  async updateMorningAssemblySettings(id: string, dto: { enabled: boolean; startsAt: string; endsAt: string }) {
+    const schoolYear = await this.prisma.schoolYear.findFirst({ where: { id, deletedAt: null } });
+    if (!schoolYear) throw new NotFoundException('Tahun ajaran tidak ditemukan');
+    const pattern = /^([01]\\d|2[0-3]):[0-5]\\d$/;
+    if (typeof dto.enabled !== 'boolean' || !pattern.test(dto.startsAt) || !pattern.test(dto.endsAt)) throw new BadRequestException('Status dan waktu apel pagi tidak valid.');
+    if (dto.startsAt >= dto.endsAt) throw new BadRequestException('Waktu selesai apel pagi harus setelah waktu mulai.');
+    const updated = await this.prisma.schoolYear.update({ where: { id }, data: {
+      morningAssemblyEnabled: dto.enabled, morningAssemblyStartsAt: dto.startsAt, morningAssemblyEndsAt: dto.endsAt,
+    }});
+    await this.auditService.record({
+      action: 'school-year.morning-assembly.updated', entityType: 'SchoolYear', entityId: id,
+      before: { enabled: schoolYear.morningAssemblyEnabled, startsAt: schoolYear.morningAssemblyStartsAt, endsAt: schoolYear.morningAssemblyEndsAt },
+      after: { enabled: updated.morningAssemblyEnabled, startsAt: updated.morningAssemblyStartsAt, endsAt: updated.morningAssemblyEndsAt },
+    });
+    return { data: updated, message: 'Pengaturan apel pagi berhasil disimpan.' };
+  }
+
   async createSchoolYear(dto: CreateSchoolYearDto) {
     const name = dto.name.trim();
     const [startYearText, endYearText] = name.split('/');

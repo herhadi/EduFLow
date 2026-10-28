@@ -9,6 +9,8 @@ export const academicApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  updateMorningAssemblySettings: (id: string, payload: { enabled: boolean; startsAt: string; endsAt: string }) =>
+    request<ApiResponse<SchoolYear>>(`/academic/school-years/${id}/morning-assembly`, { method: 'PATCH', body: JSON.stringify(payload) }),
   cloneSchoolYearMaster: (payload: {
     sourceSchoolYearId: string;
     targetSchoolYearId: string;

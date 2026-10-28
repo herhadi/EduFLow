@@ -65,6 +65,7 @@ export class AgendaGenerationService {
     }
 
     const effectiveSchedule = await this.applyScheduleShift(schedule, agendaDate);
+    if (effectiveSchedule.skipAgenda) throw new BadRequestException('Agenda jam pelajaran pertama dilewati karena pergeseran jadwal upacara.');
     const semester = await this.prisma.semester.findFirstOrThrow({
       where: {
         schoolYearId: schedule.schoolYearId,
@@ -149,7 +150,8 @@ export class AgendaGenerationService {
       if (!semester) continue;
 
       const effectiveSchedules = getEffectiveSchedulesForDate(schedules, agendaDate, classIds)
-        .map((schedule) => applyScheduleShiftForDate(schedule, agendaDate, shiftContext.events, shiftContext.timeSlots));
+        .map((schedule) => applyScheduleShiftForDate(schedule, agendaDate, shiftContext.events, shiftContext.timeSlots, shiftContext.morningAssembly))
+        .filter((schedule) => !schedule.skipAgenda);
 
       for (const schedule of effectiveSchedules) {
         const existingAgenda = await this.prisma.dailyAgenda.findFirst({
@@ -279,7 +281,7 @@ export class AgendaGenerationService {
   }>(schedule: Schedule, date: Date) {
     const context = await this.getScheduleShiftContext(schedule.schoolYearId, date, date);
     const effectiveSchedule = getScheduleSnapshotAtDate(schedule, date);
-    return applyScheduleShiftForDate(effectiveSchedule, date, context.events, context.timeSlots);
+    return applyScheduleShiftForDate(effectiveSchedule, date, context.events, context.timeSlots, context.morningAssembly);
   }
 
   private async getScheduleShiftContext(schoolYearId: string, startsAt: Date, endsAt: Date) {
@@ -287,17 +289,22 @@ export class AgendaGenerationService {
     queryStartsAt.setUTCDate(queryStartsAt.getUTCDate() - 6);
     const queryEndsAt = new Date(endsAt);
     queryEndsAt.setUTCDate(queryEndsAt.getUTCDate() + 6);
-    const [events, timeSlots] = await Promise.all([
+    const [events, timeSlots, schoolYear] = await Promise.all([
       this.prisma.academicCalendarEvent.findMany({
-        where: { schoolYearId, deletedAt: null, scheduleShiftFromDay: { not: null }, scheduleShiftToDay: { not: null }, startsAt: { gte: queryStartsAt, lte: queryEndsAt } },
-        select: { startsAt: true, scheduleShiftFromDay: true, scheduleShiftToDay: true },
+        where: { schoolYearId, deletedAt: null, startsAt: { gte: queryStartsAt, lte: queryEndsAt } },
+        select: { startsAt: true, title: true, scheduleShiftFromDay: true, scheduleShiftToDay: true },
       }),
       this.prisma.academicTimeSlot.findMany({
         where: { schoolYearId, deletedAt: null, isActive: true },
         select: { id: true, schoolYearId: true, dayOfWeek: true, periodNumber: true, startsAt: true, endsAt: true, isActive: true, isAssignable: true, deletedAt: true },
       }),
+      this.prisma.schoolYear.findUnique({ where: { id: schoolYearId }, select: { morningAssemblyEnabled: true, morningAssemblyStartsAt: true, morningAssemblyEndsAt: true } }),
     ]);
-    return { events, timeSlots };
+    return { events, timeSlots, morningAssembly: {
+      enabled: schoolYear?.morningAssemblyEnabled ?? false,
+      startsAt: schoolYear?.morningAssemblyStartsAt ?? '06:50',
+      endsAt: schoolYear?.morningAssemblyEndsAt ?? '07:10',
+    }};
   }
 
   private async createAgendaFromEffectiveSchedule(
