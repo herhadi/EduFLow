@@ -202,6 +202,9 @@ export class AcademicCalendarService {
     const shiftFrom = dto.scheduleShiftFromDay ?? null;
     const shiftTo = dto.scheduleShiftToDay ?? null;
     if ((shiftFrom === null) !== (shiftTo === null)) throw new BadRequestException('Hari asal dan hari tujuan pergeseran harus diisi berpasangan');
+    if (/upacara/i.test(dto.title) && startsAt.getTime() !== endsAt.getTime()) {
+      throw new BadRequestException('Event Upacara harus menggunakan satu tanggal pelaksanaan.');
+    }
     if (shiftFrom !== null && shiftTo !== null) {
       if (shiftFrom === shiftTo) throw new BadRequestException('Hari asal dan tujuan upacara harus berbeda');
       if (startsAt.getTime() !== endsAt.getTime()) throw new BadRequestException('Agenda pergeseran upacara harus menggunakan satu tanggal tujuan');

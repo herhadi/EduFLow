@@ -125,7 +125,7 @@ export function AcademicCalendarManagement() {
       const response = await api.createAcademicCalendarEvent({
         schoolYearId,
         title: form.title.trim(),
-        type: form.type,
+        type: /upacara/i.test(form.title) ? 'SCHOOL_ACTIVITY' : form.type,
         startsAt: form.startsAt,
         endsAt: form.endsAt,
         description: form.description.trim() || undefined,
