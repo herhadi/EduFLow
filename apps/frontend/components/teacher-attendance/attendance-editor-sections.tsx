@@ -105,6 +105,7 @@ export function AttendanceQuickMode({
   selectedItemId: string;
 }) {
   const [studentSearch, setStudentSearch] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
   const selectedItem = attendance.items.find((item) => item.id === selectedItemId) ?? attendance.items[0];
   const filteredItems = attendance.items.filter((item) =>
     item.student.name.toLocaleLowerCase('id-ID').includes(studentSearch.trim().toLocaleLowerCase('id-ID')),
@@ -112,33 +113,49 @@ export function AttendanceQuickMode({
 
   return (
     <div className="mt-4 grid gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3 dark:border-blue-400/20 dark:bg-blue-400/10 sm:grid-cols-[minmax(0,1fr)_12rem]">
-      <div className="grid gap-2 text-sm font-bold">
-        <label className="grid gap-2">
-          Cari Siswa
-          <input
-            className="min-w-0 rounded-2xl border bg-white px-4 py-3 font-normal outline-none placeholder:text-slate-400 focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]"
-            onChange={(event) => setStudentSearch(event.target.value)}
-            placeholder="Ketik nama siswa..."
-            type="search"
-            value={studentSearch}
-          />
-        </label>
-        <label className="grid gap-2">
-          Pilih Siswa
-          <select
-            className="min-w-0 rounded-2xl border bg-white px-4 py-3 font-normal outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]"
-            onChange={(event) => onSelect(event.target.value)}
-            value={selectedItem?.id ?? ''}
-          >
-            {filteredItems.map((item) => (
-              <option key={item.id} value={item.id}>
+      <div className="relative grid content-start gap-2 text-sm font-bold">
+        <label className="grid gap-2" htmlFor="attendance-student-search">Pilih Siswa</label>
+        <input
+          aria-expanded={isOpen}
+          aria-controls="attendance-student-options"
+          aria-autocomplete="list"
+          autoComplete="off"
+          className="min-w-0 rounded-2xl border bg-white px-4 py-3 font-normal outline-none placeholder:text-slate-400 focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]"
+          id="attendance-student-search"
+          onBlur={() => window.setTimeout(() => setIsOpen(false), 120)}
+          onChange={(event) => { setStudentSearch(event.target.value); setIsOpen(true); }}
+          onFocus={() => setIsOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setIsOpen(false);
+            if (event.key === 'Enter' && filteredItems[0]) {
+              event.preventDefault();
+              onSelect(filteredItems[0].id);
+              setStudentSearch('');
+              setIsOpen(false);
+            }
+          }}
+          placeholder={selectedItem?.student.name ?? 'Cari nama siswa...'}
+          role="combobox"
+          type="search"
+          value={studentSearch}
+        />
+        {isOpen ? (
+          <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-1 shadow-xl dark:border-[var(--border)] dark:bg-[var(--surface-solid)]" id="attendance-student-options" role="listbox">
+            {filteredItems.length ? filteredItems.map((item) => (
+              <button
+                aria-selected={item.id === selectedItem?.id}
+                className={'block w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition hover:bg-blue-50 dark:hover:bg-blue-400/10 ' + (item.id === selectedItem?.id ? 'bg-blue-50 text-brand-700 dark:bg-blue-400/10 dark:text-blue-100' : 'text-slate-800 dark:text-[var(--text)]')}
+                key={item.id}
+                onClick={() => { onSelect(item.id); setStudentSearch(''); setIsOpen(false); }}
+                role="option"
+                type="button"
+              >
                 {item.student.name}
-              </option>
-            ))}
-            {!filteredItems.length ? <option value="" disabled>Tidak ada siswa yang cocok</option> : null}
-          </select>
-          <span className="text-xs font-medium text-muted">{filteredItems.length} dari {attendance.items.length} siswa</span>
-        </label>
+              </button>
+            )) : <p className="px-3 py-3 text-sm font-medium text-muted">Tidak ada siswa yang cocok.</p>}
+          </div>
+        ) : null}
+        <span className="text-xs font-medium text-muted">{filteredItems.length} dari {attendance.items.length} siswa cocok</span>
       </div>
       <label className="grid content-start gap-2 text-sm font-bold">
         Status
@@ -149,16 +166,13 @@ export function AttendanceQuickMode({
           value={selectedItem?.status ?? 'PRESENT'}
         >
           {attendanceStatuses.map((status) => (
-            <option key={status.value} value={status.value}>
-              {status.label}
-            </option>
+            <option key={status.value} value={status.value}>{status.label}</option>
           ))}
         </select>
       </label>
     </div>
   );
 }
-
 export function AttendanceSummary({ attendance }: { attendance: Attendance }) {
   const summary = useMemo(() => {
     return attendance.items.reduce<Record<AttendanceStatus, number>>(

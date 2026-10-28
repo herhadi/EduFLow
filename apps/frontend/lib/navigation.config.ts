@@ -68,7 +68,7 @@ const principalNavigation: NavigationItem[] = [
 const teacherNavigation: NavigationItem[] = [
   { href: '/teacher/dashboard', label: 'Beranda', icon: 'home' },
   { href: '/teacher/schedules', label: 'Jadwal', icon: 'schedule' },
-  { href: '/teacher/attendance', label: 'Presensi', icon: 'attendance' },
+  { href: '/teacher/attendance', label: 'Agenda', icon: 'attendance' },
   { href: '/teacher/assessments', label: 'Nilai', icon: 'grades' },
   {
     href: '/teacher/profile',
@@ -160,7 +160,7 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'profile', href: '/profile', label: 'Profil' },
   { section: 'profile', href: '/notifications', label: 'Notifikasi' },
   { section: 'teacher', href: '/teacher/schedules', label: 'Jadwal Saya' },
-  { section: 'teacher', href: '/teacher/attendance', label: 'Presensi' },
+  { section: 'teacher', href: '/teacher/attendance', label: 'Agenda' },
   { section: 'teacher', href: '/teacher/assessments', label: 'Penilaian' },
   { section: 'teacher', href: '/teacher/teaching-plans', label: 'Perangkat Ajar' },
   { section: 'teacher', href: '/teacher/dashboard', label: 'Hari Ini' },

@@ -7,6 +7,10 @@ import { api, type Schedule } from '../lib/api';
 
 const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character] ?? character);
+}
+
 type TeachingScheduleGroup = {
   className: string;
   endsAt: string;
@@ -101,6 +105,35 @@ export function TeacherScheduleList() {
   );
   const activeDays = schedulesByDay.filter((day) => day.groups.length > 0);
 
+  function exportExcel() {
+    const rows = [['Hari', 'Jam Mulai', 'Jam Selesai', 'Jam Pelajaran', 'Mata Pelajaran', 'Kelas', 'Ruang']];
+    for (const day of schedulesByDay) {
+      for (const group of day.groups) {
+        rows.push([day.label, group.startsAt, group.endsAt, getPeriodLabel(group), group.subjectName, group.className, group.schedules[0]?.room ?? '-']);
+      }
+    }
+    const csv = '\\uFEFF' + rows.map((row) => row.map((cell) => '"' + String(cell).replace(/"/g, '""') + '"').join(';')).join('\\r\\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'jadwal-mengajar.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportPdf() {
+    const rows = schedulesByDay.flatMap((day) => day.groups.map((group) =>
+      '<tr><td>' + day.label + '</td><td>' + group.startsAt + '–' + group.endsAt + '</td><td>' + getPeriodLabel(group) + '</td><td>' + escapeHtml(group.subjectName) + '</td><td>' + escapeHtml(group.className) + '</td><td>' + escapeHtml(group.schedules[0]?.room ?? '-') + '</td></tr>',
+    )).join('');
+    const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=900,height=700');
+    if (!printWindow) {
+      window.alert('Popup diblokir browser. Izinkan popup untuk mencetak jadwal ke PDF.');
+      return;
+    }
+    printWindow.document.write('<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Jadwal Mengajar</title><style>body{font-family:Arial,sans-serif;color:#172033;padding:24px}h1{font-size:22px;margin-bottom:4px}p{color:#475569;font-size:12px;margin-top:0}table{width:100%;border-collapse:collapse;margin-top:20px;font-size:12px}th,td{border:1px solid #cbd5e1;padding:8px;text-align:left}th{background:#eff6ff}tr{break-inside:avoid}@media print{body{padding:0}}</style></head><body><h1>Jadwal Mengajar</h1><p>EduFlow · Dicetak ' + new Date().toLocaleDateString('id-ID') + '</p><table><thead><tr><th>Hari</th><th>Waktu</th><th>Jam Pelajaran</th><th>Mata Pelajaran</th><th>Kelas</th><th>Ruang</th></tr></thead><tbody>' + rows + '</tbody></table><script>window.onload=function(){window.print()}<\\/script></body></html>');
+    printWindow.document.close();
+  }
+
   if (state === 'loading') {
     return <p className="mt-6 rounded-2xl bg-blue-50 p-4 text-sm font-bold text-brand-700">Memuat jadwal Anda...</p>;
   }
@@ -111,11 +144,13 @@ export function TeacherScheduleList() {
 
   return (
     <section className="mt-6">
-      <div className="mb-3 flex items-center justify-between gap-3 px-1">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1 print:hidden">
         <p className="text-sm font-bold text-muted">Jadwal mengajar mingguan</p>
-        <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">
-          {schedules.length} sesi
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-black text-brand-700">{schedules.length} sesi</span>
+          <button className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:border-brand-300 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]" onClick={exportExcel} type="button">Export Excel</button>
+          <button className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-brand-700" onClick={exportPdf} type="button">Export PDF</button>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
