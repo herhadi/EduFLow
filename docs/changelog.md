@@ -19,8 +19,8 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Menambahkan panel `/operations` untuk preview objek Cloudflare R2 berdasarkan rentang tanggal modifikasi dan prefix, membuat backup ZIP plus manifest untuk diunduh, dan menghapus rentang dengan konfirmasi eksplisit, validasi jumlah/ukuran ulang, batas operasi, dan audit trail.
 - Memperluas storage provider R2 dengan listing objek per rentang waktu, download objek untuk archive, dan batch delete; menambahkan endpoint API, tipe frontend, helper download POST, serta konfigurasi batas backup `R2_BACKUP_MAX_BYTES`.
 - Mendokumentasikan endpoint, batas ukuran/jumlah, timezone UTC, permission, dan prosedur backup/penghapusan R2 di `docs/api-endpoints.md`, `docs/backup-recovery.md`, dan `docs/permission-matrix.md`.
-- Menambahkan pergeseran jadwal upacara mingguan berbasis kalender akademik, termasuk pilihan hari asal/tujuan yang fleksibel untuk konfigurasi sekolah enam hari.
-- Menyesuaikan agenda yang sudah digenerate setelah pengaturan pergeseran kalender dibuat, diubah, atau dihapus; hanya agenda berstatus `SCHEDULED` tanpa presensi yang diperbarui, sedangkan agenda yang sudah dikerjakan dipertahankan.
+- Menetapkan pergeseran upacara otomatis berdasarkan tanggal event Upacara di Kaldik, tanpa pengaturan hari asal/tujuan oleh operator.
+- Menambahkan konfigurasi apel pagi per tahun ajaran dengan waktu fleksibel dan menerapkannya pada saat generate agenda; agenda yang sudah dibuat tidak otomatis diganti.
 - Memperbaiki tipe hasil helper pergeseran jadwal agar `effectivePeriodNumber` opsional dikenali TypeScript dan build backend dapat dilanjutkan.
 
 ## 2026-07-24

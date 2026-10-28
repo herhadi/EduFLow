@@ -384,43 +384,36 @@ Gunakan tabel jadwal untuk:
 - mengisi alasan revisi;
 - melihat atau membatalkan histori revisi.
 
-## 3.12 Pergeseran Jadwal Upacara pada Minggu Tertentu
+## 3.12 Pergeseran Jadwal Upacara dan Apel Pagi
 
-Fitur ini dipakai Operator Sekolah ketika upacara atau kegiatan rutin dipindahkan dari hari biasanya ke hari lain dalam **minggu yang sama**. Contohnya, upacara yang biasanya berlangsung pada Senin dipindahkan ke Sabtu. Sistem menyesuaikan jam agenda pelajaran pada hari asal dan hari tujuan untuk minggu tersebut, tanpa mengubah jadwal reguler permanen.
+Kaldik tahunan menjadi acuan kegiatan khusus saat Operator melakukan generate agenda. Untuk upacara, Operator cukup menambahkan event pada tanggal pelaksanaan dengan judul yang memuat kata **Upacara**. Tidak perlu memilih hari asal atau hari tujuan.
 
-### Cara mengaturnya
+### Aturan upacara
 
-1. Buka **Jadwal** melalui `/admin/schedules` atau halaman Kalender Pendidikan di `/admin/akademik/kalender`.
-2. Tambahkan atau edit event kalender untuk tanggal tujuan pelaksanaan upacara/kegiatan.
-3. Isi tanggal event sebagai **satu tanggal tujuan** (tanggal mulai dan selesai sama).
-4. Pilih **hari asal pergeseran** dan **hari tujuan pergeseran**. Keduanya wajib diisi dan tidak boleh sama.
-5. Pastikan tanggal event benar-benar berada pada hari tujuan yang dipilih.
-6. Pastikan opsi **Blokir pembuatan agenda** tidak aktif untuk event pergeseran ini.
-7. Simpan event. Sistem akan menyesuaikan agenda yang sudah digenerate pada minggu yang terdampak.
+- Pada minggu yang memiliki event Upacara, jadwal Senin bergeser satu nomor jam lebih awal.
+- Pada Kamis di minggu yang sama, jadwal bergeser satu nomor jam lebih lambat.
+- Jika pergeseran Senin menghasilkan jam ke-0, agenda jam pelajaran pertama dilewati; sistem tidak membuat nomor jam ke-0.
+- Hari lain tetap mengikuti jadwal normal, kecuali ada konfigurasi apel pagi.
+- Upacara harus dicatat sebagai event satu tanggal dan tidak memblokir agenda melalui opsi kalender.
 
-### Apa yang berubah?
+### Mengatur apel pagi
 
-- Pada **hari asal**, agenda pelajaran digeser satu nomor jam lebih awal.
-- Pada **hari tujuan**, agenda pelajaran digeser satu nomor jam lebih lambat.
-- Pergeseran hanya berlaku pada minggu kalender yang memuat tanggal event; jadwal reguler untuk minggu lain tidak berubah.
-- Slot jam pada hari terkait harus sudah dikonfigurasi dan memiliki nomor jam yang valid. Jika slot tujuan tidak tersedia, periksa konfigurasi jam pelajaran.
-- Saat event ditambah, diubah, atau dihapus, sistem mencoba menyelaraskan kembali agenda yang sudah digenerate pada rentang minggu yang terdampak. Operator tidak perlu selalu menghapus dan generate ulang seluruh agenda.
+1. Buka **Master → Kalender Pendidikan** melalui `/admin/akademik/kalender`.
+2. Pilih tahun ajaran.
+3. Pada panel **Apel Pagi**, aktifkan opsi jika sekolah melaksanakan apel rutin.
+4. Atur waktu mulai dan selesai sesuai kebijakan sekolah, misalnya 06.50–07.10.
+5. Simpan pengaturan.
 
-### Agenda yang sudah memiliki aktivitas
+Jika apel pagi aktif, seluruh waktu pelajaran pada tanggal tanpa upacara digeser sesuai durasi apel. Contohnya, apel 06.50–07.10 memiliki durasi 20 menit sehingga jam pelajaran 07.00–07.35 menjadi 07.20–07.55. Pada tanggal upacara, pergeseran apel tidak diterapkan.
 
-Penyesuaian otomatis ditujukan untuk agenda yang masih berstatus terjadwal dan belum memiliki aktivitas yang harus dipertahankan. Agenda yang sudah dimulai, presensinya sudah terisi/dikirim, sudah selesai, atau dibatalkan tidak ditimpa oleh rekonsiliasi otomatis. Periksa kasus tersebut secara manual bila perubahan kalender dibuat setelah KBM berlangsung.
+### Saat generate agenda
 
-### Contoh
+1. Pastikan Kaldik dan konfigurasi apel pagi untuk tahun ajaran sudah benar.
+2. Buka `/admin/schedules`.
+3. Pilih kelas atau semua kelas, lalu tentukan rentang tanggal.
+4. Jalankan **Generate Agenda**.
 
-Misalnya, upacara yang biasanya pada Senin dipindah ke Sabtu:
-
-- Senin pada minggu tersebut: agenda pelajaran bergeser satu jam lebih awal.
-- Sabtu pada minggu tersebut: agenda pelajaran bergeser satu jam lebih lambat.
-- Senin dan Sabtu pada minggu berikutnya: kembali memakai jadwal reguler, kecuali Operator membuat event pergeseran baru untuk minggu itu.
-
-**Catatan:** fitur ini menggeser nomor/jam pelajaran agenda, bukan memindahkan seluruh jadwal mingguan secara permanen. Setelah menyimpan event, periksa agenda hari asal dan hari tujuan untuk memastikan slot jam sudah sesuai.
-
----
+Sistem membaca Kaldik dan pengaturan apel pagi untuk menghitung waktu agenda secara otomatis. Aturan ini diterapkan ketika agenda dibuat; mengubah Kaldik atau pengaturan apel setelah agenda terbentuk tidak otomatis mengganti agenda yang sudah ada. Generate ulang tidak boleh dilakukan sembarangan jika agenda sudah memiliki presensi atau aktivitas pembelajaran.
 
 ## 3.13 Generate Agenda Harian
 
