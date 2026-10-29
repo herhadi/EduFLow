@@ -7,25 +7,26 @@ services:
     env_file:
       - apps/backend/.env
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql://eduflow:eduflow@postgres:5432/eduflow?schema=public}
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in the root .env for Docker Compose}
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
-      JWT_SECRET: ${JWT_SECRET:-replace-this-in-development}
-      DEFAULT_USER_PASSWORD: ${DEFAULT_USER_PASSWORD:-123456}
-      ROOT_EMAIL: ${ROOT_EMAIL:-root@eduflow.local}
+      JWT_SECRET: ${JWT_SECRET:?Set a strong JWT_SECRET in the root .env}
+      DEFAULT_USER_PASSWORD: ${DEFAULT_USER_PASSWORD:?Set DEFAULT_USER_PASSWORD in the root .env}
+      ROOT_EMAIL: ${ROOT_EMAIL:?Set ROOT_EMAIL in the root .env}
       ROOT_USERNAME: ${ROOT_USERNAME:-root}
       ROOT_NAME: ${ROOT_NAME:-Root Administrator}
-      ROOT_PASSWORD: ${ROOT_PASSWORD:-123456}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
-      FRONTEND_ALLOWED_ORIGINS: ${FRONTEND_ALLOWED_ORIGINS:-http://localhost:3000}
+      ROOT_PASSWORD: ${ROOT_PASSWORD:?Set ROOT_PASSWORD in the root .env}
+      FRONTEND_URL: ${FRONTEND_URL:?Set FRONTEND_URL in the root .env}
+      FRONTEND_ALLOWED_ORIGINS: ${FRONTEND_ALLOWED_ORIGINS:?Set FRONTEND_ALLOWED_ORIGINS in the root .env}
       PORT: 3001
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
+    # Loopback-only: the frontend proxies browser API traffic; this port is for host health checks.
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     restart: unless-stopped
     volumes:
       - ./backups:/app/backups
@@ -43,8 +44,9 @@ services:
       PORT: 3000
     depends_on:
       - backend
+    # Cloudflare Tunnel should target localhost:3000; do not publish Next.js to every interface.
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     restart: unless-stopped
 
   postgres:
@@ -53,9 +55,7 @@ services:
     environment:
       POSTGRES_DB: eduflow
       POSTGRES_USER: eduflow
-      POSTGRES_PASSWORD: eduflow
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the root .env}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U eduflow -d eduflow"]
       interval: 5s

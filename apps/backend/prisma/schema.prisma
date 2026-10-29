@@ -109,6 +109,35 @@ enum AttendanceState {
   VOID
 }
 
+enum ExtracurricularParticipationPolicy {
+  OPTIONAL
+  MANDATORY_GRADE
+}
+
+enum ExtracurricularEnrollmentStatus {
+  ACTIVE
+  WITHDRAWN
+  COMPLETED
+}
+
+enum ExtracurricularEnrollmentType {
+  MANDATORY
+  VOLUNTARY
+}
+
+enum ExtracurricularSessionStatus {
+  DRAFT
+  SUBMITTED
+  CANCELLED
+}
+
+enum ExtracurricularAttendanceStatus {
+  PRESENT
+  SICK
+  EXCUSED
+  ABSENT
+}
+
 enum GuardianRelation {
   FATHER
   MOTHER
@@ -333,6 +362,7 @@ model SchoolYear {
   assessments        Assessment[]
   calendarEvents     AcademicCalendarEvent[]
   teacherAssignments TeacherSchoolYearAssignment[]
+  extracurriculars Extracurricular[]
   createdAt          DateTime                      @default(now())
   updatedAt          DateTime                      @updatedAt
   deletedAt          DateTime?
@@ -489,6 +519,7 @@ model Teacher {
   homeroomClasses   Class[]                       @relation("ClassHomeroomTeacher")
   teachingPlans     TeachingPlan[]
   yearAssignments   TeacherSchoolYearAssignment[]
+  extracurricularAdvisories ExtracurricularAdvisor[]
   createdAt         DateTime                      @default(now())
   updatedAt         DateTime                      @updatedAt
   deletedAt         DateTime?
@@ -624,6 +655,111 @@ model AssessmentScore {
   @@index([enrollmentId])
 }
 
+model Extracurricular {
+  id                  String                            @id @default(uuid()) @db.Uuid
+  schoolYearId        String                            @db.Uuid
+  name                String
+  code                String?
+  category            String                            @default("LAINNYA")
+  description         String?
+  participationPolicy ExtracurricularParticipationPolicy @default(OPTIONAL)
+  mandatoryGrades     Int[]                             @default([])
+  quota               Int?
+  location            String?
+  scheduleNotes       String?
+  isActive            Boolean                           @default(true)
+  schoolYear          SchoolYear                        @relation(fields: [schoolYearId], references: [id])
+  advisors            ExtracurricularAdvisor[]
+  enrollments         ExtracurricularEnrollment[]
+  sessions            ExtracurricularSession[]
+  createdAt           DateTime                          @default(now())
+  updatedAt           DateTime                          @updatedAt
+  deletedAt           DateTime?
+
+  @@unique([schoolYearId, name])
+  @@index([schoolYearId, isActive])
+}
+
+model ExtracurricularAdvisor {
+  extracurricularId String          @db.Uuid
+  teacherId         String          @db.Uuid
+  extracurricular   Extracurricular @relation(fields: [extracurricularId], references: [id], onDelete: Cascade)
+  teacher           Teacher         @relation(fields: [teacherId], references: [id])
+  assignedAt        DateTime        @default(now())
+
+  @@id([extracurricularId, teacherId])
+  @@index([teacherId])
+}
+
+model ExtracurricularEnrollment {
+  id                String                         @id @default(uuid()) @db.Uuid
+  extracurricularId String                         @db.Uuid
+  studentId         String                         @db.Uuid
+  status            ExtracurricularEnrollmentStatus @default(ACTIVE)
+  enrollmentType    ExtracurricularEnrollmentType  @default(VOLUNTARY)
+  enrolledAt        DateTime                       @default(now())
+  notes             String?
+  extracurricular   Extracurricular                @relation(fields: [extracurricularId], references: [id])
+  student           Student                        @relation(fields: [studentId], references: [id])
+  attendanceItems   ExtracurricularAttendance[]
+  createdAt         DateTime                       @default(now())
+  updatedAt         DateTime                       @updatedAt
+
+  @@unique([extracurricularId, studentId])
+  @@index([studentId, status])
+}
+
+model ExtracurricularSession {
+  id                String                       @id @default(uuid()) @db.Uuid
+  extracurricularId String                       @db.Uuid
+  startsAt          DateTime
+  endsAt            DateTime?
+  location          String?
+  activityNotes     String?
+  status            ExtracurricularSessionStatus @default(DRAFT)
+  createdByUserId   String                       @db.Uuid
+  submittedByUserId String?                      @db.Uuid
+  submittedAt       DateTime?
+  extracurricular   Extracurricular              @relation(fields: [extracurricularId], references: [id])
+  attendanceItems   ExtracurricularAttendance[]
+  createdAt         DateTime                     @default(now())
+  updatedAt         DateTime                     @updatedAt
+
+  @@index([extracurricularId, startsAt])
+  @@index([status])
+}
+
+model ExtracurricularAttendance {
+  id             String                         @id @default(uuid()) @db.Uuid
+  sessionId      String                         @db.Uuid
+  studentId      String                         @db.Uuid
+  enrollmentId   String                         @db.Uuid
+  status         ExtracurricularAttendanceStatus @default(PRESENT)
+  notes          String?
+  markedByUserId String?                        @db.Uuid
+  markedAt       DateTime                       @default(now())
+  session        ExtracurricularSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student        Student                        @relation(fields: [studentId], references: [id])
+  enrollment     ExtracurricularEnrollment      @relation(fields: [enrollmentId], references: [id])
+  revisions      ExtracurricularAttendanceRevision[]
+
+  @@unique([sessionId, studentId])
+  @@index([studentId, status])
+}
+
+model ExtracurricularAttendanceRevision {
+  id              String                         @id @default(uuid()) @db.Uuid
+  attendanceId    String                         @db.Uuid
+  oldStatus       ExtracurricularAttendanceStatus
+  newStatus       ExtracurricularAttendanceStatus
+  reason          String
+  changedByUserId String                         @db.Uuid
+  createdAt       DateTime                       @default(now())
+  attendance      ExtracurricularAttendance      @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  @@index([attendanceId, createdAt])
+  @@index([changedByUserId, createdAt])
+}
+
 model Student {
   id               String                @id @default(uuid()) @db.Uuid
   name             String
@@ -640,6 +776,8 @@ model Student {
   invoices         Invoice[]
   payments         Payment[]
   leaveRequests    StudentLeaveRequest[]
+  extracurricularEnrollments ExtracurricularEnrollment[]
+  extracurricularAttendances ExtracurricularAttendance[]
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
   deletedAt        DateTime?

@@ -70,15 +70,18 @@ apps/frontend/Dockerfile
 
 ## Environment Production
 
-Pola satu stack Docker/VPS:
+Pola satu stack Docker/VPS. Simpan variabel Compose ini di root `.env` (salin dari `.env.example`) dan jangan commit file tersebut:
 
 ```env
+POSTGRES_PASSWORD=nilai-rahasia-kuat
+DATABASE_URL=postgresql://eduflow:password-url-encoded@postgres:5432/eduflow?schema=public
+JWT_SECRET=secret-random-panjang
+DEFAULT_USER_PASSWORD=password-awal-kuat
+ROOT_PASSWORD=password-root-unik
 NEXT_PUBLIC_API_URL=/api/backend
 BACKEND_INTERNAL_API_URL=http://backend:3001/api
-DATABASE_URL=postgresql://eduflow:eduflow@postgres:5432/eduflow?schema=public
 REDIS_HOST=redis
 REDIS_PORT=6379
-JWT_SECRET=ganti-dengan-secret-production
 FRONTEND_URL=https://domain-production
 FRONTEND_ALLOWED_ORIGINS=https://domain-production
 ```
@@ -92,7 +95,9 @@ Docker Compose membaca `apps/backend/.env` sebagai `env_file` untuk secret backe
 ### Secret Dan Environment
 
 - Jangan commit `.env`, `.env.local`, backup, atau log production.
-- `JWT_SECRET` production wajib diganti dari nilai contoh.
+- `JWT_SECRET`, `POSTGRES_PASSWORD`, `ROOT_PASSWORD`, dan `DEFAULT_USER_PASSWORD` wajib diisi dari secret yang unik; Compose sekarang gagal jika nilai wajib tidak tersedia.
+- `scripts/validate-production-env.sh` menjadi preflight deployment: menolak placeholder, secret lemah, origin non-HTTPS/wildcard, dan ketidaksesuaian password antara `DATABASE_URL` dengan `POSTGRES_PASSWORD`. Jalankan setelah membuat root `.env`.
+- Mengganti `POSTGRES_PASSWORD` di `.env` tidak otomatis mengganti password role PostgreSQL pada volume yang sudah ada. Sebelum rotasi di server yang sudah berjalan, backup database, ubah password role di PostgreSQL, lalu selaraskan `POSTGRES_PASSWORD` dan password pada `DATABASE_URL` dalam maintenance window. Jangan sekadar mengganti `.env` lalu restart.
 - Secret backend berada di environment server atau secret manager runner.
 - Frontend hanya boleh menerima variable public yang memang aman, seperti `NEXT_PUBLIC_API_URL`.
 - `BACKEND_INTERNAL_API_URL` adalah runtime server-side Next.js dan tidak perlu diekspos ke browser.

@@ -19,6 +19,7 @@ import { AttendanceModule } from './modules/attendance/attendance.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { FinanceModule } from './modules/finance/finance.module';
+import { ExtracurricularModule } from './modules/extracurricular/extracurricular.module';
 import { HealthModule } from './modules/health/health.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { OperationsModule } from './modules/operations/operations.module';
@@ -46,6 +47,7 @@ import { WorkersModule } from './workers/workers.module';
     AcademicPlanningModule,
     AttendanceModule,
     FinanceModule,
+    ExtracurricularModule,
     HealthModule,
     NotificationModule,
     OperationsModule,

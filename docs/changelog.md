@@ -1,3 +1,14 @@
+## 2026-10-29
+- Menambahkan CI pada pull request dan push ke `main` untuk validasi Prisma serta build backend/frontend.
+- Memperketat Compose production: secret wajib tidak lagi memakai fallback development, PostgreSQL tidak publish port host, dan frontend/backend hanya bind ke loopback.
+- Menambahkan preflight environment deployment untuk menolak placeholder/secret lemah, origin non-HTTPS, dan password database yang tidak konsisten; deployment berhenti sebelum mengubah service bila konfigurasi tidak valid.
+- Memperbarui template `.env.example` root dan dokumentasi konfigurasi Compose production.
+
+## 2026-10-29
+
+- Menambahkan alur koreksi presensi ekstrakurikuler setelah submit di halaman guru; perubahan status memerlukan alasan dan disimpan dalam audit trail.
+- Menjadikan `prisma:uat` menjalankan seed permission dasar terlebih dahulu agar akun UAT pada database development baru memiliki hak akses sesuai role.
+
 ## 2026-10-28
 
 - Merancang ulang Kaldik menjadi kalender bulanan interaktif: klik tanggal untuk membuka dialog tambah kegiatan, klik kegiatan untuk mengedit, dan navigasi bulan dalam urutan tahun ajaran Juli–Juni.
