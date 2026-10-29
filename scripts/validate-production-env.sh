@@ -36,6 +36,22 @@ def read_env(path):
             result[key.strip()] = value
     return result
 
+def normalized_origin(value):
+    # Compare origins rather than raw URL strings: paths and trailing slashes
+    # are not part of an origin, and scheme/host casing should not matter.
+    parsed = urlparse(value.strip())
+    if not parsed.scheme or not parsed.hostname:
+        return None
+    try:
+        port = parsed.port
+    except ValueError:
+        return None
+    scheme = parsed.scheme.lower()
+    host = parsed.hostname.lower()
+    if port is None or (scheme == "https" and port == 443) or (scheme == "http" and port == 80):
+        return f"{scheme}://{host}"
+    return f"{scheme}://{host}:{port}"
+
 backend = read_env(sys.argv[1])
 frontend = read_env(sys.argv[2])
 required = ("DATABASE_URL", "JWT_SECRET", "DEFAULT_USER_PASSWORD", "FRONTEND_URL", "FRONTEND_ALLOWED_ORIGINS")
@@ -50,10 +66,24 @@ if db.scheme not in ("postgres", "postgresql") or db.hostname not in ("postgres"
     print("ERROR: DATABASE_URL must use a supported PostgreSQL host.", file=sys.stderr)
     sys.exit(1)
 
-frontend_url = backend["FRONTEND_URL"].rstrip("/")
-origins = [x.strip().rstrip("/") for x in backend["FRONTEND_ALLOWED_ORIGINS"].split(",") if x.strip()]
-if not frontend_url.startswith("https://") or frontend_url not in origins:
-    print("ERROR: FRONTEND_URL must be HTTPS and included in FRONTEND_ALLOWED_ORIGINS.", file=sys.stderr)
+frontend_url = backend["FRONTEND_URL"].strip()
+frontend_parsed = urlparse(frontend_url)
+allowed_origins = {
+    normalized_origin(item)
+    for item in backend["FRONTEND_ALLOWED_ORIGINS"].split(",")
+    if item.strip()
+}
+frontend_origin = normalized_origin(frontend_url)
+if (
+    frontend_parsed.scheme.lower() != "https"
+    or frontend_origin is None
+    or frontend_origin not in allowed_origins
+):
+    print(
+        "ERROR: FRONTEND_URL must use HTTPS and its origin must be listed in FRONTEND_ALLOWED_ORIGINS. "
+        "Check the existing backend env values; this validator does not modify them.",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 # Legacy secrets are not rotated automatically during deployment. Warn rather than
