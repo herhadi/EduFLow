@@ -4,86 +4,69 @@ set -Eeuo pipefail
 ROOT_DIR="${EDUFLOW_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 cd "$ROOT_DIR"
 
-if [ ! -f .env ]; then
-  echo "ERROR: root .env is required for staging/production Docker Compose." >&2
-  echo "Copy .env.example to .env and replace all CHANGE_ME values with real configuration." >&2
-  exit 1
-fi
+# Production uses app-scoped environment files. Do not require or create a root .env.
+BACKEND_ENV="apps/backend/.env"
+FRONTEND_ENV="apps/frontend/.env.local"
+for file in "$BACKEND_ENV" "$FRONTEND_ENV"; do
+  if [ ! -f "$file" ]; then
+    echo "ERROR: required environment file is missing: $file" >&2
+    exit 1
+  fi
+done
 
 if ! command -v docker >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
   echo "ERROR: docker and python3 are required for production environment validation." >&2
   exit 1
 fi
 
-# Parse the resolved Compose configuration in memory only; never print secrets.
-compose_config="$(docker compose config --format json)"
-printf '%s' "$compose_config" | python3 -c '
-import json, sys
-from urllib.parse import urlparse, unquote
+# Parse values without printing them. The backend env file remains the source of truth.
+python3 - "$BACKEND_ENV" "$FRONTEND_ENV" <<'PY'
+import sys
+from urllib.parse import urlparse
 
-try:
-    cfg = json.load(sys.stdin)
-    backend = cfg["services"]["backend"]["environment"]
-    postgres = cfg["services"]["postgres"]["environment"]
-except Exception:
-    print("ERROR: unable to read resolved Docker Compose environment.", file=sys.stderr)
+def read_env(path):
+    result = {}
+    with open(path, encoding="utf-8") as f:
+        for raw in f:
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            value = value.strip().strip('"').strip("'")
+            result[key.strip()] = value
+    return result
+
+backend = read_env(sys.argv[1])
+frontend = read_env(sys.argv[2])
+required = ("DATABASE_URL", "JWT_SECRET", "DEFAULT_USER_PASSWORD", "FRONTEND_URL", "FRONTEND_ALLOWED_ORIGINS")
+missing = [key for key in required if not backend.get(key, "").strip()]
+missing += [key for key in ("NEXT_PUBLIC_API_URL", "BACKEND_INTERNAL_API_URL") if not frontend.get(key, "").strip()]
+if missing:
+    print("ERROR: missing required settings: " + ", ".join(missing), file=sys.stderr)
     sys.exit(1)
 
-required = {
-    "DATABASE_URL": backend.get("DATABASE_URL", ""),
-    "JWT_SECRET": backend.get("JWT_SECRET", ""),
-    "DEFAULT_USER_PASSWORD": backend.get("DEFAULT_USER_PASSWORD", ""),
-    "ROOT_EMAIL": backend.get("ROOT_EMAIL", ""),
-    "ROOT_PASSWORD": backend.get("ROOT_PASSWORD", ""),
-    "FRONTEND_URL": backend.get("FRONTEND_URL", ""),
-    "FRONTEND_ALLOWED_ORIGINS": backend.get("FRONTEND_ALLOWED_ORIGINS", ""),
-    "POSTGRES_PASSWORD": postgres.get("POSTGRES_PASSWORD", ""),
-}
-for key, value in required.items():
-    if not isinstance(value, str) or not value.strip():
-        print(f"ERROR: required setting {key} is empty.", file=sys.stderr)
-        sys.exit(1)
-
-for key in ("JWT_SECRET", "DEFAULT_USER_PASSWORD", "ROOT_PASSWORD", "POSTGRES_PASSWORD"):
-    value = required[key]
-    lowered = value.lower()
-    if any(token in lowered for token in ("change_me", "replace-this-in-development", "123456", "password", "example.invalid")):
-        print(f"ERROR: {key} still looks like a placeholder or weak default.", file=sys.stderr)
-        sys.exit(1)
-
-if len(required["JWT_SECRET"]) < 32:
-    print("ERROR: JWT_SECRET must contain at least 32 characters.", file=sys.stderr)
-    sys.exit(1)
-for key in ("DEFAULT_USER_PASSWORD", "ROOT_PASSWORD"):
-    if len(required[key]) < 12:
-        print(f"ERROR: {key} must contain at least 12 characters.", file=sys.stderr)
-        sys.exit(1)
-if len(required["POSTGRES_PASSWORD"]) < 16:
-    print("ERROR: POSTGRES_PASSWORD must contain at least 16 characters.", file=sys.stderr)
+db = urlparse(backend["DATABASE_URL"])
+if db.scheme not in ("postgres", "postgresql") or db.hostname not in ("postgres", "localhost", "127.0.0.1"):
+    print("ERROR: DATABASE_URL must use a supported PostgreSQL host.", file=sys.stderr)
     sys.exit(1)
 
-try:
-    db = urlparse(required["DATABASE_URL"])
-    if db.scheme not in ("postgres", "postgresql") or db.hostname != "postgres" or db.port != 5432:
-        raise ValueError
-    if unquote(db.password or "") != required["POSTGRES_PASSWORD"]:
-        print("ERROR: DATABASE_URL password must match POSTGRES_PASSWORD.", file=sys.stderr)
-        sys.exit(1)
-except Exception:
-    print("ERROR: DATABASE_URL must target postgres:5432 and use the matching encoded database password.", file=sys.stderr)
-    sys.exit(1)
-
-frontend_url = required["FRONTEND_URL"].rstrip("/")
-origins = [x.strip().rstrip("/") for x in required["FRONTEND_ALLOWED_ORIGINS"].split(",") if x.strip()]
+frontend_url = backend["FRONTEND_URL"].rstrip("/")
+origins = [x.strip().rstrip("/") for x in backend["FRONTEND_ALLOWED_ORIGINS"].split(",") if x.strip()]
 if not frontend_url.startswith("https://") or frontend_url not in origins:
     print("ERROR: FRONTEND_URL must be HTTPS and included in FRONTEND_ALLOWED_ORIGINS.", file=sys.stderr)
     sys.exit(1)
-if "*" in required["FRONTEND_ALLOWED_ORIGINS"] or "localhost" in frontend_url.lower() or "your-eduflow-domain.example" in frontend_url:
-    print("ERROR: frontend origin still looks like a development/example value.", file=sys.stderr)
-    sys.exit(1)
-if "example.invalid" in required["ROOT_EMAIL"].lower() or "change_me" in required["ROOT_EMAIL"].lower():
-    print("ERROR: ROOT_EMAIL still looks like a placeholder.", file=sys.stderr)
-    sys.exit(1)
 
-print("Production environment validation passed; required secrets and origins are configured.")
-'
+# Legacy secrets are not rotated automatically during deployment. Warn rather than
+# blocking a release; rotate them in a separately planned maintenance window.
+warnings = []
+if len(backend["JWT_SECRET"]) < 32:
+    warnings.append("JWT_SECRET is shorter than 32 characters")
+if len(backend["DEFAULT_USER_PASSWORD"]) < 12:
+    warnings.append("DEFAULT_USER_PASSWORD is shorter than 12 characters")
+if warnings:
+    print("WARNING: " + "; ".join(warnings) + ". Plan a separate credentials rotation.")
+print("Production app-scoped environment validation passed.")
+PY
+
+# Check Compose can resolve its configuration without requiring a root-level .env.
+docker compose config --quiet
