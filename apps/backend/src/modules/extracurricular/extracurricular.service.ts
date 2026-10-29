@@ -119,7 +119,23 @@ export class ExtracurricularService {
           update: { status: ExtracurricularEnrollmentStatus.ACTIVE, enrollmentType: member.enrollmentType ?? ExtracurricularEnrollmentType.VOLUNTARY },
         });
       }
-      return tx.extracurricularEnrollment.findMany({ where: { extracurricularId: programId, status: 'ACTIVE' }, include: { student: { select: { id: true, name: true, nis: true, enrollments: { where: { isActive: true, deletedAt: null }, include: { class: { select: { name: true, grade: true } } } } } }, orderBy: { student: { name: 'asc' } } });
+      return tx.extracurricularEnrollment.findMany({
+        where: { extracurricularId: programId, status: 'ACTIVE' },
+        include: {
+          student: {
+            select: {
+              id: true,
+              name: true,
+              nis: true,
+              enrollments: {
+                where: { isActive: true, deletedAt: null },
+                include: { class: { select: { name: true, grade: true } } },
+              },
+            },
+          },
+        },
+        orderBy: { student: { name: 'asc' } },
+      });
     });
     return { data, message: 'Anggota ekskul diperbarui.' };
   }
