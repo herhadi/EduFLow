@@ -152,8 +152,8 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
         <div className="mt-5 border-t border-slate-100 pt-4 dark:border-[var(--border)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-black text-slate-900 dark:text-[var(--text)]">Jadwal Mengajar Hari Ini</h3>
-              <p className="mt-1 text-sm text-muted">Lihat kelas dan buka presensi langsung dari sini.</p>
+              <h3 className="text-base font-black text-slate-900 dark:text-[var(--text)]">Agenda Hari Ini</h3>
+              <p className="mt-1 text-sm text-muted">Pantau agenda pembelajaran dan buka presensi yang perlu ditindaklanjuti.</p>
             </div>
             <Link className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:border-brand-300 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text)]" href="/teacher/schedules">Jadwal lengkap</Link>
           </div>
