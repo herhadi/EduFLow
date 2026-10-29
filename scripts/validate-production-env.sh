@@ -74,14 +74,21 @@ allowed_origins = {
     if item.strip()
 }
 frontend_origin = normalized_origin(frontend_url)
+# The documented example uses localhost because browser traffic is proxied through
+# the frontend's same-origin /api/backend route. Allow that explicit local origin;
+# any non-local frontend origin must use HTTPS.
+is_local_origin = (
+    frontend_parsed.hostname in ("localhost", "127.0.0.1", "::1")
+    and frontend_parsed.scheme.lower() == "http"
+)
 if (
-    frontend_parsed.scheme.lower() != "https"
-    or frontend_origin is None
+    frontend_origin is None
     or frontend_origin not in allowed_origins
+    or (frontend_parsed.scheme.lower() != "https" and not is_local_origin)
 ):
     print(
-        "ERROR: FRONTEND_URL must use HTTPS and its origin must be listed in FRONTEND_ALLOWED_ORIGINS. "
-        "Check the existing backend env values; this validator does not modify them.",
+        "ERROR: FRONTEND_URL must use HTTPS unless it is an explicit localhost origin, "
+        "and its origin must be listed in FRONTEND_ALLOWED_ORIGINS.",
         file=sys.stderr,
     )
     sys.exit(1)
