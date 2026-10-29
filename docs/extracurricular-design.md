@@ -97,7 +97,7 @@ Presensi ekskul adalah alur tersendiri dari presensi KBM. Siswa tidak melakukan 
 1. Guru membuka menu **Ekskul Saya** dan memilih program yang dibimbing.
 2. Guru memilih pertemuan hari ini atau membuat sesi pertemuan baru jika jadwal sesi belum dibuat.
 3. Sistem menampilkan daftar anggota aktif pada program tersebut, termasuk nama, kelas, dan status kepesertaan.
-4. Guru menetapkan status setiap siswa: **Hadir**, **Sakit**, **Izin**, atau **Alpa**. Status yang belum dipilih tetap ditandai **Belum diisi**, bukan langsung dianggap hadir.
+4. Guru menetapkan status setiap siswa: **Hadir**, **Sakit**, **Izin**, atau **Alpa**. Mengikuti alur presensi KBM EduFlow, saat sesi dibuat seluruh anggota aktif otomatis berstatus **Hadir**. Guru cukup mengubah siswa yang Sakit, Izin, atau Alpa. Status default ini harus terlihat jelas dan guru tetap memeriksa daftar sebelum submit.
 5. Guru dapat menambahkan catatan per siswa dan catatan umum pertemuan, lalu menyimpan presensi.
 6. Sebelum dikirim/finalisasi, guru melihat ringkasan jumlah hadir, sakit, izin, alpa, dan belum diisi.
 7. Setelah difinalisasi, presensi terkunci dari perubahan biasa. Koreksi dilakukan melalui aksi koreksi yang menyimpan siapa, kapan, dan alasan perubahan pada audit log.
@@ -119,7 +119,7 @@ Presensi ekskul adalah alur tersendiri dari presensi KBM. Siswa tidak melakukan 
 #### C. Daftar anggota dan presensi
 - Pencarian nama/NIS dan filter kelas.
 - Tombol cepat **Tandai semua hadir** untuk mempercepat pencatatan, tetapi tindakan harus eksplisit dan dapat diperiksa sebelum disimpan.
-- Status per siswa: PRESENT, SICK, EXCUSED, ABSENT; status kosong tetap UNMARKED sampai guru memilih.
+- Status per siswa: PRESENT, SICK, EXCUSED, ABSENT. Saat sesi dibuat, anggota aktif otomatis berstatus PRESENT sesuai pola presensi KBM; guru mengubah status pengecualian sebelum submit.
 - Catatan siswa opsional, misalnya alasan izin atau tindak lanjut.
 - Daftar peserta yang ditampilkan adalah anggota aktif pada saat sesi dibuat. Perubahan keanggotaan berikutnya tidak mengubah daftar presensi historis.
 - Sediakan indikator belum diisi agar guru tidak keliru mengirim presensi yang belum lengkap.
@@ -138,7 +138,7 @@ Presensi ekskul adalah alur tersendiri dari presensi KBM. Siswa tidak melakukan 
 - status (PRESENT, SICK, EXCUSED, ABSENT, UNMARKED)
 - notes (opsional), markedByUserId, markedAt
 - UNIQUE(sessionId, studentId) agar satu siswa hanya memiliki satu catatan per sesi.
-- Saat sesi dibuat, sistem membuat satu baris untuk setiap anggota aktif sebagai UNMARKED. Ini memastikan siswa yang belum ditandai tidak hilang dari laporan.
+- Saat sesi dibuat, sistem membuat satu baris untuk setiap anggota aktif dengan status PRESENT sebagai default. Guru pembimbing mengubah status siswa yang tidak hadir sebelum submit.
 
 #### Koreksi presensi / audit
 Koreksi setelah pengiriman mencatat nilai lama, nilai baru, alasan, pelaku, dan waktu. Gunakan audit log aplikasi jika fasilitas audit generik sudah memadai; tidak perlu menggandakan mekanisme audit tanpa alasan.
@@ -157,7 +157,7 @@ Koreksi setelah pengiriman mencatat nilai lama, nilai baru, alasan, pelaku, dan 
 - Rekap per sesi: jumlah hadir, sakit, izin, alpa, dan belum diisi.
 - Rekap per siswa dalam satu program: jumlah per status dan persentase hadir dari sesi yang sudah difinalisasi.
 - Rekap per program, kelas, pembimbing, dan rentang tanggal untuk Opsek/Kepala Sekolah.
-- Sesi Draft atau Cancelled tidak masuk perhitungan kehadiran final. Sesi Submitted dengan status UNMARKED harus ditampilkan sebagai data belum lengkap dan tidak boleh diam-diam dihitung sebagai hadir.
+- Sesi Draft atau Cancelled tidak masuk perhitungan kehadiran final. Karena anggota otomatis berstatus PRESENT, UI harus menampilkan pengingat pemeriksaan dan ringkasan status sebelum submit.
 - Ekspor CSV/Excel dapat ditambahkan setelah alur inti stabil.
 
 ### Tahapan implementasi presensi
@@ -166,3 +166,8 @@ Koreksi setelah pengiriman mencatat nilai lama, nilai baru, alasan, pelaku, dan 
 3. Buat halaman Opsek untuk memantau kelengkapan, membuka rekap, serta mengelola koreksi yang diizinkan.
 4. Tambahkan laporan per siswa/program dan ekspor.
 5. Pertimbangkan presensi offline hanya jika kebutuhan operasional sudah jelas; sinkronisasi offline harus menangani konflik dan tidak boleh menimpa koreksi yang lebih baru.
+
+
+## Status implementasi
+
+Fondasi API dan model Prisma tersedia pada branch fitur: daftar dan pembuatan program, penugasan pembimbing, pengelolaan anggota, pembuatan sesi, perubahan status presensi, dan submit. Pembuatan sesi menggunakan status default PRESENT agar konsisten dengan presensi KBM. Antarmuka Opsek untuk master program, migrasi di lingkungan target, pengujian build, dan laporan masih perlu dituntaskan sebelum rilis produksi.

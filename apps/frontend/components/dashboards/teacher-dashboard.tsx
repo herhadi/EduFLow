@@ -92,6 +92,7 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
   const teachingPlanSummary = summary?.teachingPlan ?? { revision: 0, waiting: 0, approved: 0 };
   const assessmentSummary = summary?.assessment ?? { draft: 0 };
   const urgentActions = [
+    { href: '/teacher/extracurricular', label: 'Presensi ekstrakurikuler', value: 'Ekskul Saya' },
     agendaSummary.pending > 0
       ? {
           href: '/teacher/attendance',
