@@ -135,7 +135,7 @@ Presensi ekskul adalah alur tersendiri dari presensi KBM. Siswa tidak melakukan 
 
 #### ExtracurricularAttendance
 - id, sessionId, studentId
-- status (PRESENT, SICK, EXCUSED, ABSENT, UNMARKED)
+- status (PRESENT, SICK, EXCUSED, ABSENT), dengan default PRESENT ketika sesi dibuat
 - notes (opsional), markedByUserId, markedAt
 - UNIQUE(sessionId, studentId) agar satu siswa hanya memiliki satu catatan per sesi.
 - Saat sesi dibuat, sistem membuat satu baris untuk setiap anggota aktif dengan status PRESENT sebagai default. Guru pembimbing mengubah status siswa yang tidak hadir sebelum submit.
@@ -170,4 +170,4 @@ Koreksi setelah pengiriman mencatat nilai lama, nilai baru, alasan, pelaku, dan 
 
 ## Status implementasi
 
-Fondasi API dan model Prisma tersedia pada branch fitur: daftar dan pembuatan program, penugasan pembimbing, pengelolaan anggota, pembuatan sesi, perubahan status presensi, dan submit. Pembuatan sesi menggunakan status default PRESENT agar konsisten dengan presensi KBM. Antarmuka Opsek untuk master program, migrasi di lingkungan target, pengujian build, dan laporan masih perlu dituntaskan sebelum rilis produksi.
+Fondasi API dan model Prisma tersedia pada branch fitur: daftar dan pembuatan program, penugasan pembimbing, pengelolaan anggota, pembuatan sesi, perubahan status presensi, dan submit. Halaman dasar Opsek untuk membuat program, menetapkan pembimbing, serta menambahkan anggota dan halaman guru untuk presensi juga tersedia. Pembuatan sesi menggunakan status default PRESENT agar konsisten dengan presensi KBM. Sinkronisasi otomatis Pramuka kelas VII, edit/arsip program, audit koreksi pasca-submit, laporan, migrasi di lingkungan target, dan pengujian build masih perlu dituntaskan sebelum rilis produksi.
