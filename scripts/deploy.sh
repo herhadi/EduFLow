@@ -75,6 +75,31 @@ require_file "${ROOT_DIR}/docker-compose.yml"
 cd "$ROOT_DIR"
 acquire_lock "$LOCK_FILE"
 
+# Docker Compose interpolation does not read service env_file values. Derive the
+# Postgres init password from the existing backend DATABASE_URL so deployments
+# can keep app-scoped env files without introducing a root .env.
+if [ -f "${ROOT_DIR}/apps/backend/.env" ]; then
+  POSTGRES_PASSWORD="$(python3 - "${ROOT_DIR}/apps/backend/.env" <<'PY'
+import sys
+from urllib.parse import urlparse, unquote
+path = sys.argv[1]
+values = {}
+with open(path, encoding="utf-8") as f:
+    for raw in f:
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip().strip('"').strip("'")
+url = urlparse(values.get("DATABASE_URL", ""))
+if not url.password:
+    raise SystemExit("ERROR: DATABASE_URL in apps/backend/.env has no password.")
+print(unquote(url.password))
+PY
+)"
+  export POSTGRES_PASSWORD
+fi
+
 PREVIOUS_HEAD="$(git rev-parse HEAD)"
 BASE_SHA="${DEPLOY_BASE_SHA:-$PREVIOUS_HEAD}"
 
