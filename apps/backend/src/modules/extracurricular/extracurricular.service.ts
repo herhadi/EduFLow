@@ -64,8 +64,8 @@ export class ExtracurricularService {
   }
   private isGradeSeven(value: string | null): boolean {
     if (!value) return false;
-    const normalized = value.trim().toUpperCase().replace(/\\s+/g, ' ');
-    return /^(7|VII)(\\b|$)/.test(normalized) || /^(KELAS|TINGKAT) (7|VII)(\\b|$)/.test(normalized);
+    const normalized = value.trim().toUpperCase().replace(/\s+/g, ' ');
+    return /^(7|VII)(\b|$)/.test(normalized) || /^(KELAS|TINGKAT) (7|VII)(\b|$)/.test(normalized);
   }
   async correctSubmittedAttendance(sessionId: string, userId: string, items: Array<{ studentId: string; status: 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT'; reason: string }>) {
     const session = await this.prisma.extracurricularSession.findUnique({ where: { id: sessionId }, include: { extracurricular: true } });
