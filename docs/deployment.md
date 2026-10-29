@@ -9,6 +9,10 @@ Dokumen terkait:
 ## Pengembangan Lokal
 
 ```bash
+cp .env.example .env
+# Untuk lokal saja, edit root .env agar password DATABASE_URL sama dengan POSTGRES_PASSWORD.
+# Contoh lokal: DATABASE_URL=postgresql://eduflow:eduflow@postgres:5432/eduflow?schema=public dan POSTGRES_PASSWORD=eduflow.
+# Isi juga JWT_SECRET, DEFAULT_USER_PASSWORD, ROOT_EMAIL, ROOT_PASSWORD, FRONTEND_URL, FRONTEND_ALLOWED_ORIGINS.
 cp apps/backend/.env.example apps/backend/.env
 cp apps/frontend/.env.example apps/frontend/.env.local
 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d postgres redis
@@ -48,7 +52,21 @@ Deployment production wajib menyediakan environment variable secara aman dan men
 
 ## Environment Variable
 
-- Backend NestJS memakai `apps/backend/.env`.
+### Docker Compose staging/production
+
+Buat file root `.env` dari `.env.example`, lalu isi semua placeholder dengan nilai unik dan kuat. Docker Compose sengaja gagal saat variabel wajib belum diisi; jangan mengembalikan default secret development. `DATABASE_URL` harus memakai password yang sama dengan `POSTGRES_PASSWORD` (encode karakter khusus password sebagai URL encoding). Jangan commit root `.env`.
+
+Compose utama hanya bind frontend `127.0.0.1:3000` dan backend `127.0.0.1:3001` ke loopback host untuk Cloudflare Tunnel/health check. PostgreSQL dan Redis tidak mem-publish port host. Jangan mengubah bind menjadi `0.0.0.0` tanpa kebutuhan yang ditinjau khusus.
+
+Sebelum deployment yang mengubah aplikasi/container, `scripts/deploy.sh` menjalankan `scripts/validate-production-env.sh`. Preflight menolak placeholder/default secret, secret yang terlalu pendek, URL frontend non-HTTPS/wildcard, serta password `DATABASE_URL` yang tidak sama dengan `POSTGRES_PASSWORD`. Jalankan validasi secara manual setelah mengisi `.env`:
+
+```bash
+bash scripts/validate-production-env.sh
+```
+
+Pada server yang sudah punya volume PostgreSQL, isi `POSTGRES_PASSWORD` dengan password role yang benar-benar aktif sampai rotasi terencana dilakukan; mengubah variabel Compose saja tidak mengubah password di dalam database.
+
+- Backend NestJS memakai `apps/backend/.env` untuk konfigurasi/secret tambahan seperti R2 dan Telegram.
 - Frontend Next.js memakai `apps/frontend/.env.local`.
 - Docker Compose membaca `apps/backend/.env` sebagai `env_file` untuk secret backend seperti R2, Cloudflare, dan Telegram. Nilai koneksi container seperti `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT`, `FRONTEND_URL`, dan `FRONTEND_ALLOWED_ORIGINS` tetap dioverride oleh blok `environment` compose agar container memakai hostname Docker seperti `postgres` dan `redis`, bukan `localhost` dari konfigurasi lokal.
 - Frontend wajib mengisi `NEXT_PUBLIC_API_URL`; runtime frontend tidak menyediakan fallback ke `localhost:3001` agar production tidak salah target backend.
@@ -137,7 +155,7 @@ Script deployment melakukan:
 - logging ke `/srv/eduflow/logs/deploy/`.
 - menampilkan 200 baris terakhir log deployment di GitHub Actions jika deploy gagal.
 
-Validasi build/test dilakukan manual sebelum merge atau push besar. Model deploy production sengaja dibuat sederhana agar self-hosted runner tidak terlalu lama menahan job.
+Workflow `CI` berjalan pada pull request ke `main` dan push ke `main`, melakukan validasi Prisma serta build backend dan frontend. Alur ini belum menggantikan authenticated UAT di staging; jangan merge bila UAT browser belum selesai. Model deploy production sengaja dibuat sederhana agar self-hosted runner tidak terlalu lama menahan job.
 
 Untuk memindahkan data demo dari lokal ke Debian tanpa akun root lokal, gunakan prosedur `Transfer Data Demo Tanpa Root` pada `docs/backup-recovery.md`. Proses ini dilakukan manual dan terpisah dari workflow deploy karena menimpa database target.
 

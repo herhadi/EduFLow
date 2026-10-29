@@ -203,6 +203,9 @@ if [ "$RUN_DEPLOY" = "0" ]; then
   exit 0
 fi
 
+log_section "Validasi environment production"
+bash "${SCRIPT_DIR}/validate-production-env.sh"
+
 if [ "$START_INFRA" = "1" ]; then
   log_section "Persiapan service dasar"
   compose up -d postgres redis
