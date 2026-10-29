@@ -10,7 +10,7 @@ Jalankan dari root project:
 npm run prisma:uat --workspace backend
 ```
 
-Script ini idempotent dan membuat data berprefix `UAT`:
+Perintah ini menjalankan seed role/permission dasar lalu seed UAT. Gunakan hanya pada database development/test, jangan pada database production. Script UAT idempotent dan membuat data berprefix `UAT`:
 
 - akun Kepala Sekolah: `uat.ks`,
 - akun operator sekolah: `uat.operator`,
@@ -74,6 +74,15 @@ Login sebagai `uat.guru1`, buka `/teacher/dashboard` dan `/teacher/attendance`, 
 - agenda yang sudah submitted menampilkan tombol presensi nonaktif agar tidak diinput ulang,
 - akun guru/wali kelas tetap masuk dashboard guru,
 - kelas binaan tersedia untuk akun yang memiliki role wali kelas.
+
+### Presensi Ekstrakurikuler
+
+1. Login sebagai `uat.operator`, buka `/opsek/extracurricular`, lalu buat program ekstrakurikuler untuk tahun ajaran aktif.
+2. Tetapkan `uat.guru1` sebagai pembimbing dan tambahkan minimal dua siswa UAT sebagai anggota.
+3. Login sebagai `uat.guru1`, buka `/teacher/extracurricular`, lalu buat pertemuan. Pastikan semua anggota awalnya berstatus `Hadir`.
+4. Cari siswa berdasarkan nama/NIS, ubah salah satu status menjadi `Sakit` atau `Izin`, simpan, lalu kirim presensi. Pastikan status sesi menjadi terkirim.
+5. Gunakan `Koreksi presensi`, ubah status yang sudah dikirim, isi alasan koreksi, dan simpan. Pastikan perubahan berhasil dan riwayat koreksi mencatat status lama, status baru, alasan, serta aktor.
+6. Pastikan koreksi tanpa alasan ditolak dan guru yang bukan pembimbing tidak dapat membuka sesi tersebut.
 
 ### Report Siswa
 
