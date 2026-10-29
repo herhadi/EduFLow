@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { ExtracurricularAttendanceStatus, ExtracurricularEnrollmentStatus, ExtracurricularEnrollmentType, ExtracurricularSessionStatus, Prisma } from '@prisma/client';
+import { ExtracurricularAttendanceStatus, ExtracurricularEnrollmentStatus, ExtracurricularEnrollmentType, ExtracurricularSessionStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -76,7 +76,7 @@ export class ExtracurricularService {
   }
 
   async createSession(programId: string, userId: string, input: { startsAt: string; endsAt?: string; location?: string; activityNotes?: string }) {
-    const teacher = await this.requireAdvisor(programId, userId);
+    await this.requireAdvisor(programId, userId);
     const startsAt = new Date(input.startsAt);
     const endsAt = input.endsAt ? new Date(input.endsAt) : null;
     if (Number.isNaN(startsAt.getTime()) || (endsAt && (Number.isNaN(endsAt.getTime()) || endsAt < startsAt))) throw new BadRequestException('Tanggal/waktu pertemuan tidak valid');
@@ -110,7 +110,7 @@ export class ExtracurricularService {
     if (!session) throw new NotFoundException('Pertemuan tidak ditemukan');
     await this.requireAdvisor(session.extracurricularId, userId);
     if (session.status !== 'DRAFT') throw new BadRequestException('Pertemuan sudah diproses');
-    const updated = await this.prisma.extracurricularSession.update({ where: { id: sessionId }, data: { status: 'SUBMITTED', submittedAt: new Date(), submittedByUserId: userId }, include: { attendanceItems: true } });
+    const updated = await this.prisma.extracurricularSession.update({ where: { id: sessionId }, data: { status: 'SUBMITTED', submittedAt: new Date(), submittedByUserId: userId }, include: { extracurricular: { select: { id: true, name: true } }, attendanceItems: { include: { student: { select: { id: true, name: true, nis: true } } }, orderBy: { student: { name: 'asc' } } } } });
     return { data: updated, message: 'Presensi ekskul berhasil dikirim.' };
   }
 
