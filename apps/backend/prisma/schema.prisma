@@ -741,9 +741,23 @@ model ExtracurricularAttendance {
   session        ExtracurricularSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   student        Student                        @relation(fields: [studentId], references: [id])
   enrollment     ExtracurricularEnrollment      @relation(fields: [enrollmentId], references: [id])
+  revisions      ExtracurricularAttendanceRevision[]
 
   @@unique([sessionId, studentId])
   @@index([studentId, status])
+}
+
+model ExtracurricularAttendanceRevision {
+  id              String                         @id @default(uuid()) @db.Uuid
+  attendanceId    String                         @db.Uuid
+  oldStatus       ExtracurricularAttendanceStatus
+  newStatus       ExtracurricularAttendanceStatus
+  reason          String
+  changedByUserId String                         @db.Uuid
+  createdAt       DateTime                       @default(now())
+  attendance      ExtracurricularAttendance      @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  @@index([attendanceId, createdAt])
+  @@index([changedByUserId, createdAt])
 }
 
 model Student {

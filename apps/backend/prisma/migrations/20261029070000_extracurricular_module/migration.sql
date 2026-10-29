@@ -51,3 +51,13 @@ ALTER TABLE "ExtracurricularSession" ADD CONSTRAINT "ExtracurricularSession_extr
 ALTER TABLE "ExtracurricularAttendance" ADD CONSTRAINT "ExtracurricularAttendance_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "ExtracurricularSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "ExtracurricularAttendance" ADD CONSTRAINT "ExtracurricularAttendance_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "ExtracurricularAttendance" ADD CONSTRAINT "ExtracurricularAttendance_enrollmentId_fkey" FOREIGN KEY ("enrollmentId") REFERENCES "ExtracurricularEnrollment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+CREATE TABLE "ExtracurricularAttendanceRevision" (
+ "id" UUID NOT NULL DEFAULT gen_random_uuid(), "attendanceId" UUID NOT NULL,
+ "oldStatus" "ExtracurricularAttendanceStatus" NOT NULL, "newStatus" "ExtracurricularAttendanceStatus" NOT NULL,
+ "reason" TEXT NOT NULL, "changedByUserId" UUID NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ CONSTRAINT "ExtracurricularAttendanceRevision_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "ExtracurricularAttendanceRevision_attendanceId_createdAt_idx" ON "ExtracurricularAttendanceRevision"("attendanceId","createdAt");
+CREATE INDEX "ExtracurricularAttendanceRevision_changedByUserId_createdAt_idx" ON "ExtracurricularAttendanceRevision"("changedByUserId","createdAt");
+ALTER TABLE "ExtracurricularAttendanceRevision" ADD CONSTRAINT "ExtracurricularAttendanceRevision_attendanceId_fkey" FOREIGN KEY ("attendanceId") REFERENCES "ExtracurricularAttendance"("id") ON DELETE CASCADE ON UPDATE CASCADE;

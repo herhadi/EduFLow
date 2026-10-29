@@ -17,6 +17,18 @@ export class ExtracurricularController {
   create(@Body() body: Parameters<ExtracurricularService['createProgram']>[0]) { return this.service.createProgram(body); }
 
   @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Patch('programs/:id')
+  updateProgram(@Param('id') id: string, @Body() body: Parameters<ExtracurricularService['updateProgram']>[1]) { return this.service.updateProgram(id, body); }
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Post('programs/:id/archive')
+  archiveProgram(@Param('id') id: string) { return this.service.archiveProgram(id); }
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Post('programs/:id/sync-mandatory-members')
+  syncMandatoryMembers(@Param('id') id: string) { return this.service.syncMandatoryMembers(id); }
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Get('reports')
+  report(@Query('programId') programId?: string, @Query('from') from?: string, @Query('to') to?: string) { return this.service.report(programId, from, to); }
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
   @Post('programs/:id/advisors')
   advisors(@Param('id') id: string, @Body() body: { teacherIds: string[] }) { return this.service.assignAdvisors(id, body.teacherIds ?? []); }
 
@@ -40,6 +52,9 @@ export class ExtracurricularController {
   @Post('sessions/:id/attendance')
   updateAttendance(@Param('id') id: string, @Body() body: { items: Array<{ studentId: string; status: 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT'; notes?: string }> }, @Req() req: RequestWithUser) { return this.service.updateAttendance(id, req.user.id, body.items ?? []); }
 
+  @RequirePermissions(PERMISSIONS.ATTENDANCE_MANAGE)
+  @Post('sessions/:id/corrections')
+  correct(@Param('id') id: string, @Body() body: { items: Array<{ studentId: string; status: 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT'; reason: string }> }, @Req() req: RequestWithUser) { return this.service.correctSubmittedAttendance(id, req.user.id, body.items ?? []); }
   @RequirePermissions(PERMISSIONS.ATTENDANCE_MANAGE)
   @Post('sessions/:id/submit')
   submit(@Param('id') id: string, @Req() req: RequestWithUser) { return this.service.submitSession(id, req.user.id); }
