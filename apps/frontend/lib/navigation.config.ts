@@ -42,6 +42,7 @@ const operatorNavigation: NavigationItem[] = [
   { href: '/admin/dashboard', label: 'Beranda', icon: 'home' },
   { href: '/admin/data', label: 'Master', icon: 'database' },
   { href: '/admin/schedules', label: 'Jadwal', icon: 'schedule' },
+  { href: '/opsek/extracurricular', label: 'Ekskul', icon: 'students' },
   { href: '/admin/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
   { href: '/admin/profile', label: 'Profil', icon: 'profile' },
 ];
@@ -141,6 +142,7 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'admin', href: '/admin/guru', label: 'Guru' },
   { section: 'admin', href: '/admin/akademik', label: 'Akademik' },
   { section: 'admin', href: '/admin/schedules', label: 'Jadwal' },
+  { section: 'admin', href: '/opsek/extracurricular', label: 'Ekstrakurikuler' },
   { section: 'admin', href: '/admin/import-data', label: 'Import' },
   { section: 'admin', href: '/admin/audit', label: 'Audit' },
   { section: 'admin', href: '/admin/leave-requests', label: 'Izin/Sakit' },
@@ -258,7 +260,7 @@ export function getSectionFromPath(pathname: string) {
     return 'schedules';
   }
 
-  if (pathname.startsWith('/admin') || pathname === '/import-data') {
+  if (pathname.startsWith('/admin') || pathname.startsWith('/opsek') || pathname === '/import-data') {
     return 'admin';
   }
 
