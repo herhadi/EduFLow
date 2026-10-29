@@ -88,3 +88,81 @@ Tab Ringkasan, Peserta, Pembimbing, dan Jadwal.
 4. Penyempurnaan: jadwal pertemuan, presensi ekskul, laporan, dan pendaftaran minat mandiri bila akun siswa sudah tersedia.
 
 Catatan: rancangan ini sengaja memisahkan data ekskul dari Subject, Schedule, dan DailyAgenda agar tidak mencampur kegiatan ekskul dengan KBM. Aturan wajib Pramuka perlu menggunakan field tingkat kelas yang tervalidasi; jangan bergantung hanya pada teks nama rombel.
+
+## Rancangan presensi ekstrakurikuler
+
+Presensi ekskul adalah alur tersendiri dari presensi KBM. Siswa tidak melakukan presensi mandiri; **guru pembimbing yang mencatat kehadiran anggota** pada setiap pertemuan. Guru yang ditugaskan sebagai pembimbing dapat melakukan presensi meskipun bukan guru mata pelajaran siswa atau wali kelasnya.
+
+### Alur guru pembimbing
+1. Guru membuka menu **Ekskul Saya** dan memilih program yang dibimbing.
+2. Guru memilih pertemuan hari ini atau membuat sesi pertemuan baru jika jadwal sesi belum dibuat.
+3. Sistem menampilkan daftar anggota aktif pada program tersebut, termasuk nama, kelas, dan status kepesertaan.
+4. Guru menetapkan status setiap siswa: **Hadir**, **Sakit**, **Izin**, atau **Alpa**. Status yang belum dipilih tetap ditandai **Belum diisi**, bukan langsung dianggap hadir.
+5. Guru dapat menambahkan catatan per siswa dan catatan umum pertemuan, lalu menyimpan presensi.
+6. Sebelum dikirim/finalisasi, guru melihat ringkasan jumlah hadir, sakit, izin, alpa, dan belum diisi.
+7. Setelah difinalisasi, presensi terkunci dari perubahan biasa. Koreksi dilakukan melalui aksi koreksi yang menyimpan siapa, kapan, dan alasan perubahan pada audit log.
+
+### Halaman presensi
+
+#### A. Daftar pertemuan ekskul
+- Filter program, rentang tanggal, dan status presensi.
+- Menampilkan tanggal/jam, nama ekskul, pembimbing, jumlah peserta, kelengkapan presensi, dan status Draft/Terkirim.
+- Guru hanya melihat sesi dari program yang pembimbingnya ditugaskan kepadanya.
+- Opsek dapat melihat semua program dan rekap presensi; akses koreksi mengikuti permission yang ditetapkan.
+
+#### B. Form pertemuan
+- Program ekskul, tanggal, waktu mulai/selesai, lokasi, materi/kegiatan, dan catatan.
+- Jadwal berulang boleh menjadi dasar pembuatan sesi, tetapi setiap pertemuan tetap memiliki catatan presensi sendiri.
+- Pertemuan dapat dibuat oleh pembimbing yang berwenang atau Opsek. Hindari membuat presensi otomatis tanpa sesi nyata.
+- Cegah dua sesi yang tidak sengaja sama untuk program dan waktu yang sama; jika sekolah memang mengadakan sesi paralel, dukung dengan sesi terpisah yang eksplisit.
+
+#### C. Daftar anggota dan presensi
+- Pencarian nama/NIS dan filter kelas.
+- Tombol cepat **Tandai semua hadir** untuk mempercepat pencatatan, tetapi tindakan harus eksplisit dan dapat diperiksa sebelum disimpan.
+- Status per siswa: PRESENT, SICK, EXCUSED, ABSENT; status kosong tetap UNMARKED sampai guru memilih.
+- Catatan siswa opsional, misalnya alasan izin atau tindak lanjut.
+- Daftar peserta yang ditampilkan adalah anggota aktif pada saat sesi dibuat. Perubahan keanggotaan berikutnya tidak mengubah daftar presensi historis.
+- Sediakan indikator belum diisi agar guru tidak keliru mengirim presensi yang belum lengkap.
+
+### Model data presensi yang disarankan
+
+#### ExtracurricularSession
+- id, extracurricularId, startsAt, endsAt, location (opsional)
+- activityNotes (opsional), status (DRAFT, SUBMITTED, CANCELLED)
+- createdByUserId, submittedByUserId (opsional), submittedAt (opsional)
+- createdAt, updatedAt
+- Program dan tanggal/jam sesi menjadi konteks laporan presensi.
+
+#### ExtracurricularAttendance
+- id, sessionId, studentId
+- status (PRESENT, SICK, EXCUSED, ABSENT, UNMARKED)
+- notes (opsional), markedByUserId, markedAt
+- UNIQUE(sessionId, studentId) agar satu siswa hanya memiliki satu catatan per sesi.
+- Saat sesi dibuat, sistem membuat satu baris untuk setiap anggota aktif sebagai UNMARKED. Ini memastikan siswa yang belum ditandai tidak hilang dari laporan.
+
+#### Koreksi presensi / audit
+Koreksi setelah pengiriman mencatat nilai lama, nilai baru, alasan, pelaku, dan waktu. Gunakan audit log aplikasi jika fasilitas audit generik sudah memadai; tidak perlu menggandakan mekanisme audit tanpa alasan.
+
+### Aturan otorisasi dan konsistensi
+- Guru hanya dapat membuat sesi dan mencatat/mengubah presensi untuk ekskul yang pembimbingnya ditugaskan kepadanya.
+- Opsek dapat mengelola sesi dan membaca seluruh rekap sesuai permission; tindakan koreksi tetap tercatat.
+- Backend memvalidasi otorisasi pembimbing pada setiap endpoint, bukan hanya menyembunyikan tombol di UI.
+- Siswa yang bukan anggota aktif tidak dapat ditambahkan ke presensi secara sembarang. Jika ada peserta tamu, sediakan alur eksplisit yang mencatat alasan dan tidak otomatis mengubah keanggotaan tetap.
+- Setelah sesi dikirim, perubahan status dilakukan melalui koreksi ter-audit, bukan overwrite tanpa jejak.
+- Pembatalan sesi menyimpan status dan alasan; jangan menghapus sesi yang sudah memiliki presensi.
+- Semua waktu disimpan dengan zona waktu yang konsisten dan ditampilkan dalam zona waktu sekolah.
+- Presensi ekskul tidak mengubah presensi KBM, nilai mata pelajaran, atau status kehadiran sekolah secara otomatis.
+
+### Rekap dan laporan
+- Rekap per sesi: jumlah hadir, sakit, izin, alpa, dan belum diisi.
+- Rekap per siswa dalam satu program: jumlah per status dan persentase hadir dari sesi yang sudah difinalisasi.
+- Rekap per program, kelas, pembimbing, dan rentang tanggal untuk Opsek/Kepala Sekolah.
+- Sesi Draft atau Cancelled tidak masuk perhitungan kehadiran final. Sesi Submitted dengan status UNMARKED harus ditampilkan sebagai data belum lengkap dan tidak boleh diam-diam dihitung sebagai hadir.
+- Ekspor CSV/Excel dapat ditambahkan setelah alur inti stabil.
+
+### Tahapan implementasi presensi
+1. Tambahkan model sesi, catatan presensi per siswa, migrasi database, permission, dan endpoint backend.
+2. Buat halaman guru untuk daftar ekskul bimbingan, membuat sesi, mencatat status anggota, dan mengirim presensi.
+3. Buat halaman Opsek untuk memantau kelengkapan, membuka rekap, serta mengelola koreksi yang diizinkan.
+4. Tambahkan laporan per siswa/program dan ekspor.
+5. Pertimbangkan presensi offline hanya jika kebutuhan operasional sudah jelas; sinkronisasi offline harus menangani konflik dan tidak boleh menimpa koreksi yang lebih baru.
