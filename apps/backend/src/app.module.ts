@@ -16,6 +16,7 @@ import { RequestLoggingInterceptor } from './infrastructure/observability/reques
 import { AcademicModule } from './modules/academic/academic.module';
 import { AcademicPlanningModule } from './modules/academic-planning/academic-planning.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
+import { JournalsModule } from './modules/journals/journals.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { FinanceModule } from './modules/finance/finance.module';
@@ -46,6 +47,7 @@ import { WorkersModule } from './workers/workers.module';
     AcademicModule,
     AcademicPlanningModule,
     AttendanceModule,
+    JournalsModule,
     FinanceModule,
     ExtracurricularModule,
     HealthModule,

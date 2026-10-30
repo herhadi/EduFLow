@@ -84,6 +84,12 @@ enum AssessmentStatus {
   REVISION_REQUESTED
 }
 
+enum TeachingJournalStatus {
+  DRAFT
+  SUBMITTED
+  LOCKED
+}
+
 enum AgendaStatus {
   SCHEDULED
   IN_PROGRESS
@@ -442,6 +448,7 @@ model Class {
   scheduleRevisions  ScheduleRevision[]
   agendas            DailyAgenda[]
   attendances        Attendance[]
+  classJournalNotes  ClassJournalNote[]
   assessments        Assessment[]
   timeSlotActivities ClassTimeSlotActivity[]
   createdAt          DateTime                @default(now())
@@ -518,6 +525,8 @@ model Teacher {
   subjects          TeacherSubject[]
   homeroomClasses   Class[]                       @relation("ClassHomeroomTeacher")
   teachingPlans     TeachingPlan[]
+  teachingJournals  TeachingJournal[]
+  classJournalNotes ClassJournalNote[]
   yearAssignments   TeacherSchoolYearAssignment[]
   extracurricularAdvisories ExtracurricularAdvisor[]
   createdAt         DateTime                      @default(now())
@@ -929,6 +938,7 @@ model DailyAgenda {
   teacher             Teacher      @relation(fields: [teacherId], references: [id])
   substituteTeacher   Teacher?     @relation("DailyAgendaSubstituteTeacher", fields: [substituteTeacherId], references: [id])
   attendance          Attendance?
+  teachingJournal     TeachingJournal?
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
 
@@ -938,6 +948,42 @@ model DailyAgenda {
   @@index([classId, date])
   @@index([teacherId, date])
   @@index([substituteTeacherId, date])
+}
+
+model TeachingJournal {
+  id                 String                @id @default(uuid()) @db.Uuid
+  agendaId           String                @unique @db.Uuid
+  teacherId          String                @db.Uuid
+  learningObjectives String?
+  material           String
+  learningActivities String?
+  learningOutcome    String?
+  reflection         String?
+  issueNotes         String?
+  status             TeachingJournalStatus @default(DRAFT)
+  submittedAt        DateTime?
+  lockedAt           DateTime?
+  agenda             DailyAgenda           @relation(fields: [agendaId], references: [id], onDelete: Cascade)
+  teacher            Teacher               @relation(fields: [teacherId], references: [id])
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  @@index([teacherId, status])
+}
+
+model ClassJournalNote {
+  id              String   @id @default(uuid()) @db.Uuid
+  classId         String   @db.Uuid
+  date            DateTime @db.Date
+  authorTeacherId String   @db.Uuid
+  content         String
+  schoolClass     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  authorTeacher   Teacher  @relation(fields: [authorTeacherId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([classId, date])
+  @@index([authorTeacherId, createdAt])
 }
 
 model Attendance {
