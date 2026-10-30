@@ -322,3 +322,12 @@ Pilihan mata pelajaran pada halaman tersebut dibaca dari `GET /api/academic/me/s
 - Kaldik harus memengaruhi generate agenda agar agenda tidak dibuat pada hari libur atau kegiatan non-KBM yang memblokir agenda.
 - File upload dokumen sebaiknya masuk storage provider melalui infrastructure layer, sedangkan metadata dan workflow approval tetap di PostgreSQL.
 - Kepala sekolah tidak perlu mengedit isi dokumen/nilai secara langsung; KS memberi approval, reject/revisi, dan catatan.
+
+## Jurnal Harian dan Jurnal Kelas
+
+- **Jadwal Pelajaran** adalah pola rutin yang disusun operator.
+- **Agenda Mengajar** adalah sesi `DailyAgenda` pada tanggal tertentu, hasil generate dari jadwal efektif.
+- **Jurnal Harian** adalah catatan pelaksanaan pembelajaran yang ditulis guru untuk agenda.
+- **Jurnal Kelas** adalah rekap agenda, jurnal pembelajaran, informasi presensi, dan catatan wali kelas untuk satu kelas.
+
+Agenda yang sudah digenerate bukan bukti bahwa KBM telah terlaksana. Dashboard dan laporan harus membedakan agenda terjadwal, jurnal draft, jurnal terkirim, agenda dibatalkan, dan kelas kosong. Jurnal adalah domain tersendiri dan tidak digabungkan ke `Attendance`: presensi mencatat status siswa dan workflow validasinya; jurnal mencatat materi, aktivitas, hasil, refleksi, dan kendala. Jurnal Kelas dihitung dari sumber data dan tidak meminta guru mengisi ulang materi. Lihat `docs/journal-workflow.md`.

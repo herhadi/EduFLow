@@ -1010,3 +1010,18 @@ Catatan:
 - Reminder guru memakai `User.telegramId` dari aktivasi Telegram. Reminder jam pelajaran dikirim 5 menit sebelum agenda pertama guru pada tanggal tersebut; jadwal berurutan untuk guru yang sama hanya menghasilkan satu reminder.
 - Notifikasi wali murid memakai `Guardian.phone`, `Guardian.email`, atau `User.telegramId` pada akun orang tua yang sudah aktivasi Telegram dari Profil.
 - Semua import menghasilkan ringkasan `created`, `updated`, `skipped`, dan `errors`.
+
+## Rancangan API Jurnal Pembelajaran
+
+Endpoint berikut adalah kontrak rancangan dan belum dianggap aktif sebelum controller, service, permission, dan test dibuat:
+
+- `GET /api/teaching-journals/mine?date=YYYY-MM-DD` — agenda/jurnal guru pada tanggal tertentu.
+- `GET /api/teaching-journals/:agendaId` — detail jurnal pada agenda yang boleh diakses.
+- `PUT /api/teaching-journals/:agendaId` — buat/perbarui draft.
+- `POST /api/teaching-journals/:agendaId/submit` — validasi dan kirim jurnal.
+- `GET /api/class-journals/:classId?date=YYYY-MM-DD` — rekap satu tanggal.
+- `GET /api/class-journals/:classId?from=YYYY-MM-DD&to=YYYY-MM-DD` — rekap rentang tanggal.
+- `POST /api/class-journals/:classId/notes` — catatan khusus wali kelas.
+- `PATCH /api/class-journals/:classId/notes/:noteId` — ubah catatan sesuai kewenangan.
+
+Semua endpoint memakai envelope response standar, memvalidasi scope kelas/agenda di backend, dan tidak mengandalkan filter frontend sebagai kontrol akses. Submit memvalidasi `material`; koreksi pasca-lock memerlukan jalur administratif dan audit.

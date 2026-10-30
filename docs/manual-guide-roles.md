@@ -1122,3 +1122,22 @@ Seluruh tindakan penting dapat dicatat dalam audit trail sesuai konfigurasi sist
 5. Isi keterangan dan tentukan apakah kegiatan memblokir pembuatan agenda. **Upacara Hari Nasional** dikenali dari dropdown jenis kegiatan, bukan dari nama yang diketik.
 6. Tekan **Simpan Kegiatan**. Untuk mengedit, klik kegiatan di kalender/daftar; untuk menghapus, gunakan tombol **Hapus**.
 7. Pengaturan **Apel Pagi** tetap tersedia di sisi kalender dan disimpan per tahun ajaran.
+
+## Jurnal Harian dan Jurnal Kelas (Rancangan)
+
+### Guru — Jurnal Harian
+1. Buka **Hari Ini**, lalu pilih agenda mengajar yang benar.
+2. Periksa kelas, mapel, waktu, dan agenda.
+3. Isi materi; lengkapi tujuan, aktivitas, hasil, refleksi, dan kendala jika relevan.
+4. Isi presensi pada alur Presensi yang terpisah.
+5. Simpan draft selama dikerjakan, lalu pilih **Kirim Jurnal** setelah materi wajib terisi.
+6. Periksa status. Agenda tanpa jurnal tetap ditandai belum diisi.
+
+### Wali Kelas — Jurnal Kelas
+1. Buka **Binaan** atau **Jurnal Kelas**, lalu pilih tanggal/periode.
+2. Periksa daftar pelajaran, guru, status jurnal, dan ringkasan presensi sesuai akses.
+3. Buka detail jurnal untuk membaca materi/catatan.
+4. Tambahkan catatan khusus kelas untuk kondisi kelas, kedisiplinan, atau kejadian penting.
+5. Catatan wali kelas tidak mengubah jurnal guru mapel.
+
+Operator memantau kelengkapan lintas kelas; kepala sekolah membaca rekap untuk monitoring. Tidak semua jurnal harus menunggu approval kepala sekolah. Ini rancangan UX sampai implementasi dan UAT selesai.

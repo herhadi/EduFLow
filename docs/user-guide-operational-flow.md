@@ -379,3 +379,9 @@ Setiap akhir minggu atau periode:
 - pastikan akun pengguna yang tidak aktif ditangani oleh petugas berwenang.
 
 Untuk prosedur deployment, backup, recovery, API, dan troubleshooting teknis, gunakan dokumen teknis terkait di folder `docs/`.
+
+## Jurnal Harian dan Jurnal Kelas (Rancangan)
+
+Alur KBM membedakan tiga hal: **Agenda Mengajar** berasal dari jadwal efektif yang digenerate operator; **Presensi** mencatat kehadiran dan memiliki workflow submit/approval; **Jurnal Harian** mencatat materi serta pelaksanaan pembelajaran dan dikirim oleh guru.
+
+Wali kelas membuka **Jurnal Kelas** untuk melihat agenda pembelajaran pada tanggal/periode yang dipilih, status jurnal, ringkasan presensi sesuai akses, dan menambahkan catatan kelas. Ringkasan dihitung dari data sumber; guru tidak menyalin materi ke formulir rekap. Laporan harus membedakan agenda terjadwal, jurnal terkirim/belum diisi, presensi terkirim, dan kelas kosong. Agenda hasil generate saja tidak boleh dihitung sebagai KBM terlaksana. Fitur ini masih rancangan hingga diimplementasikan.

@@ -172,3 +172,18 @@ Summary harian berjalan
 - event domain attendance
 - queue job notifikasi atau summary
 - data reporting harian
+
+## Batas Domain: Presensi vs Jurnal Pembelajaran
+
+Presensi tetap berada pada `Attendance` dan `AttendanceItem`. Materi dan pelaksanaan pembelajaran disimpan pada `TeachingJournal` yang terhubung langsung ke `DailyAgenda`, bukan sebagai kolom jurnal di Attendance.
+
+```text
+DailyAgenda SCHEDULED -> guru mulai KBM -> IN_PROGRESS
+  -> isi TeachingJournal (DRAFT)
+  -> isi Attendance dan AttendanceItem
+  -> submit presensi melalui workflow Attendance
+  -> submit jurnal secara terpisah
+  -> COMPLETED setelah syarat penyelesaian KBM terpenuhi
+```
+
+Jurnal dan presensi memiliki status independen. Submit jurnal tidak menyetujui presensi; approval presensi tidak mengunci jurnal. Status agenda tidak disimpulkan hanya dari salah satu status tersebut. Jurnal Kelas adalah rekap agenda, status jurnal, ringkasan presensi sesuai akses, dan catatan wali kelas. Detail ada di `docs/journal-workflow.md`.

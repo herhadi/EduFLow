@@ -113,3 +113,18 @@ Seeder awal sebaiknya:
 3. menghubungkan role dengan permission sesuai matrix,
 4. membuat admin awal dari environment variable,
 5. tidak menghapus permission lama secara otomatis.
+
+## Rancangan Permission Jurnal
+
+Permission berikut adalah usulan untuk katalog/seeder saat fitur diimplementasikan. Selaraskan dengan permission aktual dan hindari alias duplikat.
+
+| Permission | Guru | Wali Kelas | Operator Sekolah | Kepala Sekolah |
+| --- | --- | --- | --- | --- |
+| `teaching_journal.read_own` | ✓ | ✓ |  |  |
+| `teaching_journal.manage_own` | ✓ | ✓ |  |  |
+| `teaching_journal.read_school` |  |  | ✓ | ✓ |
+| `class_journal.read_assigned` |  | ✓ |  |  |
+| `class_journal.read_school` |  |  | ✓ | ✓ |
+| `class_journal_note.manage_assigned` |  | ✓ |  |  |
+
+Scope harus ditegakkan di service: guru hanya mengelola jurnal agenda yang ditugaskan; wali kelas hanya membaca rekap dan mengelola catatan kelas binaannya; operator/kepala sekolah membaca lintas kelas sesuai permission. Kepala sekolah tidak otomatis mengedit jurnal guru. Permission di dokumen ini belum aktif hanya karena dicantumkan.

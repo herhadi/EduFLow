@@ -225,3 +225,16 @@ Audit wajib untuk:
 - perubahan `StudentGuardian`,
 - perubahan status agenda,
 - perubahan role dan permission.
+
+## Jurnal Pembelajaran (Rancangan)
+
+Relasi konseptual:
+```text
+Schedule -> DailyAgenda -> Attendance -> AttendanceItem
+                     \-> TeachingJournal
+Class -> ClassJournalNote
+```
+
+`TeachingJournal` berelasi satu-ke-satu dengan `DailyAgenda` melalui `agendaId` unik. Field konseptual: `teacherId`, `learningObjectives` (opsional), `material` (wajib sebelum submit), `learningActivities`, `learningOutcome`, `reflection`, `issueNotes`, `status` (`DRAFT`, `SUBMITTED`, `LOCKED`), `submittedAt`, `lockedAt`, `createdAt`, dan `updatedAt`. Field ini adalah rancangan, bukan klaim bahwa migration Prisma sudah dibuat.
+
+`ClassJournalNote` menyimpan catatan wali kelas per `classId` dan tanggal dengan penulis, isi, serta timestamp. Catatan tidak menggantikan atau mengubah jurnal guru; beberapa catatan pada kelas/tanggal yang sama diperbolehkan. Jurnal Kelas tidak memerlukan tabel agregat di fase awal: hitung dari `DailyAgenda`, `TeachingJournal`, `Attendance`, dan `ClassJournalNote`. Audit diperlukan untuk pembuatan, perubahan, submit, lock, koreksi jurnal, dan perubahan catatan wali kelas.
