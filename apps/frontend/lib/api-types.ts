@@ -216,6 +216,34 @@ export interface DailyAgenda {
   canManageAttendance?: boolean;
 }
 
+export type TeachingJournalStatus = 'DRAFT' | 'SUBMITTED' | 'LOCKED';
+export interface TeachingJournal {
+  id: string; agendaId: string; teacherId: string;
+  learningObjectives?: string | null; material: string; learningActivities?: string | null;
+  learningOutcome?: string | null; reflection?: string | null; issueNotes?: string | null;
+  status: TeachingJournalStatus; submittedAt?: string | null; lockedAt?: string | null;
+  createdAt: string; updatedAt: string;
+}
+export interface TeachingJournalAgenda {
+  id: string; date: string; status: string; effectiveStartsAt?: string | null; effectiveEndsAt?: string | null;
+  class: Pick<SchoolClass, 'id' | 'name'>; subject: Pick<Subject, 'id' | 'name'>;
+  teacher: Pick<Teacher, 'id' | 'name'>; substituteTeacher?: Pick<Teacher, 'id' | 'name'> | null;
+  schedule?: Pick<Schedule, 'startsAt' | 'endsAt'> | null; teachingJournal?: TeachingJournal | null;
+  journalStatus: 'NOT_STARTED' | TeachingJournalStatus; canEditJournal: boolean;
+}
+export interface ClassJournal {
+  class: Pick<SchoolClass, 'id' | 'name' | 'code' | 'grade' | 'schoolYearId' | 'homeroomTeacherId'>;
+  range: { from: string; to: string };
+  summary: { totalAgendas: number; submittedJournals: number; draftJournals: number; journalsNotStarted: number; cancelledAgendas: number; completedAgendas: number };
+  agendas: Array<{
+    id: string; date: string; status: string; effectiveStartsAt?: string | null; effectiveEndsAt?: string | null;
+    subject: Pick<Subject, 'id' | 'name'>; teacher: Pick<Teacher, 'id' | 'name'>;
+    substituteTeacher?: Pick<Teacher, 'id' | 'name'> | null; schedule?: Pick<Schedule, 'startsAt' | 'endsAt'> | null;
+    teachingJournal?: TeachingJournal | null; journalStatus: 'NOT_STARTED' | TeachingJournalStatus; attendanceState: string;
+  }>;
+  notes: Array<{ id: string; classId: string; date: string; content: string; authorTeacher: Pick<Teacher, 'id' | 'name'>; createdAt: string; updatedAt: string }>;
+}
+
 export interface TeacherDashboardSummary {
   agenda: {
     total: number;

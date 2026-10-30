@@ -2,6 +2,7 @@ import { academicApi } from './api-modules/academic-api';
 import { authApi } from './api-modules/auth-api';
 import { gradesApi } from './api-modules/grades-api';
 import { importExportApi } from './api-modules/import-export-api';
+import { journalApi } from './api-modules/journal-api';
 import { notificationApi } from './api-modules/notification-api';
 import { operationsApi } from './api-modules/operations-api';
 import { parentApi } from './api-modules/parent-api';
@@ -21,5 +22,6 @@ export const api = {
   ...reportingApi,
   ...operationsApi,
   ...importExportApi,
+  ...journalApi,
   ...parentApi,
 };
