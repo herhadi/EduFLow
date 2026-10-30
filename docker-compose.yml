@@ -41,11 +41,10 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: eduflow-postgres
-    env_file:
-      - apps/backend/.env
     environment:
       POSTGRES_DB: eduflow
       POSTGRES_USER: eduflow
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Derived from apps/backend/.env DATABASE_URL by deploy.sh}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U eduflow -d eduflow"]
       interval: 5s

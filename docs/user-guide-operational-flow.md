@@ -15,7 +15,7 @@ Dokumen ini ditujukan untuk pengguna sekolah, terutama Operator Sekolah, yang ak
 | Orang Tua/Wali Murid | Melihat presensi dan nilai anak serta mengajukan izin/sakit |
 | Root | Menangani akses teknis, kesehatan sistem, backup, recovery, dan dukungan pengguna |
 
-Operator adalah titik awal operasional sekolah. Root hanya perlu memastikan aplikasi dan akun operator sudah tersedia. Beranda Operator Sekolah dibuka melalui `/opsek/dashboard`; route `/opsek/dashboard` sudah tidak digunakan.
+Operator adalah titik awal operasional sekolah. Root hanya perlu memastikan aplikasi dan akun operator sudah tersedia. Beranda Operator Sekolah dibuka melalui `/opsek/dashboard`.
 
 ## 2. Yang Disiapkan Sebelum Mulai
 
