@@ -89,8 +89,11 @@ export class JournalsService {
           teachingJournal: true, attendance: { select: { id: true, state: true, submittedAt: true } } },
         orderBy: [{ date: 'asc' }, { effectiveStartsAt: 'asc' }],
       }),
-      this.prisma.classJournalNote.findMany({ where: { classId, date: { gte: start, lte: end } },
-        include: { authorTeacher: { select: { id: true, name: true } }, orderBy: { createdAt: 'desc' } } }),
+      this.prisma.classJournalNote.findMany({
+        where: { classId, date: { gte: start, lte: end } },
+        include: { authorTeacher: { select: { id: true, name: true } } },
+        orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+      }),
     ]);
     return { data: {
       class: schoolClass, range: { from: start.toISOString().slice(0, 10), to: end.toISOString().slice(0, 10) },
