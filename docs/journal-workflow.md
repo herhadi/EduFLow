@@ -1,6 +1,6 @@
 # Desain Jurnal Harian dan Jurnal Kelas
 
-Status: **rancangan untuk implementasi**; endpoint, tabel, dan menu belum dianggap tersedia hanya karena tercantum di sini.
+Status: **diimplementasikan pada backend dan frontend**; jalankan migration Prisma sebelum fitur digunakan. Build dan alur runtime tetap perlu diverifikasi pada pipeline.
 
 ## 1. Terminologi
 
@@ -42,7 +42,7 @@ Satu agenda mempunyai nol atau satu jurnal; `agendaId` harus unik. `teacherId` a
 | `submittedAt`, `lockedAt` | Timestamp lifecycle |
 | `createdAt`, `updatedAt` | Timestamp standar |
 
-Nama field adalah rancangan domain, bukan klaim schema Prisma sudah diubah. Tidak perlu approval kepala sekolah untuk setiap jurnal secara default. Jika nanti dibutuhkan review, rancang workflow terpisah dari approval presensi.
+Model `TeachingJournal` telah ditambahkan ke schema Prisma dan migration. Tidak perlu approval kepala sekolah untuk setiap jurnal secara default. Jika nanti dibutuhkan review, rancang workflow terpisah dari approval presensi.
 
 ### ClassJournalNote
 
@@ -82,7 +82,7 @@ Nama permission usulan tercantum pada `docs/permission-matrix.md` dan harus dico
 - `POST /api/class-journals/:classId/notes`
 - `PATCH /api/class-journals/:classId/notes/:noteId`
 
-Kontrak ini belum aktif. Implementasi wajib memakai response envelope standar, DTO validation, audit, permission guard, dan test.
+Endpoint di atas telah ditambahkan dengan response envelope, pembatasan permission/scope di backend, serta audit perubahan jurnal dan catatan. Pengujian otomatis/runtime masih perlu dilengkapi.
 
 ## 8. Uji Penerimaan Minimum
 

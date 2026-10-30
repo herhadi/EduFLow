@@ -17,3 +17,23 @@ ALTER TABLE "TeachingJournal" ADD CONSTRAINT "TeachingJournal_agendaId_fkey" FOR
 ALTER TABLE "TeachingJournal" ADD CONSTRAINT "TeachingJournal_teacherId_fkey" FOREIGN KEY ("teacherId") REFERENCES "Teacher"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "ClassJournalNote" ADD CONSTRAINT "ClassJournalNote_classId_fkey" FOREIGN KEY ("classId") REFERENCES "Class"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "ClassJournalNote" ADD CONSTRAINT "ClassJournalNote_authorTeacherId_fkey" FOREIGN KEY ("authorTeacherId") REFERENCES "Teacher"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+INSERT INTO "Permission" ("id", "key")
+VALUES
+  (gen_random_uuid(), 'teaching_journal.read_own'),
+  (gen_random_uuid(), 'teaching_journal.manage_own'),
+  (gen_random_uuid(), 'teaching_journal.read_school'),
+  (gen_random_uuid(), 'class_journal.read_assigned'),
+  (gen_random_uuid(), 'class_journal.read_school'),
+  (gen_random_uuid(), 'class_journal_note.manage_assigned')
+ON CONFLICT ("key") DO NOTHING;
+
+INSERT INTO "RolePermission" ("roleId", "permissionId")
+SELECT role."id", permission."id"
+FROM "Role" role
+JOIN "Permission" permission ON (
+  (role."name" IN ('guru', 'wali_kelas') AND permission."key" IN ('teaching_journal.read_own', 'teaching_journal.manage_own'))
+  OR (role."name" = 'wali_kelas' AND permission."key" IN ('class_journal.read_assigned', 'class_journal_note.manage_assigned'))
+  OR (role."name" IN ('operator_sekolah', 'kepala_sekolah') AND permission."key" IN ('teaching_journal.read_school', 'class_journal.read_school'))
+)
+ON CONFLICT ("roleId", "permissionId") DO NOTHING;
