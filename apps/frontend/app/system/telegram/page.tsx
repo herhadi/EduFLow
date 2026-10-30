@@ -1,1 +1,1 @@
-export { default } from '../../admin/telegram/page';
+export { default } from '../../opsek/telegram/page';

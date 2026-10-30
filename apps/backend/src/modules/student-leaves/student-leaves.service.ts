@@ -384,7 +384,7 @@ export class StudentLeavesService {
 
   private getReviewerActionUrl(userId: string, operators: Array<{ id: string }>) {
     return operators.some((operator) => operator.id === userId)
-      ? '/admin/leave-requests'
+      ? '/opsek/leave-requests'
       : '/homeroom/leave-requests';
   }
 

@@ -34,17 +34,17 @@ export function OperatorHome({ currentUser }: { currentUser: CurrentUser | null 
           />
           <OperatorPriorityItem
             description="Cek request izin/sakit yang menunggu tindakan operator atau wali kelas."
-            href="/admin/leave-requests"
+            href="/opsek/leave-requests"
             label="Izin/Sakit"
           />
           <OperatorPriorityItem
             description="Lengkapi guru, mapel ampu, wali kelas, akun login, dan data siswa."
-            href="/admin/guru"
+            href="/opsek/guru"
             label="Data Guru"
           />
           <OperatorPriorityItem
             description="Cek tahun ajaran, rombel, mapel, jam pelajaran, dan Kaldik."
-            href="/admin/akademik"
+            href="/opsek/akademik"
             label="Master Akademik"
           />
         </div>
@@ -67,8 +67,8 @@ export function OperatorHome({ currentUser }: { currentUser: CurrentUser | null 
       </section>
 
       <RoleSection description="Akses pendukung ketika perlu melengkapi data atau menelusuri perubahan." title="Aksi Lanjutan">
-        <RoleActionCard href="/admin/import-data" label="Import Data" description="Upload data guru dan siswa dari file sekolah." />
-        <RoleActionCard href="/admin/audit" label="Audit Aktivitas" description="Telusuri perubahan data penting oleh operator." />
+        <RoleActionCard href="/opsek/import-data" label="Import Data" description="Upload data guru dan siswa dari file sekolah." />
+        <RoleActionCard href="/opsek/audit" label="Audit Aktivitas" description="Telusuri perubahan data penting oleh operator." />
       </RoleSection>
     </>
   );

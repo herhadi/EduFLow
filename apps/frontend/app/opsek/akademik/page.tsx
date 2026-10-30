@@ -10,7 +10,7 @@ export default function AdminAcademicPage() {
         <PageHeader
           description="Kelola rombongan belajar, mata pelajaran, dan susunan jam pelajaran sesuai kebutuhan tahun ajaran."
           eyebrow="Admin Akademik"
-          action={<Link className="secondary-button rounded-xl px-4 py-2 text-sm font-bold" href="/admin/akademik/kalender">Kalender Pendidikan</Link>}
+          action={<Link className="secondary-button rounded-xl px-4 py-2 text-sm font-bold" href="/opsek/akademik/kalender">Kalender Pendidikan</Link>}
           title="Master Akademik"
         />
         <AcademicMasterManagement />

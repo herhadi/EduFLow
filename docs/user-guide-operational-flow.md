@@ -15,7 +15,7 @@ Dokumen ini ditujukan untuk pengguna sekolah, terutama Operator Sekolah, yang ak
 | Orang Tua/Wali Murid | Melihat presensi dan nilai anak serta mengajukan izin/sakit |
 | Root | Menangani akses teknis, kesehatan sistem, backup, recovery, dan dukungan pengguna |
 
-Operator adalah titik awal operasional sekolah. Root hanya perlu memastikan aplikasi dan akun operator sudah tersedia. Beranda Operator Sekolah dibuka melalui `/opsek/dashboard`; route `/admin/dashboard` sudah tidak digunakan.
+Operator adalah titik awal operasional sekolah. Root hanya perlu memastikan aplikasi dan akun operator sudah tersedia. Beranda Operator Sekolah dibuka melalui `/opsek/dashboard`; route `/opsek/dashboard` sudah tidak digunakan.
 
 ## 2. Yang Disiapkan Sebelum Mulai
 
@@ -133,7 +133,7 @@ Satu akun wali murid dapat terhubung dengan lebih dari satu anak. Pastikan hubun
 
 ### 4.7 Membuat Akun dan Menetapkan Role
 
-Buka `/admin/guru` untuk menghubungkan guru dengan akun login dan mengatur penugasan.
+Buka `/opsek/guru` untuk menghubungkan guru dengan akun login dan mengatur penugasan.
 
 Role utama yang perlu disiapkan:
 
@@ -156,7 +156,7 @@ Wali kelas tetap menggunakan dashboard guru untuk pekerjaan mengajarnya. Fitur t
 
 ### 4.9 Menyusun Jadwal
 
-1. Buka `/admin/schedules`.
+1. Buka `/opsek/schedules`.
 2. Pilih tahun ajaran dan semester.
 3. Pilih guru dan mata pelajaran.
 4. Pilih tingkat, hari, jam pelajaran, dan rombel.

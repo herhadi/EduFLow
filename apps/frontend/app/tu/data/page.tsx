@@ -1,1 +1,1 @@
-export { default } from '../../admin/akademik/page';
+export { default } from '../../opsek/akademik/page';

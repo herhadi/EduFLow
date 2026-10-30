@@ -32,7 +32,7 @@ Tanggal agenda UAT mengikuti `SCHOOL_TIMEZONE_OFFSET_MINUTES` agar dashboard mem
 
 ### Generate Agenda Operator
 
-Login sebagai `uat.operator`, buka `/admin/schedules`, lalu generate agenda untuk tanggal atau rentang tanggal uji. Gunakan ini untuk menguji alur yang membutuhkan `DailyAgenda` baru, misalnya izin/sakit pada tanggal depan.
+Login sebagai `uat.operator`, buka `/opsek/schedules`, lalu generate agenda untuk tanggal atau rentang tanggal uji. Gunakan ini untuk menguji alur yang membutuhkan `DailyAgenda` baru, misalnya izin/sakit pada tanggal depan.
 
 ### Dashboard Kepala Sekolah
 
@@ -122,7 +122,7 @@ Login sebagai `uat.parent1`, buka `/parent/dashboard`, lalu pastikan:
 5. Jika presensi belum pernah dibuka, login sebagai guru pengajar lalu buka presensi agenda pada tanggal izin/sakit. Status siswa tersebut otomatis terisi `SICK` atau `EXCUSED` dan tetap dipertahankan saat submit.
 6. Login kembali sebagai `uat.parent1`, cek `/parent/notifications` dan `/parent/permits` untuk melihat status review.
 
-Operator sekolah juga dapat review melalui `/admin/leave-requests` sebagai fallback bila wali kelas terlewat.
+Operator sekolah juga dapat review melalui `/opsek/leave-requests` sebagai fallback bila wali kelas terlewat.
 
 ## Catatan
 

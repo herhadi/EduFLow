@@ -15,10 +15,10 @@ Dokumen ini memisahkan tanggung jawab admin dan guru dalam pengelolaan jadwal, k
 
 ## Area Administrasi Frontend
 
-- `/admin/guru`: menghubungkan `Teacher` dengan `User`, mengatur role, mapel ampu, dan wali kelas.
-- `/admin/akademik`: mengelola kelas dan mata pelajaran secara fleksibel.
-- `/admin/akses`: mengelola user dan hak akses.
-- `/admin/schedules`: menyusun jadwal berdasarkan kelas, mapel, dan guru yang sudah dikonfigurasi.
+- `/opsek/guru`: menghubungkan `Teacher` dengan `User`, mengatur role, mapel ampu, dan wali kelas.
+- `/opsek/akademik`: mengelola kelas dan mata pelajaran secara fleksibel.
+- `/opsek/akses`: mengelola user dan hak akses.
+- `/opsek/schedules`: menyusun jadwal berdasarkan kelas, mapel, dan guru yang sudah dikonfigurasi.
 
 ## Hak Operator Sekolah
 
@@ -55,7 +55,7 @@ Menu user dan hak akses berada di `/system/access` dan hanya ditampilkan serta d
 
 ## Tahun Ajaran
 
-Tahun ajaran dikelola dari `/admin/akademik` oleh pengguna dengan permission `academic.manage`. Operator memasukkan format `YYYY/YYYY`, misalnya `2025/2026`; nilai harus berurutan. Sistem menyimpan periode akademik otomatis dari 1 Juli pada tahun pertama hingga 30 Juni pada tahun kedua.
+Tahun ajaran dikelola dari `/opsek/akademik` oleh pengguna dengan permission `academic.manage`. Operator memasukkan format `YYYY/YYYY`, misalnya `2025/2026`; nilai harus berurutan. Sistem menyimpan periode akademik otomatis dari 1 Juli pada tahun pertama hingga 30 Juni pada tahun kedua.
 
 Pembuatan memakai `POST /api/academic/school-years`, menyimpan data pada `SchoolYear`, membuat semester `Ganjil` (1 Juli-31 Desember) serta `Genap` (1 Januari-30 Juni), dan mencatat audit action `school-year.created`. Tahun ajaran yang berhasil dibuat langsung tersedia sebagai pilihan saat membuat rombongan belajar.
 

@@ -206,7 +206,7 @@ Data akademik yang sudah ada berada pada tahun ajaran `2025/2026`:
 - VIII A sampai VIII G: 7 rombel.
 - IX A sampai IX G: 7 rombel.
 
-Tahun ajaran `2026/2027` dibuat kosong agar dapat dikonfigurasi secara mandiri. Jumlah rombel tetap fleksibel dan dapat disesuaikan melalui `/admin/akademik`.
+Tahun ajaran `2026/2027` dibuat kosong agar dapat dikonfigurasi secara mandiri. Jumlah rombel tetap fleksibel dan dapat disesuaikan melalui `/opsek/akademik`.
 
 Migration data juga memindahkan seluruh relasi langsung dari `2026/2027` ke `2025/2026` apabila tahun `2025/2026` sudah ada tetapi masih kosong: semester, kelas, enrollment, jadwal, agenda, slot waktu, perangkat ajar, jenis biaya, dan invoice. Presensi mengikuti agenda dan enrollment yang sama. Migration berhenti apabila `2025/2026` sudah memiliki transaksi, agar histori tidak tercampur.
 

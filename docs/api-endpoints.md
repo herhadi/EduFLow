@@ -192,7 +192,7 @@ Permission seluruh endpoint master akademik:
 
 - `academic.manage`
 
-UI tersedia di `/admin/akademik`.
+UI tersedia di `/opsek/akademik`.
 
 ## Teacher Management API
 

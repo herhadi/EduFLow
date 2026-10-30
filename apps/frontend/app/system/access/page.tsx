@@ -1,1 +1,1 @@
-export { default } from '../../admin/akses/page';
+export { default } from '../../opsek/akses/page';

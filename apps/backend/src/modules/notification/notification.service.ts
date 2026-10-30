@@ -326,7 +326,7 @@ export class NotificationService implements OnModuleInit {
 
     await Promise.all(recipients.map((recipient) => {
       const roles = recipient.roles.map(({ role }) => role.name);
-      const actionUrl = roles.includes('kepala_sekolah') ? '/principal/kbm?focus=notSubmitted' : '/admin/schedules';
+      const actionUrl = roles.includes('kepala_sekolah') ? '/principal/kbm?focus=notSubmitted' : '/opsek/schedules';
 
       return this.prisma.notificationLog.upsert({
         where: { dedupeKey: `attendance.late-submit.requested.${input.attendanceId}.${recipient.id}` },
@@ -399,10 +399,10 @@ export class NotificationService implements OnModuleInit {
           ['guru', 'wali_kelas'].includes(role),
         );
         const actionUrl = isRoot
-          ? '/admin/akses'
+          ? '/opsek/akses'
           : isTeacherAccount
-            ? '/admin/guru'
-            : '/admin/notifications';
+            ? '/opsek/guru'
+            : '/opsek/notifications';
 
         return this.prisma.notificationLog.upsert({
           where: {

@@ -63,7 +63,7 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Menyamakan default semester perangkat ajar guru agar mengikuti helper semester berjalan yang sama dengan jadwal dan nilai harian.
 - Menambahkan export Excel nilai harian guru untuk report bulanan/semesteran dengan preview rekap sebelum download, serta sheet `Rekap`, `Komponen`, dan `Catatan` agar tabel tetap informatif tetapi efisien.
 - Mengubah editor skor nilai harian menjadi expand inline di dalam item komponen nilai yang dibuka agar guru tidak perlu scroll jauh ketika daftar komponen banyak.
-- Mengelompokkan tabel `/admin/schedules` menjadi collapsible per hari saat filter `Semua Hari` dengan default tertutup, sementara filter hari spesifik tetap memakai tabel biasa.
+- Mengelompokkan tabel `/opsek/schedules` menjadi collapsible per hari saat filter `Semua Hari` dengan default tertutup, sementara filter hari spesifik tetap memakai tabel biasa.
 - Menambahkan label kanan pada `Jadwal mengajar mingguan` guru dan menggabungkan jam pelajaran berurutan menjadi badge seperti `Jam ke-1, 2`.
 - Menyiapkan agenda UAT hari ini untuk skenario presensi ulang, termasuk agenda khusus `UAT Foto Kelas` agar guru bisa menguji pengambilan foto kelas dari browser HP.
 - Menambahkan kompresi foto kelas di browser sebelum upload dengan target di bawah 1 MB, menampilkan informasi ukuran hasil kompresi, dan membatasi upload backend maksimal 1 MB.
@@ -162,14 +162,14 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Mengaktifkan alur izin/sakit wali murid lengkap: pengajuan parent, review wali kelas/operator, inbox, status presensi otomatis, dan notifikasi.
 - Menjadikan badge inbox dan notifikasi summary presensi lebih konsisten untuk semua role.
 - Memperbaiki endpoint kelas binaan wali kelas dan tampilan report parent/principal agar aman di desktop maupun mobile.
-- Memisahkan navigasi dan namespace root/operator: root memakai `/system/*`, operator memakai `/admin/*`, sedangkan route KS siswa dipindahkan ke `/principal/student-reports`.
+- Memisahkan navigasi dan namespace root/operator: root memakai `/system/*`, operator memakai `/opsek/*`, sedangkan route KS siswa dipindahkan ke `/principal/student-reports`.
 - Menyusun dashboard KS sebagai meja keputusan cepat, sementara detail operasional KBM berada di `/principal/kbm` dan export laporan di `/principal/exports`.
 
 ## 2026-07-10
 
 - Mengaktifkan integrasi Telegram bot: webhook backend, aktivasi `/start <token>`, penyimpanan `User.telegramId`, worker Telegram, dan balasan personal.
 - Menambahkan konfigurasi environment Telegram, dokumentasi aktivasi, retry notifikasi, command `/help`, `/kbm`, `/today`, dan `/review`.
-- Menambahkan halaman `/admin/telegram` untuk root: cek konfigurasi, set/hapus webhook, lihat URL webhook final, response `getWebhookInfo`, user terhubung, dan log notifikasi Telegram.
+- Menambahkan halaman `/opsek/telegram` untuk root: cek konfigurasi, set/hapus webhook, lihat URL webhook final, response `getWebhookInfo`, user terhubung, dan log notifikasi Telegram.
 - Menampilkan prompt aktivasi Telegram pada beranda role, dengan tombol langsung menuju bot dan opsi ganti akun Telegram dari Profil.
 - Menambahkan reminder Telegram guru 5 menit sebelum agenda pertama guru hari itu, termasuk dedupe jadwal berurutan dan dukungan guru pengganti.
 - Memperbaiki overflow mobile pada form create jadwal dan panel teknis Telegram.
@@ -202,7 +202,7 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 ## 2026-06-22
 
 - Memperbaiki migration deployment agar Prisma selalu memakai schema monorepo `apps/backend/prisma/schema.prisma`.
-- Memisahkan akses root dan operator: `/admin/akses` khusus root, operator memakai `/admin/dashboard`, `/admin/schedules`, dan `/admin/data`.
+- Memisahkan akses root dan operator: `/opsek/akses` khusus root, operator memakai `/opsek/dashboard`, `/opsek/schedules`, dan `/opsek/data`.
 - Menata namespace role-aware untuk Inbox, Profil, master data, jadwal, dan halaman operasional.
 - Memindahkan data akademik/keuangan dari `2026/2027` ke `2025/2026` dan menyediakan `2026/2027` kosong untuk setup tahun ajaran baru.
 - Menambahkan export/import PostgreSQL tanpa akun root, backup/restore root, permission `system.recovery.manage`, dan panel backup operasi.
@@ -216,4 +216,4 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Memperbaiki workflow deploy agar menggunakan source production server, Docker build context benar, dan gagal bila repo production memiliki perubahan lokal.
 - Memisahkan port PostgreSQL/Redis lokal ke `docker-compose.local.yml` agar production tidak bentrok dengan port host.
 - Menambahkan smart deploy, cleanup Docker image lama, endpoint frontend `GET /api/health`, dan retry healthcheck frontend/backend.
-- Memindahkan beranda Operator Sekolah ke `/opsek/dashboard`, menghapus route `/admin/dashboard`, dan memisahkan namespace admin sekolah untuk pengembangan berikutnya.
+- Memindahkan beranda Operator Sekolah ke `/opsek/dashboard`, menghapus route `/admin/dashboard`, dan memisahkan namespace admin sistem untuk pengembangan berikutnya.

@@ -237,12 +237,12 @@ Route penting:
 
 | Halaman | Fungsi |
 | --- | --- |
-| `/admin/data` | Menu utama master administrasi |
-| `/admin/guru` | Data guru, akun, role, penugasan, mapel, dan wali kelas |
-| `/admin/akademik` | Tahun ajaran, kelas, mapel, dan jam pelajaran |
-| `/admin/akademik/kalender` | Kalender pendidikan |
-| `/admin/schedules` | Jadwal sekolah dan generate agenda |
-| `/admin/import-data` | Import Guru.xlsx dan Siswa.xlsx |
+| `/opsek/data` | Menu utama master administrasi |
+| `/opsek/guru` | Data guru, akun, role, penugasan, mapel, dan wali kelas |
+| `/opsek/akademik` | Tahun ajaran, kelas, mapel, dan jam pelajaran |
+| `/opsek/akademik/kalender` | Kalender pendidikan |
+| `/opsek/schedules` | Jadwal sekolah dan generate agenda |
+| `/opsek/import-data` | Import Guru.xlsx dan Siswa.xlsx |
 
 ## 3.3 Urutan Setup Tahun Ajaran
 
@@ -282,7 +282,7 @@ Setelah menyalin master, jadwal dan penugasan guru tetap harus disiapkan untuk t
 
 ## 3.5 Mengelola Kelas
 
-1. Buka `/admin/akademik`.
+1. Buka `/opsek/akademik`.
 2. Pilih tahun ajaran.
 3. Tambahkan tingkat dan rombel yang diperlukan.
 4. Simpan.
@@ -292,7 +292,7 @@ Kelas tidak dapat dihapus jika sudah memiliki siswa, histori enrollment, jadwal,
 
 ## 3.6 Mengelola Mata Pelajaran
 
-1. Buka `/admin/akademik`.
+1. Buka `/opsek/akademik`.
 2. Tambahkan mata pelajaran nasional atau muatan lokal.
 3. Simpan.
 4. Hubungkan mata pelajaran dengan guru melalui halaman manajemen guru.
@@ -301,7 +301,7 @@ Mata pelajaran yang sudah dipakai jadwal atau agenda tidak dapat dihapus.
 
 ## 3.7 Mengelola Jam Pelajaran
 
-1. Buka `/admin/akademik`.
+1. Buka `/opsek/akademik`.
 2. Pilih tahun ajaran.
 3. Buka area jam pelajaran.
 4. Tambahkan nomor jam, waktu mulai, waktu selesai, dan jenis slot.
@@ -314,7 +314,7 @@ Slot yang sudah dipakai tidak dapat dihapus agar histori tetap aman.
 
 ## 3.8 Mengelola Kalender Pendidikan
 
-1. Buka `/admin/akademik/kalender`.
+1. Buka `/opsek/akademik/kalender`.
 2. Pilih tahun ajaran.
 3. Tambahkan event seperti libur, ujian, asesmen, kegiatan sekolah, atau hari non-KBM.
 4. Isi judul dan rentang tanggal.
@@ -329,7 +329,7 @@ Pengaturan **Apel Pagi** berada pada halaman Kalender Pendidikan di bawah piliha
 
 ## 3.9 Import Data Guru dan Siswa
 
-1. Buka `/admin/import-data`.
+1. Buka `/opsek/import-data`.
 2. Pilih jenis data Guru atau Siswa.
 3. Gunakan file dengan struktur template yang ditentukan.
 4. Unggah file Excel.
@@ -342,7 +342,7 @@ Import massal hanya untuk `Guru.xlsx` dan `Siswa.xlsx`. Kelas, mata pelajaran, r
 
 ## 3.10 Membuat atau Melengkapi Akun Guru
 
-1. Buka `/admin/guru`.
+1. Buka `/opsek/guru`.
 2. Pilih guru atau tambahkan data guru baru.
 3. Lengkapi nama, NIP, NUPTK, nomor HP, email, dan foto jika tersedia.
 4. Isi username atau email untuk login.
@@ -363,7 +363,7 @@ Aturan:
 
 ## 3.11 Menyusun Jadwal
 
-1. Buka `/admin/schedules`.
+1. Buka `/opsek/schedules`.
 2. Pilih tahun ajaran dan semester.
 3. Pilih guru beserta mata pelajarannya.
 4. Pilih tingkat kelas.
@@ -399,7 +399,7 @@ Kaldik tahunan menjadi acuan kegiatan khusus saat Operator melakukan generate ag
 
 ### Mengatur apel pagi
 
-1. Buka **Master → Kalender Pendidikan** melalui `/admin/akademik/kalender`.
+1. Buka **Master → Kalender Pendidikan** melalui `/opsek/akademik/kalender`.
 2. Pilih tahun ajaran.
 3. Pada panel **Apel Pagi**, aktifkan opsi jika sekolah melaksanakan apel rutin.
 4. Atur waktu mulai dan selesai sesuai kebijakan sekolah, misalnya 06.50–07.10.
@@ -410,7 +410,7 @@ Jika apel pagi aktif, seluruh waktu pelajaran pada tanggal tanpa upacara digeser
 ### Saat generate agenda
 
 1. Pastikan Kaldik dan konfigurasi apel pagi untuk tahun ajaran sudah benar.
-2. Buka `/admin/schedules`.
+2. Buka `/opsek/schedules`.
 3. Pilih kelas atau semua kelas, lalu tentukan rentang tanggal.
 4. Jalankan **Generate Agenda**.
 
@@ -418,7 +418,7 @@ Sistem membaca Kaldik dan pengaturan apel pagi untuk menghitung waktu agenda sec
 
 ## 3.13 Generate Agenda Harian
 
-1. Buka `/admin/schedules`.
+1. Buka `/opsek/schedules`.
 2. Pilih kelas atau gunakan opsi semua kelas VII–IX.
 3. Isi tanggal mulai dan tanggal selesai.
 4. Pastikan kalender pendidikan sudah benar.

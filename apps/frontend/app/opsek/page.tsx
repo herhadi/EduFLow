@@ -7,46 +7,46 @@ import { PageHeader } from '../../components/ui/page-header';
 import { getPrimaryRole, type UserRole } from '../../lib/navigation.config';
 import { getCurrentSessionUser } from '../../lib/session';
 
-const adminMenus = [
+const operatorMenus = [
   {
-    href: '/admin/akademik',
+    href: '/opsek/akademik',
     title: 'Kelas & Mata Pelajaran',
     description: 'Tambah/hapus rombel dan mapel secara fleksibel.',
     icon: 'A',
   },
   {
-    href: '/admin/guru',
+    href: '/opsek/guru',
     title: 'Manajemen Guru',
     description: 'Akun login, role, mapel ampu, dan wali kelas.',
     icon: 'G',
   },
   {
-    href: '/admin/akses',
+    href: '/opsek/akses',
     title: 'User & Hak Akses',
     description: 'User sistem, role, permission, nonaktif, dan hapus.',
     icon: 'U',
     roles: ['root'] as UserRole[],
   },
   {
-    href: '/admin/schedules',
+    href: '/opsek/schedules',
     title: 'Setup Jadwal',
     description: 'Susun jadwal kelas keseluruhan berdasarkan kelas, guru, dan mapel.',
     icon: 'J',
   },
   {
-    href: '/admin/import-data',
+    href: '/opsek/import-data',
     title: 'Import Data',
     description: 'Import data massal guru dan siswa dari Excel.',
     icon: 'I',
   },
   {
-    href: '/admin/audit',
+    href: '/opsek/audit',
     title: 'Audit Trail',
     description: 'Pantau perubahan penting oleh pengguna sistem.',
     icon: 'L',
   },
   {
-    href: '/admin/telegram',
+    href: '/opsek/telegram',
     title: 'Telegram',
     description: 'Setting webhook, cek koneksi bot, dan pantau log notifikasi Telegram.',
     icon: 'T',
@@ -61,7 +61,7 @@ export default function AdminPage() {
     setRole(getPrimaryRole(getCurrentSessionUser()?.roles ?? []));
   }, []);
 
-  const visibleMenus = adminMenus.filter(
+  const visibleMenus = operatorMenus.filter(
     (menu) => !('roles' in menu) || !menu.roles?.length || menu.roles.includes(role),
   );
 
@@ -69,7 +69,7 @@ export default function AdminPage() {
     <main>
       <Container>
         <PageHeader
-          description="Pilih master data akademik, jadwal, import, dan audit dari namespace admin operator."
+          description="Pilih master data akademik, jadwal, import, dan audit dari area Operator Sekolah."
           eyebrow="Admin Data"
           title="Master Administrasi"
         />

@@ -66,7 +66,7 @@ export function TeacherHomeroomPanel({
 
         {!classes.length ? (
           <div className="w-full rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs font-semibold leading-5 text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100">
-            Data kelas belum tersedia atau belum berhasil dimuat. Cek halaman `/admin/akademik` untuk memastikan kelas sudah ada, lalu refresh halaman ini.
+            Data kelas belum tersedia atau belum berhasil dimuat. Cek halaman `/opsek/akademik` untuk memastikan kelas sudah ada, lalu refresh halaman ini.
           </div>
         ) : null}
       </div>

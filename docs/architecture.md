@@ -91,7 +91,7 @@ API menerapkan authentication guard dan permission guard secara global. Endpoint
 Area admin dipisahkan berdasarkan domain agar halaman tidak terlalu besar dan lebih mudah dirawat:
 
 ```text
-/admin
+/opsek
   /dashboard
   /data
   /guru
@@ -108,18 +108,18 @@ Area admin dipisahkan berdasarkan domain agar halaman tidak terlalu besar dan le
   /profile
 ```
 
-- `/admin` dan `/admin/data`: hub atau menu utama master administrasi.
+- `/opsek` dan `/opsek/data`: hub atau menu utama master administrasi.
 - `/opsek/dashboard`: beranda operator sekolah.
-- `/admin/guru`: akun login guru, role, mapel ampu, dan kelas binaan wali kelas.
-- `/admin/akademik`: CRUD kelas dan mata pelajaran.
-- `/admin/schedules`: manajemen jadwal tetap dan generate agenda.
-- `/admin/import-data`: import data guru dan siswa.
+- `/opsek/guru`: akun login guru, role, mapel ampu, dan kelas binaan wali kelas.
+- `/opsek/akademik`: CRUD kelas dan mata pelajaran.
+- `/opsek/schedules`: manajemen jadwal tetap dan generate agenda.
+- `/opsek/import-data`: import data guru dan siswa.
 - `/system/dashboard`: beranda root untuk support teknis.
 - `/system/access`: user sistem, role, permission, nonaktif, dan hapus permanen.
 - `/system/telegram`: konfigurasi webhook dan monitoring Telegram bot.
 - `/system/audit`: audit trail untuk aktivitas penting.
 
-Route lama seperti `/schedules`, `/import-data`, dan `/audit` tetap disediakan sebagai kompatibilitas, tetapi navigasi operator memakai namespace `/admin/...`.
+Route lama seperti `/schedules`, `/import-data`, dan `/audit` tetap disediakan sebagai kompatibilitas, tetapi navigasi operator memakai namespace `/opsek/...`.
 
 Komponen feedback aksi memakai `ToastProvider` global di root layout. Komponen fitur menggunakan `useToast()` dan tidak membuat implementasi toast sendiri-sendiri.
 
@@ -146,9 +146,9 @@ Dashboard frontend dipisahkan per role agar beranda setiap actor dapat berkemban
 /dashboard/bk               bk
 ```
 
-Root adalah role support teknis dan memakai namespace `/system/*`, sedangkan operator sekolah memakai namespace `/opsek/*` untuk beranda operasional sekolah. Route `/admin/dashboard` sudah dihapus; namespace `/admin/*` disiapkan untuk area admin sekolah yang akan dikembangkan terpisah. User yang membuka namespace role yang tidak sesuai diarahkan ke dashboard sesuai role. Login juga mengarahkan user ke dashboard role masing-masing. Jika user memiliki role `wali_kelas` dan `guru`, dashboard tetap memakai alur guru harian dengan menu tambahan `Binaan`.
+Root adalah role support teknis dan memakai namespace `/system/*`, sedangkan operator sekolah memakai namespace `/opsek/*` untuk beranda operasional sekolah. Route `/opsek/dashboard` sudah dihapus; namespace `/opsek/*` disiapkan untuk area admin sekolah yang akan dikembangkan terpisah. User yang membuka namespace role yang tidak sesuai diarahkan ke dashboard sesuai role. Login juga mengarahkan user ke dashboard role masing-masing. Jika user memiliki role `wali_kelas` dan `guru`, dashboard tetap memakai alur guru harian dengan menu tambahan `Binaan`.
 
-Bottom navigation menggunakan label `Inbox` untuk pusat notifikasi dan `Profil` untuk area akun. Route Inbox dan Profil mengikuti namespace role, misalnya `/admin/notifications`, `/teacher/profile`, `/principal/notifications`, dan `/system/profile`; route lama `/notifications` dan `/profile` hanya menjadi kompatibilitas. Item `Inbox` menampilkan badge/dot saat ada notifikasi yang perlu dibaca atau ditindaklanjuti.
+Bottom navigation menggunakan label `Inbox` untuk pusat notifikasi dan `Profil` untuk area akun. Route Inbox dan Profil mengikuti namespace role, misalnya `/opsek/notifications`, `/teacher/profile`, `/principal/notifications`, dan `/system/profile`; route lama `/notifications` dan `/profile` hanya menjadi kompatibilitas. Item `Inbox` menampilkan badge/dot saat ada notifikasi yang perlu dibaca atau ditindaklanjuti.
 
 ## Dokumen Operasional
 

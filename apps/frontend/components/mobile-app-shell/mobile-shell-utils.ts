@@ -20,7 +20,7 @@ export function getRequiredRoleForPath(pathname: string): UserRole | null {
   if (pathname.startsWith('/tu')) return 'tu';
   if (pathname.startsWith('/bk')) return 'bk';
   if (pathname.startsWith('/teacher')) return 'guru';
-  if (pathname.startsWith('/opsek') || pathname.startsWith('/admin')) return 'operator_sekolah';
+  if (pathname.startsWith('/opsek')) return 'operator_sekolah';
   return null;
 }
 
@@ -52,12 +52,12 @@ export function isBottomNavItemActive({
     return true;
   }
 
-  if (href === '/admin' || href === '/admin/data') {
+  if (href === '/opsek' || href === '/opsek/data') {
     return (
-      section === 'admin' &&
-      !pathname.startsWith('/admin/notifications') &&
-      !pathname.startsWith('/admin/profile') &&
-      !pathname.startsWith('/admin/schedules')
+      section === 'opsek' &&
+      !pathname.startsWith('/opsek/notifications') &&
+      !pathname.startsWith('/opsek/profile') &&
+      !pathname.startsWith('/opsek/schedules')
     );
   }
 

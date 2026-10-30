@@ -31,9 +31,9 @@ Slot terikat pada tahun ajaran sehingga sekolah dapat mengubah susunan jam untuk
 
 ## Route Admin
 
-Pada `/admin/guru`, operator dapat menambahkan data guru baru langsung dari panel `Pilih Guru`. Setelah dibuat, guru otomatis terpilih untuk dilanjutkan ke pengaturan akun login, role, penugasan tahun ajaran, dan wali kelas.
+Pada `/opsek/guru`, operator dapat menambahkan data guru baru langsung dari panel `Pilih Guru`. Setelah dibuat, guru otomatis terpilih untuk dilanjutkan ke pengaturan akun login, role, penugasan tahun ajaran, dan wali kelas.
 
-Data guru hasil import dapat dilengkapi dari kartu `Guru Terpilih` pada `/admin/guru`. Operator dapat mengedit nama, NIP, NUPTK, nomor HP, email, dan foto dari file lokal, kemudian menyimpan bersamaan dengan pengaturan akun guru. Telegram tidak diisi dari admin atau import; semua user mengaktifkannya sendiri dari halaman Profil setelah login.
+Data guru hasil import dapat dilengkapi dari kartu `Guru Terpilih` pada `/opsek/guru`. Operator dapat mengedit nama, NIP, NUPTK, nomor HP, email, dan foto dari file lokal, kemudian menyimpan bersamaan dengan pengaturan akun guru. Telegram tidak diisi dari admin atau import; semua user mengaktifkannya sendiri dari halaman Profil setelah login.
 
 Semua daftar dan dropdown kelas wajib memakai helper `sortSchoolClasses` dari `@eduflow/shared`. Urutan standar adalah tingkat VII, VIII, IX, kemudian rombel A, B, C, dan seterusnya. Jangan membuat sorting kelas lokal di masing-masing komponen.
 
@@ -41,11 +41,11 @@ Halaman `/teacher/schedules` membaca `GET /api/academic/me/schedules`, sehingga 
 
 | URL | Fungsi |
 | --- | --- |
-| `/admin/data` | Menu utama master administrasi |
-| `/admin/guru` | Akun, role, mapel ampu, dan wali kelas |
-| `/admin/akademik` | Kelas dan mata pelajaran |
-| `/admin/schedules` | Setup jadwal kelas keseluruhan dan generate agenda |
-| `/admin/import-data` | Import data guru dan siswa dari Excel |
+| `/opsek/data` | Menu utama master administrasi |
+| `/opsek/guru` | Akun, role, mapel ampu, dan wali kelas |
+| `/opsek/akademik` | Kelas dan mata pelajaran |
+| `/opsek/schedules` | Setup jadwal kelas keseluruhan dan generate agenda |
+| `/opsek/import-data` | Import data guru dan siswa dari Excel |
 
 ## Navigasi Role-Based
 
@@ -53,7 +53,7 @@ Halaman `/teacher/schedules` membaca `GET /api/academic/me/schedules`, sehingga 
 
 Frontend menggunakan tema biru modern dengan mode terang dan gelap. Pilihan tema disimpan pada browser melalui key `eduflow-theme`, mengikuti preferensi perangkat ketika pengguna belum memilih, dan diterapkan sebelum halaman dirender untuk mencegah kilatan tema. Komponen baru wajib memakai token global pada `apps/frontend/app/globals.css` atau komponen UI bersama agar konsisten dan tetap terbaca pada dark mode.
 
-Hero/card utama halaman memakai lebar penuh container dan token `page-hero` agar kontras pada mode terang maupun gelap. Profil user menyimpan foto akun; untuk guru yang sudah terhubung akun login, foto yang diunggah admin dari `/admin/guru` dan foto yang diganti user dari halaman Profil disinkronkan ke file profil yang sama.
+Hero/card utama halaman memakai lebar penuh container dan token `page-hero` agar kontras pada mode terang maupun gelap. Profil user menyimpan foto akun; untuk guru yang sudah terhubung akun login, foto yang diunggah admin dari `/opsek/guru` dan foto yang diganti user dari halaman Profil disinkronkan ke file profil yang sama.
 
 Bottom navigation bukan daftar semua fitur. Bottom navigation adalah menu utama sesuai actor yang sedang login:
 
@@ -76,9 +76,9 @@ Catatan integrasi Telegram: root mengelola webhook dari `/system/telegram`. Envi
 
 Command Telegram untuk monitoring sekolah dibuat on-demand agar tidak spam. Kepala Sekolah dan operator sekolah yang sudah mengaktifkan Telegram dapat memakai `/kbm` atau `/today` untuk ringkasan KBM hari ini, serta `/review` untuk antrean perangkat ajar dan nilai yang menunggu review. Root mengelola konfigurasi bot dari `/system/telegram`, bukan command monitoring sekolah. Command ini tidak membuat `NotificationLog` baru dan tidak menambah badge Inbox.
 
-Root adalah role support teknis. Root memakai namespace `/system/*` dan `/operations` untuk health check, queue monitoring, failed jobs, Telegram webhook, audit, backup, recovery, dan user/hak akses sistem. Operator Sekolah memakai `/opsek/dashboard` sebagai beranda operasional. Namespace `/admin/*` disiapkan untuk admin sekolah yang akan dikembangkan terpisah.
+Root adalah role support teknis. Root memakai namespace `/system/*` dan `/operations` untuk health check, queue monitoring, failed jobs, Telegram webhook, audit, backup, recovery, dan user/hak akses sistem. Operator Sekolah memakai `/opsek/dashboard` sebagai beranda operasional. Namespace `/opsek/*` disiapkan untuk admin sekolah yang akan dikembangkan terpisah.
 
-`Master` pada bottom navigation operator berarti pusat data administrasi akademik di namespace `/admin/data`, bukan root teknis.
+`Master` pada bottom navigation operator berarti pusat data administrasi akademik di namespace `/opsek/data`, bukan root teknis.
 
 Top submenu berbentuk deretan tombol dihapus karena menduplikasi bottom navigation dan akses cepat pada dashboard. Perpindahan fitur dilakukan melalui bottom navigation sesuai role dan kartu menu pada halaman beranda masing-masing actor.
 
@@ -107,7 +107,7 @@ Dashboard wajib menampilkan information architecture sesuai actor:
 
 Catatan jadwal:
 
-- `/admin/schedules` adalah area admin/operator untuk setup jadwal keseluruhan.
+- `/opsek/schedules` adalah area admin/operator untuk setup jadwal keseluruhan.
 - `/teacher/schedules` adalah area guru untuk melihat jadwal mengajar miliknya sendiri.
 - `/teacher/attendance` adalah area guru untuk membuka kelas dan mengisi presensi.
 - Role lain dapat memiliki halaman jadwal berbeda sesuai konteks, misalnya monitoring jadwal untuk kepala sekolah atau jadwal anak untuk orang tua.
@@ -169,7 +169,7 @@ Jumlah kelas tidak di-hardcode. Data akademik yang sudah ada berada pada tahun a
 - VIII A-G,
 - IX A-G.
 
-Admin dapat menambah rombel baru seperti `VII-I` atau menghapus rombel kosong melalui `/admin/akademik`.
+Admin dapat menambah rombel baru seperti `VII-I` atau menghapus rombel kosong melalui `/opsek/akademik`.
 
 Tahun ajaran `2026/2027` disediakan kosong untuk konfigurasi baru. Semester, kelas, siswa terdaftar, jadwal, agenda, slot waktu, dan perangkat ajar tidak disalin otomatis dari tahun sebelumnya.
 
@@ -179,11 +179,11 @@ Saat pemindahan data awal dilakukan, seluruh transaksi yang sudah telanjur terka
 
 Setiap tahun ajaran selalu memiliki semester `Ganjil` dan `Genap`. Pilihan semester pada form jadwal dibaca dari tabel `Semester`, bukan ditentukan oleh frontend. Memilih tahun ajaran baru hanya menampilkan konfigurasi tahun tersebut; jadwal lama tidak ditampilkan atau dimuat ke konteks tahun ajaran baru.
 
-Kelas, jam pelajaran, dan aktivitas slot terikat pada tahun ajaran. Saat menyiapkan tahun ajaran baru, operator dapat memakai aksi `Salin Master Tahun Ajaran` di `/admin/akademik` untuk menyalin kelas, susunan jam pelajaran, dan aktivitas slot dari tahun sebelumnya ke tahun target. Aksi ini tidak menyalin jadwal mengajar, agenda, presensi, atau penugasan guru sehingga jadwal tahun baru tetap disusun sesuai kebutuhan tahun tersebut.
+Kelas, jam pelajaran, dan aktivitas slot terikat pada tahun ajaran. Saat menyiapkan tahun ajaran baru, operator dapat memakai aksi `Salin Master Tahun Ajaran` di `/opsek/akademik` untuk menyalin kelas, susunan jam pelajaran, dan aktivitas slot dari tahun sebelumnya ke tahun target. Aksi ini tidak menyalin jadwal mengajar, agenda, presensi, atau penugasan guru sehingga jadwal tahun baru tetap disusun sesuai kebutuhan tahun tersebut.
 
 Pada form jadwal, operator memilih tingkat terlebih dahulu, lalu rombel A, B, C, dan seterusnya tampil otomatis pada setiap slot jam yang bisa dijadwalkan. Jika rombel belum muncul, berarti tahun ajaran tersebut belum memiliki data kelas pada tingkat yang dipilih.
 
-Pengaturan jam pelajaran berada di `/admin/akademik`, bukan di halaman jadwal. Operator dapat menambah, mengubah, atau menghapus slot waktu per tahun ajaran, termasuk nomor jam, jam mulai, jam selesai, jenis slot, dan apakah slot tersebut boleh dipakai untuk jadwal pelajaran. Slot yang sudah dipakai jadwal, revisi jadwal, atau aktivitas kelas tidak dapat dihapus agar histori tetap aman.
+Pengaturan jam pelajaran berada di `/opsek/akademik`, bukan di halaman jadwal. Operator dapat menambah, mengubah, atau menghapus slot waktu per tahun ajaran, termasuk nomor jam, jam mulai, jam selesai, jenis slot, dan apakah slot tersebut boleh dipakai untuk jadwal pelajaran. Slot yang sudah dipakai jadwal, revisi jadwal, atau aktivitas kelas tidak dapat dihapus agar histori tetap aman.
 Area jam pelajaran menampilkan filter tahun ajaran terlebih dahulu. Form tambah hanya muncul setelah operator menekan `Tambah Jam Pelajaran`, sedangkan form edit muncul langsung pada kartu jam yang dipilih agar operator tidak perlu mencari form di bagian atas halaman.
 Untuk slot kegiatan tetap, `Upacara` dikunci pada hari Senin, sedangkan `Senam` dapat dipindahkan ke hari lain sesuai kebutuhan sekolah.
 
@@ -271,7 +271,7 @@ Catatan penting:
 
 ## Kaldik
 
-Kaldik adalah master kalender pendidikan per tahun ajaran pada halaman `/admin/akademik/kalender`. Operator sekolah mengisinya mengikuti kalender pendidikan pemerintah dan keputusan sekolah sebelum generate agenda dilakukan. Bila sudah tersedia, Kaldik otomatis memilih tahun ajaran berikutnya agar persiapan dapat dilakukan lebih awal.
+Kaldik adalah master kalender pendidikan per tahun ajaran pada halaman `/opsek/akademik/kalender`. Operator sekolah mengisinya mengikuti kalender pendidikan pemerintah dan keputusan sekolah sebelum generate agenda dilakukan. Bila sudah tersedia, Kaldik otomatis memilih tahun ajaran berikutnya agar persiapan dapat dilakukan lebih awal.
 
 1. Pilih tahun ajaran.
 2. Tambahkan event untuk libur, ujian atau asesmen, kegiatan sekolah, hari non-KBM, atau kebutuhan lain.
@@ -300,7 +300,7 @@ Pada halaman manajemen guru, operator memilih tahun ajaran lalu menyimpan status
 
 ## Tabel Jadwal Kelas
 
-Halaman `/admin/schedules` menyediakan tabel jadwal per kelas:
+Halaman `/opsek/schedules` menyediakan tabel jadwal per kelas:
 
 - pilih kelas,
 - pilih `Lihat kondisi jadwal` untuk melihat baseline atau revisi yang sudah berlaku pada tanggal tersebut,
@@ -324,7 +324,7 @@ Aturan revisi jadwal:
 - Backend wajib menolak jadwal atau revisi yang menyebabkan bentrok kelas atau bentrok guru dalam tahun ajaran tersebut pada tanggal efektif.
 - Jadwal guru pribadi membaca baseline dan revisi, sehingga guru baru hasil revisi dapat melihat jadwalnya.
 
-Catatan UI `/admin/schedules`:
+Catatan UI `/opsek/schedules`:
 
 - card form dan card tabel wajib memakai `min-w-0` di dalam grid agar tampilan mobile tidak terpotong,
 - tabel jadwal boleh horizontal scroll di dalam card, tetapi card tidak boleh melebar keluar viewport,

@@ -40,11 +40,11 @@ const rootNavigation: NavigationItem[] = [
 
 const operatorNavigation: NavigationItem[] = [
   { href: '/opsek/dashboard', label: 'Beranda', icon: 'home' },
-  { href: '/admin/data', label: 'Master', icon: 'database' },
-  { href: '/admin/schedules', label: 'Jadwal', icon: 'schedule' },
+  { href: '/opsek/data', label: 'Master', icon: 'database' },
+  { href: '/opsek/schedules', label: 'Jadwal', icon: 'schedule' },
   { href: '/opsek/extracurricular', label: 'Ekskul', icon: 'students' },
-  { href: '/admin/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
-  { href: '/admin/profile', label: 'Profil', icon: 'profile' },
+  { href: '/opsek/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
+  { href: '/opsek/profile', label: 'Profil', icon: 'profile' },
 ];
 
 const principalNavigation: NavigationItem[] = [
@@ -138,18 +138,18 @@ const roleNavigation: Record<UserRole, NavigationItem[]> = {
 
 export const sectionSubNavigation: Array<NavigationItem & { section: string }> = [
   { section: 'opsek', href: '/opsek/dashboard', label: 'Dashboard' },
-  { section: 'admin', href: '/admin/data', label: 'Master' },
-  { section: 'admin', href: '/admin/guru', label: 'Guru' },
-  { section: 'admin', href: '/admin/akademik', label: 'Akademik' },
-  { section: 'admin', href: '/admin/schedules', label: 'Jadwal' },
-  { section: 'admin', href: '/opsek/extracurricular', label: 'Ekstrakurikuler' },
-  { section: 'admin', href: '/admin/import-data', label: 'Import' },
-  { section: 'admin', href: '/admin/audit', label: 'Audit' },
-  { section: 'admin', href: '/admin/leave-requests', label: 'Izin/Sakit' },
-  { section: 'schedules', href: '/admin/schedules', label: 'Setup Jadwal' },
-  { section: 'schedules', href: '/admin/guru', label: 'Mapel Guru' },
-  { section: 'schedules', href: '/admin/akademik', label: 'Kelas & Mapel' },
-  { section: 'schedules', href: '/admin/akademik/kalender', label: 'Kaldik' },
+  { section: 'opsek', href: '/opsek/data', label: 'Master' },
+  { section: 'opsek', href: '/opsek/guru', label: 'Guru' },
+  { section: 'opsek', href: '/opsek/akademik', label: 'Akademik' },
+  { section: 'opsek', href: '/opsek/schedules', label: 'Jadwal' },
+  { section: 'opsek', href: '/opsek/extracurricular', label: 'Ekstrakurikuler' },
+  { section: 'opsek', href: '/opsek/import-data', label: 'Import' },
+  { section: 'opsek', href: '/opsek/audit', label: 'Audit' },
+  { section: 'opsek', href: '/opsek/leave-requests', label: 'Izin/Sakit' },
+  { section: 'schedules', href: '/opsek/schedules', label: 'Setup Jadwal' },
+  { section: 'schedules', href: '/opsek/guru', label: 'Mapel Guru' },
+  { section: 'schedules', href: '/opsek/akademik', label: 'Kelas & Mapel' },
+  { section: 'schedules', href: '/opsek/akademik/kalender', label: 'Kaldik' },
   { section: 'operations', href: '/system/dashboard', label: 'Sistem' },
   { section: 'operations', href: '/operations', label: 'Health' },
   { section: 'operations', href: '/system/access', label: 'Akses' },
@@ -256,12 +256,12 @@ export function getDashboardPathForRoles(roles: string[] = []) {
 }
 
 export function getSectionFromPath(pathname: string) {
-  if (pathname.startsWith('/schedules') || pathname.startsWith('/admin/schedules')) {
+  if (pathname.startsWith('/schedules') || pathname.startsWith('/opsek/schedules')) {
     return 'schedules';
   }
 
-  if (pathname.startsWith('/opsek') || pathname.startsWith('/admin') || pathname === '/import-data') {
-    return 'admin';
+  if (pathname.startsWith('/opsek') || pathname === '/import-data') {
+    return 'opsek';
   }
 
   if (pathname.startsWith('/teacher/')) {
