@@ -165,7 +165,7 @@ export function RoleDashboard({
     );
   }
 
-  if (activeRole === 'root') {
+  if (activeRole === 'root' || activeRole === 'admin') {
     return (
       <DashboardWithTelegramPrompt
         activeRole={activeRole}

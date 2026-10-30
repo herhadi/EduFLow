@@ -219,14 +219,14 @@ Target awal:
 
 ## Backup dan Penghapusan Cloudflare R2 Berdasarkan Rentang Waktu
 
-Panel pengelolaan tersedia di `/operations` pada bagian **Cloudflare R2 — Backup & Hapus berdasarkan Waktu**. Pengguna harus memiliki permission `system.recovery.manage`; pada konfigurasi seed default, permission ini hanya diberikan kepada role `root`.
+Panel pengelolaan tersedia di `/operations` pada bagian **Cloudflare R2 — Backup & Hapus berdasarkan Waktu**. Pengguna harus memiliki permission `system.recovery.manage`; pada konfigurasi seed default, permission ini diberikan kepada `root` dan Super Admin Sekolah (`admin`).
 
 ### Alur aman
 
 1. Pilih tanggal awal dan akhir. Filter memakai waktu modifikasi objek (`LastModified`) dalam UTC; kedua tanggal inklusif penuh, dari 00:00:00.000 UTC pada tanggal awal sampai 23:59:59.999 UTC pada tanggal akhir.
 2. Opsional, masukkan prefix untuk membatasi folder/key, misalnya `uploads/teachers/`.
 3. Klik **Preview Objek** untuk melihat daftar key, waktu modifikasi, jumlah objek, dan ukuran total. Preview tidak mengubah storage.
-4. **Download Backup ZIP** mengunduh objek yang cocok beserta `manifest.json` ke perangkat admin.
+4. **Download Backup ZIP** mengunduh objek yang cocok beserta `manifest.json` ke perangkat Super Admin Sekolah atau Root.
 5. Hapus hanya setelah memastikan preview dan backup sesuai. Klik **Hapus Objek Rentang**, kemudian ketik persis `DELETE R2 OBJECTS`.
 6. Backend menghitung ulang rentang dan menolak aksi jika jumlah atau ukuran berubah sejak preview. Hasil operasi dicatat dalam audit trail.
 

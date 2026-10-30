@@ -138,6 +138,7 @@ Dashboard frontend dipisahkan per role agar beranda setiap actor dapat berkemban
 
 ```text
 /system/dashboard           root
+/admin/dashboard            admin (Super Admin sekolah)
 /opsek/dashboard            operator_sekolah
 /principal/dashboard        kepala_sekolah
 /teacher/dashboard          guru, wali_kelas
@@ -146,7 +147,7 @@ Dashboard frontend dipisahkan per role agar beranda setiap actor dapat berkemban
 /dashboard/bk               bk
 ```
 
-Root adalah role support teknis dan memakai namespace `/system/*`, sedangkan operator sekolah memakai namespace `/opsek/*` untuk beranda operasional sekolah. Route `/opsek/dashboard` sudah dihapus; namespace `/opsek/*` disiapkan untuk area admin sekolah yang akan dikembangkan terpisah. User yang membuka namespace role yang tidak sesuai diarahkan ke dashboard sesuai role. Login juga mengarahkan user ke dashboard role masing-masing. Jika user memiliki role `wali_kelas` dan `guru`, dashboard tetap memakai alur guru harian dengan menu tambahan `Binaan`.
+Root adalah role support teknis dan memakai namespace `/system/*`. Super Admin sekolah memakai `/admin/dashboard` sebagai beranda dan menggunakan menu system untuk monitoring, akun, helpdesk, audit, backup, serta recovery sesuai permission. Super Admin tidak menangani KBM. Operator sekolah memakai namespace `/opsek/*` untuk beranda operasional sekolah. User yang membuka namespace role yang tidak sesuai diarahkan ke dashboard sesuai role. Login juga mengarahkan user ke dashboard role masing-masing. Jika user memiliki role `wali_kelas` dan `guru`, dashboard tetap memakai alur guru harian dengan menu tambahan `Binaan`.
 
 Bottom navigation menggunakan label `Inbox` untuk pusat notifikasi dan `Profil` untuk area akun. Route Inbox dan Profil mengikuti namespace role, misalnya `/opsek/notifications`, `/teacher/profile`, `/principal/notifications`, dan `/system/profile`; route lama `/notifications` dan `/profile` hanya menjadi kompatibilitas. Item `Inbox` menampilkan badge/dot saat ada notifikasi yang perlu dibaca atau ditindaklanjuti.
 

@@ -129,7 +129,7 @@ Docker Compose membaca `apps/backend/.env` sebagai `env_file` untuk secret backe
 - Root awal dibuat oleh Prisma seed dari `ROOT_*`.
 - Password default harus diganti saat login pertama.
 - Permission harus berbasis permission matrix, bukan hardcode role.
-- Endpoint operasional untuk dashboard health, backup, restore, queue recovery, dan monitoring root ops memakai permission `system.recovery.manage`, yang diberikan khusus kepada role `root`.
+- Endpoint operasional untuk dashboard health, backup, restore, queue recovery, dan monitoring ops memakai permission `system.recovery.manage`, yang diberikan kepada `root` dan Super Admin Sekolah (`admin`).
 - Permission recovery diberikan melalui migration dan seed. Setelah deploy yang menambah permission baru, user harus logout-login agar session browser membawa daftar permission terbaru.
 
 ## Log Operasional

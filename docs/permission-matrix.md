@@ -14,6 +14,7 @@ EduFlow memakai permission-based RBAC. Role hanya kumpulan permission, bukan log
 | Role | Deskripsi |
 | --- | --- |
 | `root` | Akses semua fitur untuk owner/dev/super admin teknis |
+| `admin` | Super Admin Sekolah untuk monitoring sistem, akun, helpdesk, audit, dan recovery sesuai kewenangan |
 | `operator_sekolah` | Operator akademik dan konfigurasi operasional sekolah |
 | `guru` | Guru pengajar |
 | `wali_kelas` | Guru dengan tanggung jawab kelas |
@@ -21,6 +22,8 @@ EduFlow memakai permission-based RBAC. Role hanya kumpulan permission, bukan log
 | `tu` | Tata usaha |
 | `bk` | Bimbingan konseling |
 | `orang_tua` | Wali murid |
+
+Role `admin` memiliki permission teknis sekolah berikut: `auth.session.manage`, `notification.read`, `notification.manage`, `reporting.read`, `reporting.manage`, `audit.read`, `user.manage`, dan `system.recovery.manage`. Role ini tidak menerima permission KBM seperti `schedule.manage`, `agenda.generate`, `attendance.manage`, atau permission nilai/perangkat ajar.
 
 ## Permission Awal
 

@@ -23,8 +23,8 @@ export function RootHome({ currentUser }: { currentUser: CurrentUser | null }) {
               Cek kondisi sistem, koneksi bot, dan akses user sebelum menangani laporan sekolah.
             </p>
           </div>
-          <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-black text-sky-800 shadow-sm dark:bg-sky-400/15 dark:text-sky-100">
-            Root only
+            <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-black text-sky-800 shadow-sm dark:bg-sky-400/15 dark:text-sky-100">
+            Support teknis
           </span>
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-3">

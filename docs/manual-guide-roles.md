@@ -3,11 +3,14 @@
 Dokumen ini merupakan panduan penggunaan EduFlow untuk role:
 
 - Root
+- Super Admin Sekolah (`admin`)
 - Operator Sekolah
 - Guru
 - Wali Kelas
 - Kepala Sekolah
 - Orang Tua/Wali Murid
+
+Super Admin Sekolah adalah role baru untuk pengelolaan akses, monitoring sistem, helpdesk, audit, dan backup/recovery sesuai kewenangan. Role ini bukan untuk kegiatan KBM.
 
 Panduan untuk Tata Usaha (`tu`) dan Bimbingan Konseling (`bk`) tidak dibahas dalam dokumen ini.
 
@@ -95,9 +98,39 @@ Jika pengguna membuka alamat milik role lain, sistem akan menampilkan peringatan
 
 ---
 
-# 2. Manual Guide Root
+# 2. Manual Guide Super Admin Sekolah
 
-## 2.1 Fungsi Root
+## 2.1 Fungsi Super Admin Sekolah
+
+Role `admin` adalah pengelola aplikasi dan support teknis di tingkat sekolah. Role ini menjadi jembatan antara pengguna sekolah dan `root`; Super Admin tidak mengubah infrastruktur global tanpa koordinasi dengan root.
+
+Tanggung jawab utama:
+
+- mengelola akun dan reset password;
+- mengatur akses pengguna dan reset password;
+- memantau kesehatan aplikasi, queue, worker, dan layanan pendukung;
+- menangani bantuan guru/orang tua dan meneruskan insiden ke root;
+- menjalankan atau meminta backup/recovery sesuai prosedur;
+- membaca audit aktivitas aplikasi.
+
+Menu utama Super Admin tersedia di namespace `/admin/*`.
+
+## 2.2 Menu Utama Super Admin
+
+- **Akun & Akses**: pengguna, role, dan reset akses.
+- **Monitoring Sistem**: health check, queue, worker, dan status layanan.
+- **Helpdesk**: notifikasi dan tindak lanjut bantuan pengguna.
+- **Akun & Akses**: pengguna, role, dan reset akses.
+- **Audit**: jejak aktivitas aplikasi.
+- **Profil**: akun dan keamanan pribadi.
+
+## 2.3 Batas Tanggung Jawab
+
+Super Admin tidak menangani input Dapodik, kalender, penyusunan jadwal, generate agenda, presensi, atau kegiatan KBM. Root tetap memegang keputusan infrastruktur, server, database global, dan recovery tingkat developer.
+
+# 3. Manual Guide Root
+
+## 3.1 Fungsi Root
 
 Root adalah role support teknis dan super admin sistem. Root tidak digunakan untuk pekerjaan akademik harian.
 
@@ -112,7 +145,7 @@ Tanggung jawab utama:
 - menjalankan backup dan recovery;
 - membantu reset akses pengguna.
 
-## 2.2 Menu Utama Root
+## 3.2 Menu Utama Root
 
 - **Sistem**: ringkasan kondisi aplikasi.
 - **Ops**: health check, queue, worker, dan failed job.
@@ -122,7 +155,7 @@ Tanggung jawab utama:
 - **Inbox**: notifikasi operasional.
 - **Profil**: akun dan keamanan pribadi.
 
-## 2.3 Pemeriksaan Sistem Harian
+## 3.3 Pemeriksaan Sistem Harian
 
 1. Login sebagai Root.
 2. Buka **Sistem** atau `/system/dashboard`.

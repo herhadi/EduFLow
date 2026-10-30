@@ -20,6 +20,12 @@
 
 Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis granular tetap dilacak melalui riwayat Git dan dokumen domain terkait.
 
+## 2026-10-30
+
+- Menambahkan role baru `admin` sebagai Super Admin Sekolah untuk monitoring sistem, pengelolaan akun, helpdesk, audit, backup, dan recovery sesuai permission.
+- Memisahkan tanggung jawab `root` sebagai developer/infrastruktur, `admin` sebagai jembatan support sekolah, dan `operator_sekolah` sebagai pengelola operasional KBM.
+- Menambahkan dashboard `/admin/dashboard`, akun `uat.admin`, dan skenario UAT terkait.
+
 ## 2026-10-28
 
 - Menambahkan konfigurasi apel pagi per tahun ajaran dengan status aktif/nonaktif dan waktu mulai/selesai yang fleksibel; generate agenda menggeser waktu pelajaran sesuai durasi apel dan melewati pergeseran apel pada tanggal upacara.

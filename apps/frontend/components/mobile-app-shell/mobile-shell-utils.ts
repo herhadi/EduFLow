@@ -21,11 +21,13 @@ export function getRequiredRoleForPath(pathname: string): UserRole | null {
   if (pathname.startsWith('/bk')) return 'bk';
   if (pathname.startsWith('/teacher')) return 'guru';
   if (pathname.startsWith('/opsek')) return 'operator_sekolah';
+  if (pathname.startsWith('/admin')) return 'admin';
   return null;
 }
 
 export function hasRoleNamespaceAccess(primaryRole: UserRole, requiredRole: UserRole) {
   if (primaryRole === requiredRole) return true;
+  if (primaryRole === 'admin' && requiredRole === 'root') return true;
   if (primaryRole === 'guru' && requiredRole === 'wali_kelas') {
     return getCurrentSessionUser()?.roles?.includes('wali_kelas') ?? false;
   }

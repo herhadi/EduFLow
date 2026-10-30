@@ -76,7 +76,7 @@ Catatan integrasi Telegram: root mengelola webhook dari `/system/telegram`. Envi
 
 Command Telegram untuk monitoring sekolah dibuat on-demand agar tidak spam. Kepala Sekolah dan operator sekolah yang sudah mengaktifkan Telegram dapat memakai `/kbm` atau `/today` untuk ringkasan KBM hari ini, serta `/review` untuk antrean perangkat ajar dan nilai yang menunggu review. Root mengelola konfigurasi bot dari `/system/telegram`, bukan command monitoring sekolah. Command ini tidak membuat `NotificationLog` baru dan tidak menambah badge Inbox.
 
-Root adalah role support teknis. Root memakai namespace `/system/*` dan `/operations` untuk health check, queue monitoring, failed jobs, Telegram webhook, audit, backup, recovery, dan user/hak akses sistem. Operator Sekolah memakai `/opsek/dashboard` sebagai beranda operasional. Namespace `/opsek/*` disiapkan untuk admin sekolah yang akan dikembangkan terpisah.
+Root adalah role support teknis dan pemegang keputusan developer. Super Admin Sekolah (`admin`) menjadi jembatan support di sekolah dan memakai `/admin/dashboard`, `/system/*`, serta `/operations` untuk health check, queue monitoring, failed jobs, audit, backup, recovery, dan user/hak akses sesuai permission. Operator Sekolah memakai `/opsek/dashboard` sebagai beranda operasional KBM.
 
 `Master` pada bottom navigation operator berarti pusat data administrasi akademik di namespace `/opsek/data`, bukan root teknis.
 
@@ -87,6 +87,7 @@ Konfigurasi navigasi global berada di `apps/frontend/lib/navigation.config.ts`.
 Dashboard dipisahkan per role:
 
 - `root`: `/system/dashboard`.
+- `admin`: `/admin/dashboard`.
 - `operator_sekolah`: `/opsek/dashboard`.
 - `kepala_sekolah`: `/principal/dashboard`.
 - `guru`: `/teacher/dashboard`.
@@ -95,7 +96,7 @@ Dashboard dipisahkan per role:
 - `tu`: `/tu/dashboard`.
 - `bk`: `/bk/dashboard`.
 
-Login mengarahkan user langsung ke dashboard sesuai role. Root masuk ke `/system/dashboard`, sedangkan operator sekolah masuk ke `/opsek/dashboard`. Jika user membuka namespace role yang tidak sesuai, frontend memberi peringatan lalu mengarahkan ke dashboard role-nya. Inbox dan Profil operator tetap mengikuti route operasional yang tersedia, sedangkan halaman user dan hak akses root berada di `/system/access`.
+Login mengarahkan user langsung ke dashboard sesuai role. Root masuk ke `/system/dashboard`, Super Admin masuk ke `/admin/dashboard`, sedangkan operator sekolah masuk ke `/opsek/dashboard`. Jika user membuka namespace role yang tidak sesuai, frontend memberi peringatan lalu mengarahkan ke dashboard role-nya.
 
 Shell aplikasi juga melakukan guard ringan untuk namespace role. Jika user membuka namespace yang tidak sesuai, misalnya guru membuka `/principal/...` atau orang tua membuka `/tu/...`, browser menampilkan peringatan akses ditolak lalu mengarahkan user ke dashboard role-nya. Validasi final tetap wajib berada di backend permission.
 

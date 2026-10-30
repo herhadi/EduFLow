@@ -54,7 +54,7 @@ Deployment production wajib menyediakan environment variable secara aman dan men
 
 ### Docker Compose staging/production
 
-Buat file root `.env` dari `.env.example`, lalu isi semua placeholder dengan nilai unik dan kuat. Docker Compose sengaja gagal saat variabel wajib belum diisi; jangan mengembalikan default secret development. `DATABASE_URL` harus memakai password yang sama dengan `POSTGRES_PASSWORD` (encode karakter khusus password sebagai URL encoding). Jangan commit root `.env`.
+Buat `apps/backend/.env` dan `apps/frontend/.env.local` dari template masing-masing, lalu isi semua placeholder dengan nilai unik dan kuat. Repository tidak memerlukan file root `.env`. Saat deployment, `scripts/deploy.sh` membaca password dari `DATABASE_URL` di `apps/backend/.env`, mengekspornya sebagai `POSTGRES_PASSWORD`, lalu meneruskannya secara eksplisit ke container PostgreSQL. Jangan commit file environment.
 
 Compose utama hanya bind frontend `127.0.0.1:3000` dan backend `127.0.0.1:3001` ke loopback host untuk Cloudflare Tunnel/health check. PostgreSQL dan Redis tidak mem-publish port host. Jangan mengubah bind menjadi `0.0.0.0` tanpa kebutuhan yang ditinjau khusus.
 
@@ -68,7 +68,7 @@ Pada server yang sudah punya volume PostgreSQL, isi `POSTGRES_PASSWORD` dengan p
 
 - Backend NestJS memakai `apps/backend/.env` untuk konfigurasi/secret tambahan seperti R2 dan Telegram.
 - Frontend Next.js memakai `apps/frontend/.env.local`.
-- Docker Compose membaca `apps/backend/.env` sebagai `env_file` untuk secret backend seperti R2, Cloudflare, dan Telegram. Nilai koneksi container seperti `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT`, `FRONTEND_URL`, dan `FRONTEND_ALLOWED_ORIGINS` tetap dioverride oleh blok `environment` compose agar container memakai hostname Docker seperti `postgres` dan `redis`, bukan `localhost` dari konfigurasi lokal.
+- Docker Compose membaca `apps/backend/.env` hanya sebagai `env_file` untuk backend. PostgreSQL tidak menerima seluruh environment backend; hanya `POSTGRES_DB`, `POSTGRES_USER`, dan `POSTGRES_PASSWORD` yang diteruskan. Nilai koneksi container seperti `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT`, `FRONTEND_URL`, dan `FRONTEND_ALLOWED_ORIGINS` dioverride oleh blok `environment` compose agar container memakai hostname Docker seperti `postgres` dan `redis`, bukan `localhost` dari konfigurasi lokal.
 - Frontend wajib mengisi `NEXT_PUBLIC_API_URL`; runtime frontend tidak menyediakan fallback ke `localhost:3001` agar production tidak salah target backend.
 - Jika frontend memakai proxy `/api/backend`, `BACKEND_INTERNAL_API_URL` juga wajib diisi dan tidak memiliki fallback localhost.
 - Pola Docker/VPS satu stack: `NEXT_PUBLIC_API_URL=/api/backend` dan `BACKEND_INTERNAL_API_URL=http://backend:3001/api`.

@@ -1,5 +1,6 @@
 export type UserRole =
   | 'root'
+  | 'admin'
   | 'operator_sekolah'
   | 'kepala_sekolah'
   | 'guru'
@@ -45,6 +46,15 @@ const operatorNavigation: NavigationItem[] = [
   { href: '/opsek/extracurricular', label: 'Ekskul', icon: 'students' },
   { href: '/opsek/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
   { href: '/opsek/profile', label: 'Profil', icon: 'profile' },
+];
+
+const adminNavigation: NavigationItem[] = [
+  { href: '/admin/dashboard', label: 'Beranda', icon: 'home' },
+  { href: '/system/access', label: 'Akun & Akses', icon: 'access' },
+  { href: '/operations', label: 'Monitoring Sistem', icon: 'activity' },
+  { href: '/system/notifications', label: 'Helpdesk', icon: 'message', badge: 'notifications' },
+  { href: '/system/audit', label: 'Audit', icon: 'audit' },
+  { href: '/system/profile', label: 'Profil', icon: 'profile' },
 ];
 
 const principalNavigation: NavigationItem[] = [
@@ -114,6 +124,7 @@ const parentNavigation: NavigationItem[] = [
 
 const roleNavigation: Record<UserRole, NavigationItem[]> = {
   root: rootNavigation,
+  admin: adminNavigation,
   operator_sekolah: operatorNavigation,
   kepala_sekolah: principalNavigation,
   guru: teacherNavigation,
@@ -146,6 +157,12 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'opsek', href: '/opsek/import-data', label: 'Import' },
   { section: 'opsek', href: '/opsek/audit', label: 'Audit' },
   { section: 'opsek', href: '/opsek/leave-requests', label: 'Izin/Sakit' },
+  { section: 'admin', href: '/admin/dashboard', label: 'Dashboard' },
+  { section: 'admin', href: '/system/access', label: 'Akun & Akses' },
+  { section: 'admin', href: '/operations', label: 'Monitoring Sistem' },
+  { section: 'admin', href: '/system/notifications', label: 'Helpdesk' },
+  { section: 'admin', href: '/system/audit', label: 'Audit' },
+  { section: 'admin', href: '/system/profile', label: 'Profil' },
   { section: 'schedules', href: '/opsek/schedules', label: 'Setup Jadwal' },
   { section: 'schedules', href: '/opsek/guru', label: 'Mapel Guru' },
   { section: 'schedules', href: '/opsek/akademik', label: 'Kelas & Mapel' },
@@ -197,6 +214,7 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
 
 const rolePriority: UserRole[] = [
   'root',
+  'admin',
   'operator_sekolah',
   'kepala_sekolah',
   'guru',
@@ -228,6 +246,7 @@ export function getNotificationAccess(roles: string[] = []): NotificationAccess 
     case 'orang_tua':
       return { mode: 'personal', audience: 'parent' };
     case 'root':
+    case 'admin':
     case 'operator_sekolah':
       return { mode: 'operational', canRetry: true };
     case 'tu':
@@ -239,6 +258,7 @@ export function getNotificationAccess(roles: string[] = []): NotificationAccess 
 export function getDashboardPathForRole(role: UserRole) {
   const paths: Record<UserRole, string> = {
     root: '/system/dashboard',
+    admin: '/admin/dashboard',
     operator_sekolah: '/opsek/dashboard',
     kepala_sekolah: '/principal/dashboard',
     wali_kelas: '/teacher/dashboard',
@@ -262,6 +282,10 @@ export function getSectionFromPath(pathname: string) {
 
   if (pathname.startsWith('/opsek') || pathname === '/import-data') {
     return 'opsek';
+  }
+
+  if (pathname.startsWith('/admin')) {
+    return 'admin';
   }
 
   if (pathname.startsWith('/teacher/')) {

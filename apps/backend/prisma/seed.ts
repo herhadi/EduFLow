@@ -24,6 +24,16 @@ async function main() {
       'user.manage',
       'system.recovery.manage',
     ],
+    admin: [
+      'auth.session.manage',
+      'notification.read',
+      'notification.manage',
+      'reporting.read',
+      'reporting.manage',
+      'audit.read',
+      'user.manage',
+      'system.recovery.manage',
+    ],
     operator_sekolah: [
       'auth.session.manage',
       'academic.read',
@@ -216,7 +226,6 @@ async function main() {
     },
   });
 
-  await migrateLegacyRole('admin', 'root', rolesByName);
   await migrateLegacyRole('operator', 'operator_sekolah', rolesByName);
 
   const subjects = [

@@ -14,6 +14,7 @@ Perintah ini menjalankan seed role/permission dasar lalu seed UAT. Gunakan hanya
 
 - akun Kepala Sekolah: `uat.ks`,
 - akun operator sekolah: `uat.operator`,
+- akun Super Admin Sekolah: `uat.admin`,
 - akun guru/wali kelas: `uat.guru1`,
 - akun guru mapel: `uat.guru2`,
 - akun guru pengganti: `uat.guru3`,
@@ -27,6 +28,18 @@ Perintah ini menjalankan seed role/permission dasar lalu seed UAT. Gunakan hanya
 
 Password mengikuti `DEFAULT_USER_PASSWORD` pada `apps/backend/.env`, default `123456`.
 Tanggal agenda UAT mengikuti `SCHOOL_TIMEZONE_OFFSET_MINUTES` agar dashboard membaca hari sekolah yang sama di lokal dan Debian.
+
+### Super Admin Sekolah dan Root
+
+Login sebagai `uat.admin`, buka `/admin/dashboard`, lalu pastikan:
+
+- dashboard menampilkan konteks support teknis, bukan pekerjaan KBM;
+- `/operations` dapat dibuka untuk monitoring health, Redis, queue, worker, dan database;
+- `/system/access` dapat digunakan untuk bantuan akun dan reset akses;
+- `/system/audit` dapat dibuka untuk menelusuri aktivitas;
+- menu tidak menampilkan pengelolaan jadwal, agenda, presensi, atau nilai sebagai tugas Super Admin.
+
+Role `root` tetap digunakan oleh developer/vendor untuk infrastruktur global, database, backup, recovery, dan perubahan permission. Uji Root dilakukan dengan akun root terpisah, bukan akun `uat.admin`.
 
 ## Skenario Uji
 
