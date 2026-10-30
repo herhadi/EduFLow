@@ -216,3 +216,4 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Memperbaiki workflow deploy agar menggunakan source production server, Docker build context benar, dan gagal bila repo production memiliki perubahan lokal.
 - Memisahkan port PostgreSQL/Redis lokal ke `docker-compose.local.yml` agar production tidak bentrok dengan port host.
 - Menambahkan smart deploy, cleanup Docker image lama, endpoint frontend `GET /api/health`, dan retry healthcheck frontend/backend.
+- Memindahkan beranda Operator Sekolah ke `/opsek/dashboard`, menghapus route `/admin/dashboard`, dan memisahkan namespace admin sekolah untuk pengembangan berikutnya.

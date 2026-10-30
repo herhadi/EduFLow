@@ -30,7 +30,7 @@ Tujuan dashboard setiap role:
 | Role | Dashboard |
 | --- | --- |
 | Root | `/system/dashboard` |
-| Operator Sekolah | `/admin/dashboard` |
+| Operator Sekolah | `/opsek/dashboard` |
 | Guru | `/teacher/dashboard` |
 | Wali Kelas | `/teacher/dashboard` |
 | Kepala Sekolah | `/principal/dashboard` |

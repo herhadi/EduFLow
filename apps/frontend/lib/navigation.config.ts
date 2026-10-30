@@ -39,7 +39,7 @@ const rootNavigation: NavigationItem[] = [
 ];
 
 const operatorNavigation: NavigationItem[] = [
-  { href: '/admin/dashboard', label: 'Beranda', icon: 'home' },
+  { href: '/opsek/dashboard', label: 'Beranda', icon: 'home' },
   { href: '/admin/data', label: 'Master', icon: 'database' },
   { href: '/admin/schedules', label: 'Jadwal', icon: 'schedule' },
   { href: '/opsek/extracurricular', label: 'Ekskul', icon: 'students' },
@@ -137,7 +137,7 @@ const roleNavigation: Record<UserRole, NavigationItem[]> = {
 };
 
 export const sectionSubNavigation: Array<NavigationItem & { section: string }> = [
-  { section: 'admin', href: '/admin/dashboard', label: 'Dashboard' },
+  { section: 'opsek', href: '/opsek/dashboard', label: 'Dashboard' },
   { section: 'admin', href: '/admin/data', label: 'Master' },
   { section: 'admin', href: '/admin/guru', label: 'Guru' },
   { section: 'admin', href: '/admin/akademik', label: 'Akademik' },
@@ -239,7 +239,7 @@ export function getNotificationAccess(roles: string[] = []): NotificationAccess 
 export function getDashboardPathForRole(role: UserRole) {
   const paths: Record<UserRole, string> = {
     root: '/system/dashboard',
-    operator_sekolah: '/admin/dashboard',
+    operator_sekolah: '/opsek/dashboard',
     kepala_sekolah: '/principal/dashboard',
     wali_kelas: '/teacher/dashboard',
     guru: '/teacher/dashboard',
@@ -260,7 +260,7 @@ export function getSectionFromPath(pathname: string) {
     return 'schedules';
   }
 
-  if (pathname.startsWith('/admin') || pathname.startsWith('/opsek') || pathname === '/import-data') {
+  if (pathname.startsWith('/opsek') || pathname.startsWith('/admin') || pathname === '/import-data') {
     return 'admin';
   }
 
