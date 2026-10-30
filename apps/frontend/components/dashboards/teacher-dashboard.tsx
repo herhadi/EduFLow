@@ -173,7 +173,7 @@ function TeacherDashboardSummary({ isHomeroom }: { isHomeroom: boolean }) {
                     </div>
                     <div className="min-w-0">
                       <h4 className="truncate text-sm font-black text-slate-900 dark:text-[var(--text)]">{item.subject.name}</h4>
-                      <p className="mt-1 text-sm text-muted">{item.class.name}{item.schedule && 'room' in item.schedule && item.schedule.room ? ' · Ruang ' + item.schedule.room : ''}</p>
+                      <p className="mt-1 text-sm text-muted">{item.class.name}{item.schedule && 'room' in item.schedule && typeof item.schedule.room === 'string' && item.schedule.room ? ' · Ruang ' + item.schedule.room : ''}</p>
                       {item.effectivePeriodNumber ? <p className="mt-1 text-xs text-muted">Jam ke-{item.effectivePeriodNumber}</p> : null}
                     </div>
                   </div>
