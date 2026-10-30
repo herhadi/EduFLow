@@ -1,5 +1,5 @@
-INSERT INTO "Role" ("id", "name")
-SELECT gen_random_uuid(), 'admin'
+INSERT INTO "Role" ("id", "name", "createdAt", "updatedAt")
+SELECT gen_random_uuid(), 'admin', NOW(), NOW()
 WHERE NOT EXISTS (SELECT 1 FROM "Role" WHERE "name" = 'admin');
 
 INSERT INTO "RolePermission" ("roleId", "permissionId")
