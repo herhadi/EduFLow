@@ -67,10 +67,10 @@ export class ExtracurricularService {
     const normalized = value.trim().toUpperCase().replace(/\s+/g, ' ');
     return /^(7|VII)(\b|$)/.test(normalized) || /^(KELAS|TINGKAT) (7|VII)(\b|$)/.test(normalized);
   }
-  async correctSubmittedAttendance(sessionId: string, userId: string, items: Array<{ studentId: string; status: 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT'; reason: string }>) {
+  async correctSubmittedAttendance(sessionId: string, userId: string, items: Array<{ studentId: string; status: 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT'; reason: string }>, isOperator = false) {
     const session = await this.prisma.extracurricularSession.findUnique({ where: { id: sessionId }, include: { extracurricular: true } });
     if (!session) throw new NotFoundException('Pertemuan tidak ditemukan');
-    await this.requireAdvisor(session.extracurricularId, userId);
+    await this.requireProgramAccess(session.extracurricularId, userId, isOperator);
     if (session.status !== 'SUBMITTED') throw new BadRequestException('Koreksi hanya dapat dilakukan pada presensi yang sudah dikirim');
     if (!items.length || items.some(i => !i.reason?.trim())) throw new BadRequestException('Setiap koreksi wajib menyertakan alasan');
     const allowed = new Set(Object.values(ExtracurricularAttendanceStatus));
@@ -82,7 +82,7 @@ export class ExtracurricularService {
       await tx.extracurricularAttendanceRevision.create({ data: { attendanceId: current.id, oldStatus: current.status, newStatus: item.status, reason: item.reason.trim(), changedByUserId: userId } });
       await tx.extracurricularAttendance.update({ where: { id: current.id }, data: { status: item.status, notes: item.reason.trim(), markedByUserId: userId, markedAt: new Date() } });
     }});
-    return { ...(await this.getSession(sessionId, userId)), message: 'Koreksi presensi disimpan beserta riwayat perubahannya.' };
+    return { ...(await this.getSession(sessionId, userId, isOperator)), message: 'Koreksi presensi disimpan beserta riwayat perubahannya.' };
   }
   async report(programId?: string, from?: string, to?: string) {
     const start = from ? new Date(from) : undefined; const end = to ? new Date(to) : undefined;
@@ -140,6 +140,29 @@ export class ExtracurricularService {
     return { data, message: 'Anggota ekskul diperbarui.' };
   }
 
+  async listMembers(programId: string) {
+    const program = await this.prisma.extracurricular.findFirst({ where: { id: programId, deletedAt: null } });
+    if (!program) throw new NotFoundException('Program ekskul tidak ditemukan');
+    const data = await this.prisma.extracurricularEnrollment.findMany({
+      where: { extracurricularId: programId, status: ExtracurricularEnrollmentStatus.ACTIVE },
+      include: { student: { select: { id: true, name: true, nis: true, enrollments: { where: { schoolYearId: program.schoolYearId, isActive: true, deletedAt: null }, include: { class: { select: { name: true, grade: true } } } } } } },
+      orderBy: { student: { name: 'asc' } },
+    });
+    return { data };
+  }
+
+  async listSessions(programId: string, userId: string, isOperator = false) {
+    const program = await this.prisma.extracurricular.findFirst({ where: { id: programId, deletedAt: null } });
+    if (!program) throw new NotFoundException('Program ekskul tidak ditemukan');
+    if (!isOperator) await this.requireAdvisor(programId, userId);
+    const data = await this.prisma.extracurricularSession.findMany({
+      where: { extracurricularId: programId },
+      include: { attendanceItems: { select: { status: true } } },
+      orderBy: { startsAt: 'desc' },
+    });
+    return { data: data.map(session => ({ ...session, summary: { total: session.attendanceItems.length, present: session.attendanceItems.filter(item => item.status === ExtracurricularAttendanceStatus.PRESENT).length, sick: session.attendanceItems.filter(item => item.status === ExtracurricularAttendanceStatus.SICK).length, excused: session.attendanceItems.filter(item => item.status === ExtracurricularAttendanceStatus.EXCUSED).length, absent: session.attendanceItems.filter(item => item.status === ExtracurricularAttendanceStatus.ABSENT).length } })) };
+  }
+
   async myPrograms(userId: string) {
     const teacher = await this.prisma.teacher.findFirst({ where: { userId, isActive: true, deletedAt: null }, select: { id: true } });
     if (!teacher) throw new ForbiddenException('Akun ini tidak terhubung ke profil guru');
@@ -151,8 +174,8 @@ export class ExtracurricularService {
     return { data };
   }
 
-  async createSession(programId: string, userId: string, input: { startsAt: string; endsAt?: string; location?: string; activityNotes?: string }) {
-    await this.requireAdvisor(programId, userId);
+  async createSession(programId: string, userId: string, input: { startsAt: string; endsAt?: string; location?: string; activityNotes?: string }, isOperator = false) {
+    await this.requireProgramAccess(programId, userId, isOperator);
     const startsAt = new Date(input.startsAt);
     const endsAt = input.endsAt ? new Date(input.endsAt) : null;
     if (Number.isNaN(startsAt.getTime()) || (endsAt && (Number.isNaN(endsAt.getTime()) || endsAt < startsAt))) throw new BadRequestException('Tanggal/waktu pertemuan tidak valid');
@@ -167,10 +190,10 @@ export class ExtracurricularService {
     return { data, message: 'Pertemuan dibuat. Semua anggota diawali dengan status Hadir; ubah siswa yang sakit, izin, atau alpa sebelum submit.' };
   }
 
-  async updateAttendance(sessionId: string, userId: string, items: Array<{ studentId: string; status: 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT'; notes?: string }>) {
+  async updateAttendance(sessionId: string, userId: string, items: Array<{ studentId: string; status: 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT'; notes?: string }>, isOperator = false) {
     const session = await this.prisma.extracurricularSession.findUnique({ where: { id: sessionId }, include: { extracurricular: true } });
     if (!session) throw new NotFoundException('Pertemuan tidak ditemukan');
-    await this.requireAdvisor(session.extracurricularId, userId);
+    await this.requireProgramAccess(session.extracurricularId, userId, isOperator);
     if (session.status !== ExtracurricularSessionStatus.DRAFT) throw new BadRequestException('Presensi yang sudah dikirim tidak dapat diubah langsung');
     const allowed = new Set(Object.values(ExtracurricularAttendanceStatus));
     for (const item of items) if (!allowed.has(item.status as ExtracurricularAttendanceStatus)) throw new BadRequestException('Status presensi tidak valid');
@@ -178,22 +201,22 @@ export class ExtracurricularService {
       where: { sessionId_studentId: { sessionId, studentId: item.studentId } },
       data: { status: item.status, notes: item.notes?.trim() || null, markedByUserId: userId, markedAt: new Date() },
     })));
-    return this.getSession(sessionId, userId);
+    return this.getSession(sessionId, userId, isOperator);
   }
 
-  async submitSession(sessionId: string, userId: string) {
+  async submitSession(sessionId: string, userId: string, isOperator = false) {
     const session = await this.prisma.extracurricularSession.findUnique({ where: { id: sessionId }, include: { extracurricular: true, attendanceItems: true } });
     if (!session) throw new NotFoundException('Pertemuan tidak ditemukan');
-    await this.requireAdvisor(session.extracurricularId, userId);
+    await this.requireProgramAccess(session.extracurricularId, userId, isOperator);
     if (session.status !== 'DRAFT') throw new BadRequestException('Pertemuan sudah diproses');
     const updated = await this.prisma.extracurricularSession.update({ where: { id: sessionId }, data: { status: 'SUBMITTED', submittedAt: new Date(), submittedByUserId: userId }, include: { extracurricular: { select: { id: true, name: true } }, attendanceItems: { include: { student: { select: { id: true, name: true, nis: true } } }, orderBy: { student: { name: 'asc' } } } } });
     return { data: updated, message: 'Presensi ekskul berhasil dikirim.' };
   }
 
-  async getSession(sessionId: string, userId: string) {
+  async getSession(sessionId: string, userId: string, isOperator = false) {
     const session = await this.prisma.extracurricularSession.findUnique({ where: { id: sessionId }, include: { extracurricular: true, attendanceItems: { include: { student: { select: { id: true, name: true, nis: true } } }, orderBy: { student: { name: 'asc' } } } } });
     if (!session) throw new NotFoundException('Pertemuan tidak ditemukan');
-    await this.requireAdvisor(session.extracurricularId, userId);
+    await this.requireProgramAccess(session.extracurricularId, userId, isOperator);
     return { data: session };
   }
 
@@ -203,5 +226,10 @@ export class ExtracurricularService {
     const assignment = await this.prisma.extracurricularAdvisor.findUnique({ where: { extracurricularId_teacherId: { extracurricularId: programId, teacherId: teacher.id } } });
     if (!assignment) throw new ForbiddenException('Anda bukan pembimbing ekskul ini');
     return teacher;
+  }
+
+  private async requireProgramAccess(programId: string, userId: string, isOperator: boolean) {
+    if (isOperator) return;
+    await this.requireAdvisor(programId, userId);
   }
 }

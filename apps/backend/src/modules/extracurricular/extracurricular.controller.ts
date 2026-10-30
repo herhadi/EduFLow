@@ -36,26 +36,38 @@ export class ExtracurricularController {
   @Post('programs/:id/members')
   members(@Param('id') id: string, @Body() body: { members: Array<{ studentId: string; enrollmentType?: 'MANDATORY' | 'VOLUNTARY' }> }) { return this.service.setMembers(id, body.members ?? []); }
 
+  @RequirePermissions(PERMISSIONS.ACADEMIC_READ)
+  @Get('programs/:id/members')
+  listMembers(@Param('id') id: string) { return this.service.listMembers(id); }
+
+  @RequirePermissions(PERMISSIONS.ATTENDANCE_READ)
+  @Get('programs/:id/sessions')
+  listSessions(@Param('id') id: string, @Req() req: RequestWithUser) { return this.service.listSessions(id, req.user.id, this.isOperator(req)); }
+
   @RequirePermissions(PERMISSIONS.ATTENDANCE_READ)
   @Get('me/programs')
   myPrograms(@Req() req: RequestWithUser) { return this.service.myPrograms(req.user.id); }
 
   @RequirePermissions(PERMISSIONS.ATTENDANCE_MANAGE)
   @Post('programs/:id/sessions')
-  createSession(@Param('id') id: string, @Body() body: { startsAt: string; endsAt?: string; location?: string; activityNotes?: string }, @Req() req: RequestWithUser) { return this.service.createSession(id, req.user.id, body); }
+  createSession(@Param('id') id: string, @Body() body: { startsAt: string; endsAt?: string; location?: string; activityNotes?: string }, @Req() req: RequestWithUser) { return this.service.createSession(id, req.user.id, body, this.isOperator(req)); }
 
   @RequirePermissions(PERMISSIONS.ATTENDANCE_READ)
   @Get('sessions/:id')
-  getSession(@Param('id') id: string, @Req() req: RequestWithUser) { return this.service.getSession(id, req.user.id); }
+  getSession(@Param('id') id: string, @Req() req: RequestWithUser) { return this.service.getSession(id, req.user.id, this.isOperator(req)); }
 
   @RequirePermissions(PERMISSIONS.ATTENDANCE_MANAGE)
   @Post('sessions/:id/attendance')
-  updateAttendance(@Param('id') id: string, @Body() body: { items: Array<{ studentId: string; status: 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT'; notes?: string }> }, @Req() req: RequestWithUser) { return this.service.updateAttendance(id, req.user.id, body.items ?? []); }
+  updateAttendance(@Param('id') id: string, @Body() body: { items: Array<{ studentId: string; status: 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT'; notes?: string }> }, @Req() req: RequestWithUser) { return this.service.updateAttendance(id, req.user.id, body.items ?? [], this.isOperator(req)); }
 
   @RequirePermissions(PERMISSIONS.ATTENDANCE_MANAGE)
   @Post('sessions/:id/corrections')
-  correct(@Param('id') id: string, @Body() body: { items: Array<{ studentId: string; status: 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT'; reason: string }> }, @Req() req: RequestWithUser) { return this.service.correctSubmittedAttendance(id, req.user.id, body.items ?? []); }
+  correct(@Param('id') id: string, @Body() body: { items: Array<{ studentId: string; status: 'PRESENT' | 'SICK' | 'EXCUSED' | 'ABSENT'; reason: string }> }, @Req() req: RequestWithUser) { return this.service.correctSubmittedAttendance(id, req.user.id, body.items ?? [], this.isOperator(req)); }
   @RequirePermissions(PERMISSIONS.ATTENDANCE_MANAGE)
   @Post('sessions/:id/submit')
-  submit(@Param('id') id: string, @Req() req: RequestWithUser) { return this.service.submitSession(id, req.user.id); }
+  submit(@Param('id') id: string, @Req() req: RequestWithUser) { return this.service.submitSession(id, req.user.id, this.isOperator(req)); }
+
+  private isOperator(req: RequestWithUser) {
+    return req.user.roles?.includes('operator_sekolah') ?? false;
+  }
 }

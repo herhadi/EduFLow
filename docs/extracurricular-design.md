@@ -22,6 +22,7 @@ Ekstrakurikuler adalah kegiatan pengembangan minat/bakat di luar mata pelajaran 
 ## Model data yang disarankan
 
 ### Extracurricular
+
 - id, schoolYearId, name, code (opsional), description (opsional)
 - category/type (mis. Pramuka, olahraga, seni, sains, keagamaan, lainnya)
 - participationPolicy: MANDATORY_GRADE atau OPTIONAL
@@ -30,9 +31,11 @@ Ekstrakurikuler adalah kegiatan pengembangan minat/bakat di luar mata pelajaran 
 - isActive, createdAt, updatedAt
 
 ### ExtracurricularAdvisor
+
 Relasi program dengan satu atau lebih guru pembimbing. Mendukung pergantian pembimbing dan lebih dari satu pembimbing tanpa mengikat guru ke mapel tertentu.
 
 ### ExtracurricularEnrollment
+
 - extracurricularId, studentId, status (ACTIVE, WITHDRAWN, COMPLETED)
 - enrollmentType (MANDATORY atau VOLUNTARY)
 - enrolledAt, notes (opsional)
@@ -45,12 +48,14 @@ Relasi peserta sebaiknya menunjuk enrollment siswa/tahun ajaran yang aktif agar 
 Tambahkan **Ekstrakurikuler** di navigasi Opsek, terpisah dari menu Jadwal dan Akademik.
 
 ### 1. Daftar program
+
 - Ringkasan jumlah ekskul aktif, peserta aktif, dan program tanpa pembimbing.
 - Filter tahun ajaran, status, dan kategori.
 - Kartu/tabel menampilkan nama, pembimbing, jumlah peserta, jadwal ringkas, dan badge aturan kepesertaan.
 - Tombol Tambah Ekskul.
 
 ### 2. Form tambah/edit program
+
 - Nama, kode, kategori, deskripsi.
 - Tahun ajaran dan status aktif.
 - Kebijakan peserta: wajib berdasarkan tingkat atau pilihan.
@@ -59,7 +64,9 @@ Tambahkan **Ekstrakurikuler** di navigasi Opsek, terpisah dari menu Jadwal dan A
 - Jadwal latihan/lokasi opsional dan kuota opsional.
 
 ### 3. Detail program
+
 Tab Ringkasan, Peserta, Pembimbing, dan Jadwal.
+
 - Daftar peserta dengan pencarian nama/NIS, filter kelas, label Wajib/Pilihan, dan status.
 - Tambah peserta secara manual untuk ekskul pilihan.
 - Untuk Pramuka, tombol aksi massal Sinkronkan peserta wajib kelas VII menambahkan siswa kelas VII aktif yang belum terdaftar; proses ini idempoten dan tidak menggandakan peserta.
@@ -67,6 +74,7 @@ Tab Ringkasan, Peserta, Pembimbing, dan Jadwal.
 - Pembimbing dapat melihat program terkait; perubahan master program hanya oleh Opsek.
 
 ## Alur yang disarankan
+
 1. Opsek memilih tahun ajaran aktif lalu membuat program.
 2. Opsek menetapkan aturan peserta dan pembimbing.
 3. Untuk Pramuka, sistem menghitung siswa kelas VII yang wajib dan memberi ringkasan sebelum sinkronisasi.
@@ -75,6 +83,7 @@ Tab Ringkasan, Peserta, Pembimbing, dan Jadwal.
 6. Tahun ajaran ditutup dengan mengarsipkan program/keikutsertaan, bukan menghapusnya.
 
 ## Validasi dan keamanan
+
 - Endpoint tulis dibatasi ke role/permission operator sekolah.
 - Guru hanya melihat program yang ditugaskan sebagai pembimbing; kepala sekolah mendapat akses baca sesuai kebijakan aplikasi.
 - Validasi tahun ajaran, guru aktif, siswa dengan enrollment aktif, dan aturan tingkat kelas dilakukan di backend.
@@ -82,6 +91,7 @@ Tab Ringkasan, Peserta, Pembimbing, dan Jadwal.
 - Setiap perubahan peserta wajib/pengecualian dan pergantian pembimbing dicatat pada audit log.
 
 ## Tahapan implementasi
+
 1. Fondasi: model Prisma, migrasi SQL, API CRUD program, pembimbing, dan peserta.
 2. UI operator: daftar program, form, detail, peserta, pembimbing, sinkronisasi wajib Pramuka kelas VII.
 3. Portal guru: daftar ekskul bimbingan dan peserta.
@@ -94,6 +104,7 @@ Catatan: rancangan ini sengaja memisahkan data ekskul dari Subject, Schedule, da
 Presensi ekskul adalah alur tersendiri dari presensi KBM. Siswa tidak melakukan presensi mandiri; **guru pembimbing yang mencatat kehadiran anggota** pada setiap pertemuan. Guru yang ditugaskan sebagai pembimbing dapat melakukan presensi meskipun bukan guru mata pelajaran siswa atau wali kelasnya.
 
 ### Alur guru pembimbing
+
 1. Guru membuka menu **Ekskul Saya** dan memilih program yang dibimbing.
 2. Guru memilih pertemuan hari ini atau membuat sesi pertemuan baru jika jadwal sesi belum dibuat.
 3. Sistem menampilkan daftar anggota aktif pada program tersebut, termasuk nama, kelas, dan status kepesertaan.
@@ -105,18 +116,21 @@ Presensi ekskul adalah alur tersendiri dari presensi KBM. Siswa tidak melakukan 
 ### Halaman presensi
 
 #### A. Daftar pertemuan ekskul
+
 - Filter program, rentang tanggal, dan status presensi.
 - Menampilkan tanggal/jam, nama ekskul, pembimbing, jumlah peserta, kelengkapan presensi, dan status Draft/Terkirim.
 - Guru hanya melihat sesi dari program yang pembimbingnya ditugaskan kepadanya.
 - Opsek dapat melihat semua program dan rekap presensi; akses koreksi mengikuti permission yang ditetapkan.
 
 #### B. Form pertemuan
+
 - Program ekskul, tanggal, waktu mulai/selesai, lokasi, materi/kegiatan, dan catatan.
 - Jadwal berulang boleh menjadi dasar pembuatan sesi, tetapi setiap pertemuan tetap memiliki catatan presensi sendiri.
 - Pertemuan dapat dibuat oleh pembimbing yang berwenang atau Opsek. Hindari membuat presensi otomatis tanpa sesi nyata.
 - Cegah dua sesi yang tidak sengaja sama untuk program dan waktu yang sama; jika sekolah memang mengadakan sesi paralel, dukung dengan sesi terpisah yang eksplisit.
 
 #### C. Daftar anggota dan presensi
+
 - Pencarian nama/NIS dan filter kelas.
 - Tombol cepat **Tandai semua hadir** untuk mempercepat pencatatan, tetapi tindakan harus eksplisit dan dapat diperiksa sebelum disimpan.
 - Status per siswa: PRESENT, SICK, EXCUSED, ABSENT. Saat sesi dibuat, anggota aktif otomatis berstatus PRESENT sesuai pola presensi KBM; guru mengubah status pengecualian sebelum submit.
@@ -127,6 +141,7 @@ Presensi ekskul adalah alur tersendiri dari presensi KBM. Siswa tidak melakukan 
 ### Model data presensi yang disarankan
 
 #### ExtracurricularSession
+
 - id, extracurricularId, startsAt, endsAt, location (opsional)
 - activityNotes (opsional), status (DRAFT, SUBMITTED, CANCELLED)
 - createdByUserId, submittedByUserId (opsional), submittedAt (opsional)
@@ -134,6 +149,7 @@ Presensi ekskul adalah alur tersendiri dari presensi KBM. Siswa tidak melakukan 
 - Program dan tanggal/jam sesi menjadi konteks laporan presensi.
 
 #### ExtracurricularAttendance
+
 - id, sessionId, studentId
 - status (PRESENT, SICK, EXCUSED, ABSENT), dengan default PRESENT ketika sesi dibuat
 - notes (opsional), markedByUserId, markedAt
@@ -141,9 +157,11 @@ Presensi ekskul adalah alur tersendiri dari presensi KBM. Siswa tidak melakukan 
 - Saat sesi dibuat, sistem membuat satu baris untuk setiap anggota aktif dengan status PRESENT sebagai default. Guru pembimbing mengubah status siswa yang tidak hadir sebelum submit.
 
 #### Koreksi presensi / audit
+
 Koreksi setelah pengiriman mencatat nilai lama, nilai baru, alasan, pelaku, dan waktu. Gunakan audit log aplikasi jika fasilitas audit generik sudah memadai; tidak perlu menggandakan mekanisme audit tanpa alasan.
 
 ### Aturan otorisasi dan konsistensi
+
 - Guru hanya dapat membuat sesi dan mencatat/mengubah presensi untuk ekskul yang pembimbingnya ditugaskan kepadanya.
 - Opsek dapat mengelola sesi dan membaca seluruh rekap sesuai permission; tindakan koreksi tetap tercatat.
 - Backend memvalidasi otorisasi pembimbing pada setiap endpoint, bukan hanya menyembunyikan tombol di UI.
@@ -154,20 +172,9 @@ Koreksi setelah pengiriman mencatat nilai lama, nilai baru, alasan, pelaku, dan 
 - Presensi ekskul tidak mengubah presensi KBM, nilai mata pelajaran, atau status kehadiran sekolah secara otomatis.
 
 ### Rekap dan laporan
+
 - Rekap per sesi: jumlah hadir, sakit, izin, alpa, dan belum diisi.
 - Rekap per siswa dalam satu program: jumlah per status dan persentase hadir dari sesi yang sudah difinalisasi.
 - Rekap per program, kelas, pembimbing, dan rentang tanggal untuk Opsek/Kepala Sekolah.
 - Sesi Draft atau Cancelled tidak masuk perhitungan kehadiran final. Karena anggota otomatis berstatus PRESENT, UI harus menampilkan pengingat pemeriksaan dan ringkasan status sebelum submit.
 - Ekspor CSV/Excel dapat ditambahkan setelah alur inti stabil.
-
-### Tahapan implementasi presensi
-1. Tambahkan model sesi, catatan presensi per siswa, migrasi database, permission, dan endpoint backend.
-2. Buat halaman guru untuk daftar ekskul bimbingan, membuat sesi, mencatat status anggota, dan mengirim presensi.
-3. Buat halaman Opsek untuk memantau kelengkapan, membuka rekap, serta mengelola koreksi yang diizinkan.
-4. Tambahkan laporan per siswa/program dan ekspor.
-5. Pertimbangkan presensi offline hanya jika kebutuhan operasional sudah jelas; sinkronisasi offline harus menangani konflik dan tidak boleh menimpa koreksi yang lebih baru.
-
-
-## Status implementasi
-
-Fondasi API dan model Prisma tersedia pada branch fitur: daftar dan pembuatan program, penugasan pembimbing, pengelolaan anggota, pembuatan sesi, perubahan status presensi, dan submit. Halaman dasar Opsek untuk membuat program, menetapkan pembimbing, serta menambahkan anggota dan halaman guru untuk presensi juga tersedia. Pembuatan sesi menggunakan status default PRESENT agar konsisten dengan presensi KBM. Sinkronisasi wajib Pramuka kelas VII, edit/arsip program, audit koreksi pasca-submit, dan laporan telah ditambahkan pada branch fitur. Migrasi di lingkungan target serta pengujian build masih harus divalidasi melalui CI sebelum rilis produksi.
