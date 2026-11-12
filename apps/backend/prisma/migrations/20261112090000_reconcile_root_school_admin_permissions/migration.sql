@@ -1,4 +1,5 @@
 -- Root is the technical owner role and receives every registered capability.
+-- Reconciled in migration so production RBAC is corrected without requiring a manual seed run.
 -- School admin receives only the technical school-level capabilities in the role guide.
 INSERT INTO "Role" ("id", "name", "createdAt", "updatedAt")
 SELECT gen_random_uuid(), 'root', NOW(), NOW()
