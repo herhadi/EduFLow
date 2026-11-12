@@ -14,16 +14,7 @@ async function main() {
   const rootName = process.env.ROOT_NAME ?? 'Root Administrator';
   const rootPassword = process.env.ROOT_PASSWORD ?? defaultUserPassword;
   const rolePermissions: Record<string, string[]> = {
-    root: [
-      'auth.session.manage',
-      'notification.read',
-      'notification.manage',
-      'reporting.read',
-      'reporting.manage',
-      'audit.read',
-      'user.manage',
-      'system.recovery.manage',
-    ],
+    root: [],
     admin: [
       'auth.session.manage',
       'notification.read',
@@ -140,6 +131,14 @@ async function main() {
       'student-leave.manage',
     ],
   };
+
+  // Root adalah role teknis dengan akses penuh. Admin sekolah tetap dibatasi
+  // pada capability operasional teknis sekolah yang ditetapkan manual role.
+  rolePermissions.root = [...new Set(
+    Object.entries(rolePermissions)
+      .filter(([roleName]) => roleName !== 'root')
+      .flatMap(([, permissionKeys]) => permissionKeys),
+  )];
 
   const permissions = await Promise.all(
     [...new Set(Object.values(rolePermissions).flat())].map((key) =>
