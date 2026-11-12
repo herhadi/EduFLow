@@ -40,7 +40,7 @@ export function UserManagementPanel({
         </p>
         <h2 className="mt-1 text-2xl font-black text-ink">Root Menentukan Admin</h2>
         <p className="mt-1 text-sm leading-6 text-muted">
-          Buat user pertama untuk `operator_sekolah`. Password akun baru memakai default dari environment dan wajib diganti saat login pertama.
+          Root dapat membuat akun sekolah, termasuk Super Admin Sekolah. Pilih peran sesuai kewenangan; password awal mengikuti konfigurasi default server dan wajib diganti saat login pertama.
         </p>
       </div>
 
