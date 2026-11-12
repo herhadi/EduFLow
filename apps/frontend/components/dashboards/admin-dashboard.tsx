@@ -13,7 +13,7 @@ export function AdminHome({ currentUser }: { currentUser: CurrentUser | null }) 
         title={`Selamat datang, ${displayName}`}
       />
       <RoleSection description="Kewenangan pengelolaan aplikasi sekolah sesuai role dan permission." title="Administrasi Sistem Sekolah">
-        <RoleActionCard href="/admin/access" label="Akun & Akses" description="Kelola akun pengguna, role, dan tindak lanjut reset password." />
+        <RoleActionCard href="/system/access" label="Akun & Akses" description="Kelola akun pengguna, role, dan tindak lanjut reset password." />
         <RoleActionCard href="/operations" label="Monitoring Sistem" description="Pantau health check, antrean, worker, dan layanan pendukung." />
         <RoleActionCard href="/admin/notifications" label="Helpdesk" description="Pantau notifikasi operasional dan tindak lanjut bantuan pengguna." />
         <RoleActionCard href="/admin/audit" label="Audit" description="Telusuri perubahan akses dan aktivitas penting aplikasi." />
