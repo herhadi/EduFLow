@@ -9,6 +9,7 @@ import {
 } from '../lib/navigation.config';
 import { getMonitoringDescription, getMonitoringTitle } from './dashboards/monitoring-copy';
 import { OperatorHome } from './dashboards/operator-dashboard';
+import { AdminHome } from './dashboards/admin-dashboard';
 import { ParentHome } from './dashboards/parent-dashboard';
 import { PrincipalHome } from './dashboards/principal-dashboard';
 import { RootHome } from './dashboards/root-dashboard';
@@ -165,7 +166,19 @@ export function RoleDashboard({
     );
   }
 
-  if (activeRole === 'root' || activeRole === 'admin') {
+  if (activeRole === 'admin') {
+    return (
+      <DashboardWithTelegramPrompt
+        activeRole={activeRole}
+        currentUser={currentUser}
+        profileChecked={profileChecked}
+      >
+        <AdminHome currentUser={currentUser} />
+      </DashboardWithTelegramPrompt>
+    );
+  }
+
+  if (activeRole === 'root') {
     return (
       <DashboardWithTelegramPrompt
         activeRole={activeRole}
