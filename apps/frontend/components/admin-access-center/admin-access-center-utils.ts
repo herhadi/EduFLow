@@ -6,6 +6,12 @@ export const roleCards = [
     permissions: ['Semua permission', 'Recovery sistem', 'Kelola user dan role'],
   },
   {
+    role: 'admin',
+    label: 'Super Admin Sekolah',
+    description: 'Admin teknis tingkat sekolah untuk akun, monitoring sistem, helpdesk, audit, dan tindak lanjut operasional. Tidak memiliki kewenangan KBM.',
+    permissions: ['user.manage', 'reporting.read', 'audit.read', 'notification.manage'],
+  },
+  {
     role: 'operator_sekolah',
     label: 'Operator Sekolah',
     description: 'Actor utama untuk kalender pendidikan, jadwal, master akademik, import, dan generate agenda.',
