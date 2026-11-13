@@ -171,10 +171,14 @@ export class AuthController {
     @Body() dto: UpdateUserRolesDto,
     @Req() request: RequestWithUser,
   ) {
-    if (!request.user.roles?.includes('root')) {
-      throw new ForbiddenException('Hanya Root yang dapat mengubah role user');
+    const actorRoles = request.user.roles ?? [];
+    const isRoot = actorRoles.includes('root');
+    const canManageRoles = isRoot || actorRoles.includes('admin');
+
+    if (!canManageRoles) {
+      throw new ForbiddenException('Hanya Root atau Super Admin Sekolah yang dapat mengubah role user');
     }
-    return this.authService.updateUserRoles(id, dto.roles);
+    return this.authService.updateUserRoles(id, dto.roles, isRoot);
   }
 
   @RequirePermissions(PERMISSIONS.USER_MANAGE)
