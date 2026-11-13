@@ -1,4 +1,4 @@
-import { type FormEvent } from 'react';
+import { type FormEvent, useState } from 'react';
 import { type AppUser } from '../../lib/api';
 import { roleCards, type NewUserForm } from './admin-access-center-utils';
 import { Badge } from '../ui/badge';
@@ -16,6 +16,7 @@ type UserManagementPanelProps = {
   onDeleteUser: (user: AppUser) => void;
   onNewUserChange: (field: keyof NewUserForm, value: string) => void;
   onResetUserPassword: (user: AppUser) => void;
+  onUpdateUserRoles: (user: AppUser, roles: string[]) => void;
   userActionState: ActionState;
   userMessage: string;
   users: AppUser[];
@@ -28,10 +29,13 @@ export function UserManagementPanel({
   onDeleteUser,
   onNewUserChange,
   onResetUserPassword,
+  onUpdateUserRoles,
   userActionState,
   userMessage,
   users,
 }: UserManagementPanelProps) {
+  const [selectedRoles, setSelectedRoles] = useState<Record<string, string[]>>({});
+
   return (
     <SurfaceCard className="sm:p-6">
       <div>
@@ -124,6 +128,42 @@ export function UserManagementPanel({
                       {role}
                     </Badge>
                   ))}
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <select
+                    aria-label={`Role untuk ${user.username ?? user.name}`}
+                    className={`${fieldClass} sm:min-w-56`}
+                    multiple
+                    onChange={(event) =>
+                      setSelectedRoles((current) => ({
+                        ...current,
+                        [user.id]: Array.from(event.target.selectedOptions, (option) => option.value),
+                      }))
+                    }
+                    size={Math.min(roleCards.length, 5)}
+                    value={selectedRoles[user.id] ?? user.roles}
+                  >
+                    {roleCards.map((role) => (
+                      <option key={role.role} value={role.role}>
+                        {role.label}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    disabled={userActionState === 'loading' || !(selectedRoles[user.id] ?? user.roles).length}
+                    onClick={() => {
+                      const roles = selectedRoles[user.id] ?? user.roles;
+                      if (roles.length !== user.roles.length || roles.some((role) => !user.roles.includes(role))) {
+                        onUpdateUserRoles(user, roles);
+                      } else {
+                        onUpdateUserRoles(user, roles);
+                      }
+                    }}
+                    size="sm"
+                    variant="outline"
+                  >
+                    Simpan Role
+                  </Button>
                 </div>
                 <div className="grid grid-cols-3 gap-2 sm:flex">
                   <Button
