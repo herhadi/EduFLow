@@ -112,58 +112,29 @@ export function UserManagementPanel({
       ) : null}
 
       <div className="mt-5 grid gap-3">
-        {users.map((user) => (
-          <article className="rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900" key={user.id}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <h3 className="font-black text-slate-900 dark:text-slate-100">{user.name}</h3>
-                <p className="mt-1 text-xs font-semibold text-muted">
-                  {user.username ?? '-'} · {user.email}
-                </p>
-              </div>
-              <div className="flex flex-col gap-3 sm:items-end">
-                <div className="flex flex-wrap gap-2 sm:justify-end">
-                  {user.roles.map((role) => (
-                    <Badge key={role} tone="brand">
-                      {role}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <select
-                    aria-label={`Role untuk ${user.username ?? user.name}`}
-                    className={`${fieldClass} sm:min-w-56`}
-                    multiple
-                    onChange={(event) =>
-                      setSelectedRoles((current) => ({
-                        ...current,
-                        [user.id]: Array.from(event.target.selectedOptions, (option) => option.value),
-                      }))
-                    }
-                    size={Math.min(roleCards.length, 5)}
-                    value={selectedRoles[user.id] ?? user.roles}
-                  >
-                    {roleCards.map((role) => (
-                      <option key={role.role} value={role.role}>
-                        {role.label}
-                      </option>
+        {users.map((user) => {
+          const rolesForUser = selectedRoles[user.id] ?? user.roles;
+          const rolesChanged =
+            rolesForUser.length !== user.roles.length ||
+            !rolesForUser.every((role) => user.roles.includes(role));
+
+          return (
+            <article className="rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900" key={user.id}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="font-black text-slate-900 dark:text-slate-100">{user.name}</h3>
+                  <p className="mt-1 text-xs font-semibold text-muted">
+                    {user.username ?? '-'} · {user.email}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {user.roles.map((role) => (
+                      <Badge key={role} tone="brand">
+                        {role}
+                      </Badge>
                     ))}
-                  </select>
-                  <Button
-                    disabled={
-                      userActionState === 'loading' ||
-                      !(selectedRoles[user.id] ?? user.roles).length ||
-                      ((selectedRoles[user.id] ?? user.roles).length === user.roles.length &&
-                        (selectedRoles[user.id] ?? user.roles).every((role) => user.roles.includes(role)))
-                    }
-                    onClick={() => onUpdateUserRoles(user, selectedRoles[user.id] ?? user.roles)}
-                    size="sm"
-                    variant="outline"
-                  >
-                    Simpan Role
-                  </Button>
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 gap-2 sm:flex">
+                <div className="grid grid-cols-3 gap-2 sm:flex sm:shrink-0">
                   <Button
                     disabled={userActionState === 'loading'}
                     onClick={() => void onResetUserPassword(user)}
@@ -191,9 +162,63 @@ export function UserManagementPanel({
                   </Button>
                 </div>
               </div>
-            </div>
-          </article>
-        ))}
+
+              <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-700">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">Atur Role</h4>
+                    <p className="mt-0.5 text-xs text-muted">Pilih satu atau beberapa role untuk akun ini.</p>
+                  </div>
+                  <span className="text-xs font-semibold text-muted">{rolesForUser.length} dipilih</span>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {roleCards.map((role) => {
+                    const checked = rolesForUser.includes(role.role);
+                    return (
+                      <label
+                        className={[
+                          'flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors',
+                          checked
+                            ? 'border-brand-400 bg-brand-50/80 dark:border-brand-400/60 dark:bg-brand-500/10'
+                            : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-slate-950 dark:hover:border-slate-500',
+                        ].join(' ')}
+                        key={role.role}
+                      >
+                        <input
+                          checked={checked}
+                          className="mt-1 h-4 w-4 shrink-0 accent-blue-600"
+                          onChange={(event) =>
+                            setSelectedRoles((current) => {
+                              const next = event.target.checked
+                                ? [...rolesForUser, role.role]
+                                : rolesForUser.filter((item) => item !== role.role);
+                              return { ...current, [user.id]: next };
+                            })
+                          }
+                          type="checkbox"
+                        />
+                        <span className="min-w-0">
+                          <span className="block text-sm font-bold text-slate-800 dark:text-slate-100">{role.label}</span>
+                          <span className="mt-1 block text-xs leading-5 text-muted">{role.description}</span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <Button
+                    disabled={userActionState === 'loading' || !rolesForUser.length || !rolesChanged}
+                    onClick={() => onUpdateUserRoles(user, rolesForUser)}
+                    size="sm"
+                    variant="outline"
+                  >
+                    Simpan Perubahan Role
+                  </Button>
+                </div>
+              </div>
+            </article>
+          );
+        })}
 
         {!users.length ? (
           <EmptyState title="Daftar user hanya muncul setelah login sebagai root." />
