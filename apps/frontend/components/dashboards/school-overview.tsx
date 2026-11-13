@@ -10,10 +10,10 @@ type Summary = { teachers: number; students: number; classes: number; subjects: 
 type LoadState = 'loading' | 'success' | 'error';
 
 const cards = [
-  { tone: 'blue', label: 'Guru Aktif', icon: 'GR', tuHref: '/tu/import-data', operatorHref: '/opsek/guru', tuDescription: 'Buka pengelolaan data guru', operatorDescription: 'Kelola akun dan penugasan guru' },
+  { tone: 'blue', label: 'Guru Aktif', icon: 'GR', tuHref: '/tu/ringkasan/guru', operatorHref: '/opsek/ringkasan/guru', tuDescription: 'Lihat, cetak, dan export daftar guru aktif', operatorDescription: 'Lihat, cetak, dan export daftar guru aktif' },
   { tone: 'violet', label: 'Siswa Aktif', icon: 'SW', tuHref: '/tu/siswa-aktif', operatorHref: '/opsek/siswa-aktif', tuDescription: 'Lihat daftar siswa tahun ajaran berjalan', operatorDescription: 'Lihat daftar siswa tahun ajaran berjalan' },
-  { tone: 'amber', label: 'Rombel', icon: 'RB', tuHref: '/tu/data', operatorHref: '/opsek/akademik', tuDescription: 'Buka master data kelas', operatorDescription: 'Kelola rombongan belajar' },
-  { tone: 'emerald', label: 'Mata Pelajaran', icon: 'MP', tuHref: '/tu/data', operatorHref: '/opsek/akademik', tuDescription: 'Buka master data mata pelajaran', operatorDescription: 'Kelola mata pelajaran dan jam pelajaran' },
+  { tone: 'amber', label: 'Rombel', icon: 'RB', tuHref: '/tu/ringkasan/rombel', operatorHref: '/opsek/ringkasan/rombel', tuDescription: 'Lihat, cetak, dan export daftar rombel', operatorDescription: 'Lihat, cetak, dan export daftar rombel' },
+  { tone: 'emerald', label: 'Mata Pelajaran', icon: 'MP', tuHref: '/tu/ringkasan/mapel', operatorHref: '/opsek/ringkasan/mapel', tuDescription: 'Lihat, cetak, dan export daftar mata pelajaran', operatorDescription: 'Lihat, cetak, dan export daftar mata pelajaran' },
 ] as const;
 
 const toneClasses = {
