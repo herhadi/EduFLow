@@ -128,3 +128,15 @@ Permission berikut adalah usulan untuk katalog/seeder saat fitur diimplementasik
 | `class_journal_note.manage_assigned` |  | ✓ |  |  |
 
 Scope harus ditegakkan di service: guru hanya mengelola jurnal agenda yang ditugaskan; wali kelas hanya membaca rekap dan mengelola catatan kelas binaannya; operator/kepala sekolah membaca lintas kelas sesuai permission. Kepala sekolah tidak otomatis mengedit jurnal guru. Permission di dokumen ini belum aktif hanya karena dicantumkan.
+
+## Pengelolaan Role User
+
+Pengubahan role dilakukan dari halaman `/system/access` dengan dropdown ringkas. Satu akun dapat memiliki lebih dari satu role; role yang sudah terpasang ditampilkan sebagai label dan dapat ditambahkan atau dilepas sebelum disimpan.
+
+- Root dapat mengubah role user dan memberikan seluruh role, termasuk `root`.
+- Super Admin Sekolah (`admin`) dapat mengubah role user, tetapi tidak dapat memberikan role `root`.
+- Role selain Root dan Super Admin Sekolah tidak dapat mengubah role user.
+- Sistem harus mempertahankan setidaknya satu akun Root aktif; role Root pada satu-satunya akun Root aktif tidak dapat dilepas.
+- Keterangan tugas setiap role ditampilkan satu kali pada bagian informasi role (dapat dibuka/tutup), bukan diulang pada setiap baris user.
+
+Aturan otorisasi tetap ditegakkan di backend; pembatasan pada antarmuka hanya membantu pengalaman pengguna dan bukan pengganti pemeriksaan permission.
