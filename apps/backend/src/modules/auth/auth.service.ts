@@ -665,7 +665,25 @@ export class AuthService {
       throw new UnauthorizedException('User tidak ditemukan');
     }
 
+    const currentRoles = await this.prisma.userRole.findMany({
+      where: { userId },
+      include: { role: true },
+    });
+    const currentIsRoot = currentRoles.some(({ role }) => role.name === 'root');
     const roles = await this.getRolesByNames(roleNames);
+
+    if (currentIsRoot && !roles.some((role) => role.name === 'root')) {
+      const otherActiveRoots = await this.prisma.user.count({
+        where: {
+          id: { not: userId },
+          deletedAt: null,
+          roles: { some: { role: { name: 'root' } } },
+        },
+      });
+      if (otherActiveRoots < 1) {
+        throw new BadRequestException('Minimal harus ada satu root aktif');
+      }
+    }
 
     await this.prisma.$transaction([
       this.prisma.userRole.deleteMany({ where: { userId } }),
