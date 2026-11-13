@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Headers, Param, Patch, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Body, Controller, Delete, Get, Headers, Param, Patch, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PERMISSIONS } from '../../common/constants/permissions';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
@@ -169,7 +169,11 @@ export class AuthController {
   updateUserRoles(
     @Param('id') id: string,
     @Body() dto: UpdateUserRolesDto,
+    @Req() request: RequestWithUser,
   ) {
+    if (!request.user.roles?.includes('root')) {
+      throw new ForbiddenException('Hanya Root yang dapat mengubah role user');
+    }
     return this.authService.updateUserRoles(id, dto.roles);
   }
 
