@@ -76,26 +76,6 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
     };
   }, []);
 
-  function downloadStudentExcel() {
-    if (!selectedClassGroups.length) return;
-    const escapeHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
-    const rows = selectedClassGroups.flatMap((group) => [
-      `<tr><th colspan=\"4\">${escapeHtml(group.name)} · ${group.students.length} siswa</th></tr>`,
-      '<tr><th>No</th><th>Kelas</th><th>Nama Siswa</th><th>NIS</th></tr>',
-      ...group.students.map((student, index) => `<tr><td>${index + 1}</td><td>${escapeHtml(group.name)}</td><td>${escapeHtml(student.name)}</td><td>${escapeHtml(student.nis || '')}</td></tr>`),
-    ]).join('');
-    const workbook = `<html><head><meta charset=\"utf-8\"></head><body><table>${rows}</table></body></html>`;
-    const blob = new Blob([`\uFEFF${workbook}`], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `daftar-siswa-${new Date().toISOString().slice(0, 10)}.xls`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-  }
-
   return (
     <>
       <RoleHero
