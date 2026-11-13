@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { getPreferredSchoolYear } from '../../lib/school-year';
 import type { Student } from '../../lib/api-types';
+import { PrintPreview } from '../print/print-preview';
 import { type CurrentUser } from './dashboard-types';
 import { RoleActionCard, RoleSection, RoleHero } from './role-dashboard-shared';
 
@@ -27,6 +28,36 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
   const [activeStudents, setActiveStudents] = useState<Student[]>([]);
   const [showStudentList, setShowStudentList] = useState(false);
   const [studentSearch, setStudentSearch] = useState('');
+  const filteredStudents = activeStudents.filter((student) => {
+    const query = studentSearch.trim().toLocaleLowerCase('id-ID');
+    return !query || student.name.toLocaleLowerCase('id-ID').includes(query) || (student.nis ?? '').toLocaleLowerCase('id-ID').includes(query);
+  });
+  const classGroups = Object.values(filteredStudents.reduce<Record<string, { key: string; name: string; students: Student[] }>>((groups, student) => {
+    const enrollment = student.enrollments.find((item) => item.isActive && item.schoolYear?.id === summary?.schoolYearId);
+    const name = enrollment?.class?.name ?? 'Belum ada kelas';
+    const key = enrollment?.class?.id ?? 'unassigned';
+    if (!groups[key]) groups[key] = { key, name, students: [] };
+    groups[key].students.push(student);
+    return groups;
+  }, {})).sort((a, b) => a.name.localeCompare(b.name, 'id')).map((group) => ({ ...group, students: [...group.students].sort((a, b) => a.name.localeCompare(b.name, 'id')) }));
+  const printPages = classGroups.map((group) => (
+    <div className="h-full" key={group.key}>
+      <div className="border-b-2 border-black pb-3 text-center">
+        <p className="text-xs font-semibold uppercase tracking-widest">Daftar Siswa Aktif</p>
+        <h2 className="mt-1 text-xl font-black">{group.name}</h2>
+        <p className="mt-1 text-xs">Tahun Ajaran: {summary?.schoolYear} · Jumlah: {group.students.length} siswa</p>
+      </div>
+      <div className="mt-5 grid grid-cols-3 gap-x-4 gap-y-2 text-[11px] leading-snug">
+        {group.students.map((student, index) => (
+          <div className="flex gap-2 border-b border-gray-200 py-1" key={student.id}>
+            <span className="w-5 shrink-0 text-right">{index + 1}.</span>
+            <span className="min-w-0"><span className="block font-semibold">{student.name}</span><span className="text-gray-600">NIS: {student.nis || '—'}</span></span>
+          </div>
+        ))}
+      </div>
+      <div className="absolute bottom-8 left-12 right-12 flex justify-between border-t border-gray-300 pt-2 text-[10px] text-gray-600"><span>Dokumen administrasi sekolah</span><span>{group.name}</span></div>
+    </div>
+  ));
 
   useEffect(() => {
     let ignore = false;
@@ -125,43 +156,50 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
 
 
       {showStudentList ? (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 p-3 sm:p-6" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowStudentList(false); }}>
-          <section aria-labelledby="tu-active-students-title" aria-modal="true" className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-[var(--surface-solid)]" role="dialog">
-            <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-5 dark:border-[var(--border)]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-2 sm:p-5" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowStudentList(false); }}>
+          <section aria-labelledby="tu-active-students-title" aria-modal="true" className="flex max-h-[94vh] w-full max-w-[1500px] flex-col overflow-hidden rounded-3xl bg-slate-50 shadow-2xl dark:bg-[var(--surface-solid)]" role="dialog">
+            <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4 dark:border-[var(--border)] dark:bg-[var(--surface-solid)]">
               <div>
-                <h2 className="text-lg font-black text-slate-900 dark:text-[var(--text)]" id="tu-active-students-title">Daftar Siswa Aktif</h2>
+                <h2 className="text-lg font-black text-slate-900 dark:text-[var(--text)]" id="tu-active-students-title">Daftar Siswa Aktif per Kelas</h2>
                 <p className="mt-1 text-sm text-muted">{activeStudents.length.toLocaleString('id-ID')} siswa · {summary?.schoolYear}</p>
               </div>
-              <button aria-label="Tutup daftar siswa" className="rounded-xl px-3 py-2 text-sm font-bold text-muted hover:bg-slate-100 dark:hover:bg-[var(--surface-soft)]" onClick={() => setShowStudentList(false)} type="button">Tutup</button>
+              <button aria-label="Tutup daftar siswa" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-muted hover:bg-slate-100 dark:border-[var(--border)] dark:hover:bg-[var(--surface-soft)]" onClick={() => setShowStudentList(false)} type="button">Tutup</button>
             </div>
-            <div className="border-b border-slate-200 p-4 dark:border-[var(--border)]">
-              <input className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-brand-500 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]" onChange={(event) => setStudentSearch(event.target.value)} placeholder="Cari nama atau NIS siswa…" value={studentSearch} />
+            <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto p-3 lg:grid-cols-[minmax(0,1fr)_390px] lg:p-5">
+              <div className="min-w-0">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <input className="w-full max-w-md rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-brand-500 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]" onChange={(event) => setStudentSearch(event.target.value)} placeholder="Cari nama atau NIS siswa…" value={studentSearch} />
+                  <span className="text-xs font-semibold text-muted">{filteredStudents.length} siswa · {classGroups.length} kelas</span>
+                </div>
+                {classGroups.length ? (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    {classGroups.map((group) => (
+                      <article className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 dark:border-[var(--border)] dark:bg-[var(--surface-solid)]" key={group.key}>
+                        <div className="mb-3 flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-[var(--border)]">
+                          <h3 className="truncate text-sm font-black text-slate-900 dark:text-[var(--text)]">{group.name}</h3>
+                          <span className="shrink-0 rounded-full bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">{group.students.length}</span>
+                        </div>
+                        <ol className="space-y-2">
+                          {group.students.map((student, index) => (
+                            <li className="flex min-w-0 items-start gap-2 text-xs" key={student.id}>
+                              <span className="w-5 shrink-0 text-right tabular-nums text-muted">{index + 1}.</span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate font-semibold text-slate-800 dark:text-[var(--text-soft)]">{student.name}</span>
+                                <span className="block truncate text-[11px] text-muted">{student.nis || 'NIS —'}</span>
+                              </span>
+                            </li>
+                          ))}
+                        </ol>
+                      </article>
+                    ))}
+                  </div>
+                ) : <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-muted dark:border-[var(--border)] dark:bg-[var(--surface-solid)]">Tidak ada siswa yang cocok dengan pencarian.</div>}
+              </div>
+              <aside className="min-w-0 lg:sticky lg:top-0 lg:self-start">
+                <PrintPreview title="Daftar Siswa Aktif" pages={printPages} />
+              </aside>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              {activeStudents
-                .filter((student) => {
-                  const query = studentSearch.trim().toLocaleLowerCase('id-ID');
-                  return !query || student.name.toLocaleLowerCase('id-ID').includes(query) || (student.nis ?? '').toLocaleLowerCase('id-ID').includes(query);
-                })
-                .sort((a, b) => a.name.localeCompare(b.name, 'id'))
-                .map((student) => {
-                  const enrollment = student.enrollments.find((item) => item.isActive && item.schoolYear?.id === summary?.schoolYearId);
-                  return (
-                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-slate-100 px-5 py-3 last:border-0 dark:border-[var(--border)]" key={student.id}>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-slate-900 dark:text-[var(--text)]">{student.name}</p>
-                        <p className="mt-0.5 text-xs text-muted">NIS: {student.nis || '—'}</p>
-                      </div>
-                      <span className="max-w-36 truncate rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-600 dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">{enrollment?.class?.name ?? 'Belum ada kelas'}</span>
-                    </div>
-                  );
-                })}
-              {activeStudents.filter((student) => {
-                const query = studentSearch.trim().toLocaleLowerCase('id');
-                return !query || student.name.toLocaleLowerCase('id-ID').includes(query) || (student.nis ?? '').toLocaleLowerCase('id-ID').includes(query);
-              }).length === 0 ? <p className="p-8 text-center text-sm text-muted">Tidak ada siswa yang cocok dengan pencarian.</p> : null}
-            </div>
-            <div className="border-t border-slate-200 px-5 py-3 text-xs text-muted dark:border-[var(--border)]">Daftar hanya menampilkan siswa aktif yang memiliki enrollment aktif pada tahun ajaran berjalan.</div>
+            <div className="border-t border-slate-200 bg-white px-5 py-3 text-xs text-muted dark:border-[var(--border)] dark:bg-[var(--surface-solid)]">Daftar dikelompokkan berdasarkan kelas pada tahun ajaran berjalan. Gunakan pratinjau untuk memeriksa hasil cetak ukuran F4.</div>
           </section>
         </div>
       ) : null}

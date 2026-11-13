@@ -261,6 +261,17 @@ TU tidak mengubah kalender pendidikan, jam pelajaran, jadwal, generate agenda, p
 - **Laporan** (`/tu/reports`): rekap administrasi.
 - **Pesan** dan **Profil**: notifikasi serta pengaturan akun.
 
+### Daftar Siswa Aktif dan Pratinjau Cetak (TU)
+
+1. Pada dashboard TU, klik kartu **Siswa Aktif** untuk membuka daftar.
+2. Daftar ditampilkan dalam kelompok kelas; pada desktop gunakan grid empat kolom, sedangkan layar kecil menyesuaikan jumlah kolom.
+3. Gunakan pencarian nama atau NIS untuk menyaring daftar. Ringkasan hanya mengambil siswa aktif dengan enrollment aktif pada tahun ajaran berjalan.
+4. Panel **Pratinjau Cetak** berada di sisi kanan. Periksa navigasi halaman, misalnya **Halaman 1/5**, sebelum mencetak.
+5. Kertas cetak menggunakan ukuran F4 (210 × 330 mm). Tombol **Cetak** membuka dialog cetak browser; pastikan skala 100% dan matikan header/footer browser bila diperlukan.
+
+Komponen pratinjau cetak dibuat generik di `components/print/print-preview.tsx` agar dapat dipakai ulang oleh modul laporan atau daftar lain dengan mengirimkan kumpulan halaman.
+
+
 ## 3.3 Import Data
 
 1. Buka menu **Import Data**.
