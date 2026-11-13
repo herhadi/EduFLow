@@ -28,6 +28,8 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
   const [activeStudents, setActiveStudents] = useState<Student[]>([]);
   const [showStudentList, setShowStudentList] = useState(false);
   const [studentSearch, setStudentSearch] = useState('');
+  const [selectedClassKeys, setSelectedClassKeys] = useState<string[]>([]);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
   const filteredStudents = activeStudents.filter((student) => {
     const query = studentSearch.trim().toLocaleLowerCase('id-ID');
     return !query || student.name.toLocaleLowerCase('id-ID').includes(query) || (student.nis ?? '').toLocaleLowerCase('id-ID').includes(query);
@@ -40,7 +42,8 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
     groups[key].students.push(student);
     return groups;
   }, {})).sort((a, b) => a.name.localeCompare(b.name, 'id')).map((group) => ({ ...group, students: [...group.students].sort((a, b) => a.name.localeCompare(b.name, 'id')) }));
-  const printPages = classGroups.map((group) => (
+  const selectedClassGroups = classGroups.filter((group) => selectedClassKeys.includes(group.key));
+  const printPages = selectedClassGroups.map((group) => (
     <div className="h-full" key={group.key}>
       <div className="border-b-2 border-black pb-3 text-center">
         <p className="text-xs font-semibold uppercase tracking-widest">Daftar Siswa Aktif</p>
@@ -55,7 +58,6 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
           </div>
         ))}
       </div>
-      <div className="absolute bottom-8 left-12 right-12 flex justify-between border-t border-gray-300 pt-2 text-[10px] text-gray-600"><span>Dokumen administrasi sekolah</span><span>{group.name}</span></div>
     </div>
   ));
 
@@ -111,6 +113,26 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
     };
   }, []);
 
+  function downloadStudentExcel() {
+    if (!selectedClassGroups.length) return;
+    const escapeHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
+    const rows = selectedClassGroups.flatMap((group) => [
+      `<tr><th colspan=\"4\">${escapeHtml(group.name)} · ${group.students.length} siswa</th></tr>`,
+      '<tr><th>No</th><th>Kelas</th><th>Nama Siswa</th><th>NIS</th></tr>',
+      ...group.students.map((student, index) => `<tr><td>${index + 1}</td><td>${escapeHtml(group.name)}</td><td>${escapeHtml(student.name)}</td><td>${escapeHtml(student.nis || '')}</td></tr>`),
+    ]).join('');
+    const workbook = `<html><head><meta charset=\"utf-8\"></head><body><table>${rows}</table></body></html>`;
+    const blob = new Blob([`\uFEFF${workbook}`], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `daftar-siswa-${new Date().toISOString().slice(0, 10)}.xls`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <>
       <RoleHero
@@ -165,18 +187,25 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
               </div>
               <button aria-label="Tutup daftar siswa" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-muted hover:bg-slate-100 dark:border-[var(--border)] dark:hover:bg-[var(--surface-soft)]" onClick={() => setShowStudentList(false)} type="button">Tutup</button>
             </div>
-            <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto p-3 lg:grid-cols-[minmax(0,1fr)_390px] lg:p-5">
+            <div className="min-h-0 flex-1 overflow-y-auto p-3 lg:p-5">
               <div className="min-w-0">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <input className="w-full max-w-md rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-brand-500 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]" onChange={(event) => setStudentSearch(event.target.value)} placeholder="Cari nama atau NIS siswa…" value={studentSearch} />
-                  <span className="text-xs font-semibold text-muted">{filteredStudents.length} siswa · {classGroups.length} kelas</span>
+                  <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-muted">
+                    <span>{filteredStudents.length} siswa · {classGroups.length} kelas</span>
+                    <button className="font-bold text-brand-700 hover:underline dark:text-brand-300" onClick={() => setSelectedClassKeys(classGroups.map((group) => group.key))} type="button">Pilih semua</button>
+                    <button className="font-bold hover:underline" onClick={() => setSelectedClassKeys([])} type="button">Hapus pilihan</button>
+                  </div>
                 </div>
                 {classGroups.length ? (
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     {classGroups.map((group) => (
                       <article className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 dark:border-[var(--border)] dark:bg-[var(--surface-solid)]" key={group.key}>
                         <div className="mb-3 flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-[var(--border)]">
-                          <h3 className="truncate text-sm font-black text-slate-900 dark:text-[var(--text)]">{group.name}</h3>
+                          <label className="flex min-w-0 items-center gap-2">
+                            <input aria-label={`Pilih kelas ${group.name} untuk preview`} checked={selectedClassKeys.includes(group.key)} className="h-4 w-4 shrink-0 accent-blue-600" onChange={(event) => setSelectedClassKeys((current) => event.target.checked ? [...current, group.key] : current.filter((key) => key !== group.key))} type="checkbox" />
+                            <h3 className="truncate text-sm font-black text-slate-900 dark:text-[var(--text)]">{group.name}</h3>
+                          </label>
                           <span className="shrink-0 rounded-full bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">{group.students.length}</span>
                         </div>
                         <ol className="space-y-2">
@@ -195,13 +224,24 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
                   </div>
                 ) : <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-muted dark:border-[var(--border)] dark:bg-[var(--surface-solid)]">Tidak ada siswa yang cocok dengan pencarian.</div>}
               </div>
-              <aside className="min-w-0 lg:sticky lg:top-0 lg:self-start">
-                <PrintPreview title="Daftar Siswa Aktif" pages={printPages} />
-              </aside>
             </div>
-            <div className="border-t border-slate-200 bg-white px-5 py-3 text-xs text-muted dark:border-[var(--border)] dark:bg-[var(--surface-solid)]">Daftar dikelompokkan berdasarkan kelas pada tahun ajaran berjalan. Gunakan pratinjau untuk memeriksa hasil cetak ukuran F4.</div>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-5 py-3 dark:border-[var(--border)] dark:bg-[var(--surface-solid)]">
+              <p className="text-xs text-muted">{selectedClassKeys.length} kelas dipilih · Daftar dikelompokkan berdasarkan tahun ajaran berjalan.</p>
+              <button className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40" disabled={!selectedClassGroups.length} onClick={() => setShowPrintPreview(true)} type="button">Preview {selectedClassGroups.length ? `(${selectedClassGroups.length} kelas)` : ''}</button>
+            </div>
           </section>
         </div>
+      ) : null}
+
+      {showPrintPreview ? (
+        <PrintPreview
+          footerText="Dokumen administrasi sekolah"
+          onClose={() => setShowPrintPreview(false)}
+          onDownloadExcel={downloadStudentExcel}
+          paperId="tu-active-students-print-paper"
+          pages={printPages}
+          title="Daftar Siswa Aktif"
+        />
       ) : null}
 
       <RoleSection description="Pilih pekerjaan administrasi yang ingin dilanjutkan." title="Pekerjaan Administrasi">

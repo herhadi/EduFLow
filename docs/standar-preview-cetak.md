@@ -12,7 +12,10 @@ Gunakan satu dokumen HTML sebagai sumber preview layar dan proses cetak. Data mo
 
 ## Preview desktop dan mobile
 
-- Desktop: kertas putih berada di tengah area preview; area dapat di-scroll. Toolbar berada di luar elemen kertas.
+- Preview dibuka sebagai tampilan dokumen tersendiri (overlay penuh), bukan panel di sisi daftar.
+- Toolbar berada di luar kertas dan menyediakan aksi sesuai modul, misalnya Cetak, Download Excel, dan Tutup.
+- Setiap kelompok/kelas yang dipilih dirender sebagai satu halaman kertas putih; beberapa pilihan ditampilkan sebagai tumpukan halaman yang dapat di-scroll.
+- Desktop: kertas putih berada di tengah area preview; area dapat di-scroll.
 - Mobile: dokumen tetap menggunakan ukuran F4/A4 yang dipilih, lalu diperkecil secara proporsional dengan CSS `zoom`.
 - Breakpoint mobile:
   - Maksimal 480px: `zoom: 0.46`
@@ -62,7 +65,7 @@ Contoh aturan dasar untuk F4:
 
 Gunakan `apps/frontend/components/print/print-preview.tsx` untuk preview dan pencetakan lintas modul. Komponen menerima judul, daftar halaman, ukuran kertas, ID dokumen, dan keterangan footer. Ukuran default komponen adalah F4 Portrait.
 
-Setiap modul bertanggung jawab menyusun data dan konten halaman. Komponen bersama bertanggung jawab atas preview responsif, toolbar, iframe cetak, skala 100%, dan aturan halaman.
+Setiap modul bertanggung jawab menyusun data dan konten halaman serta aksi ekspor data bila tersedia. Komponen bersama bertanggung jawab atas preview responsif layar penuh, toolbar (Cetak/Download Excel/Tutup), iframe cetak, skala 100%, dan aturan halaman.
 
 ## Checklist sebelum rilis
 
