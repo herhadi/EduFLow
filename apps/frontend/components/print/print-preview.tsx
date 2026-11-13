@@ -18,10 +18,21 @@ const PAPER_DIMENSIONS: Record<PrintPaperSize, { width: string; height: string; 
   A4_LANDSCAPE: { width: '297mm', height: '210mm', label: 'A4 Landscape (297 × 210 mm)' },
 };
 
-function copyDocumentStyles(target: Document) {
+async function copyDocumentStyles(target: Document) {
+  const pending: Promise<void>[] = [];
   document.head.querySelectorAll('link[rel="stylesheet"], style').forEach((node) => {
-    target.head.appendChild(node.cloneNode(true));
+    const clone = node.cloneNode(true) as HTMLElement;
+    if (clone instanceof HTMLLinkElement) {
+      pending.push(new Promise((resolve) => {
+        clone.addEventListener('load', () => resolve(), { once: true });
+        clone.addEventListener('error', () => resolve(), { once: true });
+        if (clone.sheet) resolve();
+      }));
+    }
+    target.head.appendChild(clone);
   });
+  await Promise.all(pending);
+  if (target.fonts?.ready) await target.fonts.ready;
 }
 
 export function PrintPreview({
@@ -36,7 +47,7 @@ export function PrintPreview({
   const currentPageIndex = Math.min(pageIndex, Math.max(0, pageCount - 1));
   const dimensions = PAPER_DIMENSIONS[paperSize];
 
-  function printDocument() {
+  async function printDocument() {
     const source = document.getElementById(paperId);
     if (!source || !pageCount) return;
 
@@ -62,7 +73,7 @@ export function PrintPreview({
     printDocument.open();
     printDocument.write('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body></body></html>');
     printDocument.close();
-    copyDocumentStyles(printDocument);
+    await copyDocumentStyles(printDocument);
 
     const clonedDocument = source.cloneNode(true) as HTMLElement;
     clonedDocument.id = paperId;
@@ -71,7 +82,7 @@ export function PrintPreview({
 
     const printStyles = printDocument.createElement('style');
     printStyles.textContent = `
-      @page { size: ${dimensions.width} ${dimensions.height}; margin: 0; }
+      @page { size: ${dimensions.width} ${dimensions.height}; margin: 0; @bottom-right { content: "Hal " counter(page) "/" counter(pages); margin: 6mm 13mm; color: #475569; font: 9pt Arial, sans-serif; } }
       html, body { margin: 0 !important; padding: 0 !important; width: ${dimensions.width} !important; min-width: ${dimensions.width} !important; background: #fff !important; }
       #${paperId} {
         display: block !important;
@@ -172,7 +183,7 @@ export function PrintPreview({
               {page}
               <footer className="print-preview-footer mt-8 flex justify-between gap-4 border-t border-slate-300 pt-2 text-[10px] text-slate-600">
                 <span>{footerText}</span>
-                <span>Tanggal cetak: {printDate} · Hal {index + 1}/{pageCount}</span>
+                <span>Tanggal cetak: {printDate}</span>
               </footer>
             </article>
           ))}
