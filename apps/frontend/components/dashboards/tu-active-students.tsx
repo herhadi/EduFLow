@@ -47,7 +47,7 @@ function escapeHtml(value: unknown) {
     .replace(/"/g, '&quot;');
 }
 
-export function TuActiveStudents() {
+export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'operator' }) {
   const [students, setStudents] = useState<Student[]>([]);
   const [schoolYearId, setSchoolYearId] = useState<string>();
   const [schoolYearName, setSchoolYearName] = useState('Tahun ajaran berjalan');
@@ -223,11 +223,11 @@ export function TuActiveStudents() {
     <main className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-700">Tata Usaha</p>
+          <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-700">{audience === "tu" ? "Tata Usaha" : "Operator Sekolah"}</p>
           <h1 className="mt-1 text-2xl font-black text-slate-900 dark:text-[var(--text)]">Daftar Siswa Aktif</h1>
           <p className="mt-1 text-sm text-muted">{schoolYearName} · {students.length.toLocaleString('id-ID')} siswa</p>
         </div>
-        <Link className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:border-brand-300 hover:text-brand-700 dark:border-[var(--border)] dark:text-[var(--text)]" href="/tu/dashboard">Kembali ke Dashboard</Link>
+        <Link className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:border-brand-300 hover:text-brand-700 dark:border-[var(--border)] dark:text-[var(--text)]" href={audience === "tu" ? "/tu/dashboard" : "/opsek/dashboard"}>Kembali ke Dashboard</Link>
       </div>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] sm:p-5">

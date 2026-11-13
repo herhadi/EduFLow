@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SchoolOverview } from './school-overview';
 import { type CurrentUser } from './dashboard-types';
 import { RoleActionCard, RoleHero, RoleSection } from './role-dashboard-shared';
 
@@ -12,6 +13,8 @@ export function OperatorHome({ currentUser }: { currentUser: CurrentUser | null 
         eyebrow="Operator Sekolah"
         title={`Selamat bekerja, ${displayName}`}
       />
+
+      <SchoolOverview audience="operator" />
 
       <section className="mt-7 rounded-[2rem] border border-emerald-100 bg-emerald-50/70 p-5 shadow-sm dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:shadow-none">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -30,6 +33,7 @@ export function OperatorHome({ currentUser }: { currentUser: CurrentUser | null 
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <OperatorPriorityItem
             description="Pastikan jadwal tahun ajaran aktif sudah benar dan agenda periode berjalan sudah dibuat."
+            href="/opsek/schedules"
             label="Jadwal & Agenda"
           />
           <OperatorPriorityItem

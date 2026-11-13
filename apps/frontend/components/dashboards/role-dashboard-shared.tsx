@@ -29,12 +29,12 @@ export function RoleActionCard({
 }) {
   return (
     <Link
-      className="rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-600 hover:shadow-lg dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none"
+      className="group rounded-[1.75rem] border border-blue-200 bg-gradient-to-br from-white to-blue-50/80 p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-blue-400 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:border-blue-400/20 dark:from-[var(--surface-solid)] dark:to-blue-950/30 dark:hover:border-blue-300/50 dark:hover:shadow-blue-950/30 dark:focus-visible:ring-offset-[var(--surface-solid)]"
       href={href}
     >
       <h3 className="text-lg font-black text-slate-900 dark:text-[var(--text)]">{label}</h3>
       <p className="mt-2 text-sm leading-6 text-muted">{description}</p>
-      <span className="mt-4 inline-flex text-xs font-black text-brand-700">Buka halaman</span>
+      <span className="mt-4 inline-flex items-center gap-2 text-xs font-black text-blue-700 transition group-hover:gap-3 dark:text-blue-300">Buka halaman <span aria-hidden="true">↗</span></span>
     </Link>
   );
 }

@@ -155,6 +155,7 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'opsek', href: '/opsek/dashboard', label: 'Dashboard' },
   { section: 'opsek', href: '/opsek/data', label: 'Master' },
   { section: 'opsek', href: '/opsek/guru', label: 'Guru' },
+  { section: 'opsek', href: '/opsek/siswa-aktif', label: 'Siswa Aktif' },
   { section: 'opsek', href: '/opsek/akademik', label: 'Akademik' },
   { section: 'opsek', href: '/opsek/schedules', label: 'Jadwal' },
   { section: 'opsek', href: '/opsek/extracurricular', label: 'Ekstrakurikuler' },
