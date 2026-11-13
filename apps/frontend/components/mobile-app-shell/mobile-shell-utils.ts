@@ -25,12 +25,26 @@ export function getRequiredRoleForPath(pathname: string): UserRole | null {
   return null;
 }
 
-export function hasRoleNamespaceAccess(primaryRole: UserRole, requiredRole: UserRole) {
-  if (primaryRole === requiredRole) return true;
-  if (primaryRole === 'admin' && requiredRole === 'root') return true;
-  if (primaryRole === 'guru' && requiredRole === 'wali_kelas') {
-    return getCurrentSessionUser()?.roles?.includes('wali_kelas') ?? false;
-  }
+export function hasRoleNamespaceAccess(
+  primaryRole: UserRole,
+  requiredRole: UserRole,
+) {
+  const assignedRoles = getCurrentSessionUser()?.roles ?? [primaryRole];
+
+  // Root is the technical super-role and already has access to every namespace.
+  if (assignedRoles.includes('root')) return true;
+
+  // Super Admin Sekolah may enter technical system pages, but this does not
+  // grant it the Root role or Root-only role assignment capability.
+  if (requiredRole === 'root') return assignedRoles.includes('admin');
+
+  // Namespace access is granted by any assigned role, not only the primary one.
+  if (assignedRoles.includes(requiredRole)) return true;
+
+  // Wali kelas uses the teacher workspace and receives its additional pages.
+  if (requiredRole === 'guru' && assignedRoles.includes('wali_kelas')) return true;
+  if (requiredRole === 'wali_kelas' && assignedRoles.includes('guru') && assignedRoles.includes('wali_kelas')) return true;
+
   return false;
 }
 

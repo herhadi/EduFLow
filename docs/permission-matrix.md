@@ -140,3 +140,9 @@ Pengubahan role dilakukan dari halaman `/system/access` dengan dropdown ringkas.
 - Keterangan tugas setiap role ditampilkan satu kali pada bagian informasi role (dapat dibuka/tutup), bukan diulang pada setiap baris user.
 
 Aturan otorisasi tetap ditegakkan di backend; pembatasan pada antarmuka hanya membantu pengalaman pengguna dan bukan pengganti pemeriksaan permission.
+
+## Navigasi Untuk Akun Multi-Role
+
+Menu navigasi akun multi-role menggabungkan tujuan halaman dari seluruh role yang terpasang, bukan memilih satu role lalu mengabaikan role lainnya. Setiap tujuan halaman ditampilkan satu kali berdasarkan URL. Navigasi utama dibatasi agar tetap ringkas; menu dari role tambahan dan menu yang tidak muat ditempatkan di bagian **Lainnya**.
+
+Pemeriksaan akses namespace halaman juga harus memeriksa seluruh role akun, bukan hanya role prioritas untuk menentukan dashboard. Permission endpoint tetap menjadi otoritas akses backend. Contoh: akun TU + Super Admin memperoleh menu kerja TU dan menu teknis Super Admin tanpa duplikasi; akun Guru + Wali Kelas menggunakan workspace guru dengan fitur wali kelas.

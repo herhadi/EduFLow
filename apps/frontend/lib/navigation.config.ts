@@ -236,12 +236,57 @@ export function getPrimaryRole(roles: string[] = []): UserRole {
   return rolePriority.find((role) => roles.includes(role)) ?? 'guru';
 }
 
+function uniqueNavigationItems(items: NavigationItem[]) {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item.href)) return false;
+    seen.add(item.href);
+    return true;
+  });
+}
+
+/**
+ * Build one compact navigation for multi-role accounts.
+ * The highest-priority role supplies the main destinations; destinations
+ * from additional roles are collected under a single "Lainnya" entry.
+ */
 export function getPrimaryNavigation(roles: string[] = []) {
-  if (roles.includes('wali_kelas') && roles.includes('guru')) {
-    return homeroomNavigation;
+  const assignedRoles = rolePriority.filter((role) => roles.includes(role));
+  const primaryRole = getPrimaryRole(roles);
+  const baseNavigation =
+    primaryRole === 'guru' && roles.includes('wali_kelas')
+      ? homeroomNavigation
+      : roleNavigation[primaryRole];
+
+  const additionalItems = assignedRoles
+    .filter((role) => role !== primaryRole && !(primaryRole === 'guru' && role === 'wali_kelas'))
+    .flatMap((role) => roleNavigation[role]);
+
+  const merged = uniqueNavigationItems([...baseNavigation, ...additionalItems]);
+  const existingMore = merged.find((item) => item.children?.length);
+  const directItems = merged.filter((item) => item !== existingMore);
+  const mainItems = directItems.slice(0, 4);
+  const overflowItems = [
+    ...directItems.slice(4),
+    ...(existingMore?.children ?? []),
+  ];
+
+  const uniqueOverflow = uniqueNavigationItems(overflowItems).filter(
+    (item) => !mainItems.some((main) => main.href === item.href),
+  );
+
+  if (existingMore && !mainItems.some((item) => item.href === existingMore.href)) {
+    mainItems.push({ ...existingMore, children: uniqueOverflow });
+  } else if (uniqueOverflow.length) {
+    mainItems.push({
+      href: '/more',
+      label: 'Lainnya',
+      icon: 'more',
+      children: uniqueOverflow,
+    });
   }
 
-  return roleNavigation[getPrimaryRole(roles)];
+  return mainItems;
 }
 
 export function getNotificationAccess(roles: string[] = []): NotificationAccess {
