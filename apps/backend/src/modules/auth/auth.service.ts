@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -656,7 +657,7 @@ export class AuthService {
     };
   }
 
-  async updateUserRoles(userId: string, roleNames: string[]) {
+  async updateUserRoles(userId: string, roleNames: string[], actorIsRoot = false) {
     const user = await this.prisma.user.findFirst({
       where: { id: userId, deletedAt: null },
     });
@@ -671,6 +672,10 @@ export class AuthService {
     });
     const currentIsRoot = currentRoles.some(({ role }) => role.name === 'root');
     const roles = await this.getRolesByNames(roleNames);
+
+    if (!actorIsRoot && roles.some((role) => role.name === 'root')) {
+      throw new ForbiddenException('Super Admin Sekolah tidak dapat memberikan role Root');
+    }
 
     if (currentIsRoot && !roles.some((role) => role.name === 'root')) {
       const otherActiveRoots = await this.prisma.user.count({
