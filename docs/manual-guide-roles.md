@@ -255,7 +255,7 @@ TU tidak mengubah kalender pendidikan, jam pelajaran, jadwal, generate agenda, p
 
 ## 3.2 Menu Utama TU
 
-- **Home** (`/tu/dashboard`): ringkasan administrasi.
+- **Home** (`/tu/dashboard`): ringkasan jumlah guru, siswa, rombel, dan mata pelajaran pada tahun ajaran berjalan, beserta checklist administrasi.
 - **Master Data** (`/tu/data`): master kelas dan mata pelajaran.
 - **Import Data** (`/tu/import-data`): import data guru dan siswa.
 - **Laporan** (`/tu/reports`): rekap administrasi.
