@@ -64,6 +64,11 @@ export const authApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  updateUserRoles: (id: string, roles: string[]) =>
+    request<ApiResponse<{ userId: string; roles: string[] }>>(`/auth/users/${id}/roles`, {
+      method: 'POST',
+      body: JSON.stringify({ roles }),
+    }),
   deactivateUser: (id: string) =>
     request<ApiResponse<AppUser>>(`/auth/users/${id}/deactivate`, {
       method: 'PATCH',
