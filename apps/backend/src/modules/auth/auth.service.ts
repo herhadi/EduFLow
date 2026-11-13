@@ -614,7 +614,7 @@ export class AuthService {
     };
   }
 
-  async createUser(dto: CreateUserDto) {
+  async createUser(dto: CreateUserDto, actorIsRoot = false) {
     const username = dto.username.trim().toLowerCase();
     const email = dto.email?.trim().toLowerCase() || `${username}@eduflow.local`;
     const password = dto.password ?? this.getDefaultUserPassword();
@@ -627,6 +627,9 @@ export class AuthService {
     }
 
     const roles = await this.getRolesByNames(dto.roles ?? []);
+    if (!actorIsRoot && roles.some((role) => role.name === 'root')) {
+      throw new ForbiddenException('Hanya Root yang dapat membuat akun dengan role Root');
+    }
     const user = await this.prisma.user.create({
       data: {
         email,

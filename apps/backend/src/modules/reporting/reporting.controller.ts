@@ -1,9 +1,10 @@
 import { Controller, Get, Param, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
-import { Public } from '../../common/decorators/public.decorator';
+import { PERMISSIONS } from '../../common/constants/permissions';
+import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { ReportingService } from './reporting.service';
 
-@Public()
+@RequirePermissions(PERMISSIONS.REPORTING_READ)
 @Controller('reporting')
 export class ReportingController {
   constructor(private readonly reportingService: ReportingService) {}

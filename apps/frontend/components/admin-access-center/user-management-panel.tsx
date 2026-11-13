@@ -10,6 +10,7 @@ import { SurfaceCard } from '../ui/card';
 type ActionState = 'idle' | 'loading' | 'success' | 'error';
 
 type UserManagementPanelProps = {
+  canAssignRootRole?: boolean;
   newUser: NewUserForm;
   onCreateUser: (event: FormEvent<HTMLFormElement>) => void;
   onDeactivateUser: (user: AppUser) => void;
@@ -23,6 +24,7 @@ type UserManagementPanelProps = {
 };
 
 export function UserManagementPanel({
+  canAssignRootRole = false,
   newUser,
   onCreateUser,
   onDeactivateUser,
@@ -34,6 +36,7 @@ export function UserManagementPanel({
   userMessage,
   users,
 }: UserManagementPanelProps) {
+  const assignableRoleCards = roleCards.filter((role) => canAssignRootRole || role.role !== 'root');
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string[]>>({});
 
   return (
@@ -42,9 +45,9 @@ export function UserManagementPanel({
         <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
           User Management
         </p>
-        <h2 className="mt-1 text-2xl font-black text-ink">Root Menentukan Admin</h2>
+        <h2 className="mt-1 text-2xl font-black text-ink">Pengelolaan Akun Sekolah</h2>
         <p className="mt-1 text-sm leading-6 text-muted">
-          Root dapat membuat akun sekolah, termasuk Super Admin Sekolah. Pilih peran sesuai kewenangan; password awal mengikuti konfigurasi default server dan wajib diganti saat login pertama.
+          Buat akun sekolah dan pilih peran sesuai tugasnya. Pemberian role Root hanya dapat dilakukan oleh Root; password awal mengikuti konfigurasi server dan wajib diganti saat login pertama.
         </p>
       </div>
 
@@ -56,7 +59,7 @@ export function UserManagementPanel({
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
           <select className={`${fieldClass} sm:min-w-64`} onChange={(event) => onNewUserChange('role', event.target.value)} value={newUser.role}>
-            {roleCards.map((role) => <option key={role.role} value={role.role}>{role.label}</option>)}
+            {assignableRoleCards.map((role) => <option key={role.role} value={role.role}>{role.label}</option>)}
           </select>
           <Button disabled={userActionState === 'loading' || !newUser.username.trim() || !newUser.name.trim()} type="submit">
             {userActionState === 'loading' ? 'Membuat...' : 'Buat User'}
@@ -91,7 +94,7 @@ export function UserManagementPanel({
         {users.map((user) => {
           const rolesForUser = selectedRoles[user.id] ?? user.roles;
           const rolesChanged = rolesForUser.length !== user.roles.length || !rolesForUser.every((role) => user.roles.includes(role));
-          const availableRoles = roleCards.filter((role) => !rolesForUser.includes(role.role));
+          const availableRoles = assignableRoleCards.filter((role) => !rolesForUser.includes(role.role));
 
           return (
             <article className="rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900" key={user.id}>
@@ -131,7 +134,7 @@ export function UserManagementPanel({
                     return (
                       <span className="inline-flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-800 dark:border-brand-400/30 dark:bg-brand-500/10 dark:text-brand-100" key={roleName}>
                         {role?.label ?? roleName}
-                        <button aria-label={`Hapus role ${role?.label ?? roleName}`} className="ml-1 rounded-full px-1 hover:bg-brand-100 dark:hover:bg-brand-500/20" disabled={userActionState === 'loading'} onClick={() => setSelectedRoles((current) => ({ ...current, [user.id]: rolesForUser.filter((item) => item !== roleName) }))} type="button">×</button>
+                        <button aria-label={`Hapus role ${role?.label ?? roleName}`} className="ml-1 rounded-full px-1 hover:bg-brand-100 dark:hover:bg-brand-500/20" disabled={userActionState === 'loading' || (!canAssignRootRole && roleName === 'root')} onClick={() => setSelectedRoles((current) => ({ ...current, [user.id]: rolesForUser.filter((item) => item !== roleName) }))} type="button">×</button>
                       </span>
                     );
                   })}

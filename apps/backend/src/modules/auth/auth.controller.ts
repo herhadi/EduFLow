@@ -160,8 +160,8 @@ export class AuthController {
 
   @RequirePermissions(PERMISSIONS.USER_MANAGE)
   @Post('users')
-  createUser(@Body() dto: CreateUserDto) {
-    return this.authService.createUser(dto);
+  createUser(@Body() dto: CreateUserDto, @Req() request: RequestWithUser) {
+    return this.authService.createUser(dto, (request.user.roles ?? []).includes('root'));
   }
 
   @RequirePermissions(PERMISSIONS.USER_MANAGE)

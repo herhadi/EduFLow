@@ -64,7 +64,7 @@ export default function AdminAccessPage() {
           eyebrow="Admin Akses"
           title="User & Hak Akses"
         />
-        <AdminAccessCenter />
+        <AdminAccessCenter canAssignRootRole />
       </Container>
     </main>
   );

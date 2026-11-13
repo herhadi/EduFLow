@@ -34,9 +34,8 @@ export function hasRoleNamespaceAccess(
   // Root is the technical super-role and already has access to every namespace.
   if (assignedRoles.includes('root')) return true;
 
-  // Super Admin Sekolah may enter technical system pages, but this does not
-  // grant it the Root role or Root-only role assignment capability.
-  if (requiredRole === 'root') return assignedRoles.includes('admin');
+  // Root-only namespaces remain exclusive to the platform owner/developer.
+  if (requiredRole === 'root') return false;
 
   // Namespace access is granted by any assigned role, not only the primary one.
   if (assignedRoles.includes(requiredRole)) return true;

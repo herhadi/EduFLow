@@ -33,7 +33,7 @@ import { useToast } from './ui/toast';
 
 type LoadState = 'loading' | 'success' | 'error';
 
-export function AcademicMasterManagement() {
+export function AcademicMasterManagement({ showTimeSlots = true }: { showTimeSlots?: boolean } = {}) {
   const toast = useToast();
   const [classes, setClasses] = useState<SchoolClass[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -73,7 +73,7 @@ export function AcademicMasterManagement() {
         api.getClasses(),
         api.getSubjects(),
         api.getSchoolYears(),
-        api.getAcademicTimeSlots(),
+        showTimeSlots ? api.getAcademicTimeSlots() : Promise.resolve({ data: [] as AcademicTimeSlot[] }),
       ]);
       setClasses(sortSchoolClasses(classResponse.data));
       setSubjects(subjectResponse.data);
@@ -84,6 +84,8 @@ export function AcademicMasterManagement() {
 
         return {
           ...current,
+          includeTimeSlots: showTimeSlots ? current.includeTimeSlots : false,
+          includeClassActivities: showTimeSlots ? current.includeClassActivities : false,
           sourceSchoolYearId: current.sourceSchoolYearId || selection.sourceSchoolYearId,
           targetSchoolYearId: current.targetSchoolYearId || selection.targetSchoolYearId,
         };
@@ -326,17 +328,19 @@ export function AcademicMasterManagement() {
   async function handleCloneSchoolYearMaster(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!cloneForm.sourceSchoolYearId || !cloneForm.targetSchoolYearId) {
+    const clonePayload = showTimeSlots ? cloneForm : { ...cloneForm, includeTimeSlots: false, includeClassActivities: false };
+
+    if (!clonePayload.sourceSchoolYearId || !clonePayload.targetSchoolYearId) {
       toast.warning('Pilih tahun sumber dan target.', 'Data Belum Lengkap');
       return;
     }
 
-    if (cloneForm.sourceSchoolYearId === cloneForm.targetSchoolYearId) {
+    if (clonePayload.sourceSchoolYearId === clonePayload.targetSchoolYearId) {
       toast.warning('Tahun sumber dan target tidak boleh sama.', 'Pilihan Belum Sesuai');
       return;
     }
 
-    if (!cloneForm.includeClasses && !cloneForm.includeTimeSlots && !cloneForm.includeClassActivities) {
+    if (!clonePayload.includeClasses && !clonePayload.includeTimeSlots && !clonePayload.includeClassActivities) {
       toast.warning('Pilih minimal satu data master untuk disalin.', 'Data Belum Lengkap');
       return;
     }
@@ -344,9 +348,9 @@ export function AcademicMasterManagement() {
     setIsCloningMaster(true);
 
     try {
-      const response = await api.cloneSchoolYearMaster(cloneForm);
+      const response = await api.cloneSchoolYearMaster(clonePayload);
       await loadData();
-      setClassForm((current) => ({ ...current, schoolYearId: cloneForm.targetSchoolYearId }));
+      setClassForm((current) => ({ ...current, schoolYearId: clonePayload.targetSchoolYearId }));
       toast.success(response.message ?? 'Master tahun ajaran berhasil disalin.', 'Master Disalin');
     } catch (error) {
       toast.error(
@@ -395,6 +399,7 @@ export function AcademicMasterManagement() {
         setClassForm={setClassForm}
         setCloneForm={setCloneForm}
         setSchoolYearName={setSchoolYearName}
+        showTimeSlotOptions={showTimeSlots}
       />
 
       <SubjectManagementPanel
@@ -406,18 +411,20 @@ export function AcademicMasterManagement() {
         subjects={subjects}
       />
 
-      <TimeSlotManagementPanel
-        editingTimeSlotId={editingTimeSlotId}
-        isAddingTimeSlot={isAddingTimeSlot}
-        onDeleteTimeSlot={handleDeleteTimeSlot}
-        onSchoolYearChange={handleTimeSlotSchoolYearChange}
-        onStartAdd={startAddTimeSlot}
-        onStartEdit={startEditTimeSlot}
-        renderTimeSlotForm={renderTimeSlotForm}
-        schoolYears={schoolYears}
-        selectedSchoolYearId={selectedTimeSlotSchoolYearId}
-        timeSlotsByDay={timeSlotsByDay}
-      />
+      {showTimeSlots ? (
+        <TimeSlotManagementPanel
+          editingTimeSlotId={editingTimeSlotId}
+          isAddingTimeSlot={isAddingTimeSlot}
+          onDeleteTimeSlot={handleDeleteTimeSlot}
+          onSchoolYearChange={handleTimeSlotSchoolYearChange}
+          onStartAdd={startAddTimeSlot}
+          onStartEdit={startEditTimeSlot}
+          renderTimeSlotForm={renderTimeSlotForm}
+          schoolYears={schoolYears}
+          selectedSchoolYearId={selectedTimeSlotSchoolYearId}
+          timeSlotsByDay={timeSlotsByDay}
+        />
+      ) : null}
     </div>
   );
 }

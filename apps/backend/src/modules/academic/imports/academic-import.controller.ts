@@ -7,18 +7,19 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Public } from '../../../common/decorators/public.decorator';
+import { PERMISSIONS } from '../../../common/constants/permissions';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
 import { AcademicImportService } from './academic-import.service';
 
 type ImportType = 'teachers' | 'students';
 
 const allowedTypes = ['teachers', 'students'];
 
-@Public()
 @Controller('academic/import')
 export class AcademicImportController {
   constructor(private readonly academicImportService: AcademicImportService) {}
 
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
   @Post(':type')
   @UseInterceptors(FileInterceptor('file'))
   import(

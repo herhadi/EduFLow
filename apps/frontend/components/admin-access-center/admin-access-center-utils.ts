@@ -9,7 +9,7 @@ export const roleCards = [
     role: 'admin',
     label: 'Super Admin Sekolah',
     description: 'Admin teknis tingkat sekolah untuk akun, monitoring sistem, helpdesk, audit, dan tindak lanjut operasional. Tidak memiliki kewenangan KBM.',
-    permissions: ['user.manage', 'reporting.read', 'audit.read', 'notification.manage'],
+    permissions: ['user.manage', 'notification.manage', 'reporting.manage', 'audit.read', 'system.recovery.manage'],
   },
   {
     role: 'operator_sekolah',
@@ -38,8 +38,8 @@ export const roleCards = [
   {
     role: 'tu',
     label: 'TU',
-    description: 'Administrasi sekolah dan bantuan data operasional tanpa menjadi admin teknis.',
-    permissions: ['academic.manage', 'academic-calendar.manage', 'reporting.read'],
+    description: 'Administrasi master data sekolah dan import data guru/siswa; tidak mengelola kalender, jadwal, atau KBM.',
+    permissions: ['academic.read', 'academic.manage', 'reporting.read'],
   },
   {
     role: 'bk',

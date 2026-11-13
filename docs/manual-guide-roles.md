@@ -5,6 +5,7 @@ Dokumen ini merupakan panduan penggunaan EduFlow untuk role:
 - Root
 - Super Admin Sekolah (`admin`)
 - Operator Sekolah
+- Tata Usaha (`tu`)
 - Guru
 - Wali Kelas
 - Kepala Sekolah
@@ -12,7 +13,7 @@ Dokumen ini merupakan panduan penggunaan EduFlow untuk role:
 
 Super Admin Sekolah adalah role baru untuk pengelolaan akses, monitoring sistem, helpdesk, audit, dan backup/recovery sesuai kewenangan. Role ini bukan untuk kegiatan KBM.
 
-Panduan untuk Tata Usaha (`tu`) dan Bimbingan Konseling (`bk`) tidak dibahas dalam dokumen ini.
+Panduan Bimbingan Konseling (`bk`) dibahas pada panduan role BK.
 
 > Catatan: menu yang tampil mengikuti role dan permission akun. Seorang pengguna hanya dapat melihat data sesuai kewenangan dan cakupan penugasannya.
 
@@ -113,22 +114,21 @@ Tanggung jawab utama:
 - menjalankan atau meminta backup/recovery sesuai prosedur;
 - membaca audit aktivitas aplikasi.
 
-Menu utama Super Admin tersedia di namespace `/admin/*`.
+Menu utama Super Admin tersedia di namespace `/admin/*`. Namespace `/system/*` dan `/operations/*` khusus Root.
 
 ## 2.2 Menu Utama Super Admin
 
-- **Akun & Akses**: pengguna, role, dan reset akses.
-- **Monitoring Sistem**: health check, queue, worker, dan status layanan.
-- **Helpdesk**: notifikasi dan tindak lanjut bantuan pengguna.
-- **Akun & Akses**: pengguna, role, dan reset akses.
-- **Audit**: jejak aktivitas aplikasi.
-- **Profil**: akun dan keamanan pribadi.
+- **Akun & Akses** (`/admin/access`): pengguna, role, dan reset akses.
+- **Monitoring Sistem** (`/admin/operations`): health check, queue, worker, dan status layanan.
+- **Helpdesk** (`/admin/notifications`): notifikasi operasional dan tindak lanjut bantuan pengguna.
+- **Audit** (`/admin/audit`): jejak aktivitas aplikasi.
+- **Profil** (`/admin/profile`): akun dan keamanan pribadi.
 
 ## 2.3 Batas Tanggung Jawab
 
 Super Admin tidak menangani input Dapodik, kalender, penyusunan jadwal, generate agenda, presensi, atau kegiatan KBM. Root tetap memegang keputusan infrastruktur, server, database global, dan recovery tingkat developer.
 
-# 3. Manual Guide Root
+# 2. Manual Guide Root
 
 ## 3.1 Fungsi Root
 
@@ -239,7 +239,39 @@ Recovery bersifat sensitif dan hanya dilakukan oleh petugas teknis yang memahami
 
 ---
 
-# 3. Manual Guide Operator Sekolah
+# 3. Manual Guide Tata Usaha
+
+## 3.1 Fungsi TU
+
+TU menangani administrasi data sekolah, bukan konfigurasi operasional KBM.
+
+Tanggung jawab TU:
+- mengelola master data administratif sekolah sesuai permission;
+- menyiapkan dan mengimpor data guru serta siswa;
+- memeriksa rekap dan laporan administrasi;
+- membantu pembaruan data administratif yang menjadi kewenangannya.
+
+TU tidak mengubah kalender pendidikan, jam pelajaran, jadwal, generate agenda, presensi, maupun konfigurasi KBM. Pengaturan tersebut menjadi kewenangan Operator Sekolah.
+
+## 3.2 Menu Utama TU
+
+- **Home** (`/tu/dashboard`): ringkasan administrasi.
+- **Master Data** (`/tu/data`): master kelas dan mata pelajaran.
+- **Import Data** (`/tu/import-data`): import data guru dan siswa.
+- **Laporan** (`/tu/reports`): rekap administrasi.
+- **Pesan** dan **Profil**: notifikasi serta pengaturan akun.
+
+## 3.3 Import Data
+
+1. Buka menu **Import Data**.
+2. Pilih Guru atau Siswa.
+3. Siapkan file Excel sesuai template kolom.
+4. Periksa format dan hasil validasi.
+5. Jalankan import dan tinjau ringkasan created, updated, skipped, serta error.
+
+Import hanya tersedia bagi pengguna yang memiliki permission `academic.manage`. Akses ini tidak memberikan hak mengubah jadwal atau kalender pendidikan.
+
+# 4. Manual Guide Operator Sekolah
 
 ## 3.1 Fungsi Operator Sekolah
 

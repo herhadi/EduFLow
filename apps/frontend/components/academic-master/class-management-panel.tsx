@@ -32,6 +32,7 @@ type ClassManagementPanelProps = {
   setClassForm: Dispatch<SetStateAction<AcademicClassFormState>>;
   setCloneForm: Dispatch<SetStateAction<CloneSchoolYearMasterFormState>>;
   setSchoolYearName: Dispatch<SetStateAction<string>>;
+  showTimeSlotOptions?: boolean;
 };
 
 export function ClassManagementPanel({
@@ -50,6 +51,7 @@ export function ClassManagementPanel({
   setClassForm,
   setCloneForm,
   setSchoolYearName,
+  showTimeSlotOptions = true,
 }: ClassManagementPanelProps) {
   return (
     <Card className="min-w-0 sm:p-6">
@@ -178,8 +180,7 @@ export function ClassManagementPanel({
         <div className="grid gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 sm:grid-cols-3">
           {[
             ['includeClasses', 'Kelas'],
-            ['includeTimeSlots', 'Jam pelajaran'],
-            ['includeClassActivities', 'Aktivitas slot'],
+            ...(showTimeSlotOptions ? [['includeTimeSlots', 'Jam pelajaran'], ['includeClassActivities', 'Aktivitas slot']] : []),
           ].map(([field, label]) => (
             <label className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 dark:bg-slate-950" key={field}>
               <input

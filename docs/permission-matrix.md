@@ -63,9 +63,9 @@ Role `admin` memiliki permission teknis sekolah berikut: `auth.session.manage`, 
 | `auth.session.manage` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `academic.read` | ✓ |  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |  |
 | `academic.manage` | ✓ |  | ✓ |  |  |  | ✓ |  |  |
-| `academic-calendar.read` | ✓ |  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |  |
-| `academic-calendar.manage` | ✓ |  | ✓ |  |  |  | ✓ |  |  |
-| `schedule.read` | ✓ |  | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |
+| `academic-calendar.read` | ✓ |  | ✓ | ✓ | ✓ | ✓ |  | ✓ |  |
+| `academic-calendar.manage` | ✓ |  | ✓ |  |  |  |  |  |  |
+| `schedule.read` | ✓ |  | ✓ | ✓ | ✓ | ✓ |  |  |  |
 | `schedule.manage` | ✓ |  | ✓ |  |  |  |  |  |  |
 | `teaching-plan.read` | ✓ |  | ✓ | ✓ | ✓ | ✓ |  |  |  |
 | `teaching-plan.manage` | ✓ |  |  | ✓ |  |  |  |  |  |
@@ -95,7 +95,9 @@ Permission menentukan capability. Scope data tetap harus dibatasi:
 - Guru hanya mengelola perangkat ajar dan nilai untuk kelas/mapel yang diampu.
 - Guru mapel belum tentu wali kelas; wali kelas pasti guru mapel dan merupakan penugasan tambahan pada kelas.
 - Akun wali kelas tetap memiliki role `guru`, sehingga pekerjaan harian seperti jadwal dan presensi memakai permission guru. Scope wali kelas hanya menambah akses baca kelas binaan.
-- Operator sekolah mengelola kalender pendidikan dan jadwal sekolah.
+- Operator sekolah mengelola kalender pendidikan, jam pelajaran, jadwal sekolah, dan agenda KBM.
+- TU mengelola administrasi master data sekolah dan import data guru/siswa, tanpa kewenangan mengubah kalender, jam pelajaran, jadwal, atau agenda KBM.
+- Super Admin Sekolah hanya mengelola dukungan teknis EduFlow di tingkat sekolah; namespace `/admin/*` terpisah dari namespace Root `/system/*` dan `/operations`.
 - Root adalah akses teknis semua fitur, bukan role pekerjaan harian sekolah.
 - Wali kelas hanya melihat kelas binaannya.
 - Orang tua hanya melihat data anaknya.
