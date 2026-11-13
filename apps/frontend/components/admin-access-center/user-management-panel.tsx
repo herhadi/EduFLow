@@ -150,15 +150,13 @@ export function UserManagementPanel({
                     ))}
                   </select>
                   <Button
-                    disabled={userActionState === 'loading' || !(selectedRoles[user.id] ?? user.roles).length}
-                    onClick={() => {
-                      const roles = selectedRoles[user.id] ?? user.roles;
-                      if (roles.length !== user.roles.length || roles.some((role) => !user.roles.includes(role))) {
-                        onUpdateUserRoles(user, roles);
-                      } else {
-                        onUpdateUserRoles(user, roles);
-                      }
-                    }}
+                    disabled={
+                      userActionState === 'loading' ||
+                      !(selectedRoles[user.id] ?? user.roles).length ||
+                      ((selectedRoles[user.id] ?? user.roles).length === user.roles.length &&
+                        (selectedRoles[user.id] ?? user.roles).every((role) => user.roles.includes(role)))
+                    }
+                    onClick={() => onUpdateUserRoles(user, selectedRoles[user.id] ?? user.roles)}
                     size="sm"
                     variant="outline"
                   >
