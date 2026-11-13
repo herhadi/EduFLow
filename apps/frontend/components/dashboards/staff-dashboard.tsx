@@ -4,8 +4,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { getPreferredSchoolYear } from '../../lib/school-year';
-import type { Student } from '../../lib/api-types';
-import { PrintPreview } from '../print/print-preview';
 import { type CurrentUser } from './dashboard-types';
 import { RoleActionCard, RoleSection, RoleHero } from './role-dashboard-shared';
 
@@ -25,41 +23,7 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
   const [summary, setSummary] = useState<TuSummary | null>(null);
   const [state, setState] = useState<DashboardState>('loading');
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
-  const [activeStudents, setActiveStudents] = useState<Student[]>([]);
-  const [showStudentList, setShowStudentList] = useState(false);
-  const [studentSearch, setStudentSearch] = useState('');
-  const [selectedClassKeys, setSelectedClassKeys] = useState<string[]>([]);
-  const [showPrintPreview, setShowPrintPreview] = useState(false);
-  const filteredStudents = activeStudents.filter((student) => {
-    const query = studentSearch.trim().toLocaleLowerCase('id-ID');
-    return !query || student.name.toLocaleLowerCase('id-ID').includes(query) || (student.nis ?? '').toLocaleLowerCase('id-ID').includes(query);
-  });
-  const classGroups = Object.values(filteredStudents.reduce<Record<string, { key: string; name: string; students: Student[] }>>((groups, student) => {
-    const enrollment = student.enrollments.find((item) => item.isActive && item.schoolYear?.id === summary?.schoolYearId);
-    const name = enrollment?.class?.name ?? 'Belum ada kelas';
-    const key = enrollment?.class?.id ?? 'unassigned';
-    if (!groups[key]) groups[key] = { key, name, students: [] };
-    groups[key].students.push(student);
-    return groups;
-  }, {})).sort((a, b) => a.name.localeCompare(b.name, 'id')).map((group) => ({ ...group, students: [...group.students].sort((a, b) => a.name.localeCompare(b.name, 'id')) }));
-  const selectedClassGroups = classGroups.filter((group) => selectedClassKeys.includes(group.key));
-  const printPages = selectedClassGroups.map((group) => (
-    <div className="h-full" key={group.key}>
-      <div className="border-b-2 border-black pb-3 text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest">Daftar Siswa Aktif</p>
-        <h2 className="mt-1 text-xl font-black">{group.name}</h2>
-        <p className="mt-1 text-xs">Tahun Ajaran: {summary?.schoolYear} · Jumlah: {group.students.length} siswa</p>
-      </div>
-      <div className="mt-5 grid grid-cols-3 gap-x-4 gap-y-2 text-[11px] leading-snug">
-        {group.students.map((student, index) => (
-          <div className="flex gap-2 border-b border-gray-200 py-1" key={student.id}>
-            <span className="w-5 shrink-0 text-right">{index + 1}.</span>
-            <span className="min-w-0"><span className="block font-semibold">{student.name}</span><span className="text-gray-600">NIS: {student.nis || '—'}</span></span>
-          </div>
-        ))}
-      </div>
-    </div>
-  ));
+
 
   useEffect(() => {
     let ignore = false;
@@ -88,7 +52,6 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
           ),
         );
 
-        setActiveStudents(activeStudents);
         setSummary({
           teachers: teacherResponse.data.filter((teacher) => teacher.isActive !== false).length,
           students: activeStudents.length,
@@ -169,80 +132,13 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
         {summary ? (
           <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
             <TuStat label="Guru aktif" value={summary.teachers} detail="Data tenaga pendidik" />
-            <TuStat label="Siswa aktif" value={summary.students} detail="Lihat daftar siswa tahun ajaran berjalan" onClick={() => { setStudentSearch(""); setShowStudentList(true); }} />
+            <TuStat label="Siswa aktif" value={summary.students} detail="Lihat daftar siswa tahun ajaran berjalan" onClick={() => { window.location.assign('/tu/siswa-aktif'); }} />
             <TuStat label="Rombel" value={summary.classes} detail="Tahun ajaran berjalan" />
             <TuStat label="Mata pelajaran" value={summary.subjects} detail="Master mata pelajaran" />
           </div>
         ) : null}
       </section>
 
-
-      {showStudentList ? (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-2 sm:p-5" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowStudentList(false); }}>
-          <section aria-labelledby="tu-active-students-title" aria-modal="true" className="flex max-h-[94vh] w-full max-w-[1500px] flex-col overflow-hidden rounded-3xl bg-slate-50 shadow-2xl dark:bg-[var(--surface-solid)]" role="dialog">
-            <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4 dark:border-[var(--border)] dark:bg-[var(--surface-solid)]">
-              <div>
-                <h2 className="text-lg font-black text-slate-900 dark:text-[var(--text)]" id="tu-active-students-title">Daftar Siswa Aktif per Kelas</h2>
-                <p className="mt-1 text-sm text-muted">{activeStudents.length.toLocaleString('id-ID')} siswa · {summary?.schoolYear}</p>
-              </div>
-              <button aria-label="Tutup daftar siswa" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-muted hover:bg-slate-100 dark:border-[var(--border)] dark:hover:bg-[var(--surface-soft)]" onClick={() => setShowStudentList(false)} type="button">Tutup</button>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-3 lg:p-5">
-              <div className="min-w-0">
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <input className="w-full max-w-md rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-brand-500 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]" onChange={(event) => setStudentSearch(event.target.value)} placeholder="Cari nama atau NIS siswa…" value={studentSearch} />
-                  <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-muted">
-                    <span>{filteredStudents.length} siswa · {classGroups.length} kelas</span>
-                    <button className="font-bold text-brand-700 hover:underline dark:text-brand-300" onClick={() => setSelectedClassKeys(classGroups.map((group) => group.key))} type="button">Pilih semua</button>
-                    <button className="font-bold hover:underline" onClick={() => setSelectedClassKeys([])} type="button">Hapus pilihan</button>
-                  </div>
-                </div>
-                {classGroups.length ? (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    {classGroups.map((group) => (
-                      <article className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 dark:border-[var(--border)] dark:bg-[var(--surface-solid)]" key={group.key}>
-                        <div className="mb-3 flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-[var(--border)]">
-                          <label className="flex min-w-0 items-center gap-2">
-                            <input aria-label={`Pilih kelas ${group.name} untuk preview`} checked={selectedClassKeys.includes(group.key)} className="h-4 w-4 shrink-0 accent-blue-600" onChange={(event) => setSelectedClassKeys((current) => event.target.checked ? [...current, group.key] : current.filter((key) => key !== group.key))} type="checkbox" />
-                            <h3 className="truncate text-sm font-black text-slate-900 dark:text-[var(--text)]">{group.name}</h3>
-                          </label>
-                          <span className="shrink-0 rounded-full bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">{group.students.length}</span>
-                        </div>
-                        <ol className="space-y-2">
-                          {group.students.map((student, index) => (
-                            <li className="flex min-w-0 items-start gap-2 text-xs" key={student.id}>
-                              <span className="w-5 shrink-0 text-right tabular-nums text-muted">{index + 1}.</span>
-                              <span className="min-w-0 flex-1">
-                                <span className="block truncate font-semibold text-slate-800 dark:text-[var(--text-soft)]">{student.name}</span>
-                                <span className="block truncate text-[11px] text-muted">{student.nis || 'NIS —'}</span>
-                              </span>
-                            </li>
-                          ))}
-                        </ol>
-                      </article>
-                    ))}
-                  </div>
-                ) : <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-muted dark:border-[var(--border)] dark:bg-[var(--surface-solid)]">Tidak ada siswa yang cocok dengan pencarian.</div>}
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-5 py-3 dark:border-[var(--border)] dark:bg-[var(--surface-solid)]">
-              <p className="text-xs text-muted">{selectedClassKeys.length} kelas dipilih · Daftar dikelompokkan berdasarkan tahun ajaran berjalan.</p>
-              <button className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40" disabled={!selectedClassGroups.length} onClick={() => setShowPrintPreview(true)} type="button">Preview {selectedClassGroups.length ? `(${selectedClassGroups.length} kelas)` : ''}</button>
-            </div>
-          </section>
-        </div>
-      ) : null}
-
-      {showPrintPreview ? (
-        <PrintPreview
-          footerText="Dokumen administrasi sekolah"
-          onClose={() => setShowPrintPreview(false)}
-          onDownloadExcel={downloadStudentExcel}
-          paperId="tu-active-students-print-paper"
-          pages={printPages}
-          title="Daftar Siswa Aktif"
-        />
-      ) : null}
 
       <RoleSection description="Pilih pekerjaan administrasi yang ingin dilanjutkan." title="Pekerjaan Administrasi">
         <RoleActionCard href="/tu/data" label="Master Data" description="Periksa dan kelola data kelas serta mata pelajaran sesuai kewenangan TU." />

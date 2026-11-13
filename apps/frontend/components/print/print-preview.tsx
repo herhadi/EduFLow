@@ -120,7 +120,7 @@ export function PrintPreview({
   const printDate = new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(new Date());
 
   return (
-    <section aria-label={`Pratinjau cetak ${title}`} aria-modal="true" className="fixed inset-0 z-[120] flex flex-col bg-slate-200 text-slate-900" role="dialog">
+    <section aria-label={`Pratinjau cetak ${title}`} aria-modal="true" className="fixed inset-0 z-[9999] flex flex-col bg-slate-200 text-slate-900" role="dialog">
       <header className="z-10 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-300 bg-white px-4 py-3 shadow-sm sm:px-6">
         <div className="min-w-0">
           <h2 className="truncate text-base font-black">{title}</h2>
@@ -137,13 +137,13 @@ export function PrintPreview({
         <div
           className="print-preview-paper mx-auto flex w-fit flex-col gap-5 bg-transparent text-black"
           id={paperId}
-          style={{ width: dimensions.width }}
+          style={{ width: dimensions.width, colorScheme: 'light' }}
         >
           {pages.map((page, index) => (
             <article
               className="print-preview-page relative box-border bg-white px-[13mm] py-[12mm] text-black shadow-xl"
               key={index}
-              style={{ width: dimensions.width, minHeight: dimensions.height }}
+              style={{ width: dimensions.width, minHeight: dimensions.height, backgroundColor: '#fff', color: '#111827', colorScheme: 'light' }}
             >
               {page}
               <footer className="print-preview-footer mt-8 flex justify-between gap-4 border-t border-slate-300 pt-2 text-[10px] text-slate-600">

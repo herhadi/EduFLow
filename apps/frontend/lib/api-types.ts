@@ -143,6 +143,7 @@ export interface StudentGuardian {
     phone?: string | null;
     email?: string | null;
     telegramId?: string | null;
+    address?: string | null;
   };
 }
 

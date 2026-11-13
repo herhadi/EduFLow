@@ -15,7 +15,9 @@ Gunakan satu dokumen HTML sebagai sumber preview layar dan proses cetak. Data mo
 - Preview dibuka sebagai tampilan dokumen tersendiri (overlay penuh), bukan panel di sisi daftar.
 - Toolbar berada di luar kertas dan menyediakan aksi sesuai modul, misalnya Cetak, Download Excel, dan Tutup.
 - Setiap kelompok/kelas yang dipilih dirender sebagai satu halaman kertas putih; beberapa pilihan ditampilkan sebagai tumpukan halaman yang dapat di-scroll.
+- Daftar siswa aktif dibuka pada halaman tersendiri agar tidak tertutup header dashboard.
 - Desktop: kertas putih berada di tengah area preview; area dapat di-scroll.
+- Preview dokumen selalu menggunakan permukaan kertas putih dan teks gelap, tidak mengikuti tema gelap aplikasi.
 - Mobile: dokumen tetap menggunakan ukuran F4/A4 yang dipilih, lalu diperkecil secara proporsional dengan CSS `zoom`.
 - Breakpoint mobile:
   - Maksimal 480px: `zoom: 0.46`
@@ -59,6 +61,7 @@ Contoh aturan dasar untuk F4:
 - Gunakan `break-inside: avoid` dan `page-break-inside: avoid` pada baris tabel atau blok yang tidak boleh terpotong.
 - Ulangi header/footer tabel melalui `display: table-header-group` dan `display: table-footer-group` bila diperlukan.
 - Footer dokumen memuat tanggal cetak dan keterangan dokumen.
+- Untuk daftar siswa, gunakan tabel dengan data siswa, kelas/tahun ajaran, dan seluruh informasi wali yang tersedia pada database. Pisahkan halaman jika baris terlalu banyak.
 - Uji laporan panjang untuk memastikan tidak ada halaman kosong, pemotongan baris, atau konten yang keluar dari area kertas.
 
 ## Komponen bersama
