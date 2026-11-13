@@ -177,6 +177,27 @@ export function AdminAccessCenter({
     }
   }
 
+  async function handleUpdateUserRoles(user: AppUser, roles: string[]) {
+    setUserActionState('loading');
+    setUserMessage('');
+    try {
+      const response = await api.updateUserRoles(user.id, roles);
+      setUsers((currentUsers) => currentUsers.map((currentUser) =>
+        currentUser.id === user.id ? { ...currentUser, roles: response.data.roles } : currentUser,
+      ));
+      setUserActionState('success');
+      setUserMessage(response.message ?? 'Role user berhasil diperbarui.');
+      toast.success(response.message ?? 'Role user berhasil diperbarui.', 'Role Diperbarui');
+    } catch (error) {
+      const errorMessage = error instanceof Error
+        ? `Gagal mengubah role: ${error.message}`
+        : 'Gagal mengubah role user.';
+      setUserActionState('error');
+      setUserMessage(errorMessage);
+      toast.error(errorMessage, 'Aksi Gagal');
+    }
+  }
+
   async function handleDeactivateUser(user: AppUser) {
     const confirmed = window.confirm(
       `Nonaktifkan user ${user.username ?? user.email}? User tidak bisa login lagi, tetapi histori tetap aman.`,
@@ -298,6 +319,7 @@ export function AdminAccessCenter({
         newUser={newUser}
         onCreateUser={handleCreateUser}
         onDeactivateUser={handleDeactivateUser}
+        onUpdateUserRoles={handleUpdateUserRoles}
         onDeleteUser={handleDeleteUser}
         onNewUserChange={(field, value) =>
           setNewUser((current) => ({ ...current, [field]: value }))
