@@ -7,6 +7,7 @@ export type PrintPaperSize = 'F4' | 'A4' | 'A4_LANDSCAPE';
 type PrintPreviewProps = {
   title: string;
   pages: ReactNode[];
+  pagesForPaperSize?: (paperSize: PrintPaperSize) => ReactNode[];
   paperSize?: PrintPaperSize;
   paperId?: string;
   footerText?: string;
@@ -40,14 +41,16 @@ async function copyDocumentStyles(target: Document) {
 export function PrintPreview({
   title,
   pages,
+  pagesForPaperSize,
   paperSize = 'F4',
   paperId = 'jimpitan-print-paper',
   footerText = 'Dokumen administrasi sekolah',
   onClose,
   onDownloadExcel,
 }: PrintPreviewProps) {
-  const pageCount = pages.length;
   const [selectedPaperSize, setSelectedPaperSize] = useState<PrintPaperSize>(paperSize);
+  const activePages = pagesForPaperSize?.(selectedPaperSize) ?? pages;
+  const pageCount = activePages.length;
   const dimensions = PAPER_DIMENSIONS[selectedPaperSize];
 
   async function printDocument() {
@@ -153,7 +156,7 @@ export function PrintPreview({
           id={paperId}
           style={{ width: dimensions.width, colorScheme: 'light' }}
         >
-          {pages.map((page, index) => (
+          {activePages.map((page, index) => (
             <article
               className="print-preview-page relative box-border flex flex-col bg-white px-[13mm] py-[12mm] text-black shadow-xl"
               key={index}

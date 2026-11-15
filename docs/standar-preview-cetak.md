@@ -14,7 +14,8 @@ Gunakan satu dokumen HTML sebagai sumber preview layar dan proses cetak. Data mo
 
 - Preview dibuka sebagai tampilan dokumen tersendiri (overlay penuh), bukan panel di sisi daftar.
 - Toolbar berada di luar kertas dan menyediakan pilihan ukuran F4 (Folio) Portrait, A4 Portrait, atau A4 Landscape, serta aksi Cetak, Download Excel, dan Tutup.
-- Perubahan ukuran melalui toolbar langsung mengubah dimensi preview dan aturan `@page` pada hasil cetak. Ukuran awal mengikuti prop `paperSize` modul.
+- Perubahan ukuran melalui toolbar langsung mengubah dimensi preview, aturan `@page`, dan pagination bila modul menyediakan `pagesForPaperSize`. Ukuran awal mengikuti prop `paperSize` modul.
+- Modul daftar siswa menyesuaikan jumlah baris per halaman: 22 untuk A4 Landscape, 19 untuk F4 Portrait, dan 16 untuk A4 Portrait. Saat orientasi portrait dipilih, halaman dibangun ulang agar baris tidak tetap dipaksakan mengikuti kapasitas landscape.
 - Setiap kelompok/kelas yang dipilih dirender sebagai satu halaman kertas putih; beberapa pilihan ditampilkan sebagai tumpukan halaman yang dapat di-scroll.
 - Daftar siswa aktif dibuka pada halaman tersendiri agar tidak tertutup header dashboard.
 - Desktop: kertas putih berada di tengah area preview; area dapat di-scroll.
@@ -67,7 +68,7 @@ Contoh aturan dasar untuk F4:
 
 ## Komponen bersama
 
-Gunakan `apps/frontend/components/print/print-preview.tsx` untuk preview dan pencetakan lintas modul. Komponen menerima judul, daftar halaman, ukuran kertas, ID dokumen, dan keterangan footer. Ukuran default komponen adalah F4 Portrait.
+Gunakan `apps/frontend/components/print/print-preview.tsx` untuk preview dan pencetakan lintas modul. Komponen menerima judul, daftar halaman, opsi pembangun ulang halaman berdasarkan ukuran kertas (`pagesForPaperSize`), ukuran kertas, ID dokumen, dan keterangan footer. Ukuran default komponen adalah F4 Portrait.
 
 Setiap modul bertanggung jawab menyusun data dan konten halaman serta aksi ekspor data bila tersedia. Komponen bersama bertanggung jawab atas preview responsif layar penuh, toolbar (Cetak/Download Excel/Tutup), iframe cetak, skala 100%, dan aturan halaman.
 

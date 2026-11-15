@@ -126,8 +126,7 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
 
   const selectedGroups = classGroups.filter((group) => selectedClassKeys.includes(group.key));
 
-  const previewPages = selectedGroups.flatMap((group) => {
-    const pageSize = 22;
+  const buildPreviewPages = (pageSize: number) => selectedGroups.flatMap((group) => {
     const chunks: Student[][] = [];
     for (let index = 0; index < group.students.length; index += pageSize) {
       chunks.push(group.students.slice(index, index + pageSize));
@@ -311,7 +310,8 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
           onClose={() => setShowPreview(false)}
           onDownloadExcel={downloadStudentExcel}
           paperId="tu-active-students-print-paper"
-          pages={previewPages}
+          pages={buildPreviewPages(22)}
+          pagesForPaperSize={(size) => buildPreviewPages(size === 'A4_LANDSCAPE' ? 22 : size === 'F4' ? 19 : 16)}
           paperSize="A4_LANDSCAPE"
           title="Daftar Siswa Aktif"
         />
