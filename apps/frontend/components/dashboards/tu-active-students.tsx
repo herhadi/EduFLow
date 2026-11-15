@@ -311,7 +311,7 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
           onDownloadExcel={downloadStudentExcel}
           paperId="tu-active-students-print-paper"
           pages={buildPreviewPages(22)}
-          pagesForPaperSize={(size) => buildPreviewPages(size === 'A4_LANDSCAPE' ? 22 : size === 'F4' ? 19 : 16)}
+          pagesForPaperSize={(size) => buildPreviewPages(size === 'A4_LANDSCAPE' ? 22 : size === 'F4' ? 30 : 26)}
           paperSize="A4_LANDSCAPE"
           title="Daftar Siswa Aktif"
         />
