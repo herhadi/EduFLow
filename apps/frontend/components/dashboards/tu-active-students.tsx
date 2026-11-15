@@ -103,7 +103,11 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
       return acc;
     }, {}));
     return grouped
-      .sort((a, b) => a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' }))
+      .sort((a, b) => {
+        if (a.key === 'unassigned') return 1;
+        if (b.key === 'unassigned') return -1;
+        return a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' });
+      })
       .map((group) => ({
         ...group,
         students: [...group.students].sort((a, b) =>
@@ -138,10 +142,10 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
               <th className="w-[18%] border border-slate-400 px-1 py-1 text-left">Nama siswa</th>
               <th className="w-[8%] border border-slate-400 px-1 py-1 text-left">JK</th>
               <th className="w-[12%] border border-slate-400 px-1 py-1 text-left">Tanggal lahir</th>
-              <th className="w-[10%] border border-slate-400 px-1 py-1 text-left">HP siswa</th>
+              <th className="w-[18%] border border-slate-400 px-1 py-1 text-left">Alamat</th>
               <th className="w-[15%] border border-slate-400 px-1 py-1 text-left">Nama wali</th>
-              <th className="w-[8%] border border-slate-400 px-1 py-1 text-left">Hubungan</th>
-              <th className="w-[15%] border border-slate-400 px-1 py-1 text-left">Kontak wali</th>
+              
+              <th className="w-[15%] border border-slate-400 px-1 py-1 text-left">HP wali</th>
             </tr>
           </thead>
           <tbody>
@@ -156,19 +160,12 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
                   <td className="break-words border border-slate-300 px-1 py-1 font-semibold">{student.name}</td>
                   <td className="border border-slate-300 px-1 py-1">{genderLabel(student.gender)}</td>
                   <td className="border border-slate-300 px-1 py-1">{formatDate(student.birthDate)}</td>
-                  <td className="break-words border border-slate-300 px-1 py-1">{student.phone || '—'}</td>
+                  <td className="break-words border border-slate-300 px-1 py-1">{[...new Set(guardians.map((guardian) => guardian.address).filter((value) => value !== '—'))].join('; ') || '—'}</td>
                   <td className="break-words border border-slate-300 px-1 py-1">
                     {guardians.map((guardian) => guardian.name + (guardian.primary ? ' (Utama)' : '')).join(', ') || '—'}
                   </td>
-                  <td className="border border-slate-300 px-1 py-1">
-                    {guardians.map((guardian) => guardian.relation).join(', ') || '—'}
-                  </td>
                   <td className="break-words border border-slate-300 px-1 py-1">
-                    {guardians.map((guardian) =>
-                      [guardian.phone, guardian.email, guardian.address]
-                        .filter((value) => value !== '—')
-                        .join(' / '),
-                    ).join('; ') || '—'}
+                    {guardians.map((guardian) => guardian.phone).filter((phone) => phone !== '—').join('; ') || '—'}
                   </td>
                 </tr>
               );
@@ -183,8 +180,8 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
     if (!selectedGroups.length) return;
     const header = [
       'Tahun Ajaran', 'Kelas', 'No', 'NIS', 'NISN', 'Nama Lengkap',
-      'Jenis Kelamin', 'Tanggal Lahir', 'Telepon Siswa', 'Status Siswa',
-      'Nama Wali', 'Hubungan', 'Wali Utama', 'Telepon Wali', 'Email Wali', 'Alamat Wali',
+      'Jenis Kelamin', 'Tanggal Lahir', 'Alamat', 'Status Siswa',
+      'Nama Wali', 'Wali Utama', 'HP Wali',
     ];
     const rows = selectedGroups.flatMap((group) => group.students.flatMap((student, index) => {
       const guardians = getGuardians(student);
@@ -194,9 +191,9 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
       return guardianRows.map((guardian) => [
         schoolYearName, group.name, index + 1, student.nis || '', student.nisn || '',
         student.name, genderLabel(student.gender), formatDate(student.birthDate),
-        student.phone || '', student.isActive === false ? 'Tidak aktif' : 'Aktif',
-        guardian.name, guardian.relation, guardian.primary ? 'Ya' : 'Tidak',
-        guardian.phone, guardian.email, guardian.address,
+        [...new Set(guardians.map((item) => item.address).filter((value) => value !== '—'))].join('; '),
+        student.isActive === false ? 'Tidak aktif' : 'Aktif',
+        guardian.name, guardian.primary ? 'Ya' : 'Tidak', guardian.phone,
       ]);
     }));
     const tableRows = [header, ...rows].map((row, rowIndex) => {
@@ -250,6 +247,20 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
         {loadState === 'success' && classGroups.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-muted">Tidak ada siswa yang cocok dengan pencarian.</p> : null}
 
         {loadState === 'success' && classGroups.length > 0 ? (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50/60 px-4 py-3 dark:border-brand-500/30 dark:bg-brand-500/5">
+            <p className="text-xs text-muted">{selectedGroups.length} kelas dipilih untuk dokumen.</p>
+            <button
+              className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={!selectedGroups.length || loadState !== 'success'}
+              onClick={() => setShowPreview(true)}
+              type="button"
+            >
+              Preview {selectedGroups.length ? '(' + selectedGroups.length + ' kelas)' : ''}
+            </button>
+          </div>
+        ) : null}
+
+        {loadState === 'success' && classGroups.length > 0 ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {classGroups.map((group) => (
               <article className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 dark:border-[var(--border)] dark:bg-[var(--surface-solid)]" key={group.key}>
@@ -284,17 +295,6 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
           </div>
         ) : null}
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 dark:border-[var(--border)]">
-          <p className="text-xs text-muted">{selectedGroups.length} kelas dipilih untuk dokumen.</p>
-          <button
-            className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40"
-            disabled={!selectedGroups.length || loadState !== 'success'}
-            onClick={() => setShowPreview(true)}
-            type="button"
-          >
-            Preview {selectedGroups.length ? '(' + selectedGroups.length + ' kelas)' : ''}
-          </button>
-        </div>
       </section>
 
       {showPreview ? (
