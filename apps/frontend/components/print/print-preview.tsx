@@ -144,9 +144,9 @@ export function PrintPreview({
               <option value="A4_LANDSCAPE">A4 · Landscape</option>
             </select>
           </label>
-          <button className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-100" disabled={!pageCount || !onDownloadExcel} onClick={onDownloadExcel} type="button">Download Excel</button>
+          <button className="rounded-xl border border-emerald-600 bg-emerald-600 px-3 py-2 text-sm font-bold text-white transition hover:border-emerald-700 hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40" disabled={!pageCount || !onDownloadExcel} onClick={onDownloadExcel} type="button">Download Excel</button>
           <button className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-700 disabled:opacity-40" disabled={!pageCount} onClick={printDocument} type="button">Cetak</button>
-          <button aria-label="Tutup pratinjau" className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-100" onClick={onClose} type="button">Tutup</button>
+          <button aria-label="Tutup pratinjau" className="rounded-xl border border-rose-600 bg-rose-600 px-3 py-2 text-sm font-bold text-white transition hover:border-rose-700 hover:bg-rose-700" onClick={onClose} type="button">Tutup</button>
         </div>
       </header>
 

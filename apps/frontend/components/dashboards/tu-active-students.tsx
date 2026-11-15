@@ -147,12 +147,12 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
               <th className="w-[4%] border border-slate-400 px-1 py-1 text-center">No</th>
               <th className="w-[10%] border border-slate-400 px-1 py-1 text-left">NIS / NISN</th>
               <th className="w-[18%] border border-slate-400 px-1 py-1 text-left">Nama siswa</th>
-              <th className="w-[5%] border border-slate-400 px-1 py-1 text-center">L/P</th>
+              <th className="w-[3%] border border-slate-400 px-0.5 py-1 text-left text-[7px]">L/P</th>
               <th className="w-[12%] border border-slate-400 px-1 py-1 text-left">Tanggal lahir</th>
-              <th className="w-[18%] border border-slate-400 px-1 py-1 text-left">Alamat</th>
+              <th className="w-[22%] border border-slate-400 px-1 py-1 text-left">Alamat</th>
               <th className="w-[15%] border border-slate-400 px-1 py-1 text-left">Nama wali</th>
               
-              <th className="w-[15%] border border-slate-400 px-1 py-1 text-left">HP wali</th>
+              <th className="w-[11%] border border-slate-400 px-0.5 py-1 text-left text-[7px]">HP wali</th>
             </tr>
           </thead>
           <tbody>
@@ -165,13 +165,13 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
                     {student.nis || '—'}<br />{student.nisn || '—'}
                   </td>
                   <td className="break-words border border-slate-300 px-1 py-1 font-semibold">{student.name}</td>
-                  <td className="border border-slate-300 px-1 py-1">{genderLabel(student.gender)}</td>
+                  <td className="border border-slate-300 px-0.5 py-1 text-left text-[7px]">{genderLabel(student.gender)}</td>
                   <td className="border border-slate-300 px-1 py-1">{formatDate(student.birthDate)}</td>
                   <td className="break-words border border-slate-300 px-1 py-1">{[...new Set(guardians.map((guardian) => guardian.address).filter((value) => value !== '—'))].join('; ') || '—'}</td>
                   <td className="break-words border border-slate-300 px-1 py-1">
                     {guardians.map((guardian) => guardian.name + (guardian.primary ? ' (Utama)' : '')).join(', ') || '—'}
                   </td>
-                  <td className="break-words border border-slate-300 px-1 py-1">
+                  <td className="break-words border border-slate-300 px-0.5 py-1 text-[7px]">
                     {guardians.map((guardian) => guardian.phone).filter((phone) => phone !== '—').join('; ') || '—'}
                   </td>
                 </tr>
@@ -311,7 +311,7 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
           onDownloadExcel={downloadStudentExcel}
           paperId="tu-active-students-print-paper"
           pages={buildPreviewPages(22)}
-          pagesForPaperSize={(size) => buildPreviewPages(size === 'A4_LANDSCAPE' ? 22 : size === 'F4' ? 30 : 26)}
+          pagesForPaperSize={(size) => buildPreviewPages(size === 'A4_LANDSCAPE' ? 22 : size === 'F4' ? 34 : 30)}
           paperSize="A4_LANDSCAPE"
           title="Daftar Siswa Aktif"
         />
