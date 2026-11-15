@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 
 export type PrintPaperSize = 'F4' | 'A4' | 'A4_LANDSCAPE';
 
@@ -47,7 +47,8 @@ export function PrintPreview({
   onDownloadExcel,
 }: PrintPreviewProps) {
   const pageCount = pages.length;
-  const dimensions = PAPER_DIMENSIONS[paperSize];
+  const [selectedPaperSize, setSelectedPaperSize] = useState<PrintPaperSize>(paperSize);
+  const dimensions = PAPER_DIMENSIONS[selectedPaperSize];
 
   async function printDocument() {
     const source = document.getElementById(paperId);
@@ -127,6 +128,19 @@ export function PrintPreview({
           <p className="text-xs text-slate-500">{dimensions.label} · {pageCount} halaman</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <label className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700">
+            <span className="whitespace-nowrap font-semibold">Ukuran kertas</span>
+            <select
+              aria-label="Pilih ukuran kertas"
+              className="max-w-[150px] bg-transparent font-bold outline-none"
+              onChange={(event) => setSelectedPaperSize(event.target.value as PrintPaperSize)}
+              value={selectedPaperSize}
+            >
+              <option value="F4">F4 (Folio) · Portrait</option>
+              <option value="A4">A4 · Portrait</option>
+              <option value="A4_LANDSCAPE">A4 · Landscape</option>
+            </select>
+          </label>
           <button className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-100" disabled={!pageCount || !onDownloadExcel} onClick={onDownloadExcel} type="button">Download Excel</button>
           <button className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-700 disabled:opacity-40" disabled={!pageCount} onClick={printDocument} type="button">Cetak</button>
           <button aria-label="Tutup pratinjau" className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-100" onClick={onClose} type="button">Tutup</button>

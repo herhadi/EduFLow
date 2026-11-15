@@ -13,7 +13,8 @@ Gunakan satu dokumen HTML sebagai sumber preview layar dan proses cetak. Data mo
 ## Preview desktop dan mobile
 
 - Preview dibuka sebagai tampilan dokumen tersendiri (overlay penuh), bukan panel di sisi daftar.
-- Toolbar berada di luar kertas dan menyediakan aksi sesuai modul, misalnya Cetak, Download Excel, dan Tutup.
+- Toolbar berada di luar kertas dan menyediakan pilihan ukuran F4 (Folio) Portrait, A4 Portrait, atau A4 Landscape, serta aksi Cetak, Download Excel, dan Tutup.
+- Perubahan ukuran melalui toolbar langsung mengubah dimensi preview dan aturan `@page` pada hasil cetak. Ukuran awal mengikuti prop `paperSize` modul.
 - Setiap kelompok/kelas yang dipilih dirender sebagai satu halaman kertas putih; beberapa pilihan ditampilkan sebagai tumpukan halaman yang dapat di-scroll.
 - Daftar siswa aktif dibuka pada halaman tersendiri agar tidak tertutup header dashboard.
 - Desktop: kertas putih berada di tengah area preview; area dapat di-scroll.
