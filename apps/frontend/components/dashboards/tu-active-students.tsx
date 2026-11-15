@@ -18,22 +18,15 @@ function formatDate(value?: string | null) {
 }
 
 function genderLabel(value?: Student['gender']) {
-  if (value === 'MALE') return 'Laki-laki';
-  if (value === 'FEMALE') return 'Perempuan';
+  if (value === 'MALE') return 'L';
+  if (value === 'FEMALE') return 'P';
   return '—';
-}
-
-function relationLabel(value: string) {
-  const labels: Record<string, string> = { FATHER: 'Ayah', MOTHER: 'Ibu', GUARDIAN: 'Wali', OTHER: 'Lainnya' };
-  return labels[value] ?? value;
 }
 
 function getGuardians(student: Student) {
   return (student.guardians ?? []).map((item) => ({
     name: item.guardian.name,
-    relation: relationLabel(item.relation),
     phone: item.guardian.phone || '—',
-    email: item.guardian.email || '—',
     address: item.guardian.address || '—',
     primary: item.isPrimary,
   }));
@@ -102,11 +95,26 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
       acc[key].students.push(student);
       return acc;
     }, {}));
+    const romanValue = (value: string) => {
+      const map: Record<string, number> = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+      let total = 0;
+      for (let index = 0; index < value.length; index += 1) {
+        const current = map[value[index]] ?? 0;
+        const next = map[value[index + 1]] ?? 0;
+        total += current < next ? -current : current;
+      }
+      return total;
+    };
+    const gradeNumber = (name: string) => {
+      const match = name.trim().match(/^([IVXLCDM]+)/i);
+      return match ? romanValue(match[1].toUpperCase()) : Number.MAX_SAFE_INTEGER;
+    };
     return grouped
       .sort((a, b) => {
         if (a.key === 'unassigned') return 1;
         if (b.key === 'unassigned') return -1;
-        return a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' });
+        const gradeDiff = gradeNumber(a.name) - gradeNumber(b.name);
+        return gradeDiff || a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' });
       })
       .map((group) => ({
         ...group,
@@ -140,7 +148,7 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
               <th className="w-[4%] border border-slate-400 px-1 py-1 text-center">No</th>
               <th className="w-[10%] border border-slate-400 px-1 py-1 text-left">NIS / NISN</th>
               <th className="w-[18%] border border-slate-400 px-1 py-1 text-left">Nama siswa</th>
-              <th className="w-[8%] border border-slate-400 px-1 py-1 text-left">JK</th>
+              <th className="w-[5%] border border-slate-400 px-1 py-1 text-center">L/P</th>
               <th className="w-[12%] border border-slate-400 px-1 py-1 text-left">Tanggal lahir</th>
               <th className="w-[18%] border border-slate-400 px-1 py-1 text-left">Alamat</th>
               <th className="w-[15%] border border-slate-400 px-1 py-1 text-left">Nama wali</th>
@@ -186,7 +194,7 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
     const rows = selectedGroups.flatMap((group) => group.students.flatMap((student, index) => {
       const guardians = getGuardians(student);
       const guardianRows = guardians.length ? guardians : [{
-        name: '', relation: '', phone: '', email: '', address: '', primary: false,
+        name: '', phone: '', address: '', primary: false,
       }];
       return guardianRows.map((guardian) => [
         schoolYearName, group.name, index + 1, student.nis || '', student.nisn || '',

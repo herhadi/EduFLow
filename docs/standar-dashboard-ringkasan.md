@@ -19,3 +19,7 @@ Kartu ringkasan membuka halaman daftar informasi read-only, bukan halaman pengat
 - Kolom HP siswa dan hubungan wali tidak ditampilkan; kontak wali hanya berupa nomor HP.
 - Tombol preview ditempatkan di bagian atas daftar kelas agar mudah ditemukan.
 - Urutan kartu kelas menggunakan nama kelas secara alami dan kelas tanpa penempatan diletakkan paling akhir; daftar dimulai dari kelas VII A bila kelas tersebut tersedia.
+
+
+- Kartu kelas diurutkan berdasarkan tingkat kelas numerik (angka Romawi dikonversi), bukan urutan alfabetis; VII A harus tampil sebelum IX A.
+- Label jenis kelamin pada dokumen siswa menggunakan singkatan **L/P**.

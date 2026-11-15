@@ -84,7 +84,7 @@ export function PrintPreview({
 
     const printStyles = printDocument.createElement('style');
     printStyles.textContent = `
-      @page { size: ${dimensions.width} ${dimensions.height}; margin: 0; @bottom-right { content: "Hal " counter(page) "/" counter(pages); margin: 6mm 13mm; color: #475569; font: 9pt Arial, sans-serif; } }
+      @page { size: ${dimensions.width} ${dimensions.height}; margin: 0; }
       html, body { margin: 0 !important; padding: 0 !important; width: ${dimensions.width} !important; min-width: ${dimensions.width} !important; background: #fff !important; }
       #${paperId} {
         display: block !important; width: ${dimensions.width} !important; min-width: ${dimensions.width} !important;
@@ -97,12 +97,12 @@ export function PrintPreview({
         width: ${dimensions.width} !important; min-width: ${dimensions.width} !important;
         min-height: ${dimensions.height} !important; height: auto !important; margin: 0 !important;
         padding: 12mm 13mm !important; zoom: 1 !important; transform: none !important;
-        overflow: visible !important; break-after: page; page-break-after: always;
+        display: flex !important; flex-direction: column !important; overflow: visible !important; break-after: page; page-break-after: always;
       }
       #${paperId} .print-preview-page:last-child { break-after: auto; page-break-after: auto; }
       #${paperId} .print-preview-page, #${paperId} .print-preview-page * { visibility: visible !important; }
       #${paperId} .print-preview-page > * { break-inside: avoid; }
-      #${paperId} .print-preview-footer { display: flex !important; justify-content: space-between; gap: 8mm; margin-top: 8mm; padding-top: 3mm; border-top: 0.2mm solid #cbd5e1; color: #475569; font: 9pt Arial, sans-serif; }
+      #${paperId} .print-preview-footer { display: flex !important; justify-content: space-between; align-items: flex-end; gap: 8mm; margin-top: auto !important; padding-top: 3mm; border-top: 0.2mm solid #cbd5e1; color: #475569; font: 9pt Arial, sans-serif; }
       #${paperId} .print-preview-page table tr { break-inside: avoid; page-break-inside: avoid; }
       #${paperId} .print-preview-page thead { display: table-header-group; }
       #${paperId} .print-preview-page tfoot { display: table-footer-group; }
@@ -141,14 +141,14 @@ export function PrintPreview({
         >
           {pages.map((page, index) => (
             <article
-              className="print-preview-page relative box-border bg-white px-[13mm] py-[12mm] text-black shadow-xl"
+              className="print-preview-page relative box-border flex flex-col bg-white px-[13mm] py-[12mm] text-black shadow-xl"
               key={index}
               style={{ width: dimensions.width, minHeight: dimensions.height, backgroundColor: '#fff', color: '#111827', colorScheme: 'light' }}
             >
-              {page}
-              <footer className="print-preview-footer mt-8 flex justify-between gap-4 border-t border-slate-300 pt-2 text-[10px] text-slate-600">
-                <span>{footerText}</span>
-                <span>Tanggal cetak: {printDate}</span>
+              <div className="min-h-0 flex-1">{page}</div>
+              <footer className="print-preview-footer mt-auto flex items-end justify-between gap-4 border-t border-slate-300 pt-2 text-[10px] text-slate-600">
+                <span className="flex flex-col"><span>Tanggal cetak: {printDate}</span><span className="text-[9px]">{footerText}</span></span>
+                <span className="shrink-0 font-semibold">Halaman {index + 1}/{pageCount}</span>
               </footer>
             </article>
           ))}

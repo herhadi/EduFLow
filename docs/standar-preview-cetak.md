@@ -57,10 +57,10 @@ Contoh aturan dasar untuk F4:
 
 ## Pagination, tabel, dan footer
 
-- Nomor halaman cetak menggunakan CSS paged media, misalnya `counter(page)` dan `counter(pages)`; indikator halaman preview tetap menampilkan format **Halaman 1/3**.
+- Nomor halaman ditampilkan pada footer setiap lembar dengan format **Halaman 1/3**, baik di preview maupun hasil cetak.
 - Gunakan `break-inside: avoid` dan `page-break-inside: avoid` pada baris tabel atau blok yang tidak boleh terpotong.
 - Ulangi header/footer tabel melalui `display: table-header-group` dan `display: table-footer-group` bila diperlukan.
-- Footer dokumen memuat tanggal cetak dan keterangan dokumen.
+- Footer diposisikan konsisten di bagian paling bawah setiap kertas: tanggal cetak di kiri bawah (disertai keterangan dokumen) dan nomor halaman `Halaman 1/3` di kanan bawah.
 - Untuk daftar siswa, gunakan tabel dengan data siswa, kelas/tahun ajaran, dan seluruh informasi wali yang tersedia pada database. Pisahkan halaman jika baris terlalu banyak.
 - Uji laporan panjang untuk memastikan tidak ada halaman kosong, pemotongan baris, atau konten yang keluar dari area kertas.
 
