@@ -129,13 +129,15 @@ export function ClassManagementPanel({
               {group.classes.map((schoolClass) => (
                 <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-blue-50 bg-slate-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-900" key={schoolClass.id}>
                   <span className="truncate text-sm font-black text-slate-800 dark:text-slate-100">{schoolClass.name}</span>
-                  <button
-                    className="rounded-full bg-rose-50 px-2 py-1 text-xs font-black text-rose-700 hover:bg-rose-100 dark:bg-rose-500/15 dark:text-rose-100"
+                  <Button
+                    aria-label={`Hapus kelas ${schoolClass.name}`}
+                    className="size-7 rounded-full p-0"
                     onClick={() => void onDeleteClass(schoolClass)}
-                    type="button"
+                    size="sm"
+                    variant="danger"
                   >
                     ×
-                  </button>
+                  </Button>
                 </div>
               ))}
               {!group.classes.length ? <p className="col-span-full text-xs font-semibold text-muted">Belum ada kelas.</p> : null}

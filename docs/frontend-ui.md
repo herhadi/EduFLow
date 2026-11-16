@@ -29,3 +29,8 @@ apps/frontend/components/ui/
 - Class manual tetap boleh dipakai untuk layout spesifik halaman, tetapi status, tombol, empty, loading, search, form field, pagination, dan table shell sebaiknya memakai komponen global.
 - Jika perlu variasi baru, tambahkan variant/tone di komponen global bila variasinya dipakai di lebih dari satu tempat.
 - Pastikan tampilan mobile tidak overflow setelah migrasi, terutama untuk tabel, URL panjang, badge, dan tombol berderet.
+
+## Warna aksi
+
+- Aksi yang menghapus data, termasuk hapus permanen, wajib memakai `Button` dengan `variant="danger"` agar mudah dikenali sebagai tindakan berisiko.
+- Aksi nonaktifkan, batal, atau tindakan yang masih dapat dipulihkan tidak memakai warna danger; gunakan variant sekunder/warning sesuai konteks.

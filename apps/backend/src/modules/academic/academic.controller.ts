@@ -139,6 +139,12 @@ export class AcademicController {
     return this.academicService.getTeachers();
   }
 
+  @Get('teachers/access-list')
+  @RequirePermissions(PERMISSIONS.USER_MANAGE)
+  getTeachersForAccessList() {
+    return this.academicService.getTeachers();
+  }
+
   @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
   @Post('teachers')
   createTeacher(@Body() dto: CreateTeacherDto) {

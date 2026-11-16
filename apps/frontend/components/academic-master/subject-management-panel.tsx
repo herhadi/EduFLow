@@ -61,10 +61,9 @@ export function SubjectManagementPanel({
               <p className="mt-1 text-xs font-bold text-muted">{subject.code ?? 'Tanpa kode'}</p>
             </div>
             <Button
-              className="text-rose-700 hover:bg-rose-50 dark:text-rose-100 dark:hover:bg-rose-500/15"
               onClick={() => void onDeleteSubject(subject)}
               size="sm"
-              variant="ghost"
+              variant="danger"
             >
               Hapus
             </Button>

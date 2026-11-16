@@ -63,6 +63,7 @@ export const academicApi = {
       method: 'DELETE',
     }),
   getTeachers: () => request<ApiResponse<Teacher[]>>('/academic/teachers'),
+  getTeachersForAccess: () => request<ApiResponse<Teacher[]>>('/academic/teachers/access-list'),
   createTeacher: (payload: {
     name: string;
     nip?: string;

@@ -39,12 +39,23 @@ export function PwaInstallPrompt() {
       }
 
       setInstallEvent(event as BeforeInstallPromptEvent);
-      setVisible(true);
+      setVisible(pathname !== '/');
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, []);
+  }, [pathname]);
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem(dismissedKey) === '1';
+    const snoozedUntil = Number(localStorage.getItem(snoozedUntilKey) ?? 0);
+    setVisible(
+      pathname !== '/' &&
+      Boolean(installEvent) &&
+      !dismissed &&
+      snoozedUntil <= Date.now(),
+    );
+  }, [installEvent, pathname]);
 
   async function install() {
     if (!installEvent) {
@@ -65,7 +76,7 @@ export function PwaInstallPrompt() {
     setVisible(false);
   }
 
-  if (!visible) {
+  if (pathname === '/' || !visible) {
     return null;
   }
 

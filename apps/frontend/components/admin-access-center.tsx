@@ -42,7 +42,7 @@ export function AdminAccessCenter({
       try {
         const userResponse = await api.getUsers().catch(() => ({ data: [] as AppUser[] }));
         const teacherResponse = showTeacherAdmin
-          ? await api.getTeachers()
+          ? await api.getTeachersForAccess()
           : { data: [] as Teacher[] };
 
         if (!isMounted) {
@@ -306,7 +306,7 @@ export function AdminAccessCenter({
 
   return (
     <section className="mt-6 space-y-5">
-      {showTeacherAdmin ? (
+      {showTeacherAdmin && !canAssignRootRole ? (
         <div className="grid gap-3 sm:grid-cols-2">
           {explanationCards.map((item) => (
             <article className={`rounded-[1.5rem] border p-4 ${item.tone}`} key={item.title}>

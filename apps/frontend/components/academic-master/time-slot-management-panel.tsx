@@ -103,10 +103,9 @@ export function TimeSlotManagementPanel({
                         Edit
                       </Button>
                       <Button
-                        className="border-red-100 bg-red-50 text-red-700 hover:border-red-200 hover:text-red-800"
                         onClick={() => void onDeleteTimeSlot(slot)}
                         size="sm"
-                        variant="outline"
+                        variant="danger"
                       >
                         Hapus
                       </Button>

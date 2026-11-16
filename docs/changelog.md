@@ -1,3 +1,9 @@
+## 2026-11-16
+
+- Menampilkan prompt instalasi PWA mulai dari halaman `/login` dan halaman internal; prompt tidak ditampilkan pada landing (`/`).
+- Mengaktifkan panel daftar guru pada `/system/access` tanpa menampilkan kartu panduan nonaktif/hapus yang khusus untuk konteks operator; daftar mengambil seluruh guru aktif melalui endpoint khusus dengan permission `user.manage`, tanpa membuka endpoint akademik kepada role lain.
+- Menyeragamkan tombol hapus master kelas, mata pelajaran, dan jam pelajaran di `/tu/data` dengan warna danger merah serta mendokumentasikan standar warna aksi destruktif.
+
 ## 2026-10-29
 - Menambahkan CI pada pull request dan push ke `main` untuk validasi Prisma serta build backend/frontend.
 - Memperketat Compose production: secret wajib tidak lagi memakai fallback development, PostgreSQL tidak publish port host, dan frontend/backend hanya bind ke loopback.
