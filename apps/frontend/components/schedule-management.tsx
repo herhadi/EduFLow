@@ -122,7 +122,12 @@ export function ScheduleManagement() {
         setGenerateStartsAt(selection.viewDate);
         setGenerateEndsAt(selection.viewDate);
       }
-    } catch {
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'Data jadwal gagal dimuat. Periksa akses dan koneksi backend.',
+      );
       setLoadState('error');
     }
   }
