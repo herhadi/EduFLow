@@ -18,7 +18,7 @@ apps/frontend/components/ui/
 - `EmptyState`: gunakan saat data kosong agar pesan kosong konsisten.
 - `LoadingState`: gunakan untuk state memuat data.
 - `SearchInput`: gunakan untuk pencarian sederhana, termasuk tombol hapus ketika dibutuhkan.
-- `Pagination`: gunakan untuk daftar yang bisa panjang.
+- `Pagination`: gunakan untuk daftar yang bisa panjang. Standar daftar manajemen menggunakan 10 data per halaman, pencarian mereset ke halaman pertama, dan jumlah halaman mengikuti hasil filter.
 - `FormField` dan `fieldClass`: gunakan untuk label dan input form sederhana.
 - `TableShell` dan `Table`: gunakan untuk tabel desktop yang perlu overflow horizontal aman.
 

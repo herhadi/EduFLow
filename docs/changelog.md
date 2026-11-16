@@ -1,5 +1,7 @@
 ## 2026-11-16
 
+- Memusatkan seluruh pengelolaan akun sekolah, termasuk akun guru, pada `/admin/access` untuk Super Admin. Daftar dibuat ringkas dengan pencarian dan pagination 10 akun per halaman memakai komponen Pagination global; panel khusus `TeacherAdminPanel` dihapus karena fungsinya tumpang tindih dengan pengelolaan akun.
+
 - Memfokuskan halaman akses Root untuk provisioning akun Super Admin Sekolah dan Operator Sekolah; Root tetap memiliki kendali penuh untuk mengubah role, reset password, menonaktifkan, dan menghapus akun. Administrasi sekolah sehari-hari tetap berada pada Super Admin/role terkait.
 
 - Menolak akses ke rute lama `/opsek/jurnal` dan `/opsek/journals` dengan halaman Akses Ditolak; monitoring jurnal hanya tersedia melalui menu TU.

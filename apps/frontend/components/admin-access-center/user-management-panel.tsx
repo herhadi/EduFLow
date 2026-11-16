@@ -1,10 +1,12 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useMemo, useState } from 'react';
 import { type AppUser } from '../../lib/api';
 import { roleCards, type NewUserForm } from './admin-access-center-utils';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { EmptyState } from '../ui/empty-state';
 import { fieldClass } from '../ui/form';
+import { DEFAULT_PAGE_SIZE, Pagination } from '../ui/pagination';
+import { SearchInput } from '../ui/search';
 import { SurfaceCard } from '../ui/card';
 
 type ActionState = 'idle' | 'loading' | 'success' | 'error';
@@ -33,6 +35,21 @@ export function UserManagementPanel({
     ? roleCards.filter((role) => ['admin', 'operator_sekolah'].includes(role.role))
     : assignableRoleCards;
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string[]>>({});
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+
+  const filteredUsers = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return users;
+    return users.filter((user) =>
+      [user.name, user.username, user.email, ...user.roles]
+        .filter(Boolean)
+        .some((value) => value!.toLowerCase().includes(normalizedQuery)),
+    );
+  }, [query, users]);
+  const totalPages = Math.max(Math.ceil(filteredUsers.length / DEFAULT_PAGE_SIZE), 1);
+  const safePage = Math.min(page, totalPages);
+  const visibleUsers = filteredUsers.slice((safePage - 1) * DEFAULT_PAGE_SIZE, safePage * DEFAULT_PAGE_SIZE);
 
   return (
     <SurfaceCard className="sm:p-6">
@@ -42,7 +59,7 @@ export function UserManagementPanel({
         <p className="mt-1 text-sm leading-6 text-muted">
           {bootstrapOnly
             ? 'Root menyiapkan akun Super Admin Sekolah dan Operator Sekolah sebagai pengelola awal. Root tetap memiliki kendali penuh untuk mengelola akun, role, reset password, menonaktifkan, atau menghapus akun.'
-            : 'Kelola akun dan role sesuai kewenangan Super Admin Sekolah. Role Root tidak dapat diberikan dari halaman ini.'}
+            : 'Kelola seluruh akun sekolah, termasuk akun guru. Atur role, reset password, nonaktifkan, atau hapus akun sesuai kewenangan Super Admin Sekolah.'}
         </p>
       </div>
       <form className="mt-5 grid gap-3" onSubmit={onCreateUser}>
@@ -66,8 +83,21 @@ export function UserManagementPanel({
         </div>
         <p className="mt-3 text-xs text-muted">Root memiliki kendali penuh. Super Admin Sekolah tidak dapat memberikan role Root.</p>
       </details>
-      <div className="mt-5 grid gap-3">
-        {users.map((user) => {
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="text-base font-bold text-ink">Daftar Pengguna</h3>
+          <p className="text-xs text-muted">{filteredUsers.length} dari {users.length} akun</p>
+        </div>
+        <SearchInput
+          className="sm:w-72"
+          onChange={(event) => { setQuery(event.target.value); setPage(1); }}
+          onClear={() => { setQuery(''); setPage(1); }}
+          placeholder="Cari nama, username, email, role..."
+          value={query}
+        />
+      </div>
+      <div className="mt-3 grid gap-3">
+        {visibleUsers.map((user) => {
           const rolesForUser = selectedRoles[user.id] ?? user.roles;
           const rolesChanged = rolesForUser.length !== user.roles.length || !rolesForUser.every((role) => user.roles.includes(role));
           const availableRoles = assignableRoleCards.filter((role) => !rolesForUser.includes(role.role));
@@ -91,8 +121,9 @@ export function UserManagementPanel({
             </article>
           );
         })}
-        {!users.length ? <EmptyState title="Belum ada akun yang dapat ditampilkan." /> : null}
+        {!filteredUsers.length ? <EmptyState title="Tidak ada akun sesuai pencarian." /> : null}
       </div>
+      <Pagination page={safePage} pageSize={DEFAULT_PAGE_SIZE} totalItems={filteredUsers.length} onPageChange={setPage} />
     </SurfaceCard>
   );
 }

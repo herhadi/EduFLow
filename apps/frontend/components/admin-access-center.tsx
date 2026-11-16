@@ -1,33 +1,24 @@
 'use client';
 
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
-import { api, type AppUser, type Teacher } from '../lib/api';
-import { explanationCards, type NewUserForm } from './admin-access-center/admin-access-center-utils';
-import { TeacherAdminPanel } from './admin-access-center/teacher-admin-panel';
+import { type FormEvent, useEffect, useState } from 'react';
+import { api, type AppUser } from '../lib/api';
+import { type NewUserForm } from './admin-access-center/admin-access-center-utils';
 import { UserManagementPanel } from './admin-access-center/user-management-panel';
 import { useToast } from './ui/toast';
 
-type LoadState = 'idle' | 'loading' | 'success' | 'error';
 type ActionState = 'idle' | 'loading' | 'success' | 'error';
 
 export function AdminAccessCenter({
-  showTeacherAdmin = false,
   canAssignRootRole = false,
   bootstrapOnly = false,
 }: {
-  showTeacherAdmin?: boolean;
   canAssignRootRole?: boolean;
   bootstrapOnly?: boolean;
 }) {
   const toast = useToast();
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [users, setUsers] = useState<AppUser[]>([]);
-  const [loadState, setLoadState] = useState<LoadState>('idle');
-  const [actionState, setActionState] = useState<ActionState>('idle');
   const [userActionState, setUserActionState] = useState<ActionState>('idle');
-  const [message, setMessage] = useState<string>('');
   const [userMessage, setUserMessage] = useState<string>('');
-  const [query, setQuery] = useState('');
   const [newUser, setNewUser] = useState<NewUserForm>({
     email: '',
     username: '',
@@ -39,24 +30,19 @@ export function AdminAccessCenter({
     let isMounted = true;
 
     async function loadAccessData() {
-      setLoadState('loading');
-
       try {
-        const userResponse = await api.getUsers().catch(() => ({ data: [] as AppUser[] }));
-        const teacherResponse = showTeacherAdmin
-          ? await api.getTeachersForAccess()
-          : { data: [] as Teacher[] };
+        const userResponse = await api.getUsers();
 
         if (!isMounted) {
           return;
         }
 
-        setTeachers(teacherResponse.data);
         setUsers(userResponse.data);
-        setLoadState('success');
-      } catch {
+      } catch (error) {
         if (isMounted) {
-          setLoadState('error');
+          const errorMessage = error instanceof Error ? error.message : 'Gagal memuat daftar pengguna.';
+          setUserActionState('error');
+          setUserMessage(`Gagal memuat akun: ${errorMessage}`);
         }
       }
     }
@@ -66,87 +52,7 @@ export function AdminAccessCenter({
     return () => {
       isMounted = false;
     };
-  }, [showTeacherAdmin]);
-
-  const filteredTeachers = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    if (!normalizedQuery) {
-      return teachers;
-    }
-
-    return teachers.filter((teacher) =>
-      [teacher.name, teacher.nip, teacher.email, teacher.phone]
-        .filter(Boolean)
-        .some((value) => value!.toLowerCase().includes(normalizedQuery)),
-    );
-  }, [query, teachers]);
-
-  async function handleDeactivateTeacher(teacher: Teacher) {
-    const confirmed = window.confirm(
-      `Nonaktifkan ${teacher.name}? Jadwal aktif guru akan ikut dinonaktifkan, tetapi histori lama tetap aman.`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    setActionState('loading');
-    setMessage('');
-
-    try {
-      const response = await api.deleteTeacher(teacher.id);
-      setTeachers((currentTeachers) =>
-        currentTeachers.filter((currentTeacher) => currentTeacher.id !== teacher.id),
-      );
-      setActionState('success');
-      setMessage(response.message ?? `${teacher.name} berhasil dinonaktifkan.`);
-      toast.success(
-        response.message ?? `${teacher.name} berhasil dinonaktifkan.`,
-        'Guru Dinonaktifkan',
-      );
-    } catch {
-      setActionState('error');
-      setMessage(
-        'Gagal menonaktifkan guru. Pastikan sudah login sebagai root/operator_sekolah dan token tersimpan.',
-      );
-      toast.error('Gagal menonaktifkan guru.', 'Aksi Gagal');
-    }
-  }
-
-  async function handleDeleteTeacherPermanently(teacher: Teacher) {
-    const confirmed = window.confirm(
-      `Hapus permanen guru ${teacher.name}? Gunakan hanya untuk data salah input. Jika guru sudah punya histori jadwal/agenda, sistem akan menolak.`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    setActionState('loading');
-    setMessage('');
-
-    try {
-      const response = await api.deleteTeacherPermanently(teacher.id);
-      setTeachers((currentTeachers) =>
-        currentTeachers.filter((currentTeacher) => currentTeacher.id !== teacher.id),
-      );
-      setActionState('success');
-      setMessage(response.message ?? `${teacher.name} berhasil dihapus permanen.`);
-      toast.success(
-        response.message ?? `${teacher.name} berhasil dihapus permanen.`,
-        'Guru Dihapus',
-      );
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? `Gagal hapus permanen guru: ${error.message}`
-          : 'Gagal hapus permanen guru.';
-      setActionState('error');
-      setMessage(errorMessage);
-      toast.error(errorMessage, 'Aksi Gagal');
-    }
-  }
+  }, []);
 
   async function handleCreateUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -308,17 +214,6 @@ export function AdminAccessCenter({
 
   return (
     <section className="mt-6 space-y-5">
-      {showTeacherAdmin && !canAssignRootRole ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {explanationCards.map((item) => (
-            <article className={`rounded-[1.5rem] border p-4 ${item.tone}`} key={item.title}>
-              <p className="text-sm font-black">{item.title}</p>
-              <p className="mt-2 text-xs leading-5 opacity-90">{item.description}</p>
-            </article>
-          ))}
-        </div>
-      ) : null}
-
       <UserManagementPanel
         bootstrapOnly={bootstrapOnly}
         canAssignRootRole={canAssignRootRole}
@@ -336,18 +231,6 @@ export function AdminAccessCenter({
         users={users}
       />
 
-      {showTeacherAdmin ? (
-        <TeacherAdminPanel
-          actionState={actionState}
-          filteredTeachers={filteredTeachers}
-          loadState={loadState}
-          message={message}
-          onDeactivateTeacher={handleDeactivateTeacher}
-          onDeleteTeacherPermanently={handleDeleteTeacherPermanently}
-          onQueryChange={setQuery}
-          query={query}
-        />
-      ) : null}
     </section>
   );
 }

@@ -1,5 +1,7 @@
 'use client';
 
+export const DEFAULT_PAGE_SIZE = 10;
+
 type PaginationProps = {
   page: number;
   pageSize: number;

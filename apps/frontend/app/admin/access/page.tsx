@@ -7,7 +7,7 @@ export default function SchoolAdminAccessPage() {
     <main>
       <Container>
         <PageHeader
-          description="Kelola akun pengguna, role sekolah, dan bantuan akses sesuai kewenangan Super Admin Sekolah."
+          description="Kelola seluruh akun sekolah, termasuk seluruh akun guru, serta atur role dan akses sesuai kewenangan Super Admin Sekolah."
           eyebrow="Administrasi Sistem Sekolah"
           title="Akun & Akses"
         />
