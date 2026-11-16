@@ -1,9 +1,9 @@
 export const roleCards = [
   {
-    role: 'root',
-    label: 'Root',
-    description: 'Akses teknis semua fitur untuk owner/dev/super admin. Tidak dipakai operasional harian.',
-    permissions: ['Semua permission', 'Recovery sistem', 'Kelola user dan role'],
+    role: 'kepala_sekolah',
+    label: 'Kepala Sekolah',
+    description: 'Monitoring sekolah, review perangkat ajar, approval nilai semester, dan audit terbatas.',
+    permissions: ['teaching-plan.review', 'student-grade.approve', 'reporting.read', 'audit.read'],
   },
   {
     role: 'admin',
@@ -16,12 +16,6 @@ export const roleCards = [
     label: 'Operator Sekolah',
     description: 'Actor utama untuk kalender pendidikan, jadwal, master akademik, import, dan generate agenda.',
     permissions: ['academic.manage', 'academic-calendar.manage', 'schedule.manage', 'agenda.generate'],
-  },
-  {
-    role: 'kepala_sekolah',
-    label: 'Kepala Sekolah',
-    description: 'Monitoring sekolah, review perangkat ajar, approval nilai semester, dan audit terbatas.',
-    permissions: ['teaching-plan.review', 'student-grade.approve', 'reporting.read', 'audit.read'],
   },
   {
     role: 'guru',
@@ -48,10 +42,10 @@ export const roleCards = [
     permissions: ['attendance.read', 'student-grade.read', 'class-status.read'],
   },
   {
-    role: 'orang_tua',
-    label: 'Orang Tua',
-    description: 'Akses portal wali murid untuk melihat presensi dan ringkasan anak sendiri.',
-    permissions: ['attendance.read', 'student-grade.read'],
+    role: 'root',
+    label: 'Root',
+    description: 'Akses teknis semua fitur untuk owner/dev/super admin. Tidak dipakai operasional harian.',
+    permissions: ['Semua permission', 'Recovery sistem', 'Kelola user dan role'],
   },
 ];
 
