@@ -316,7 +316,7 @@ export class TeacherAcademicService {
       return tx.user.update({
         where: { id: teacher.userId! },
         data: {
-          password: passwordHash ?? await hash(this.getDefaultUserPassword(), 12),
+          password: await hash(this.getDefaultUserPassword(), 12),
           failedLoginCount: 0,
           lockedUntil: null,
           passwordChangedAt: null,
@@ -561,7 +561,7 @@ export class TeacherAcademicService {
     const user = await tx.user.create({
       data: {
         name: teacher.name, username, email,
-        password: await hash(this.getDefaultUserPassword(), 12),
+        password: passwordHash ?? await hash(this.getDefaultUserPassword(), 12),
         roles: { create: { roleId: guruRoleId } },
       },
       select: { id: true, username: true, email: true },
