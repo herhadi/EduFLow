@@ -1,5 +1,7 @@
 ## 2026-11-16
 
+- Memfokuskan halaman akses Root untuk provisioning akun Super Admin Sekolah dan Operator Sekolah; Root tetap memiliki kendali penuh untuk mengubah role, reset password, menonaktifkan, dan menghapus akun. Administrasi sekolah sehari-hari tetap berada pada Super Admin/role terkait.
+
 - Menolak akses ke rute lama `/opsek/jurnal` dan `/opsek/journals` dengan halaman Akses Ditolak; monitoring jurnal hanya tersedia melalui menu TU.
 - Menyamakan pagination preview Guru, Rombel, dan Mata Pelajaran dengan standar preview Siswa: 22 baris A4 Landscape, 30 A4 Portrait, dan 34 F4 Portrait, dengan pagination yang dihitung ulang saat ukuran kertas berubah.
 

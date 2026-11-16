@@ -13,9 +13,11 @@ type ActionState = 'idle' | 'loading' | 'success' | 'error';
 export function AdminAccessCenter({
   showTeacherAdmin = false,
   canAssignRootRole = false,
+  bootstrapOnly = false,
 }: {
   showTeacherAdmin?: boolean;
   canAssignRootRole?: boolean;
+  bootstrapOnly?: boolean;
 }) {
   const toast = useToast();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -318,6 +320,7 @@ export function AdminAccessCenter({
       ) : null}
 
       <UserManagementPanel
+        bootstrapOnly={bootstrapOnly}
         canAssignRootRole={canAssignRootRole}
         newUser={newUser}
         onCreateUser={handleCreateUser}

@@ -60,11 +60,11 @@ export default function AdminAccessPage() {
     <main>
       <Container>
         <PageHeader
-          description="Kelola user, role, permission, serta status akun sistem."
+          description="Provisioning awal platform: buat akun Super Admin Sekolah dan Operator Sekolah. Root tetap memiliki kendali penuh atas pengelolaan akun."
           eyebrow="Admin Akses"
           title="User & Hak Akses"
         />
-        <AdminAccessCenter canAssignRootRole showTeacherAdmin />
+        <AdminAccessCenter canAssignRootRole bootstrapOnly />
       </Container>
     </main>
   );
