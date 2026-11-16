@@ -1,5 +1,11 @@
 ## 2026-11-16
 
+- Menolak akses ke rute lama `/opsek/jurnal` dan `/opsek/journals` dengan halaman Akses Ditolak; monitoring jurnal hanya tersedia melalui menu TU.
+- Menyamakan pagination preview Guru, Rombel, dan Mata Pelajaran dengan standar preview Siswa: 22 baris A4 Landscape, 30 A4 Portrait, dan 34 F4 Portrait, dengan pagination yang dihitung ulang saat ukuran kertas berubah.
+
+- Memindahkan menu monitoring Jurnal Kelas dari Operator Sekolah ke TU. TU mendapat akses baca lintas kelas untuk rekap jurnal harian, status jurnal, agenda, presensi, dan catatan wali kelas tanpa hak mengubah data jurnal.
+- Menyederhanakan filter Monitoring Jurnal menjadi dua dropdown bertahap: Tingkat lalu Rombel; dropdown rombel aktif setelah tingkat dipilih.
+
 - Menampilkan prompt instalasi PWA mulai dari halaman `/login` dan halaman internal; prompt tidak ditampilkan pada landing (`/`).
 - Mengaktifkan panel daftar guru pada `/system/access` tanpa menampilkan kartu panduan nonaktif/hapus yang khusus untuk konteks operator; daftar mengambil seluruh guru aktif melalui endpoint khusus dengan permission `user.manage`, tanpa membuka endpoint akademik kepada role lain.
 - Menyeragamkan tombol hapus master kelas, mata pelajaran, dan jam pelajaran di `/tu/data` dengan warna danger merah serta mendokumentasikan standar warna aksi destruktif.

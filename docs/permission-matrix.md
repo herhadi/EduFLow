@@ -32,6 +32,8 @@ Role `admin` memiliki permission teknis sekolah berikut: `auth.session.manage`, 
 | `auth.session.manage` | Mengelola session sendiri |
 | `academic.read` | Membaca data akademik |
 | `academic.manage` | Mengelola master data akademik |
+| `teaching_journal.read_school` | Membaca jurnal harian guru lintas kelas |
+| `class_journal.read_school` | Membaca monitoring dan rekap jurnal kelas lintas kelas |
 | `academic-calendar.read` | Membaca kalender pendidikan |
 | `academic-calendar.manage` | Mengelola kalender pendidikan |
 | `schedule.read` | Membaca jadwal |
@@ -116,20 +118,20 @@ Seeder awal sebaiknya:
 4. membuat admin awal dari environment variable,
 5. tidak menghapus permission lama secara otomatis.
 
-## Rancangan Permission Jurnal
+## Permission Jurnal
 
-Permission berikut adalah usulan untuk katalog/seeder saat fitur diimplementasikan. Selaraskan dengan permission aktual dan hindari alias duplikat.
+Permission jurnal berikut aktif pada katalog dan seeder.
 
-| Permission | Guru | Wali Kelas | Operator Sekolah | Kepala Sekolah |
-| --- | --- | --- | --- | --- |
-| `teaching_journal.read_own` | ✓ | ✓ |  |  |
-| `teaching_journal.manage_own` | ✓ | ✓ |  |  |
-| `teaching_journal.read_school` |  |  | ✓ | ✓ |
-| `class_journal.read_assigned` |  | ✓ |  |  |
-| `class_journal.read_school` |  |  | ✓ | ✓ |
-| `class_journal_note.manage_assigned` |  | ✓ |  |  |
+| Permission | Guru | Wali Kelas | Operator Sekolah | TU | Kepala Sekolah |
+| --- | --- | --- | --- | --- | --- |
+| `teaching_journal.read_own` | ✓ | ✓ |  |  |  |
+| `teaching_journal.manage_own` | ✓ | ✓ |  |  |  |
+| `teaching_journal.read_school` |  |  |  | ✓ | ✓ |
+| `class_journal.read_assigned` |  | ✓ |  |  |  |
+| `class_journal.read_school` |  |  |  | ✓ | ✓ |
+| `class_journal_note.manage_assigned` |  | ✓ |  |  |  |
 
-Scope harus ditegakkan di service: guru hanya mengelola jurnal agenda yang ditugaskan; wali kelas hanya membaca rekap dan mengelola catatan kelas binaannya; operator/kepala sekolah membaca lintas kelas sesuai permission. Kepala sekolah tidak otomatis mengedit jurnal guru. Permission di dokumen ini belum aktif hanya karena dicantumkan.
+Scope harus ditegakkan di service: guru hanya mengelola jurnal agenda yang ditugaskan; wali kelas hanya membaca rekap dan mengelola catatan kelas binaannya; TU/kepala sekolah membaca lintas kelas sesuai permission; Operator Sekolah tidak memiliki akses monitoring jurnal. TU hanya membaca dan merekap, bukan mengubah jurnal guru atau catatan wali kelas. Kepala sekolah tidak otomatis mengedit jurnal guru.
 
 ## Pengelolaan Role User
 

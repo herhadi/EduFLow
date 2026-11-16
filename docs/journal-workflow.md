@@ -64,7 +64,7 @@ Tampilkan total agenda, jurnal terkirim, jurnal belum diisi/draft, agenda batal/
 
 - Guru mengelola jurnal hanya untuk agenda yang ditugaskan, termasuk guru pengganti yang sah.
 - Wali kelas membaca seluruh jurnal kelas binaan dan membuat catatan kelas.
-- Operator dan kepala sekolah membaca rekap lintas kelas sesuai permission.
+- TU dan kepala sekolah membaca rekap lintas kelas sesuai permission. TU bertanggung jawab pada monitoring administratif dan rekap; Operator Sekolah tidak memiliki menu monitoring jurnal.
 - Kepala sekolah tidak mengedit jurnal guru secara langsung.
 - Orang tua tidak mendapat akses ke jurnal internal kelas pada fase awal.
 - Scope divalidasi backend, bukan hanya dengan menyembunyikan UI.
