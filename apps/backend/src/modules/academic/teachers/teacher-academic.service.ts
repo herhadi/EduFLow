@@ -46,21 +46,41 @@ export class TeacherAcademicService {
   }
 
   async provisionMissingTeacherAccounts() {
+    const teachers = await this.prisma.teacher.findMany({
+      where: { deletedAt: null, userId: null },
+      select: { id: true, name: true, nip: true, email: true },
+      orderBy: { name: 'asc' },
+    });
+    if (!teachers.length) {
+      return {
+        data: { created: 0, remaining: 0 },
+        message: 'Semua guru aktif sudah memiliki akun login.',
+      };
+    }
+
+    const guruRole = await this.prisma.role.findUnique({
+      where: { name: 'guru' },
+      select: { id: true },
+    });
+    if (!guruRole) throw new BadRequestException('Role guru belum tersedia');
+
+    // bcrypt is intentionally executed before opening the transaction, and once
+    // for the shared initial password, so a large teacher batch does not consume
+    // the database transaction's short default timeout doing CPU work.
+    const passwordHash = await hash(this.getDefaultUserPassword(), 12);
     const result = await this.prisma.$transaction(async (tx) => {
-      const guruRole = await tx.role.findUnique({ where: { name: 'guru' }, select: { id: true } });
-      if (!guruRole) throw new BadRequestException('Role guru belum tersedia');
-      const teachers = await tx.teacher.findMany({
-        where: { deletedAt: null, userId: null },
+      const pendingTeachers = await tx.teacher.findMany({
+        where: { id: { in: teachers.map(({ id }) => id) }, deletedAt: null, userId: null },
         select: { id: true, name: true, nip: true, email: true },
         orderBy: { name: 'asc' },
       });
       const created: Array<{ teacherId: string; userId: string; username: string; email: string }> = [];
-      for (const teacher of teachers) {
-        const user = await this.createTeacherLoginAccount(tx, teacher, guruRole.id);
+      for (const teacher of pendingTeachers) {
+        const user = await this.createTeacherLoginAccount(tx, teacher, guruRole.id, passwordHash);
         created.push({ teacherId: teacher.id, userId: user.id, username: user.username!, email: user.email });
       }
       return { created };
-    });
+    }, { maxWait: 10_000, timeout: 60_000 });
     for (const account of result.created) {
       await this.auditService.record({
         action: 'teacher.account.provisioned', entityType: 'Teacher', entityId: account.teacherId,
@@ -296,7 +316,7 @@ export class TeacherAcademicService {
       return tx.user.update({
         where: { id: teacher.userId! },
         data: {
-          password: await hash(this.getDefaultUserPassword(), 12),
+          password: passwordHash ?? await hash(this.getDefaultUserPassword(), 12),
           failedLoginCount: 0,
           lockedUntil: null,
           passwordChangedAt: null,
@@ -524,6 +544,7 @@ export class TeacherAcademicService {
     tx: Prisma.TransactionClient,
     teacher: { id: string; name: string; nip?: string | null; email?: string | null },
     guruRoleId: string,
+    passwordHash?: string,
   ) {
     const baseUsername = this.toAccountSlug(teacher.nip || teacher.email?.split('@')[0] || teacher.name) || 'guru';
     let username = baseUsername;

@@ -1,5 +1,9 @@
 ## 2026-11-16
 
+- Memperbaiki provisioning akun login guru massal dengan menghitung hash password sekali di luar transaksi dan menaikkan batas waktu transaksi agar tidak gagal pada timeout default Prisma.
+
+## 2026-11-16
+
 - Memastikan setiap profil guru aktif memiliki akun login: pembuatan guru baru otomatis membuat `User` ber-role `guru`, dan halaman Akses menyediakan provisioning aman untuk guru lama yang belum terhubung ke akun.
 - Provisioning akun guru menggunakan username/email unik, mempertahankan akun dan role yang sudah ada, serta memakai password awal default EduFlow agar guru menggantinya saat login pertama.
 
