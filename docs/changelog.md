@@ -1,5 +1,7 @@
 ## 2026-11-16
 
+- Menyederhanakan Pengelolaan Akun: form tambah user dan keterangan role dibuat collapse, daftar akun memakai baris ringkas di desktop dan card minimal di mobile, sedangkan edit role serta aksi akun dibuka hanya saat diperlukan.
+
 - Mengurutkan daftar akun dan seluruh dropdown role berdasarkan prioritas operasional: Kepala Sekolah, Super Admin, Operator, TU, Guru, Guru BK, Wali Kelas, lalu Root. Akun ber-role Orang Tua tidak ditampilkan di halaman pengelolaan akun; pengelolaannya tetap melalui menu Operator/TU.
 
 - Memperbaiki provisioning akun login guru massal dengan menghitung hash password sekali di luar transaksi dan menaikkan batas waktu transaksi agar tidak gagal pada timeout default Prisma.
