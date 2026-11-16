@@ -120,6 +120,10 @@ export class AcademicService {
     return this.teacherAcademicService.createTeacher(dto);
   }
 
+  async provisionMissingTeacherAccounts() {
+    return this.teacherAcademicService.provisionMissingTeacherAccounts();
+  }
+
   async updateTeacher(id: string, dto: UpdateTeacherDto) {
     return this.teacherAcademicService.updateTeacher(id, dto);
   }

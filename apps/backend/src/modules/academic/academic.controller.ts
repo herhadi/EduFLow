@@ -151,6 +151,12 @@ export class AcademicController {
     return this.academicService.createTeacher(dto);
   }
 
+  @RequirePermissions(PERMISSIONS.USER_MANAGE)
+  @Post('teachers/provision-accounts')
+  provisionMissingTeacherAccounts() {
+    return this.academicService.provisionMissingTeacherAccounts();
+  }
+
   @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
   @Patch('teachers/:id')
   updateTeacher(@Param('id') id: string, @Body() dto: UpdateTeacherDto) {

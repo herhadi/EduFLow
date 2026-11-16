@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { TeacherAssignmentStatus } from '@prisma/client';
+import { Prisma, TeacherAssignmentStatus } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
@@ -43,6 +43,36 @@ export class TeacherAcademicService {
       orderBy: { name: 'asc' },
     });
     return { data: await Promise.all(teachers.map((teacher) => this.withTeacherPhotoUrl(teacher))) };
+  }
+
+  async provisionMissingTeacherAccounts() {
+    const result = await this.prisma.$transaction(async (tx) => {
+      const guruRole = await tx.role.findUnique({ where: { name: 'guru' }, select: { id: true } });
+      if (!guruRole) throw new BadRequestException('Role guru belum tersedia');
+      const teachers = await tx.teacher.findMany({
+        where: { deletedAt: null, userId: null },
+        select: { id: true, name: true, nip: true, email: true },
+        orderBy: { name: 'asc' },
+      });
+      const created: Array<{ teacherId: string; userId: string; username: string; email: string }> = [];
+      for (const teacher of teachers) {
+        const user = await this.createTeacherLoginAccount(tx, teacher, guruRole.id);
+        created.push({ teacherId: teacher.id, userId: user.id, username: user.username!, email: user.email });
+      }
+      return { created };
+    });
+    for (const account of result.created) {
+      await this.auditService.record({
+        action: 'teacher.account.provisioned', entityType: 'Teacher', entityId: account.teacherId,
+        after: { userId: account.userId, username: account.username, email: account.email, roles: ['guru'] },
+      });
+    }
+    return {
+      data: { created: result.created.length, remaining: 0 },
+      message: result.created.length
+        ? `${result.created.length} akun login guru berhasil dibuat. Password awal mengikuti password default EduFlow.`
+        : 'Semua guru aktif sudah memiliki akun login.',
+    };
   }
 
   async uploadTeacherPhoto(id: string, file: { buffer: Buffer; originalname: string; mimetype: string; size: number }) {
@@ -103,17 +133,20 @@ export class TeacherAcademicService {
       throw new BadRequestException('NIP atau email guru sudah digunakan');
     }
 
-    const teacher = await this.prisma.teacher.create({
-      data: {
-        name,
-        nip,
-        phone: dto.phone?.trim() || null,
-        email,
-      },
-      include: {
-        user: { include: { roles: { include: { role: true } } } },
-        subjects: { include: { subject: true } },
-      },
+    const teacher = await this.prisma.$transaction(async (tx) => {
+      const createdTeacher = await tx.teacher.create({
+        data: { name, nip, phone: dto.phone?.trim() || null, email },
+      });
+      const guruRole = await tx.role.findUnique({ where: { name: 'guru' }, select: { id: true } });
+      if (!guruRole) throw new BadRequestException('Role guru belum tersedia');
+      await this.createTeacherLoginAccount(tx, createdTeacher, guruRole.id);
+      return tx.teacher.findUniqueOrThrow({
+        where: { id: createdTeacher.id },
+        include: {
+          user: { include: { roles: { include: { role: true } } } },
+          subjects: { include: { subject: true } },
+        },
+      });
     });
 
     await this.auditService.record({
@@ -485,6 +518,40 @@ export class TeacherAcademicService {
       data: result,
       message: 'Guru berhasil dihapus permanen.',
     };
+  }
+
+  private async createTeacherLoginAccount(
+    tx: Prisma.TransactionClient,
+    teacher: { id: string; name: string; nip?: string | null; email?: string | null },
+    guruRoleId: string,
+  ) {
+    const baseUsername = this.toAccountSlug(teacher.nip || teacher.email?.split('@')[0] || teacher.name) || 'guru';
+    let username = baseUsername;
+    for (let suffix = 2; await tx.user.findUnique({ where: { username }, select: { id: true } }); suffix += 1) {
+      username = `${baseUsername}_${suffix}`;
+    }
+    let email = teacher.email?.trim().toLowerCase() || '';
+    if (!email || await tx.user.findUnique({ where: { email }, select: { id: true } })) {
+      email = `${username}@eduflow.local`;
+      for (let suffix = 2; await tx.user.findUnique({ where: { email }, select: { id: true } }); suffix += 1) {
+        email = `${username}_${suffix}@eduflow.local`;
+      }
+    }
+    const user = await tx.user.create({
+      data: {
+        name: teacher.name, username, email,
+        password: await hash(this.getDefaultUserPassword(), 12),
+        roles: { create: { roleId: guruRoleId } },
+      },
+      select: { id: true, username: true, email: true },
+    });
+    await tx.teacher.update({ where: { id: teacher.id }, data: { userId: user.id } });
+    return user;
+  }
+
+  private toAccountSlug(value: string) {
+    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40);
   }
 
   private async withTeacherPhotoUrl<T extends { photoKey?: string | null; photoName?: string | null }>(teacher: T) {

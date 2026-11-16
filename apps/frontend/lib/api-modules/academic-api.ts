@@ -64,6 +64,8 @@ export const academicApi = {
     }),
   getTeachers: () => request<ApiResponse<Teacher[]>>('/academic/teachers'),
   getTeachersForAccess: () => request<ApiResponse<Teacher[]>>('/academic/teachers/access-list'),
+  provisionMissingTeacherAccounts: () =>
+    request<ApiResponse<{ created: number; remaining: number }>>('/academic/teachers/provision-accounts', { method: 'POST' }),
   createTeacher: (payload: {
     name: string;
     nip?: string;

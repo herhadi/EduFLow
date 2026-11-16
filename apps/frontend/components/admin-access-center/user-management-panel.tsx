@@ -18,6 +18,7 @@ type UserManagementPanelProps = {
   onDeactivateUser: (user: AppUser) => void;
   onDeleteUser: (user: AppUser) => void;
   onNewUserChange: (field: keyof NewUserForm, value: string) => void;
+  onProvisionTeacherAccounts: () => void;
   onResetUserPassword: (user: AppUser) => void;
   onUpdateUserRoles: (user: AppUser, roles: string[]) => void;
   userActionState: ActionState;
@@ -27,7 +28,7 @@ type UserManagementPanelProps = {
 
 export function UserManagementPanel({
   canAssignRootRole = false, bootstrapOnly = false, newUser, onCreateUser,
-  onDeactivateUser, onDeleteUser, onNewUserChange, onResetUserPassword,
+  onDeactivateUser, onDeleteUser, onNewUserChange, onProvisionTeacherAccounts, onResetUserPassword,
   onUpdateUserRoles, userActionState, userMessage, users,
 }: UserManagementPanelProps) {
   const assignableRoleCards = roleCards.filter((role) => canAssignRootRole || role.role !== 'root');
@@ -83,10 +84,15 @@ export function UserManagementPanel({
         </div>
         <p className="mt-3 text-xs text-muted">Root memiliki kendali penuh. Super Admin Sekolah tidak dapat memberikan role Root.</p>
       </details>
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 className="text-base font-bold text-ink">Daftar Pengguna</h3>
-          <p className="text-xs text-muted">{filteredUsers.length} dari {users.length} akun</p>
+      <div className="mt-6 flex flex-col gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-base font-bold text-ink">Daftar Pengguna</h3>
+            <p className="text-xs text-muted">{filteredUsers.length} dari {users.length} akun</p>
+          </div>
+          <Button disabled={userActionState === 'loading'} onClick={onProvisionTeacherAccounts} size="sm" variant="outline">
+            {userActionState === 'loading' ? 'Memproses...' : 'Buat Akun Login Guru'}
+          </Button>
         </div>
         <SearchInput
           className="sm:w-72"

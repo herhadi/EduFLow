@@ -1,5 +1,10 @@
 ## 2026-11-16
 
+- Memastikan setiap profil guru aktif memiliki akun login: pembuatan guru baru otomatis membuat `User` ber-role `guru`, dan halaman Akses menyediakan provisioning aman untuk guru lama yang belum terhubung ke akun.
+- Provisioning akun guru menggunakan username/email unik, mempertahankan akun dan role yang sudah ada, serta memakai password awal default EduFlow agar guru menggantinya saat login pertama.
+
+
+
 - Memusatkan seluruh pengelolaan akun sekolah, termasuk akun guru, pada `/admin/access` untuk Super Admin. Daftar dibuat ringkas dengan pencarian dan pagination 10 akun per halaman memakai komponen Pagination global; panel khusus `TeacherAdminPanel` dihapus karena fungsinya tumpang tindih dengan pengelolaan akun.
 
 - Memfokuskan halaman akses Root untuk provisioning akun Super Admin Sekolah dan Operator Sekolah; Root tetap memiliki kendali penuh untuk mengubah role, reset password, menonaktifkan, dan menghapus akun. Administrasi sekolah sehari-hari tetap berada pada Super Admin/role terkait.

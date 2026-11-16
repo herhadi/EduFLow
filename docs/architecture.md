@@ -176,3 +176,10 @@ Tidak masuk infra: attendance logic, auth logic, approval flow, reporting rule, 
 ## Kebijakan Data Operasional
 
 EduFlow tidak mempertahankan mode data contoh di runtime production. Endpoint, service, UI, seed otomatis, dan fallback angka yang membuat data contoh tidak boleh ditambahkan ke alur utama. Data yang tampil di dashboard harus berasal dari PostgreSQL atau bernilai kosong ketika backend belum dapat memuat data.
+
+
+## Provisioning Akun Login Guru
+
+Setiap profil `Teacher` aktif harus terhubung ke satu `User` melalui `Teacher.userId`. Pembuatan profil guru baru otomatis membuat akun login ber-role `guru`. Untuk data lama, Root atau Super Admin Sekolah dapat menjalankan provisioning dari halaman /admin/access; proses hanya membuat akun bagi guru aktif yang `userId`-nya masih kosong dan tidak menggandakan akun yang sudah terhubung.
+
+Username dibentuk dari NIP, bagian awal email, atau nama guru, dengan suffix jika terjadi benturan. Email guru dipakai jika belum digunakan; jika tidak tersedia atau sudah dipakai, sistem membuat alamat internal `@eduflow.local`. Password awal mengikuti `DEFAULT_USER_PASSWORD` (fallback aplikasi tetap berlaku), sehingga guru menggantinya saat login pertama. Role tambahan seperti Wali Kelas atau Guru BK tetap dikelola melalui pengaturan role akun.

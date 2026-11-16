@@ -54,6 +54,24 @@ export function AdminAccessCenter({
     };
   }, []);
 
+  async function handleProvisionTeacherAccounts() {
+    setUserActionState('loading');
+    setUserMessage('');
+    try {
+      const response = await api.provisionMissingTeacherAccounts();
+      const userResponse = await api.getUsers();
+      setUsers(userResponse.data);
+      setUserActionState('success');
+      setUserMessage(response.message ?? `${response.data.created} akun guru berhasil dibuat.`);
+      toast.success(response.message ?? 'Akun login guru berhasil disiapkan.', 'Akun Guru');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Gagal membuat akun login guru.';
+      setUserActionState('error');
+      setUserMessage(errorMessage);
+      toast.error(errorMessage, 'Akun Guru');
+    }
+  }
+
   async function handleCreateUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setUserActionState('loading');
@@ -219,6 +237,7 @@ export function AdminAccessCenter({
         canAssignRootRole={canAssignRootRole}
         newUser={newUser}
         onCreateUser={handleCreateUser}
+        onProvisionTeacherAccounts={handleProvisionTeacherAccounts}
         onDeactivateUser={handleDeactivateUser}
         onUpdateUserRoles={handleUpdateUserRoles}
         onDeleteUser={handleDeleteUser}
