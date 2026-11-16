@@ -32,7 +32,6 @@ export function UserManagementPanel({
   onUpdateUserRoles, userActionState, userMessage, users,
 }: UserManagementPanelProps) {
   const assignableRoleCards = roleCards.filter((role) => canAssignRootRole || role.role !== 'root');
-  const roleOrder = useMemo(() => new Map(roleCards.map((role, index) => [role.role, index])), []);
   const creationRoleCards = bootstrapOnly
     ? roleCards.filter((role) => ['admin', 'operator_sekolah'].includes(role.role))
     : assignableRoleCards;
@@ -42,17 +41,13 @@ export function UserManagementPanel({
 
   const filteredUsers = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return users
-      .filter((user) => !user.roles.includes('orang_tua'))
-      .filter((user) => !normalizedQuery || [user.name, user.username, user.email, ...user.roles]
+    if (!normalizedQuery) return users;
+    return users.filter((user) =>
+      [user.name, user.username, user.email, ...user.roles]
         .filter(Boolean)
-        .some((value) => value!.toLowerCase().includes(normalizedQuery)))
-      .sort((a, b) => {
-        const aPriority = Math.min(...a.roles.map((role) => roleOrder.get(role) ?? Number.MAX_SAFE_INTEGER));
-        const bPriority = Math.min(...b.roles.map((role) => roleOrder.get(role) ?? Number.MAX_SAFE_INTEGER));
-        return aPriority - bPriority || a.name.localeCompare(b.name, 'id');
-      });
-  }, [query, roleOrder, users]);
+        .some((value) => value!.toLowerCase().includes(normalizedQuery)),
+    );
+  }, [query, users]);
   const totalPages = Math.max(Math.ceil(filteredUsers.length / DEFAULT_PAGE_SIZE), 1);
   const safePage = Math.min(page, totalPages);
   const visibleUsers = filteredUsers.slice((safePage - 1) * DEFAULT_PAGE_SIZE, safePage * DEFAULT_PAGE_SIZE);
@@ -93,7 +88,7 @@ export function UserManagementPanel({
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="text-base font-bold text-ink">Daftar Pengguna</h3>
-            <p className="text-xs text-muted">{filteredUsers.length} akun ditampilkan</p>
+            <p className="text-xs text-muted">{filteredUsers.length} dari {users.length} akun</p>
           </div>
           <Button disabled={userActionState === 'loading'} onClick={onProvisionTeacherAccounts} size="sm" variant="outline">
             {userActionState === 'loading' ? 'Memproses...' : 'Buat Akun Login Guru'}
@@ -115,7 +110,7 @@ export function UserManagementPanel({
           return (
             <article className="rounded-[1.5rem] border border-blue-50 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900" key={user.id}>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div><h3 className="font-black text-slate-900 dark:text-slate-100">{user.name}</h3><p className="mt-1 text-xs font-semibold text-muted">{user.username ?? '-'} · {user.email}</p><div className="mt-2 flex flex-wrap gap-2">{[...user.roles].sort((a, b) => (roleOrder.get(a) ?? Number.MAX_SAFE_INTEGER) - (roleOrder.get(b) ?? Number.MAX_SAFE_INTEGER)).map((role) => <Badge key={role} tone="brand">{roleCards.find((item) => item.role === role)?.label ?? role}</Badge>)}</div></div>
+                <div><h3 className="font-black text-slate-900 dark:text-slate-100">{user.name}</h3><p className="mt-1 text-xs font-semibold text-muted">{user.username ?? '-'} · {user.email}</p><div className="mt-2 flex flex-wrap gap-2">{user.roles.map((role) => <Badge key={role} tone="brand">{role}</Badge>)}</div></div>
                 <div className="grid grid-cols-3 gap-2 sm:flex sm:shrink-0">
                   <Button disabled={userActionState === 'loading'} onClick={() => void onResetUserPassword(user)} size="sm" variant="outline">Reset</Button>
                   <Button className="border-amber-200 text-amber-800 hover:border-amber-300 hover:text-amber-900 dark:border-amber-400/30 dark:text-amber-100" disabled={userActionState === 'loading'} onClick={() => void onDeactivateUser(user)} size="sm" variant="outline">Nonaktif</Button>

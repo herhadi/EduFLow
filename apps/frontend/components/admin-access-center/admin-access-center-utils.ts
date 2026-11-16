@@ -18,28 +18,28 @@ export const roleCards = [
     permissions: ['academic.manage', 'academic-calendar.manage', 'schedule.manage', 'agenda.generate'],
   },
   {
-    role: 'guru',
-    label: 'Guru',
-    description: 'Mengajar, submit presensi, upload perangkat ajar, dan input nilai siswa sesuai mapel/kelas.',
-    permissions: ['attendance.manage', 'teaching-plan.manage', 'student-grade.manage'],
-  },
-  {
-    role: 'wali_kelas',
-    label: 'Wali Kelas',
-    description: 'Memantau kelas binaan, presensi, ringkasan siswa, dan laporan kelas.',
-    permissions: ['attendance.read', 'student-grade.read', 'reporting.read'],
-  },
-  {
     role: 'tu',
     label: 'TU',
     description: 'Administrasi master data sekolah dan import data guru/siswa; tidak mengelola kalender, jadwal, atau KBM.',
     permissions: ['academic.read', 'academic.manage', 'reporting.read'],
   },
   {
+    role: 'guru',
+    label: 'Guru',
+    description: 'Mengajar, submit presensi, upload perangkat ajar, dan input nilai siswa sesuai mapel/kelas.',
+    permissions: ['attendance.manage', 'teaching-plan.manage', 'student-grade.manage'],
+  },
+  {
     role: 'bk',
     label: 'Guru BK',
     description: 'Monitoring kehadiran, kedisiplinan, dan tindak lanjut siswa.',
     permissions: ['attendance.read', 'student-grade.read', 'class-status.read'],
+  },
+  {
+    role: 'wali_kelas',
+    label: 'Wali Kelas',
+    description: 'Memantau kelas binaan, presensi, ringkasan siswa, dan laporan kelas.',
+    permissions: ['attendance.read', 'student-grade.read', 'reporting.read'],
   },
   {
     role: 'root',
