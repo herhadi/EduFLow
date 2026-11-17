@@ -52,8 +52,8 @@ const adminNavigation: NavigationItem[] = [
   { href: '/admin/dashboard', label: 'Beranda', icon: 'home' },
   { href: '/admin/access', label: 'Akun & Akses', icon: 'access' },
   { href: '/admin/operations', label: 'Monitoring Sistem', icon: 'activity' },
-  { href: '/admin/notifications', label: 'Helpdesk', icon: 'message', badge: 'notifications' },
   { href: '/admin/audit', label: 'Audit', icon: 'audit' },
+  { href: '/admin/notifications', label: 'Helpdesk', icon: 'message', badge: 'notifications' },
   { href: '/admin/profile', label: 'Profil', icon: 'profile' },
 ];
 

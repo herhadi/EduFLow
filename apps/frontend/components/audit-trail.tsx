@@ -88,6 +88,9 @@ export function AuditTrail() {
     ].filter(Boolean).join(' ').toLowerCase().includes(normalizedQuery));
   }, [activities, query]);
 
+  const auditLogs = filteredActivities.filter((activity) => activity.source !== 'notification');
+  const notificationLogs = filteredActivities.filter((activity) => activity.source === 'notification');
+
   const daysInMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0).getDate();
   const leadingDays = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1).getDay();
   const counts = useMemo(() => new Map(calendarDays.map((day) => [day.date, day.count])), [calendarDays]);
@@ -138,7 +141,7 @@ export function AuditTrail() {
             const today = key === dateKey(new Date());
             return (
               <button key={key} type="button" onClick={() => setSelectedDate(key)} aria-pressed={selected}
-                className={`relative flex min-h-12 flex-col items-center justify-center rounded-xl border text-sm transition-colors sm:min-h-14 ${selected ? 'aspect-square w-full border-brand-600 bg-brand-600 text-white' : 'border-transparent text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'} ${today && !selected ? 'ring-1 ring-brand-500' : ''}`}>
+                className={`relative flex h-12 w-12 justify-self-center flex-col items-center justify-center rounded-xl border text-sm transition-colors sm:h-14 sm:w-14 ${selected ? 'border-brand-600 bg-brand-600 text-white' : 'border-transparent text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'} ${today && !selected ? 'ring-1 ring-brand-500' : ''}`}>
                 <span className="font-semibold">{day}</span>
                 {count > 0 ? <span className={`mt-0.5 min-w-4 rounded-full px-1 text-[9px] font-bold leading-4 ${selected ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'}`}>{count > 99 ? '99+' : count}</span> : <span className="mt-0.5 h-4" />}
               </button>
@@ -157,31 +160,53 @@ export function AuditTrail() {
       </div>
 
       {loadState === 'error' ? <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">Audit trail belum bisa dimuat. Pastikan backend berjalan.</div> : null}
-      <div className="mt-5 max-h-[min(34rem,62vh)] space-y-3 overflow-y-auto pr-1">
-        {loadState === 'loading' ? <LoadingState label="Memuat audit trail..." /> : null}
-        {filteredActivities.map((activity) => <ActivityCard activity={activity} key={activity.id} />)}
-        {loadState === 'success' && filteredActivities.length === 0 ? <EmptyState title="Belum ada aktivitas sistem atau notifikasi pada tanggal ini." /> : null}
-      </div>
-      <LoginAuditPanel audits={loginAudits} query={query} />
+      {loadState === 'loading' ? <div className="mt-5"><LoadingState label="Memuat audit trail..." /></div> : null}
+
+      <section className="mt-6" aria-labelledby="audit-log-heading">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h3 id="audit-log-heading" className="text-base font-bold text-slate-900 dark:text-white">Audit Log</h3>
+          <Badge tone="muted">{auditLogs.length}</Badge>
+        </div>
+        <div className="max-h-[min(24rem,48vh)] space-y-3 overflow-y-auto pr-1">
+          {auditLogs.map((activity) => <ActivityCard activity={activity} key={activity.id} />)}
+          {loadState === 'success' && auditLogs.length === 0 ? <EmptyState title="Belum ada audit log pada tanggal ini." /> : null}
+        </div>
+      </section>
+
+      <LoginAuditPanel audits={loginAudits} query={query} loadState={loadState} />
+
+      <section className="mt-6 border-t border-slate-200 pt-6 dark:border-slate-700" aria-labelledby="notification-log-heading">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h3 id="notification-log-heading" className="text-base font-bold text-slate-900 dark:text-white">Notification Log</h3>
+          <Badge tone="muted">{notificationLogs.length}</Badge>
+        </div>
+        <div className="max-h-[min(24rem,48vh)] space-y-3 overflow-y-auto pr-1">
+          {notificationLogs.map((activity) => <ActivityCard activity={activity} key={activity.id} />)}
+          {loadState === 'success' && notificationLogs.length === 0 ? <EmptyState title="Belum ada notification log pada tanggal ini." /> : null}
+        </div>
+      </section>
     </SurfaceCard>
   );
 }
 
-function LoginAuditPanel({ audits, query }: { audits: LoginAuditItem[]; query: string }) {
+function LoginAuditPanel({ audits, query, loadState }: { audits: LoginAuditItem[]; query: string; loadState: LoadState }) {
   const normalizedQuery = query.trim().toLowerCase();
   const filtered = audits.filter((audit) => {
     const haystack = [audit.email, audit.status, audit.ipAddress, audit.userAgent, audit.reason, audit.user?.name, audit.user?.username, ...(audit.user?.roles ?? [])].filter(Boolean).join(' ').toLowerCase();
     return !normalizedQuery || haystack.includes(normalizedQuery);
   });
   return (
-    <div className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
-      <h2 className="text-xl font-bold text-slate-900 dark:text-white">Riwayat Login Pengguna</h2>
+    <section className="mt-6 border-t border-slate-200 pt-6 dark:border-slate-700" aria-labelledby="login-audit-heading">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h3 id="login-audit-heading" className="text-base font-bold text-slate-900 dark:text-white">Riwayat Login</h3>
+        <Badge tone="muted">{filtered.length}</Badge>
+      </div>
       <p className="mt-1 text-sm text-muted">Siapa yang login, dari IP mana, menggunakan browser/perangkat apa, dan kapan.</p>
       <div className="mt-4 space-y-3">
         {filtered.map((audit) => <LoginAuditCard audit={audit} key={audit.id} />)}
-        {!filtered.length ? <EmptyState title="Belum ada riwayat login pada tanggal ini." /> : null}
+        {loadState === 'success' && filtered.length === 0 ? <EmptyState title="Belum ada riwayat login pada tanggal ini." /> : null}
       </div>
-    </div>
+    </section>
   );
 }
 
