@@ -233,22 +233,8 @@ const rolePriority: UserRole[] = [
   'orang_tua',
 ];
 
-function normalizeRoleCode(role: string): UserRole | null {
-  const normalized = role.trim().toLowerCase();
-  if (normalized === 'super admin') return 'admin';
-  if (normalized === 'tu') return 'tu';
-  return rolePriority.includes(normalized as UserRole)
-    ? (normalized as UserRole)
-    : null;
-}
-
-function getNormalizedRoleSet(roles: string[] = []) {
-  return new Set(roles.map(normalizeRoleCode).filter((role): role is UserRole => role !== null));
-}
-
 export function getPrimaryRole(roles: string[] = []): UserRole {
-  const normalizedRoles = getNormalizedRoleSet(roles);
-  return rolePriority.find((role) => normalizedRoles.has(role)) ?? 'guru';
+  return rolePriority.find((role) => roles.includes(role)) ?? 'guru';
 }
 
 function uniqueNavigationItems(items: NavigationItem[]) {
@@ -266,11 +252,10 @@ function uniqueNavigationItems(items: NavigationItem[]) {
  * from additional roles are collected under a single "Lainnya" entry.
  */
 export function getPrimaryNavigation(roles: string[] = []) {
-  const normalizedRoles = getNormalizedRoleSet(roles);
-  const assignedRoles = rolePriority.filter((role) => normalizedRoles.has(role));
+  const assignedRoles = rolePriority.filter((role) => roles.includes(role));
   const primaryRole = getPrimaryRole(roles);
   const baseNavigation =
-    primaryRole === 'guru' && normalizedRoles.has('wali_kelas')
+    primaryRole === 'guru' && roles.includes('wali_kelas')
       ? homeroomNavigation
       : roleNavigation[primaryRole];
 
