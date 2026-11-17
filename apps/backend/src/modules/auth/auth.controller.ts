@@ -173,7 +173,7 @@ export class AuthController {
   ) {
     const actorRoles = request.user.roles ?? [];
     const isRoot = actorRoles.includes('root');
-    const canManageRoles = isRoot || actorRoles.includes('admin');
+    const canManageRoles = isRoot || actorRoles.includes('super admin');
 
     if (!canManageRoles) {
       throw new ForbiddenException('Hanya Root atau Super Admin Sekolah yang dapat mengubah role user');
