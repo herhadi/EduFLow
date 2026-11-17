@@ -248,11 +248,46 @@ export function getPrimaryRole(roles: string[] = []): UserRole {
   return rolePriority.find((role) => navigationRoles.has(role)) ?? 'guru';
 }
 
+const navigationDestinationAliases: Record<string, string> = {
+  '/admin/audit': '/audit',
+  '/admin/notifications': '/notifications',
+  '/admin/operations': '/operations',
+  '/admin/profile': '/profile',
+  '/bk/notifications': '/notifications',
+  '/bk/profile': '/profile',
+  '/bk/reports': '/reports',
+  '/bk/students': '/master-data',
+  '/homeroom/notifications': '/notifications',
+  '/homeroom/profile': '/profile',
+  '/opsek/audit': '/audit',
+  '/opsek/import-data': '/import-data',
+  '/opsek/notifications': '/notifications',
+  '/opsek/profile': '/profile',
+  '/parent/notifications': '/notifications',
+  '/parent/profile': '/profile',
+  '/principal/notifications': '/notifications',
+  '/principal/profile': '/profile',
+  '/system/audit': '/audit',
+  '/system/notifications': '/notifications',
+  '/system/profile': '/profile',
+  '/teacher/notifications': '/notifications',
+  '/teacher/profile': '/profile',
+  '/tu/import-data': '/import-data',
+  '/tu/notifications': '/notifications',
+  '/tu/profile': '/profile',
+  '/tu/reports': '/reports',
+};
+
+function getNavigationDestinationKey(item: NavigationItem) {
+  return navigationDestinationAliases[item.href] ?? item.href;
+}
+
 function uniqueNavigationItems(items: NavigationItem[]) {
   const seen = new Set<string>();
   return items.filter((item) => {
-    if (seen.has(item.href)) return false;
-    seen.add(item.href);
+    const key = getNavigationDestinationKey(item);
+    if (seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
 }
@@ -275,22 +310,23 @@ export function getPrimaryNavigation(roles: string[] = []) {
     .filter((role) => role !== primaryRole && !(primaryRole === 'guru' && role === 'wali_kelas'))
     .flatMap((role) => roleNavigation[role]);
 
-  const merged = uniqueNavigationItems([...baseNavigation, ...additionalItems]);
-  const existingMore = merged.find((item) => item.children?.length);
-  const directItems = merged.filter((item) => item !== existingMore);
+  const combinedItems = [...baseNavigation, ...additionalItems];
+  const groupItems = combinedItems.filter((item) => item.children?.length);
+  const directItems = uniqueNavigationItems(combinedItems.filter((item) => !item.children?.length));
   const mainItems = directItems.slice(0, 4);
   const overflowItems = [
     ...directItems.slice(4),
-    ...(existingMore?.children ?? []),
+    ...groupItems.flatMap((item) => item.children ?? []),
   ];
-
+  const mainDestinationKeys = new Set(mainItems.map(getNavigationDestinationKey));
   const uniqueOverflow = uniqueNavigationItems(overflowItems).filter(
-    (item) => !mainItems.some((main) => main.href === item.href),
+    (item) => !mainDestinationKeys.has(getNavigationDestinationKey(item)),
   );
+  const existingMore = groupItems[0];
 
-  if (existingMore && !mainItems.some((item) => item.href === existingMore.href)) {
+  if (existingMore && uniqueOverflow.length) {
     mainItems.push({ ...existingMore, children: uniqueOverflow });
-  } else if (uniqueOverflow.length) {
+  } else if (!existingMore && uniqueOverflow.length) {
     mainItems.push({
       href: '/more',
       label: 'Lainnya',

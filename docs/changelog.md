@@ -277,3 +277,4 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Tombol Refresh Status Telegram menggunakan gaya netral karena merupakan aksi penyegaran, bukan aksi utama.
 - Label role mengikuti data backend dan diformat Title Case; `tu` dan `bk` ditampilkan sebagai `TU` dan `BK`. Role database `super admin` diperlakukan sebagai nama baru dari role lama `admin` untuk pemetaan navigasi, dan pemeriksaan pengelolaan role memakai nama `super admin`.
 - Memperbaiki pemeriksaan akses namespace `/admin` agar role database `super admin` dikenali sebagai role internal `admin` setelah login.
+- Merapikan navbar akun multi-role: menu dengan tujuan halaman yang sama (Pesan/Helpdesk, Profil, Laporan, Audit, Operasional, dan Import Data) hanya ditampilkan sekali; submenu dari beberapa role digabung ke satu menu Lainnya.
