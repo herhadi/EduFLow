@@ -34,7 +34,7 @@ export function UserManagementPanel({
   const assignableRoleCards = roleCards.filter((role) => canAssignRootRole || role.role !== 'root');
   const roleOrder = useMemo(() => new Map(roleCards.map((role, index) => [role.role, index])), []);
   const creationRoleCards = bootstrapOnly
-    ? roleCards.filter((role) => ['admin', 'operator_sekolah'].includes(role.role))
+    ? roleCards.filter((role) => ['super admin', 'operator_sekolah'].includes(role.role))
     : assignableRoleCards;
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string[]>>({});
   const [query, setQuery] = useState('');
@@ -159,8 +159,8 @@ export function UserManagementPanel({
                   </div>
                   <Button className="w-full sm:w-auto sm:justify-self-end" disabled={userActionState === 'loading' || !rolesForUser.length || !rolesChanged} onClick={() => onUpdateUserRoles(user, rolesForUser)} size="sm" variant="outline">Simpan Role</Button>
                   <div className="grid grid-cols-1 gap-2 border-t border-slate-200 pt-3 dark:border-slate-700 sm:grid-cols-3">
-                    <Button className="w-full" disabled={userActionState === 'loading'} onClick={() => void onResetUserPassword(user)} size="sm" variant="danger">Reset Password</Button>
-                    <Button className="w-full" disabled={userActionState === 'loading'} onClick={() => void onDeactivateUser(user)} size="sm" variant="danger">Nonaktifkan</Button>
+                    <Button className="w-full" disabled={userActionState === 'loading'} onClick={() => void onResetUserPassword(user)} size="sm" variant="info">Reset Password</Button>
+                    <Button className="w-full" disabled={userActionState === 'loading'} onClick={() => void onDeactivateUser(user)} size="sm" variant="outline">Nonaktifkan</Button>
                     <Button className="w-full" disabled={userActionState === 'loading'} onClick={() => void onDeleteUser(user)} size="sm" variant="danger">Hapus</Button>
                   </div>
                 </div>

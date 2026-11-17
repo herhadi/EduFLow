@@ -219,7 +219,7 @@ Target awal:
 
 ## Backup dan Penghapusan Cloudflare R2 Berdasarkan Rentang Waktu
 
-Panel pengelolaan tersedia di `/operations` pada bagian **Cloudflare R2 — Backup & Hapus berdasarkan Waktu**. Pengguna harus memiliki permission `system.recovery.manage`; pada konfigurasi seed default, permission ini diberikan kepada `root` dan Super Admin Sekolah (`admin`).
+Panel pengelolaan tersedia di `/operations` pada bagian **Cloudflare R2 — Backup & Hapus berdasarkan Waktu**. Pengguna harus memiliki permission `system.recovery.manage`; pada konfigurasi seed default, permission ini diberikan kepada `root` dan Super Admin Sekolah (`super admin`).
 
 ### Alur aman
 

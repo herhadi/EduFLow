@@ -37,7 +37,7 @@ apps/frontend/components/ui/
 
 ## Standar tombol aksi destruktif
 
-- Aksi yang menghapus, membuang, mereset, menonaktifkan, mengosongkan, atau membatalkan data/konfigurasi harus menggunakan gaya danger (merah solid dengan teks putih) yang tetap kontras pada light mode dan dark mode.
+- Aksi hapus permanen menggunakan gaya danger (merah solid). Reset password menggunakan warna info (biru), sedangkan nonaktifkan akun menggunakan gaya netral (outline) karena akun masih dapat dipulihkan. Pastikan kontras tetap baik pada light mode dan dark mode.
 - Setiap aksi destruktif yang benar-benar dijalankan harus meminta konfirmasi sebelum memanggil API atau mengubah data. Konfirmasi menyebutkan objek yang terdampak dan konsekuensi penting; pembatalan tidak boleh menjalankan aksi.
 - Tombol batal/tutup tetap netral. Menghapus pilihan lokal yang belum disimpan dapat menggunakan konfirmasi singkat bila kontrolnya secara eksplisit berlabel Hapus/Kosongkan.
 - Gunakan `Button` dengan `variant="danger"` untuk aksi destruktif. Tombol refresh/status yang bersifat informatif dan bukan aksi utama sebaiknya memakai gaya netral (`variant="outline"` atau `ghost`), bukan warna biru solid. Hindari menggabungkan `variant="outline"` dengan kelas latar danger/info karena gaya outline dapat mengalahkan warna yang dimaksud, khususnya pada dark mode.

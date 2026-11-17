@@ -15,7 +15,7 @@ async function main() {
   const rootPassword = process.env.ROOT_PASSWORD ?? defaultUserPassword;
   const rolePermissions: Record<string, string[]> = {
     root: [],
-    admin: [
+    'super admin': [
       'auth.session.manage',
       'notification.read',
       'notification.manage',
@@ -129,7 +129,7 @@ async function main() {
     ],
   };
 
-  // Root adalah role teknis dengan akses penuh. Admin sekolah tetap dibatasi
+  // Root adalah role teknis dengan akses penuh. Super Admin Sekolah tetap dibatasi
   // pada capability operasional teknis sekolah yang ditetapkan manual role.
   rolePermissions.root = [...new Set(
     Object.entries(rolePermissions)

@@ -6,7 +6,7 @@ export const roleCards = [
     permissions: ['teaching-plan.review', 'student-grade.approve', 'reporting.read', 'audit.read'],
   },
   {
-    role: 'admin',
+    role: 'super admin',
     label: 'Super Admin Sekolah',
     description: 'Admin teknis tingkat sekolah untuk akun, monitoring sistem, helpdesk, audit, dan tindak lanjut operasional. Tidak memiliki kewenangan KBM.',
     permissions: ['user.manage', 'notification.manage', 'reporting.manage', 'audit.read', 'system.recovery.manage'],

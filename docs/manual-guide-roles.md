@@ -3,7 +3,7 @@
 Dokumen ini merupakan panduan penggunaan EduFlow untuk role:
 
 - Root
-- Super Admin Sekolah (`admin`)
+- Super Admin Sekolah (`super admin`)
 - Operator Sekolah
 - Tata Usaha (`tu`)
 - Guru
@@ -103,7 +103,7 @@ Jika pengguna membuka alamat milik role lain, sistem akan menampilkan peringatan
 
 ## 2.1 Fungsi Super Admin Sekolah
 
-Role `admin` adalah pengelola aplikasi dan support teknis di tingkat sekolah. Role ini menjadi jembatan antara pengguna sekolah dan `root`; Super Admin tidak mengubah infrastruktur global tanpa koordinasi dengan root.
+Role `super admin` adalah pengelola aplikasi dan support teknis di tingkat sekolah. Role ini menjadi jembatan antara pengguna sekolah dan `root`; Super Admin tidak mengubah infrastruktur global tanpa koordinasi dengan root.
 
 Tanggung jawab utama:
 

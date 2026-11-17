@@ -138,7 +138,7 @@ Dashboard frontend dipisahkan per role agar beranda setiap actor dapat berkemban
 
 ```text
 /system/dashboard           root
-/admin/dashboard            admin (Super Admin sekolah)
+/admin/dashboard            super admin (kode navigasi internal: admin; Super Admin sekolah)
 /opsek/dashboard            operator_sekolah
 /principal/dashboard        kepala_sekolah
 /teacher/dashboard          guru, wali_kelas

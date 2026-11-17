@@ -14,7 +14,7 @@ EduFlow memakai permission-based RBAC. Role hanya kumpulan permission, bukan log
 | Role | Deskripsi |
 | --- | --- |
 | `root` | Akses semua fitur untuk owner/dev/super admin teknis |
-| `admin` | Super Admin Sekolah untuk monitoring sistem, akun, helpdesk, audit, dan recovery sesuai kewenangan |
+| `super admin` | Super Admin Sekolah untuk monitoring sistem, akun, helpdesk, audit, dan recovery sesuai kewenangan |
 | `operator_sekolah` | Operator akademik dan konfigurasi operasional sekolah |
 | `guru` | Guru pengajar |
 | `wali_kelas` | Guru dengan tanggung jawab kelas |
@@ -23,7 +23,7 @@ EduFlow memakai permission-based RBAC. Role hanya kumpulan permission, bukan log
 | `bk` | Bimbingan konseling |
 | `orang_tua` | Wali murid |
 
-Role `admin` memiliki permission teknis sekolah berikut: `auth.session.manage`, `notification.read`, `notification.manage`, `reporting.read`, `reporting.manage`, `audit.read`, `user.manage`, dan `system.recovery.manage`. Role ini tidak menerima permission KBM seperti `schedule.manage`, `agenda.generate`, `attendance.manage`, atau permission nilai/perangkat ajar. Role `root` memperoleh seluruh permission yang terdaftar untuk kebutuhan owner/developer. Pada deployment EduFlow satu sekolah, cakupan admin dibatasi pada instalasi/database sekolah tersebut; database saat ini belum menerapkan multi-tenant lintas sekolah.
+Role `super admin` memiliki permission teknis sekolah berikut: `auth.session.manage`, `notification.read`, `notification.manage`, `reporting.read`, `reporting.manage`, `audit.read`, `user.manage`, dan `system.recovery.manage`. Role ini tidak menerima permission KBM seperti `schedule.manage`, `agenda.generate`, `attendance.manage`, atau permission nilai/perangkat ajar. Role `root` memperoleh seluruh permission yang terdaftar untuk kebutuhan owner/developer. Pada deployment EduFlow satu sekolah, cakupan admin dibatasi pada instalasi/database sekolah tersebut; database saat ini belum menerapkan multi-tenant lintas sekolah.
 
 ## Permission Awal
 
@@ -60,7 +60,7 @@ Role `admin` memiliki permission teknis sekolah berikut: `auth.session.manage`, 
 
 ## Matrix Role Ke Permission
 
-| Permission | root | admin | operator_sekolah | guru | wali_kelas | kepala_sekolah | tu | bk | orang_tua |
+| Permission | root | super admin | operator_sekolah | guru | wali_kelas | kepala_sekolah | tu | bk | orang_tua |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `auth.session.manage` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `academic.read` | ✓ |  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |  |
@@ -138,7 +138,7 @@ Scope harus ditegakkan di service: guru hanya mengelola jurnal agenda yang ditug
 Pengubahan role dilakukan dari halaman `/system/access` dengan dropdown ringkas. Satu akun dapat memiliki lebih dari satu role; role yang sudah terpasang ditampilkan sebagai label dan dapat ditambahkan atau dilepas sebelum disimpan.
 
 - Root dapat mengubah role user dan memberikan seluruh role, termasuk `root`.
-- Super Admin Sekolah (`admin`) dapat mengubah role user, tetapi tidak dapat memberikan role `root`.
+- Super Admin Sekolah (`super admin`) dapat mengubah role user, tetapi tidak dapat memberikan role `root`.
 - Role selain Root dan Super Admin Sekolah tidak dapat mengubah role user.
 - Sistem harus mempertahankan setidaknya satu akun Root aktif; role Root pada satu-satunya akun Root aktif tidak dapat dilepas.
 - Keterangan tugas setiap role ditampilkan satu kali pada bagian informasi role (dapat dibuka/tutup), bukan diulang pada setiap baris user.

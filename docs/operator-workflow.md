@@ -76,7 +76,7 @@ Catatan integrasi Telegram: root mengelola webhook dari `/system/telegram`. Envi
 
 Command Telegram untuk monitoring sekolah dibuat on-demand agar tidak spam. Kepala Sekolah dan operator sekolah yang sudah mengaktifkan Telegram dapat memakai `/kbm` atau `/today` untuk ringkasan KBM hari ini, serta `/review` untuk antrean perangkat ajar dan nilai yang menunggu review. Root mengelola konfigurasi bot dari `/system/telegram`, bukan command monitoring sekolah. Command ini tidak membuat `NotificationLog` baru dan tidak menambah badge Inbox.
 
-Root adalah role support teknis dan pemegang keputusan developer. Super Admin Sekolah (`admin`) menjadi jembatan support di sekolah dan memakai `/admin/dashboard`, `/system/*`, serta `/operations` untuk health check, queue monitoring, failed jobs, audit, backup, recovery, dan user/hak akses sesuai permission. Operator Sekolah memakai `/opsek/dashboard` sebagai beranda operasional KBM.
+Root adalah role support teknis dan pemegang keputusan developer. Super Admin Sekolah (`super admin`) menjadi jembatan support di sekolah dan memakai `/admin/dashboard`, `/system/*`, serta `/operations` untuk health check, queue monitoring, failed jobs, audit, backup, recovery, dan user/hak akses sesuai permission. Operator Sekolah memakai `/opsek/dashboard` sebagai beranda operasional KBM.
 
 `Master` pada bottom navigation operator berarti pusat data administrasi akademik di namespace `/opsek/data`, bukan root teknis.
 
