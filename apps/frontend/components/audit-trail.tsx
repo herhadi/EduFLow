@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, type ActivityTrailItem, type LoginAuditItem } from '../lib/api';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -10,47 +10,62 @@ import { SearchInput } from './ui/search';
 import { SurfaceCard } from './ui/card';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
+type CalendarDay = { date: string; count: number };
 
 const actionTone: Record<string, string> = {
-  'attendance.submitted':
-    'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/15 dark:text-blue-200 dark:border-blue-400/20',
-  'attendance.opened':
-    'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/15 dark:text-blue-200 dark:border-blue-400/20',
-  'attendance.approved':
-    'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:border-emerald-400/20',
-  'notification.sent':
-    'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:border-emerald-400/20',
-  'notification.failed':
-    'bg-red-50 text-red-700 border-red-100 dark:bg-red-500/15 dark:text-red-200 dark:border-red-400/20',
-  'notification.retry':
-    'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/15 dark:text-amber-200 dark:border-amber-400/20',
-  'schedule.updated':
-    'bg-violet-50 text-violet-700 border-violet-100 dark:bg-violet-500/15 dark:text-violet-200 dark:border-violet-400/20',
-  'schedule.created':
-    'bg-violet-50 text-violet-700 border-violet-100 dark:bg-violet-500/15 dark:text-violet-200 dark:border-violet-400/20',
-  'schedule.deleted':
-    'bg-red-50 text-red-700 border-red-100 dark:bg-red-500/15 dark:text-red-200 dark:border-red-400/20',
-  'agenda.generated':
-    'bg-sky-50 text-sky-700 border-sky-100 dark:bg-sky-500/15 dark:text-sky-200 dark:border-sky-400/20',
+  'attendance.submitted': 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/15 dark:text-blue-200 dark:border-blue-400/20',
+  'attendance.opened': 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/15 dark:text-blue-200 dark:border-blue-400/20',
+  'attendance.approved': 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:border-emerald-400/20',
+  'notification.sent': 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:border-emerald-400/20',
+  'notification.failed': 'bg-red-50 text-red-700 border-red-100 dark:bg-red-500/15 dark:text-red-200 dark:border-red-400/20',
+  'notification.retry': 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/15 dark:text-amber-200 dark:border-amber-400/20',
+  'schedule.updated': 'bg-violet-50 text-violet-700 border-violet-100 dark:bg-violet-500/15 dark:text-violet-200 dark:border-violet-400/20',
+  'schedule.created': 'bg-violet-50 text-violet-700 border-violet-100 dark:bg-violet-500/15 dark:text-violet-200 dark:border-violet-400/20',
+  'schedule.deleted': 'bg-red-50 text-red-700 border-red-100 dark:bg-red-500/15 dark:text-red-200 dark:border-red-400/20',
+  'agenda.generated': 'bg-sky-50 text-sky-700 border-sky-100 dark:bg-sky-500/15 dark:text-sky-200 dark:border-sky-400/20',
 };
+
+const weekdays = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+const monthLabel = (value: Date) => new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(value);
+const dateKey = (value: Date) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
 
 export function AuditTrail() {
   const [activities, setActivities] = useState<ActivityTrailItem[]>([]);
   const [loginAudits, setLoginAudits] = useState<LoginAuditItem[]>([]);
+  const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
   const [loadState, setLoadState] = useState<LoadState>('idle');
-  const dateInputRef = useRef<HTMLInputElement>(null);
-  const [selectedDate, setSelectedDate] = useState(() =>
-    formatDateInput(new Date()),
-  );
+  const [calendarLoading, setCalendarLoading] = useState(false);
+  const [visibleMonth, setVisibleMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [selectedDate, setSelectedDate] = useState(() => dateKey(new Date()));
   const [query, setQuery] = useState('');
 
-  async function loadActivities() {
-    setLoadState('loading');
+  const monthKey = `${visibleMonth.getFullYear()}-${String(visibleMonth.getMonth() + 1).padStart(2, '0')}`;
 
+  const loadCalendar = useCallback(async () => {
+    setCalendarLoading(true);
+    try {
+      const response = await api.getAuditCalendar(monthKey);
+      setCalendarDays(response.data);
+      const currentSelection = selectedDate.slice(0, 7) === monthKey && response.data.some((day) => day.date === selectedDate);
+      if (!currentSelection && response.data.length) {
+        setSelectedDate(response.data[response.data.length - 1].date);
+      } else if (!currentSelection) {
+        setSelectedDate(`${monthKey}-01`);
+      }
+    } catch {
+      setCalendarDays([]);
+    } finally {
+      setCalendarLoading(false);
+    }
+  }, [monthKey, selectedDate]);
+
+  const loadDetails = useCallback(async () => {
+    if (!selectedDate) return;
+    setLoadState('loading');
     try {
       const [activityResponse, loginResponse] = await Promise.all([
-        api.getActivityTrail(),
-        api.getLoginAudit(),
+        api.getActivityTrail(selectedDate),
+        api.getLoginAudit(selectedDate),
       ]);
       setActivities(activityResponse.data);
       setLoginAudits(loginResponse.data);
@@ -58,139 +73,110 @@ export function AuditTrail() {
     } catch {
       setLoadState('error');
     }
-  }
+  }, [selectedDate]);
 
-  function openDatePicker() {
-    const input = dateInputRef.current;
-
-    if (!input) {
-      return;
-    }
-
-    if (typeof input.showPicker === 'function') {
-      input.showPicker();
-      return;
-    }
-
-    input.focus();
-  }
-
-  useEffect(() => {
-    void loadActivities();
-  }, []);
+  useEffect(() => { void loadCalendar(); }, [loadCalendar]);
+  useEffect(() => { void loadDetails(); }, [loadDetails]);
 
   const filteredActivities = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
+    return activities.filter((activity) => !normalizedQuery || [
+      activity.action, activity.description, activity.entityType, activity.entityId, activity.source, activity.actor,
+    ].filter(Boolean).join(' ').toLowerCase().includes(normalizedQuery));
+  }, [activities, query]);
 
-    return activities.filter((activity) => {
-      const matchesDate =
-        !selectedDate || formatDateInput(new Date(activity.time)) === selectedDate;
-      const matchesQuery =
-        !normalizedQuery ||
-        [
-          activity.action,
-          activity.description,
-          activity.entityType,
-          activity.entityId,
-          activity.source,
-        ]
-          .join(' ')
-          .toLowerCase()
-          .includes(normalizedQuery);
+  const daysInMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0).getDate();
+  const leadingDays = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1).getDay();
+  const counts = useMemo(() => new Map(calendarDays.map((day) => [day.date, day.count])), [calendarDays]);
+  const totalCount = calendarDays.reduce((sum, day) => sum + day.count, 0);
 
-      return matchesDate && matchesQuery;
-    });
-  }, [activities, query, selectedDate]);
+  function changeMonth(offset: number) {
+    setVisibleMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
+  }
+  function changeYear(offset: number) {
+    setVisibleMonth((current) => new Date(current.getFullYear() + offset, current.getMonth(), 1));
+  }
+  function goToday() {
+    const today = new Date();
+    setVisibleMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+    setSelectedDate(dateKey(today));
+  }
 
   return (
     <SurfaceCard className="mt-8 rounded-2xl sm:p-6">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">Audit Trail</h2>
-          <p className="mt-1 text-sm text-muted">
-            Timeline aktivitas untuk debugging operasional.
-          </p>
+          <p className="mt-1 text-sm text-muted">Pilih tanggal pada kalender untuk melihat aktivitas dan riwayat login.</p>
+        </div>
+        <Button onClick={() => { void loadCalendar(); void loadDetails(); }}>Refresh</Button>
+      </div>
+
+      <section className="mt-5 rounded-2xl border border-slate-200 p-3 dark:border-slate-700 sm:p-4" aria-label="Kalender aktivitas">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-1">
+            <button type="button" aria-label="Tahun sebelumnya" onClick={() => changeYear(-1)} className="rounded-lg border border-slate-200 px-2 py-2 text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">«</button>
+            <button type="button" aria-label="Bulan sebelumnya" onClick={() => changeMonth(-1)} className="rounded-lg border border-slate-200 px-2 py-2 text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">‹</button>
+            <h3 className="min-w-36 px-2 text-center text-sm font-bold capitalize text-slate-900 dark:text-white">{monthLabel(visibleMonth)}</h3>
+            <button type="button" aria-label="Bulan berikutnya" onClick={() => changeMonth(1)} className="rounded-lg border border-slate-200 px-2 py-2 text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">›</button>
+            <button type="button" aria-label="Tahun berikutnya" onClick={() => changeYear(1)} className="rounded-lg border border-slate-200 px-2 py-2 text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">»</button>
+          </div>
+          <Button size="sm" variant="secondary" onClick={goToday}>Hari ini</Button>
         </div>
 
-        <div className="date-picker-control grid w-[8.25rem] shrink-0 grid-cols-[minmax(0,1fr)_2rem] items-center gap-1 rounded-xl py-1 pl-3 pr-1 sm:w-36">
-          <label className="sr-only" htmlFor="audit-date">
-            Tanggal audit
-          </label>
-          <input
-            className="h-9 text-xs font-semibold sm:text-sm"
-            id="audit-date"
-            onChange={(event) => setSelectedDate(event.target.value)}
-            ref={dateInputRef}
-            type="date"
-            value={selectedDate}
-          />
-          <button
-            aria-label="Pilih tanggal audit"
-            className="date-picker-control__button"
-            onClick={openDatePicker}
-            type="button"
-          >
-            <CalendarIcon className="h-4 w-4" />
-          </button>
+        <div className="mt-4 grid grid-cols-7 gap-1">
+          {weekdays.map((day) => <div key={day} className="py-2 text-center text-[11px] font-semibold text-muted">{day}</div>)}
+          {Array.from({ length: leadingDays }, (_, index) => <div key={`empty-${index}`} />)}
+          {Array.from({ length: daysInMonth }, (_, index) => {
+            const day = index + 1;
+            const key = dateKey(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), day));
+            const count = counts.get(key) ?? 0;
+            const selected = selectedDate === key;
+            const today = key === dateKey(new Date());
+            return (
+              <button key={key} type="button" onClick={() => setSelectedDate(key)} aria-pressed={selected}
+                className={`relative flex min-h-12 flex-col items-center justify-center rounded-xl border text-sm transition-colors sm:min-h-14 ${selected ? 'border-brand-600 bg-brand-600 text-white' : 'border-transparent text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'} ${today && !selected ? 'ring-1 ring-brand-500' : ''}`}>
+                <span className="font-semibold">{day}</span>
+                {count > 0 ? <span className={`mt-0.5 min-w-4 rounded-full px-1 text-[9px] font-bold leading-4 ${selected ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'}`}>{count > 99 ? '99+' : count}</span> : <span className="mt-0.5 h-4" />}
+              </button>
+            );
+          })}
         </div>
-      </div>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+          <span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-emerald-500" />Tanggal dengan aktivitas</span>
+          <span>{calendarLoading ? 'Memuat kalender…' : `${totalCount.toLocaleString('id-ID')} aktivitas bulan ini`}</span>
+        </div>
+      </section>
 
       <div className="mt-5 grid gap-2 sm:grid-cols-[minmax(14rem,1fr)_auto]">
-        <label className="sr-only" htmlFor="audit-search">
-          Cari aktivitas
-        </label>
-        <SearchInput
-          id="audit-search"
-          onClear={() => setQuery('')}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Cari aktivitas..."
-          value={query}
-        />
-        <Button onClick={() => void loadActivities()}>
-          Refresh
-        </Button>
+        <SearchInput id="audit-search" onClear={() => setQuery('')} onChange={(event) => setQuery(event.target.value)} placeholder="Cari aktivitas atau pengguna..." value={query} />
+        <div className="flex items-center rounded-xl bg-slate-50 px-3 text-sm font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">{new Date(`${selectedDate}T00:00:00`).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
       </div>
 
-      {loadState === 'error' ? (
-        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Audit trail belum bisa dimuat. Pastikan backend berjalan.
-        </div>
-      ) : null}
-
+      {loadState === 'error' ? <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">Audit trail belum bisa dimuat. Pastikan backend berjalan.</div> : null}
       <div className="mt-5 max-h-[min(34rem,62vh)] space-y-3 overflow-y-auto pr-1">
-        {loadState === 'loading' ? (
-          <LoadingState label="Memuat audit trail..." />
-        ) : null}
-
-        {filteredActivities.map((activity) => (
-          <ActivityCard activity={activity} key={activity.id} />
-        ))}
-
-        {loadState === 'success' && filteredActivities.length === 0 ? (
-          <EmptyState title="Belum ada aktivitas yang cocok pada tanggal ini." />
-        ) : null}
+        {loadState === 'loading' ? <LoadingState label="Memuat audit trail..." /> : null}
+        {filteredActivities.map((activity) => <ActivityCard activity={activity} key={activity.id} />)}
+        {loadState === 'success' && filteredActivities.length === 0 ? <EmptyState title="Belum ada aktivitas pada tanggal ini." /> : null}
       </div>
-
-      <LoginAuditPanel audits={loginAudits} selectedDate={selectedDate} query={query} />
+      <LoginAuditPanel audits={loginAudits} query={query} />
     </SurfaceCard>
   );
 }
 
-function LoginAuditPanel({ audits, selectedDate, query }: { audits: LoginAuditItem[]; selectedDate: string; query: string }) {
+function LoginAuditPanel({ audits, query }: { audits: LoginAuditItem[]; query: string }) {
   const normalizedQuery = query.trim().toLowerCase();
   const filtered = audits.filter((audit) => {
-    const matchesDate = !selectedDate || formatDateInput(new Date(audit.createdAt)) === selectedDate;
     const haystack = [audit.email, audit.status, audit.ipAddress, audit.userAgent, audit.reason, audit.user?.name, audit.user?.username, ...(audit.user?.roles ?? [])].filter(Boolean).join(' ').toLowerCase();
-    return matchesDate && (!normalizedQuery || haystack.includes(normalizedQuery));
+    return !normalizedQuery || haystack.includes(normalizedQuery);
   });
-
   return (
     <div className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
       <h2 className="text-xl font-bold text-slate-900 dark:text-white">Riwayat Login Pengguna</h2>
       <p className="mt-1 text-sm text-muted">Siapa yang login, dari IP mana, menggunakan browser/perangkat apa, dan kapan.</p>
       <div className="mt-4 space-y-3">
         {filtered.map((audit) => <LoginAuditCard audit={audit} key={audit.id} />)}
-        {!filtered.length ? <EmptyState title="Belum ada riwayat login yang cocok." /> : null}
+        {!filtered.length ? <EmptyState title="Belum ada riwayat login pada tanggal ini." /> : null}
       </div>
     </div>
   );
@@ -201,15 +187,11 @@ function LoginAuditCard({ audit }: { audit: LoginAuditItem }) {
   return (
     <article className="rounded-xl border border-slate-200 bg-white/80 p-4 dark:bg-[var(--surface-soft)]">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <p className="font-bold text-slate-900 dark:text-white">{audit.user?.name ?? audit.email}</p>
-          <p className="text-xs text-muted">{audit.user?.username ? `@${audit.user.username} · ` : ''}{audit.user?.roles.join(', ') || 'User tidak ditemukan'}</p>
-        </div>
+        <div><p className="font-bold text-slate-900 dark:text-white">{audit.user?.name ?? audit.email}</p><p className="text-xs text-muted">{audit.user?.username ? `@${audit.user.username} · ` : ''}{audit.user?.roles.join(', ') || 'User tidak ditemukan'}</p></div>
         <Badge className={statusClass} tone="muted">{audit.status}</Badge>
       </div>
       <div className="mt-3 grid gap-1 text-xs text-muted sm:grid-cols-2">
-        <p>Waktu: {new Date(audit.createdAt).toLocaleString('id-ID')}</p>
-        <p>IP: {audit.ipAddress ?? '-'}</p>
+        <p>Waktu: {new Date(audit.createdAt).toLocaleString('id-ID')}</p><p>IP: {audit.ipAddress ?? '-'}</p>
         <p className="sm:col-span-2">Browser/Perangkat: {getDeviceLabel(audit.userAgent)} <span className="break-all">({audit.userAgent ?? 'tidak tersedia'})</span></p>
         {audit.reason ? <p className="sm:col-span-2">Keterangan: {audit.reason}</p> : null}
       </div>
@@ -228,73 +210,21 @@ function ActivityCard({ activity }: { activity: ActivityTrailItem }) {
   return (
     <article className="relative rounded-xl border border-slate-200 bg-white/80 p-4 shadow-sm dark:bg-[var(--surface-soft)] dark:shadow-black/20 sm:p-5">
       <div className="flex gap-4">
-        <div className="flex shrink-0 flex-col items-center">
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-brand-600 text-sm font-bold text-white">
-            {formatTime(activity.time)}
-          </div>
-          <div className="mt-3 h-full w-px bg-blue-100 dark:bg-[var(--border-strong)]" />
-        </div>
-
+        <div className="flex shrink-0 flex-col items-center"><div className="grid h-12 w-12 place-items-center rounded-xl bg-brand-600 text-sm font-bold text-white">{formatTime(activity.time)}</div><div className="mt-3 h-full w-px bg-blue-100 dark:bg-[var(--border-strong)]" /></div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              className={actionTone[activity.action] ?? 'border-slate-200 bg-white text-slate-700 dark:bg-[var(--surface-solid)]'}
-              tone="muted"
-            >
-              {activity.action}
-            </Badge>
-            <Badge className="border-slate-200 bg-white text-slate-600 dark:bg-[var(--surface-solid)]" tone="muted">
-              {activity.source}
-            </Badge>
+            <Badge className={actionTone[activity.action] ?? 'border-slate-200 bg-white text-slate-700 dark:bg-[var(--surface-solid)]'} tone="muted">{activity.action}</Badge>
+            <Badge className="border-slate-200 bg-white text-slate-600 dark:bg-[var(--surface-solid)]" tone="muted">{activity.source}</Badge>
           </div>
-
-          <h3 className="mt-3 text-base font-bold text-slate-900">
-            {activity.description}
-          </h3>
-          <p className="mt-1 text-sm text-muted">
-            {activity.entityType} · {activity.entityId}
-          </p>
-
-          {activity.actor ? (
-            <p className="mt-2 text-xs text-slate-500">Actor: {activity.actor}</p>
-          ) : null}
+          <h3 className="mt-3 text-base font-bold text-slate-900 dark:text-white">{activity.description}</h3>
+          <p className="mt-1 text-sm text-muted">{activity.entityType} · {activity.entityId}</p>
+          {activity.actor ? <p className="mt-2 text-xs text-slate-500">Actor: {activity.actor}</p> : null}
         </div>
       </div>
     </article>
   );
 }
 
-function CalendarIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M8 2v4" />
-      <path d="M16 2v4" />
-      <path d="M3 10h18" />
-      <rect height="18" rx="2" width="18" x="3" y="4" />
-    </svg>
-  );
-}
-
 function formatTime(value: string) {
-  return new Intl.DateTimeFormat('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value));
-}
-
-function formatDateInput(value: Date) {
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, '0');
-  const date = String(value.getDate()).padStart(2, '0');
-
-  return `${year}-${month}-${date}`;
+  return new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
 }

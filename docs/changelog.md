@@ -1,3 +1,8 @@
+## 2026-11-17
+
+- Mengganti filter tanggal Audit Trail dengan kalender bulanan berbadge jumlah aktivitas, navigasi bulan/tahun, tombol Hari ini, dan rincian aktivitas serta login berdasarkan tanggal terpilih.
+- Menambahkan endpoint agregasi kalender audit per tanggal agar indikator kalender menghitung seluruh data bulan terkait, tidak hanya 100/200 log terbaru.
+
 ## 2026-11-16
 
 - Akun login guru baru kini menggunakan username berbasis nama dengan format titik (contoh `budi.santoso`); jika nama sama, sistem menambahkan angka (`budi.santoso2`). NIP tetap tersimpan sebagai identitas guru dan username akun lama tidak diubah.

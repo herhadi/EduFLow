@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { PERMISSIONS } from '../../common/constants/permissions';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { AuditService } from './audit.service';
@@ -7,14 +7,19 @@ import { AuditService } from './audit.service';
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
+  @Get('calendar')
+  getAuditCalendar(@Query('month') month: string) {
+    return this.auditService.getAuditCalendar(month);
+  }
+
   @Get('activity')
-  getActivityTrail() {
-    return this.auditService.getActivityTrail();
+  getActivityTrail(@Query('date') date?: string) {
+    return this.auditService.getActivityTrail(date);
   }
 
   @Get('login')
   @RequirePermissions(PERMISSIONS.AUDIT_READ)
-  getLoginAudit() {
-    return this.auditService.getLoginAudit();
+  getLoginAudit(@Query('date') date?: string) {
+    return this.auditService.getLoginAudit(date);
   }
 }
