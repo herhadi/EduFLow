@@ -129,7 +129,7 @@ async function main() {
     ],
   };
 
-  // Root adalah role teknis dengan akses penuh. Super Admin Sekolah tetap dibatasi
+  // Root adalah role teknis dengan akses penuh. Super Administrator tetap dibatasi
   // pada capability operasional teknis sekolah yang ditetapkan manual role.
   rolePermissions.root = [...new Set(
     Object.entries(rolePermissions)

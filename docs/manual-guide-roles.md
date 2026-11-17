@@ -3,7 +3,7 @@
 Dokumen ini merupakan panduan penggunaan EduFlow untuk role:
 
 - Root
-- Super Admin Sekolah (`super admin`)
+- Super Administrator (`super admin`)
 - Operator Sekolah
 - Tata Usaha (`tu`)
 - Guru
@@ -11,7 +11,7 @@ Dokumen ini merupakan panduan penggunaan EduFlow untuk role:
 - Kepala Sekolah
 - Orang Tua/Wali Murid
 
-Super Admin Sekolah adalah role baru untuk pengelolaan akses, monitoring sistem, helpdesk, audit, dan backup/recovery sesuai kewenangan. Role ini bukan untuk kegiatan KBM.
+Super Administrator adalah role baru untuk pengelolaan akses, monitoring sistem, helpdesk, audit, dan backup/recovery sesuai kewenangan. Role ini bukan untuk kegiatan KBM.
 
 Panduan Bimbingan Konseling (`bk`) dibahas pada panduan role BK.
 
@@ -99,9 +99,9 @@ Jika pengguna membuka alamat milik role lain, sistem akan menampilkan peringatan
 
 ---
 
-# 2. Manual Guide Super Admin Sekolah
+# 2. Manual Guide Super Administrator
 
-## 2.1 Fungsi Super Admin Sekolah
+## 2.1 Fungsi Super Administrator
 
 Role `super admin` adalah pengelola aplikasi dan support teknis di tingkat sekolah. Role ini menjadi jembatan antara pengguna sekolah dan `root`; Super Admin tidak mengubah infrastruktur global tanpa koordinasi dengan root.
 

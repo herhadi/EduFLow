@@ -176,7 +176,7 @@ export class AuthController {
     const canManageRoles = isRoot || actorRoles.includes('super admin');
 
     if (!canManageRoles) {
-      throw new ForbiddenException('Hanya Root atau Super Admin Sekolah yang dapat mengubah role user');
+      throw new ForbiddenException('Hanya Root atau Super Administrator yang dapat mengubah role user');
     }
     return this.authService.updateUserRoles(id, dto.roles, isRoot);
   }

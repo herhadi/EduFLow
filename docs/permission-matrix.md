@@ -14,7 +14,7 @@ EduFlow memakai permission-based RBAC. Role hanya kumpulan permission, bukan log
 | Role | Deskripsi |
 | --- | --- |
 | `root` | Akses semua fitur untuk owner/dev/super admin teknis |
-| `super admin` | Super Admin Sekolah untuk monitoring sistem, akun, helpdesk, audit, dan recovery sesuai kewenangan |
+| `super admin` | Super Administrator untuk monitoring sistem, akun, helpdesk, audit, dan recovery sesuai kewenangan |
 | `operator_sekolah` | Operator akademik dan konfigurasi operasional sekolah |
 | `guru` | Guru pengajar |
 | `wali_kelas` | Guru dengan tanggung jawab kelas |
@@ -99,7 +99,7 @@ Permission menentukan capability. Scope data tetap harus dibatasi:
 - Akun wali kelas tetap memiliki role `guru`, sehingga pekerjaan harian seperti jadwal dan presensi memakai permission guru. Scope wali kelas hanya menambah akses baca kelas binaan.
 - Operator sekolah mengelola kalender pendidikan, jam pelajaran, jadwal sekolah, dan agenda KBM.
 - TU mengelola administrasi master data sekolah dan import data guru/siswa, tanpa kewenangan mengubah kalender, jam pelajaran, jadwal, atau agenda KBM.
-- Super Admin Sekolah hanya mengelola dukungan teknis EduFlow di tingkat sekolah; namespace `/admin/*` terpisah dari namespace Root `/system/*` dan `/operations`.
+- Super Administrator hanya mengelola dukungan teknis EduFlow di tingkat sekolah; namespace `/admin/*` terpisah dari namespace Root `/system/*` dan `/operations`.
 - Root adalah akses teknis semua fitur, bukan role pekerjaan harian sekolah.
 - Wali kelas hanya melihat kelas binaannya.
 - Orang tua hanya melihat data anaknya.
@@ -138,8 +138,8 @@ Scope harus ditegakkan di service: guru hanya mengelola jurnal agenda yang ditug
 Pengubahan role dilakukan dari halaman `/system/access` dengan dropdown ringkas. Satu akun dapat memiliki lebih dari satu role; role yang sudah terpasang ditampilkan sebagai label dan dapat ditambahkan atau dilepas sebelum disimpan.
 
 - Root dapat mengubah role user dan memberikan seluruh role, termasuk `root`.
-- Super Admin Sekolah (`super admin`) dapat mengubah role user, tetapi tidak dapat memberikan role `root`.
-- Role selain Root dan Super Admin Sekolah tidak dapat mengubah role user.
+- Super Administrator (`super admin`) dapat mengubah role user, tetapi tidak dapat memberikan role `root`.
+- Role selain Root dan Super Administrator tidak dapat mengubah role user.
 - Sistem harus mempertahankan setidaknya satu akun Root aktif; role Root pada satu-satunya akun Root aktif tidak dapat dilepas.
 - Keterangan tugas setiap role ditampilkan satu kali pada bagian informasi role (dapat dibuka/tutup), bukan diulang pada setiap baris user.
 

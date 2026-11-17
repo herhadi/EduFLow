@@ -64,7 +64,7 @@ export function UserManagementPanel({
         <h2 className="mt-1 text-2xl font-black text-ink">Pengelolaan Akun</h2>
         <p className="mt-1 text-sm leading-6 text-muted">
           {bootstrapOnly
-            ? 'Root menyiapkan akun Super Admin Sekolah dan Operator Sekolah sebagai pengelola awal. Root tetap memiliki kendali penuh untuk mengelola akun, role, reset password, menonaktifkan, atau menghapus akun.'
+            ? 'Root menyiapkan akun Super Administrator dan Operator Sekolah sebagai pengelola awal. Root tetap memiliki kendali penuh untuk mengelola akun, role, reset password, menonaktifkan, atau menghapus akun.'
             : 'Kelola akun sekolah dan hak akses pengguna sesuai kewenangan.'}
         </p>
       </div>
@@ -95,7 +95,7 @@ export function UserManagementPanel({
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           {roleCards.map((role) => <div className="min-w-0 border-t border-slate-200 pt-2 dark:border-slate-700" key={role.role}><p className="text-sm font-bold text-slate-800 dark:text-slate-100">{role.label}</p><p className="mt-1 text-xs leading-5 text-muted">{role.description}</p></div>)}
         </div>
-        <p className="mt-3 text-xs text-muted">Root memiliki kendali penuh. Super Admin Sekolah tidak dapat memberikan role Root.</p>
+        <p className="mt-3 text-xs text-muted">Root memiliki kendali penuh. Super Administrator tidak dapat memberikan role Root.</p>
       </details>
 
       <div className="mt-6 flex flex-col gap-3">

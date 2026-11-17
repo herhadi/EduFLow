@@ -2,13 +2,13 @@ import { getRoleGreeting, type CurrentUser } from './dashboard-types';
 import { RoleActionCard, RoleHero, RoleSection } from './role-dashboard-shared';
 
 export function AdminHome({ currentUser }: { currentUser: CurrentUser | null }) {
-  const displayName = currentUser?.name ?? currentUser?.username ?? 'Super Admin Sekolah';
+  const displayName = currentUser?.name ?? currentUser?.username ?? 'Super Administrator';
 
   return (
     <>
       <RoleHero
         description="Kelola akses pengguna dan bantu operasional teknis aplikasi di tingkat sekolah. Untuk perubahan infrastruktur global atau insiden developer, koordinasikan dengan Root."
-        eyebrow="Super Admin Sekolah"
+        eyebrow="Super Administrator"
         title={`Selamat datang, ${displayName}${getRoleGreeting(currentUser?.roles)}`}
       />
       <RoleSection description="Kewenangan pengelolaan aplikasi sekolah sesuai role dan permission." title="Administrasi Sistem Sekolah">
@@ -20,7 +20,7 @@ export function AdminHome({ currentUser }: { currentUser: CurrentUser | null }) 
       <section className="mt-7 rounded-[1.75rem] border border-slate-200 bg-white p-5 dark:border-[var(--border)] dark:bg-[var(--surface-solid)]">
         <h2 className="text-base font-black text-slate-900 dark:text-[var(--text)]">Batas kewenangan</h2>
         <p className="mt-2 text-sm leading-6 text-muted">
-          Super Admin Sekolah tidak mengelola jadwal, agenda, presensi, nilai, atau kegiatan KBM. Infrastruktur global, database, dan recovery tingkat developer tetap dikoordinasikan dengan Root.
+          Super Administrator tidak mengelola jadwal, agenda, presensi, nilai, atau kegiatan KBM. Infrastruktur global, database, dan recovery tingkat developer tetap dikoordinasikan dengan Root.
         </p>
       </section>
     </>

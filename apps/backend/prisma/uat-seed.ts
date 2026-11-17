@@ -49,7 +49,7 @@ async function main() {
   });
   const adminUser = await ensureUser({
     email: 'uat.admin@eduflow.local',
-    name: 'UAT Super Admin Sekolah',
+    name: 'UAT Super Administrator',
     password,
     roleIds: [roles['super admin'].id],
     username: 'uat.admin',
@@ -256,7 +256,7 @@ async function main() {
     login: [
       { username: principalUser.username, role: 'kepala_sekolah', password: defaultPassword },
       { username: operatorUser.username, role: 'operator_sekolah', password: defaultPassword },
-      { username: adminUser.username, role: 'super admin (Super Admin Sekolah)', password: defaultPassword },
+      { username: adminUser.username, role: 'super admin (Super Administrator)', password: defaultPassword },
       { username: teacherUser.username, role: 'guru + wali_kelas', password: defaultPassword },
       { username: teacherTwoUser.username, role: 'guru', password: defaultPassword },
       { username: substituteUser.username, role: 'guru pengganti', password: defaultPassword },

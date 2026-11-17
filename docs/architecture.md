@@ -180,6 +180,6 @@ EduFlow tidak mempertahankan mode data contoh di runtime production. Endpoint, s
 
 ## Provisioning Akun Login Guru
 
-Setiap profil `Teacher` aktif harus terhubung ke satu `User` melalui `Teacher.userId`. Pembuatan profil guru baru otomatis membuat akun login ber-role `guru`. Untuk data lama, Root atau Super Admin Sekolah dapat menjalankan provisioning dari halaman /admin/access; proses hanya membuat akun bagi guru aktif yang `userId`-nya masih kosong dan tidak menggandakan akun yang sudah terhubung.
+Setiap profil `Teacher` aktif harus terhubung ke satu `User` melalui `Teacher.userId`. Pembuatan profil guru baru otomatis membuat akun login ber-role `guru`. Untuk data lama, Root atau Super Administrator dapat menjalankan provisioning dari halaman /admin/access; proses hanya membuat akun bagi guru aktif yang `userId`-nya masih kosong dan tidak menggandakan akun yang sudah terhubung.
 
 Username dibentuk dari NIP, bagian awal email, atau nama guru, dengan suffix jika terjadi benturan. Email guru dipakai jika belum digunakan; jika tidak tersedia atau sudah dipakai, sistem membuat alamat internal `@eduflow.local`. Password awal mengikuti `DEFAULT_USER_PASSWORD` (fallback aplikasi tetap berlaku), sehingga guru menggantinya saat login pertama. Role tambahan seperti Wali Kelas atau Guru BK tetap dikelola melalui pengaturan role akun. Proses provisioning massal menghitung hash password satu kali di luar transaksi database dan menggunakan transaksi dengan batas waktu 60 detik agar batch guru tidak gagal karena timeout default Prisma 5 detik.

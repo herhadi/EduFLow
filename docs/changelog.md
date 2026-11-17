@@ -1,5 +1,7 @@
 ## 2026-11-17
 
+- Mengurutkan label role pada sapaan menjadi Super Administrator, Operator Sekolah, lalu TU; mengganti nama tampilan Super Admin Sekolah menjadi Super Administrator tanpa mengubah identifier role database `super admin`.
+
 - Menyamakan nama role Super Admin Sekolah menjadi `super admin` pada pengelolaan akun, seed, UAT, dan permission database; migrasi mempertahankan penugasan user serta permission saat mengganti nama role lama `admin`. Tombol Reset Password memakai warna biru, Nonaktifkan netral, dan Hapus tetap merah.
 
 - Memperbaiki akar masalah timezone EduFlow: kolom waktu dinormalisasi menjadi `TIMESTAMPTZ(3)` dengan mempertahankan instant historis UTC, PostgreSQL serta container aplikasi menggunakan `Asia/Jakarta`, dan batas tanggal tahun ajaran/semester serta kalender Audit Trail dihitung konsisten dalam WIB.

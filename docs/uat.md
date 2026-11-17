@@ -14,7 +14,7 @@ Perintah ini menjalankan seed role/permission dasar lalu seed UAT. Gunakan hanya
 
 - akun Kepala Sekolah: `uat.ks`,
 - akun operator sekolah: `uat.operator`,
-- akun Super Admin Sekolah: `uat.admin`,
+- akun Super Administrator: `uat.admin`,
 - akun guru/wali kelas: `uat.guru1`,
 - akun guru mapel: `uat.guru2`,
 - akun guru pengganti: `uat.guru3`,
@@ -29,7 +29,7 @@ Perintah ini menjalankan seed role/permission dasar lalu seed UAT. Gunakan hanya
 Password mengikuti `DEFAULT_USER_PASSWORD` pada `apps/backend/.env`, default `123456`.
 Tanggal agenda UAT mengikuti `SCHOOL_TIMEZONE_OFFSET_MINUTES` agar dashboard membaca hari sekolah yang sama di lokal dan Debian.
 
-### Super Admin Sekolah dan Root
+### Super Administrator dan Root
 
 Login sebagai `uat.admin`, buka `/admin/dashboard`, lalu pastikan:
 

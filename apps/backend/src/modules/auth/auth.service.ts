@@ -677,7 +677,7 @@ export class AuthService {
     const roles = await this.getRolesByNames(roleNames);
 
     if (!actorIsRoot && roles.some((role) => role.name === 'root')) {
-      throw new ForbiddenException('Super Admin Sekolah tidak dapat memberikan role Root');
+      throw new ForbiddenException('Super Administrator tidak dapat memberikan role Root');
     }
 
     if (currentIsRoot && !roles.some((role) => role.name === 'root')) {

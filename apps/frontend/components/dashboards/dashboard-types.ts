@@ -10,23 +10,39 @@ export type CurrentUser = {
 };
 
 export function getRoleDisplayLabels(roles?: string[] | null) {
+  const roleDisplayPriority: Record<string, number> = {
+    'super admin': 0,
+    operator_sekolah: 1,
+    tu: 2,
+  };
+
   return [...new Set(roles ?? [])]
     .filter(Boolean)
-    .map((role) =>
-      role
-        .replace(/_/g, ' ')
-        .trim()
-        .split(/\s+/)
-        .map((part) => {
-          const normalized = part.toLowerCase();
-          if (normalized === 'tu' || normalized === 'bk') return normalized.toUpperCase();
-          return part === part.toUpperCase()
-            ? part
-            : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
-        })
-        .join(' '),
-    )
-    .sort((a, b) => a.localeCompare(b));
+    .map((role) => {
+      const normalizedRole = role.trim().toLowerCase();
+      const label = normalizedRole === 'super admin'
+        ? 'Super Administrator'
+        : role
+            .replace(/_/g, ' ')
+            .trim()
+            .split(/\s+/)
+            .map((part) => {
+              const normalized = part.toLowerCase();
+              if (normalized === 'tu' || normalized === 'bk') return normalized.toUpperCase();
+              return part === part.toUpperCase()
+                ? part
+                : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+            })
+            .join(' ');
+
+      return { normalizedRole, label };
+    })
+    .sort((a, b) => {
+      const priorityA = roleDisplayPriority[a.normalizedRole] ?? Number.MAX_SAFE_INTEGER;
+      const priorityB = roleDisplayPriority[b.normalizedRole] ?? Number.MAX_SAFE_INTEGER;
+      return priorityA - priorityB || a.label.localeCompare(b.label);
+    })
+    .map(({ label }) => label);
 }
 
 export function getRoleGreeting(roles?: string[] | null) {

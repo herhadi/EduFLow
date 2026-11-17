@@ -60,7 +60,7 @@ export default function AdminAccessPage() {
     <main>
       <Container>
         <PageHeader
-          description="Provisioning awal platform: buat akun Super Admin Sekolah dan Operator Sekolah. Root tetap memiliki kendali penuh atas pengelolaan akun."
+          description="Provisioning awal platform: buat akun Super Administrator dan Operator Sekolah. Root tetap memiliki kendali penuh atas pengelolaan akun."
           eyebrow="Admin Akses"
           title="User & Hak Akses"
         />
