@@ -1,5 +1,7 @@
 ## 2026-11-17
 
+- Memperbaiki selisih tanggal pada badge kalender Audit Trail: kolom timestamp PostgreSQL tersimpan sebagai UTC tanpa timezone, sehingga agregasi kini menggeser waktu ke WIB sebelum mengelompokkan tanggal. Record login yang sebelumnya salah masuk ke 2 November kini masuk ke 3 November; total 14 November diselaraskan dengan 11 riwayat login.
+
 - Memperjelas sumber badge kalender Audit Trail dengan rincian hitungan Audit Log, Riwayat Login, dan Notification Log per tanggal; menambahkan area scroll pada Riwayat Login serta menampilkan identifier email/username yang dipakai saat login. Form login menegaskan dukungan username maupun email.
 
 - Merapikan Audit Trail: tombol tanggal terpilih kembali berukuran kotak mengikuti tinggi sel, rincian dipisah menjadi Audit Log, Riwayat Login, dan Notification Log, serta urutan navigasi Audit dan Helpdesk ditukar.

@@ -41,6 +41,8 @@ export class AuditService {
     const start = new Date(`${month}-01T00:00:00+07:00`);
     const end = new Date(Date.UTC(year, monthNumber, 1) - 7 * 60 * 60 * 1000);
 
+    // Prisma stores these PostgreSQL timestamp-without-time-zone values as UTC.
+    // Shift to Jakarta local time before deriving the calendar day.
     const rows = await this.prisma.$queryRaw<Array<{
       day: string;
       audit_count: number;
@@ -48,19 +50,19 @@ export class AuditService {
       notification_count: number;
     }>>`
       WITH audit_days AS (
-        SELECT TO_CHAR("createdAt" AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') AS day, COUNT(*)::int AS audit_count
+        SELECT TO_CHAR("createdAt" + INTERVAL '7 hours', 'YYYY-MM-DD') AS day, COUNT(*)::int AS audit_count
         FROM "AuditLog"
         WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
         GROUP BY 1
       ),
       login_days AS (
-        SELECT TO_CHAR("createdAt" AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') AS day, COUNT(*)::int AS login_count
+        SELECT TO_CHAR("createdAt" + INTERVAL '7 hours', 'YYYY-MM-DD') AS day, COUNT(*)::int AS login_count
         FROM "LoginAudit"
         WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
         GROUP BY 1
       ),
       notification_days AS (
-        SELECT TO_CHAR(COALESCE("sentAt", "failedAt", "createdAt") AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') AS day, COUNT(*)::int AS notification_count
+        SELECT TO_CHAR(COALESCE("sentAt", "failedAt", "createdAt") + INTERVAL '7 hours', 'YYYY-MM-DD') AS day, COUNT(*)::int AS notification_count
         FROM "NotificationLog"
         WHERE COALESCE("sentAt", "failedAt", "createdAt") >= ${start}
           AND COALESCE("sentAt", "failedAt", "createdAt") < ${end}
