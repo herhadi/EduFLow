@@ -273,4 +273,4 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 
 - Tombol hapus/reset/buang menggunakan gaya danger yang konsisten di light mode dan dark mode serta meminta konfirmasi sebelum aksi dijalankan.
 - Tombol Refresh Status Telegram menggunakan gaya netral karena merupakan aksi penyegaran, bukan aksi utama.
-- Label role menggunakan format Title Case dan urutan prioritas; role `admin` ditampilkan sebagai `Super Admin`, sehingga urutan akun dengan role admin dan TU menjadi `Super Admin, TU`.
+- Label role tidak lagi dipetakan manual di frontend; nama role mengikuti data backend, diformat Title Case, dan diurutkan berdasarkan nama tampilannya.
