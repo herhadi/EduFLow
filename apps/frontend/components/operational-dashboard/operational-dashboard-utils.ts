@@ -1,9 +1,10 @@
 import { type OperationalDashboardSummary } from '../../lib/api';
+import { getSchoolDateKey } from '../../lib/school-time';
 
 export type PrincipalPriorityKey = 'all' | 'empty' | 'notSubmitted' | 'issues' | 'missing' | 'substitutes';
 
 export const emptySummary: OperationalDashboardSummary = {
-  date: new Date().toISOString().slice(0, 10),
+  date: getSchoolDateKey(),
   classes: {
     totalToday: 0,
     inProgress: 0,

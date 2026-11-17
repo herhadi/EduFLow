@@ -162,7 +162,9 @@ export class JournalsService {
     return d;
   }
   private todayDate() {
-    const local = new Date(Date.now() + 7 * 60 * 60 * 1000);
+    const configuredOffset = Number(process.env.SCHOOL_TIMEZONE_OFFSET_MINUTES ?? 420);
+    const offsetMinutes = Number.isFinite(configuredOffset) ? configuredOffset : 420;
+    const local = new Date(Date.now() + offsetMinutes * 60 * 1000);
     return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate()));
   }
 }

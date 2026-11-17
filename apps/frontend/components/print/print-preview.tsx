@@ -1,6 +1,7 @@
 'use client';
 
 import { type ReactNode, useState } from 'react';
+import { formatSchoolDate } from '../../lib/school-time';
 
 export type PrintPaperSize = 'F4' | 'A4' | 'A4_LANDSCAPE';
 
@@ -121,7 +122,7 @@ export function PrintPreview({
     window.setTimeout(cleanup, 120000);
   }
 
-  const printDate = new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(new Date());
+  const printDate = formatSchoolDate(new Date(), { dateStyle: 'long' });
 
   return (
     <section aria-label={`Pratinjau cetak ${title}`} aria-modal="true" className="fixed inset-0 z-[9999] flex flex-col bg-slate-200 text-slate-900" role="dialog">

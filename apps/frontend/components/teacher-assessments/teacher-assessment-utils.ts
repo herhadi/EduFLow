@@ -1,8 +1,5 @@
-import {
-  type AssessmentScore,
-  type AssessmentStatus,
-  type AssessmentType,
-} from '../../lib/api';
+import { type AssessmentScore, type AssessmentStatus, type AssessmentType } from "../../lib/api";
+import { getSchoolDateKey } from "../../lib/school-time";
 
 export type ScoreDraft = Record<string, { score: string; notes: string }>;
 
@@ -38,7 +35,7 @@ export const assessmentStatusLabels: Record<AssessmentStatus, string> = {
 };
 
 export function getToday() {
-  return new Date().toISOString().slice(0, 10);
+  return getSchoolDateKey();
 }
 
 export function getEmptyAssessmentForm(): AssessmentFormState {

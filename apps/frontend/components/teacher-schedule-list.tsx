@@ -4,6 +4,7 @@ import { compareSchoolClasses } from '@eduflow/shared';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { api, type Schedule } from '../lib/api';
+import { formatSchoolDate, getSchoolDayOfWeek } from '../lib/school-time';
 
 const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
@@ -66,7 +67,7 @@ function getPeriodLabel(group: TeachingScheduleGroup) {
 }
 
 function getCurrentDayOfWeek() {
-  const day = new Date().getDay();
+  const day = getSchoolDayOfWeek();
 
   return day === 0 ? 7 : day;
 }
@@ -130,7 +131,7 @@ export function TeacherScheduleList() {
       window.alert('Popup diblokir browser. Izinkan popup untuk mencetak jadwal ke PDF.');
       return;
     }
-    printWindow.document.write('<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Jadwal Mengajar</title><style>body{font-family:Arial,sans-serif;color:#172033;padding:24px}h1{font-size:22px;margin-bottom:4px}p{color:#475569;font-size:12px;margin-top:0}table{width:100%;border-collapse:collapse;margin-top:20px;font-size:12px}th,td{border:1px solid #cbd5e1;padding:8px;text-align:left}th{background:#eff6ff}tr{break-inside:avoid}@media print{body{padding:0}}</style></head><body><h1>Jadwal Mengajar</h1><p>EduFlow · Dicetak ' + new Date().toLocaleDateString('id-ID') + '</p><table><thead><tr><th>Hari</th><th>Waktu</th><th>Jam Pelajaran</th><th>Mata Pelajaran</th><th>Kelas</th><th>Ruang</th></tr></thead><tbody>' + rows + '</tbody></table><script>window.onload=function(){window.print()}<\\/script></body></html>');
+    printWindow.document.write('<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Jadwal Mengajar</title><style>body{font-family:Arial,sans-serif;color:#172033;padding:24px}h1{font-size:22px;margin-bottom:4px}p{color:#475569;font-size:12px;margin-top:0}table{width:100%;border-collapse:collapse;margin-top:20px;font-size:12px}th,td{border:1px solid #cbd5e1;padding:8px;text-align:left}th{background:#eff6ff}tr{break-inside:avoid}@media print{body{padding:0}}</style></head><body><h1>Jadwal Mengajar</h1><p>EduFlow · Dicetak ' + formatSchoolDate(new Date()) + '</p><table><thead><tr><th>Hari</th><th>Waktu</th><th>Jam Pelajaran</th><th>Mata Pelajaran</th><th>Kelas</th><th>Ruang</th></tr></thead><tbody>' + rows + '</tbody></table><script>window.onload=function(){window.print()}<\\/script></body></html>');
     printWindow.document.close();
   }
 

@@ -38,11 +38,12 @@ export class AuditService {
     }
 
     const [year, monthNumber] = month.split('-').map(Number);
-    const start = new Date(`${month}-01T00:00:00+07:00`);
-    const end = new Date(Date.UTC(year, monthNumber, 1) - 7 * 60 * 60 * 1000);
+    const offsetMinutes = this.getSchoolTimezoneOffsetMinutes();
+    const offsetMs = offsetMinutes * 60 * 1000;
+    const start = new Date(Date.UTC(year, monthNumber - 1, 1) - offsetMs);
+    const end = new Date(Date.UTC(year, monthNumber, 1) - offsetMs);
 
-    // Prisma stores these PostgreSQL timestamp-without-time-zone values as UTC.
-    // Shift to Jakarta local time before deriving the calendar day.
+    // DateTime columns are TIMESTAMPTZ; derive calendar days explicitly in WIB.
     const rows = await this.prisma.$queryRaw<Array<{
       day: string;
       audit_count: number;
@@ -50,19 +51,19 @@ export class AuditService {
       notification_count: number;
     }>>`
       WITH audit_days AS (
-        SELECT TO_CHAR("createdAt" + INTERVAL '7 hours', 'YYYY-MM-DD') AS day, COUNT(*)::int AS audit_count
+        SELECT TO_CHAR("createdAt" AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') AS day, COUNT(*)::int AS audit_count
         FROM "AuditLog"
         WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
         GROUP BY 1
       ),
       login_days AS (
-        SELECT TO_CHAR("createdAt" + INTERVAL '7 hours', 'YYYY-MM-DD') AS day, COUNT(*)::int AS login_count
+        SELECT TO_CHAR("createdAt" AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') AS day, COUNT(*)::int AS login_count
         FROM "LoginAudit"
         WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
         GROUP BY 1
       ),
       notification_days AS (
-        SELECT TO_CHAR(COALESCE("sentAt", "failedAt", "createdAt") + INTERVAL '7 hours', 'YYYY-MM-DD') AS day, COUNT(*)::int AS notification_count
+        SELECT TO_CHAR(COALESCE("sentAt", "failedAt", "createdAt") AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') AS day, COUNT(*)::int AS notification_count
         FROM "NotificationLog"
         WHERE COALESCE("sentAt", "failedAt", "createdAt") >= ${start}
           AND COALESCE("sentAt", "failedAt", "createdAt") < ${end}
@@ -201,16 +202,31 @@ export class AuditService {
     });
   }
 
+  private getSchoolTimezoneOffsetMinutes() {
+    const configuredOffset = Number(process.env.SCHOOL_TIMEZONE_OFFSET_MINUTES ?? 420);
+    return Number.isFinite(configuredOffset) ? configuredOffset : 420;
+  }
+
   private getDateRange(date?: string) {
     if (!date) return null;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new BadRequestException('Format tanggal harus YYYY-MM-DD');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new BadRequestException('Format tanggal harus YYYY-MM-DD');
+    }
+
     const [year, month, day] = date.split('-').map(Number);
     const calendarDate = new Date(Date.UTC(year, month - 1, day));
-    if (calendarDate.getUTCFullYear() !== year || calendarDate.getUTCMonth() !== month - 1 || calendarDate.getUTCDate() !== day) {
+    if (
+      calendarDate.getUTCFullYear() !== year ||
+      calendarDate.getUTCMonth() !== month - 1 ||
+      calendarDate.getUTCDate() !== day
+    ) {
       throw new BadRequestException('Tanggal tidak valid');
     }
-    const start = new Date(`${date}T00:00:00+07:00`);
-    return { gte: start, lt: new Date(start.getTime() + 24 * 60 * 60 * 1000) };
+
+    const offsetMs = this.getSchoolTimezoneOffsetMinutes() * 60 * 1000;
+    const start = new Date(Date.UTC(year, month - 1, day) - offsetMs);
+    const end = new Date(Date.UTC(year, month - 1, day + 1) - offsetMs);
+    return { gte: start, lt: end };
   }
 
   private describeAudit(action: string, entityType: string) {

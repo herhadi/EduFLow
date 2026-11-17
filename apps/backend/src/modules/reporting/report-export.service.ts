@@ -44,7 +44,7 @@ export class ReportExportService {
     document.fontSize(18).text(reportName, { underline: true });
     document.moveDown();
     document.fontSize(10).fillColor('#475569');
-    document.text(`Generated at: ${new Date().toLocaleString('id-ID')}`);
+    document.text(`Generated at: ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`);
     document.moveDown();
 
     if (!rows.length) {

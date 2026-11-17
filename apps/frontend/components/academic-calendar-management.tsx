@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api, type AcademicCalendarEvent, type AcademicCalendarEventType, type SchoolYear } from '../lib/api';
 import { getUpcomingSchoolYear } from '../lib/school-year';
 import { useToast } from './ui/toast';
+import { formatSchoolDate, getSchoolDateKey } from '../lib/school-time';
 
 const eventTypes: Array<{ value: AcademicCalendarEventType; label: string; blocksAgenda: boolean; color: string; dot: string }> = [
   { value: 'HOLIDAY', label: 'Libur', blocksAgenda: true, color: 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-200', dot: 'bg-rose-500' },
@@ -18,22 +19,22 @@ const weekdays = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 const inputClass = 'w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-900 outline-none focus:border-brand-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100';
 const labelClass = 'grid gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200';
 
-function dateInput(value: string) { return value.slice(0, 10); }
-function isoDate(date: Date) {
-  return String(date.getFullYear()) + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
-}
+function dateInput(value: string) { return getSchoolDateKey(value); }
+function isoDate(date: Date) { return getSchoolDateKey(date); }
+
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(value.slice(0, 10) + 'T00:00:00'));
+  return formatSchoolDate(value.slice(0, 10));
 }
-function formatMonth(date: Date) { return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(date); }
+function formatMonth(date: Date) { return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' }).format(date); }
 function getCalendarMonths(schoolYear?: SchoolYear) {
   if (!schoolYear) return [];
   // Nama tahun ajaran menjadi acuan utama agar data startsAt lama/tidak konsisten
   // tidak membuat tahun ajaran 2026/2027 tampil mulai Juli 2025.
   const match = schoolYear.name.match(/(\d{4})\s*[/-]\s*(\d{4})/);
-  const startsAt = new Date(dateInput(schoolYear.startsAt) + 'T00:00:00');
-  const firstYear = match ? Number(match[1]) : startsAt.getMonth() >= 6 ? startsAt.getFullYear() : startsAt.getFullYear() - 1;
-  return Array.from({ length: 12 }, (_, index) => new Date(firstYear, 6 + index, 1));
+  const startsKey = getSchoolDateKey(schoolYear.startsAt);
+  const [startsYear, startsMonth] = startsKey.split('-').map(Number);
+  const firstYear = match ? Number(match[1]) : startsMonth >= 7 ? startsYear : startsYear - 1;
+  return Array.from({ length: 12 }, (_, index) => new Date(Date.UTC(firstYear, 6 + index, 1, 12)));
 }
 function blankForm(date: string) {
   return { title: '', type: 'HOLIDAY' as AcademicCalendarEventType, startsAt: date, endsAt: date, description: '', blocksAgenda: true };
@@ -84,7 +85,8 @@ export function AcademicCalendarManagement() {
     setMonthIndex(0);
     const allMonths = getCalendarMonths(selectedSchoolYear);
     const today = new Date();
-    const todayIndex = allMonths.findIndex((month) => month.getFullYear() === today.getFullYear() && month.getMonth() === today.getMonth());
+    const todayMonth = getSchoolDateKey(today).slice(0, 7);
+    const todayIndex = allMonths.findIndex((month) => getSchoolDateKey(month).slice(0, 7) === todayMonth);
     setSelectedDate(todayIndex >= 0 ? isoDate(today) : isoDate(allMonths[0] || today));
   }, [selectedSchoolYear]);
 
@@ -162,13 +164,14 @@ export function AcademicCalendarManagement() {
   }
   function todayAction() {
     const today = new Date();
-    const index = months.findIndex((month) => month.getFullYear() === today.getFullYear() && month.getMonth() === today.getMonth());
+    const todayMonth = getSchoolDateKey(today).slice(0, 7);
+    const index = months.findIndex((month) => getSchoolDateKey(month).slice(0, 7) === todayMonth);
     if (index < 0) { toast.warning('Hari ini berada di luar rentang tahun ajaran yang dipilih.', 'Kaldik'); return; }
     setMonthIndex(index); setSelectedDate(isoDate(today));
   }
 
-  const offset = activeMonth ? (activeMonth.getDay() + 6) % 7 : 0;
-  const days = activeMonth ? new Date(activeMonth.getFullYear(), activeMonth.getMonth() + 1, 0).getDate() : 0;
+  const offset = activeMonth ? (new Date(Date.UTC(activeMonth.getUTCFullYear(), activeMonth.getUTCMonth(), 1, 12)).getUTCDay() + 6) % 7 : 0;
+  const days = activeMonth ? new Date(Date.UTC(activeMonth.getUTCFullYear(), activeMonth.getUTCMonth() + 1, 0, 12)).getUTCDate() : 0;
   const cells = Array.from({ length: Math.ceil((offset + days) / 7) * 7 }, (_, index) => index - offset + 1);
 
   return <div className="mt-6 space-y-5">
@@ -198,7 +201,7 @@ export function AcademicCalendarManagement() {
             {weekdays.map((label) => <span className="py-2 text-center text-xs font-black text-slate-400 sm:text-sm" key={label}>{label}</span>)}
             {cells.map((day, index) => {
               if (!activeMonth || day < 1 || day > days) return <span aria-hidden="true" className="min-h-12 sm:min-h-20" key={'empty-' + index} />;
-              const date = isoDate(new Date(activeMonth.getFullYear(), activeMonth.getMonth(), day));
+              const date = isoDate(new Date(Date.UTC(activeMonth.getUTCFullYear(), activeMonth.getUTCMonth(), day, 12)));
               const matches = events.filter((item) => item.startsAt.slice(0, 10) <= date && item.endsAt.slice(0, 10) >= date);
               const selected = date === selectedDate;
               const today = date === isoDate(new Date());
@@ -238,9 +241,9 @@ export function AcademicCalendarManagement() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
         {months.map((month, index) => {
           const monthStart = isoDate(month);
-          const monthEnd = isoDate(new Date(month.getFullYear(), month.getMonth() + 1, 0));
-          const monthDays = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
-          const monthOffset = (month.getDay() + 6) % 7;
+          const monthEnd = isoDate(new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + 1, 0, 12)));
+          const monthDays = new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + 1, 0, 12)).getUTCDate();
+          const monthOffset = (new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), 1, 12)).getUTCDay() + 6) % 7;
           const monthCells = Array.from({ length: Math.ceil((monthOffset + monthDays) / 7) * 7 }, (_, cell) => cell - monthOffset + 1);
           const monthEventCount = events.filter((item) => item.startsAt.slice(0, 10) <= monthEnd && item.endsAt.slice(0, 10) >= monthStart).length;
           return <button aria-label={'Buka kalender ' + formatMonth(month)} aria-pressed={index === monthIndex} className={'min-w-0 rounded-xl border p-3 text-left transition ' + (index === monthIndex ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-200 dark:border-brand-500 dark:bg-brand-950/40 dark:ring-brand-900' : 'border-slate-200 bg-white hover:border-brand-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-500')} key={monthStart} onClick={() => { setMonthIndex(index); setSelectedDate(monthStart); }} type="button">
@@ -249,7 +252,7 @@ export function AcademicCalendarManagement() {
               {weekdays.map((day) => <span className="text-[9px] font-bold text-slate-400" key={day}>{day.slice(0, 1)}</span>)}
               {monthCells.map((day, cellIndex) => {
                 if (day < 1 || day > monthDays) return <span className="h-4" key={'blank-' + cellIndex} />;
-                const date = isoDate(new Date(month.getFullYear(), month.getMonth(), day));
+                const date = isoDate(new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), day, 12)));
                 const hasActivity = events.some((item) => item.startsAt.slice(0, 10) <= date && item.endsAt.slice(0, 10) >= date);
                 return <span className={'flex h-4 items-center justify-center rounded text-[9px] ' + (date === selectedDate ? 'bg-brand-600 font-black text-white' : hasActivity ? 'bg-sky-100 font-bold text-sky-800 dark:bg-sky-900 dark:text-sky-100' : 'text-slate-600 dark:text-slate-300')} key={date}>{day}</span>;
               })}

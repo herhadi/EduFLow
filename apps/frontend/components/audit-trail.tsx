@@ -8,6 +8,7 @@ import { EmptyState } from './ui/empty-state';
 import { LoadingState } from './ui/loading';
 import { SearchInput } from './ui/search';
 import { SurfaceCard } from './ui/card';
+import { formatSchoolDate, formatSchoolDateTime, getSchoolDateKey } from '../lib/school-time';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 type CalendarDay = { date: string; count: number; auditCount: number; loginCount: number; notificationCount: number };
@@ -26,8 +27,8 @@ const actionTone: Record<string, string> = {
 };
 
 const weekdays = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-const monthLabel = (value: Date) => new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(value);
-const dateKey = (value: Date) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+const monthLabel = (value: Date) => new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' }).format(value);
+const dateKey = (value: Date) => getSchoolDateKey(value);
 
 export function AuditTrail() {
   const [activities, setActivities] = useState<ActivityTrailItem[]>([]);
@@ -35,11 +36,11 @@ export function AuditTrail() {
   const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [calendarLoading, setCalendarLoading] = useState(false);
-  const [visibleMonth, setVisibleMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [visibleMonth, setVisibleMonth] = useState(() => { const [year, month] = getSchoolDateKey().split('-').map(Number); return new Date(Date.UTC(year, month - 1, 1, 12)); });
   const [selectedDate, setSelectedDate] = useState(() => dateKey(new Date()));
   const [query, setQuery] = useState('');
 
-  const monthKey = `${visibleMonth.getFullYear()}-${String(visibleMonth.getMonth() + 1).padStart(2, '0')}`;
+  const monthKey = visibleMonth.getUTCFullYear() + '-' + String(visibleMonth.getUTCMonth() + 1).padStart(2, '0');
 
   const loadCalendar = useCallback(async () => {
     setCalendarLoading(true);
@@ -91,21 +92,22 @@ export function AuditTrail() {
   const auditLogs = filteredActivities.filter((activity) => activity.source !== 'notification');
   const notificationLogs = filteredActivities.filter((activity) => activity.source === 'notification');
 
-  const daysInMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0).getDate();
-  const leadingDays = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1).getDay();
+  const daysInMonth = new Date(Date.UTC(visibleMonth.getUTCFullYear(), visibleMonth.getUTCMonth() + 1, 0, 12)).getUTCDate();
+  const leadingDays = new Date(Date.UTC(visibleMonth.getUTCFullYear(), visibleMonth.getUTCMonth(), 1, 12)).getUTCDay();
   const counts = useMemo(() => new Map(calendarDays.map((day) => [day.date, day.count])), [calendarDays]);
   const totalCount = calendarDays.reduce((sum, day) => sum + day.count, 0);
   const selectedCalendarDay = calendarDays.find((day) => day.date === selectedDate);
 
   function changeMonth(offset: number) {
-    setVisibleMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
+    setVisibleMonth((current) => new Date(Date.UTC(current.getUTCFullYear(), current.getUTCMonth() + offset, 1, 12)));
   }
   function changeYear(offset: number) {
-    setVisibleMonth((current) => new Date(current.getFullYear() + offset, current.getMonth(), 1));
+    setVisibleMonth((current) => new Date(Date.UTC(current.getUTCFullYear() + offset, current.getUTCMonth(), 1, 12)));
   }
   function goToday() {
     const today = new Date();
-    setVisibleMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+    const [year, month] = dateKey(today).split('-').map(Number);
+    setVisibleMonth(new Date(Date.UTC(year, month - 1, 1, 12)));
     setSelectedDate(dateKey(today));
   }
 
@@ -136,7 +138,7 @@ export function AuditTrail() {
           {Array.from({ length: leadingDays }, (_, index) => <div key={`empty-${index}`} />)}
           {Array.from({ length: daysInMonth }, (_, index) => {
             const day = index + 1;
-            const key = dateKey(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), day));
+            const key = dateKey(new Date(Date.UTC(visibleMonth.getUTCFullYear(), visibleMonth.getUTCMonth(), day, 12)));
             const count = counts.get(key) ?? 0;
             const selected = selectedDate === key;
             const today = key === dateKey(new Date());
@@ -158,7 +160,7 @@ export function AuditTrail() {
       <div className="mt-5 grid gap-2 sm:grid-cols-[minmax(14rem,1fr)_auto]">
         <SearchInput id="audit-search" onClear={() => setQuery('')} onChange={(event) => setQuery(event.target.value)} placeholder="Cari aktivitas atau pengguna..." value={query} />
         <div className="flex flex-col justify-center rounded-xl bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-          <span>{new Date(`${selectedDate}T00:00:00`).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+          <span>{formatSchoolDate(selectedDate)}</span>
           {selectedCalendarDay ? <span className="mt-0.5 text-[11px] font-medium text-muted">Kalender: Audit {selectedCalendarDay.auditCount} · Login {selectedCalendarDay.loginCount} · Notifikasi {selectedCalendarDay.notificationCount}</span> : null}
         </div>
       </div>
@@ -223,7 +225,7 @@ function LoginAuditCard({ audit }: { audit: LoginAuditItem }) {
         <Badge className={statusClass} tone="muted">{audit.status}</Badge>
       </div>
       <div className="mt-3 grid gap-1 text-xs text-muted sm:grid-cols-2">
-        <p>Waktu: {new Date(audit.createdAt).toLocaleString('id-ID')}</p><p>IP: {audit.ipAddress ?? '-'}</p>
+        <p>Waktu: {formatSchoolDateTime(audit.createdAt)}</p><p>IP: {audit.ipAddress ?? '-'}</p>
         <p className="sm:col-span-2">Browser/Perangkat: {getDeviceLabel(audit.userAgent)} <span className="break-all">({audit.userAgent ?? 'tidak tersedia'})</span></p>
         {audit.reason ? <p className="sm:col-span-2">Keterangan: {audit.reason}</p> : null}
       </div>
@@ -288,7 +290,7 @@ function NotificationActivityCard({ activity }: { activity: ActivityTrailItem })
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 pt-3 text-xs text-muted dark:border-slate-700">
         <span>Penerima: {notification.recipient}</span>
         <span>Percobaan: {notification.attempts}</span>
-        <span>Waktu: {new Date(activity.time).toLocaleString('id-ID')}</span>
+        <span>Waktu: {formatSchoolDateTime(activity.time)}</span>
       </div>
       {notification.lastError ? <p className="mt-2 break-words rounded-lg bg-red-50 p-2 text-xs text-red-700 dark:bg-red-500/10 dark:text-red-200">Keterangan gagal: {notification.lastError}</p> : null}
     </article>
@@ -296,5 +298,5 @@ function NotificationActivityCard({ activity }: { activity: ActivityTrailItem })
 }
 
 function formatTime(value: string) {
-  return new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+  return new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).format(new Date(value));
 }

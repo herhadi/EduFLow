@@ -6,6 +6,7 @@ import { api, type DailyAgenda, type TeacherDashboardSummary as TeacherDashboard
 import { UserAvatar } from '../ui/user-avatar';
 import { type CurrentUser } from './dashboard-types';
 import { RoleActionCard, RoleSection } from './role-dashboard-shared';
+import { formatSchoolDate, getSchoolDateKey } from '../../lib/school-time';
 
 export function TeacherHome({
   currentUser,
@@ -276,25 +277,9 @@ function TeacherMiniStat({
   );
 }
 
-function getLocalDateOnly() {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+function getLocalDateOnly() { return getSchoolDateKey(); }
 
-  return `${year}-${month}-${day}`;
-}
-
-function formatReadableDate(value: string) {
-  const [year, month, day] = value.split('-').map(Number);
-  const date = new Date(year, month - 1, day);
-
-  return new Intl.DateTimeFormat('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(date);
-}
+function formatReadableDate(value: string) { return formatSchoolDate(value); }
 
 function getAgendaLabel(state?: string | null) {
   if (state === 'SUBMITTED') return 'Presensi sudah dikirim';

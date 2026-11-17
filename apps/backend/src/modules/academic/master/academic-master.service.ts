@@ -67,8 +67,8 @@ export class AcademicMasterService {
       const schoolYear = await transaction.schoolYear.create({
         data: {
           name,
-          startsAt: new Date(Date.UTC(startYear, 6, 1)),
-          endsAt: new Date(Date.UTC(endYear, 5, 30, 23, 59, 59, 999)),
+          startsAt: this.createSchoolBoundaryDate(startYear, 6, 1),
+          endsAt: this.createSchoolBoundaryDate(endYear, 5, 30, 23, 59, 59, 999),
         },
       });
 
@@ -77,14 +77,14 @@ export class AcademicMasterService {
           {
             schoolYearId: schoolYear.id,
             type: SemesterType.ODD,
-            startsAt: new Date(Date.UTC(startYear, 6, 1)),
-            endsAt: new Date(Date.UTC(startYear, 11, 31, 23, 59, 59, 999)),
+            startsAt: this.createSchoolBoundaryDate(startYear, 6, 1),
+            endsAt: this.createSchoolBoundaryDate(startYear, 11, 31, 23, 59, 59, 999),
           },
           {
             schoolYearId: schoolYear.id,
             type: SemesterType.EVEN,
-            startsAt: new Date(Date.UTC(endYear, 0, 1)),
-            endsAt: new Date(Date.UTC(endYear, 5, 30, 23, 59, 59, 999)),
+            startsAt: this.createSchoolBoundaryDate(endYear, 0, 1),
+            endsAt: this.createSchoolBoundaryDate(endYear, 5, 30, 23, 59, 59, 999),
           },
         ],
       });
@@ -624,6 +624,20 @@ export class AcademicMasterService {
     });
 
     return { data: activity, message: 'Kegiatan jeda kelas berhasil disimpan.' };
+  }
+
+  private createSchoolBoundaryDate(
+    year: number,
+    monthIndex: number,
+    day: number,
+    hour = 0,
+    minute = 0,
+    second = 0,
+    millisecond = 0,
+  ) {
+    const configuredOffset = Number(process.env.SCHOOL_TIMEZONE_OFFSET_MINUTES ?? 420);
+    const offsetMinutes = Number.isFinite(configuredOffset) ? configuredOffset : 420;
+    return new Date(Date.UTC(year, monthIndex, day, hour, minute, second, millisecond) - offsetMinutes * 60 * 1000);
   }
 
   private validateScheduleTime(startsAt: string, endsAt: string) {

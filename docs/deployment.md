@@ -50,6 +50,15 @@ Deployment production wajib menyediakan environment variable secara aman dan men
 - Metadata Next.js (`apps/frontend/app/layout.tsx`) dan manifest PWA (`apps/frontend/app/manifest.ts`) wajib menunjuk ke logo sekolah agar favicon, apple icon, dan installable app icon konsisten.
 - Jika logo sekolah diganti, buat ulang `logo_sekolah.png` dari sumber logo terbaru dan pastikan ukurannya tetap persegi.
 
+## Kebijakan Timezone
+
+- PostgreSQL memakai session timezone Asia/Jakarta melalui konfigurasi service Compose.
+- Semua kolom DateTime Prisma yang menyimpan instant memakai @db.Timestamptz(3). Nilai disimpan sebagai instant; jangan menambahkan offset WIB pada timestamp sebelum menyimpannya.
+- Migration `20261117110000_standardize_timestamps_to_timestamptz` mengonversi nilai timestamp lama dengan interpretasi UTC agar instant historis tetap sama, sekaligus menormalkan batas awal/akhir tahun ajaran dan semester ke WIB. Migration berjalan transaksional dan tabel snapshot guru lama hanya diproses jika tabel tersebut tersedia.
+- SCHOOL_TIMEZONE_OFFSET_MINUTES=420 dipakai backend untuk rentang tanggal kalender sekolah. API tetap mengirim timestamp ISO-8601, sedangkan frontend memformat tanggal/waktu secara eksplisit menggunakan Asia/Jakarta.
+- Kolom @db.Date tetap dipakai untuk tanggal kalender murni; jangan mengubahnya menjadi timestamp.
+- Jangan mengubah file .env production sebagai bagian dari perubahan kode. Pengaturan timezone database berada di docker-compose.yml.
+
 ## Environment Variable
 
 ### Docker Compose staging/production
@@ -97,6 +106,8 @@ TELEGRAM_BOT_TOKEN=token_dari_botfather
 TELEGRAM_WEBHOOK_SECRET=secret-random
 TELEGRAM_WEBHOOK_URL=https://domain-backend-atau-frontend/api/auth/telegram/webhook
 ```
+
+PostgreSQL menggunakan session timezone `Asia/Jakarta`, sedangkan container backend dan frontend memakai `TZ=Asia/Jakarta`. Kolom waktu aplikasi disimpan sebagai `TIMESTAMPTZ(3)` (instant), dan tanggal kalender murni tetap `DATE`. Format serta batas hari aplikasi harus menggunakan zona `Asia/Jakarta`; jangan menambahkan offset manual pada timestamp yang sudah memiliki timezone.
 
 `NEXT_PUBLIC_API_URL` masuk ke bundle frontend saat image dibuild. Jika nilainya berubah, rebuild image frontend:
 

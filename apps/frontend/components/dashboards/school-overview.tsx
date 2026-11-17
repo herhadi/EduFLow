@@ -77,7 +77,7 @@ export function SchoolOverview({ audience }: { audience: Audience }) {
             {summary?.schoolYear ?? (state === 'loading' ? 'Memuat tahun ajaran…' : 'Ringkasan sekolah')}
           </h2>
           <p className="mt-1 text-sm text-muted">
-            {updatedAt ? 'Diperbarui ' + new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(updatedAt)) : 'Pilih kartu untuk membuka data terkait.'}
+            {updatedAt ? 'Diperbarui ' + new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Jakarta' }).format(new Date(updatedAt)) : 'Pilih kartu untuk membuka data terkait.'}
           </p>
         </div>
         {state === 'error' ? <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700 dark:bg-rose-400/10 dark:text-rose-200">Data gagal dimuat</span> : null}

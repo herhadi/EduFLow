@@ -6,6 +6,7 @@ import { api } from '../../lib/api';
 import { getPreferredSchoolYear } from '../../lib/school-year';
 import type { Student } from '../../lib/api-types';
 import { PrintPreview } from '../print/print-preview';
+import { formatSchoolDate, getSchoolDateKey } from '../../lib/school-time';
 
 type ClassGroup = { key: string; name: string; students: Student[] };
 type LoadState = 'loading' | 'success' | 'error';
@@ -14,7 +15,7 @@ function formatDate(value?: string | null) {
   if (!value) return '—';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }).format(date);
+  return formatSchoolDate(value, { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
 function genderLabel(value?: Student['gender']) {
@@ -216,7 +217,7 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'daftar-siswa-' + new Date().toISOString().slice(0, 10) + '.xls';
+    anchor.download = 'daftar-siswa-' + getSchoolDateKey() + '.xls';
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();

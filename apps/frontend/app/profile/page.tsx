@@ -11,6 +11,7 @@ import { fieldClass } from '../../components/ui/form';
 import { api, type AuthSession, type MyProfile } from '../../lib/api';
 import { formatImageSize, prepareProfilePhotoForUpload } from '../../lib/image-compression';
 import { clearBrowserSession } from '../../lib/session';
+import { formatSchoolDateTime } from '../../lib/school-time';
 
 type Status = { tone: 'success' | 'error' | 'info'; text: string } | null;
 
@@ -374,9 +375,9 @@ export default function ProfilePage() {
                         </span>
                       )}
                     </div>
-                    <p className="mt-1">Masuk: {new Date(session.createdAt).toLocaleString('id-ID')}</p>
+                    <p className="mt-1">Masuk: {formatSchoolDateTime(session.createdAt)}</p>
                     <p className="mt-1">IP: {session.ipAddress ?? '-'}</p>
-                    <p className="mt-1">Berakhir: {new Date(session.expiresAt).toLocaleString('id-ID')}</p>
+                    <p className="mt-1">Berakhir: {formatSchoolDateTime(session.expiresAt)}</p>
                     {session.revokedReason ? <p className="mt-1">Alasan: {session.revokedReason}</p> : null}
                   </div>
                 ))}

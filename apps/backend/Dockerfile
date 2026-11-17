@@ -2,7 +2,7 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 
-RUN apk add --no-cache postgresql-client
+RUN apk add --no-cache postgresql-client tzdata
 
 COPY package.json package-lock.json ./
 COPY apps/backend/package.json apps/backend/package.json
@@ -14,6 +14,7 @@ COPY . .
 RUN npm run prisma:generate --workspace backend
 RUN npm run build --workspace backend
 
+ENV TZ=Asia/Jakarta
 ENV NODE_ENV=production
 ENV PORT=3001
 

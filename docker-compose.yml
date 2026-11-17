@@ -8,6 +8,8 @@ services:
       - apps/backend/.env
     environment:
       PORT: 3001
+      TZ: Asia/Jakarta
+      SCHOOL_TIMEZONE_OFFSET_MINUTES: 420
     depends_on:
       postgres:
         condition: service_healthy
@@ -31,6 +33,7 @@ services:
       - apps/frontend/.env.local
     environment:
       PORT: 3000
+      TZ: Asia/Jakarta
     depends_on:
       - backend
     # Cloudflare Tunnel should target localhost:3000; do not publish Next.js to every interface.
@@ -41,7 +44,9 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: eduflow-postgres
+    command: ["postgres", "-c", "timezone=Asia/Jakarta", "-c", "log_timezone=Asia/Jakarta"]
     environment:
+      TZ: Asia/Jakarta
       POSTGRES_DB: eduflow
       POSTGRES_USER: eduflow
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Derived from apps/backend/.env DATABASE_URL by deploy.sh}

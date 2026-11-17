@@ -6,6 +6,7 @@ import {
   type Teacher,
 } from '../../lib/api';
 import { sortSchoolClasses } from '@eduflow/shared';
+import { formatSchoolDate } from '../../lib/school-time';
 
 export type MasterTab = 'teachers' | 'students' | 'classes' | 'subjects' | 'schoolYears';
 
@@ -93,9 +94,5 @@ export function getSchoolYearRows(schoolYears: SchoolYear[]) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat('id-ID', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value));
+  return formatSchoolDate(value, { day: '2-digit', month: 'short', year: 'numeric' });
 }

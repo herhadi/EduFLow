@@ -7,5 +7,6 @@ export function formatReadableDate(value: string) {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
+    timeZone: 'Asia/Jakarta',
   }).format(new Date(value));
 }

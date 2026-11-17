@@ -233,8 +233,14 @@ export class AcademicCalendarService {
   }
 
   private toDateOnly(value: string) {
-    const date = new Date(value);
-    date.setUTCHours(0, 0, 0, 0);
-    return date;
+    const instant = new Date(value);
+    const configuredOffset = Number(process.env.SCHOOL_TIMEZONE_OFFSET_MINUTES ?? 420);
+    const offsetMinutes = Number.isFinite(configuredOffset) ? configuredOffset : 420;
+    const schoolLocal = new Date(instant.getTime() + offsetMinutes * 60 * 1000);
+    return new Date(Date.UTC(
+      schoolLocal.getUTCFullYear(),
+      schoolLocal.getUTCMonth(),
+      schoolLocal.getUTCDate(),
+    ));
   }
 }

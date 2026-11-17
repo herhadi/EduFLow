@@ -329,14 +329,14 @@ async function ensureSchoolYear(name: string) {
   return prisma.schoolYear.upsert({
     where: { name },
     update: {
-      startsAt: new Date(startYear, 6, 1),
-      endsAt: new Date(endYear, 5, 30, 23, 59, 59, 999),
+      startsAt: new Date(String(startYear) + '-07-01T00:00:00+07:00'),
+      endsAt: new Date(String(endYear) + '-06-30T23:59:59.999+07:00'),
       deletedAt: null,
     },
     create: {
       name,
-      startsAt: new Date(startYear, 6, 1),
-      endsAt: new Date(endYear, 5, 30, 23, 59, 59, 999),
+      startsAt: new Date(String(startYear) + '-07-01T00:00:00+07:00'),
+      endsAt: new Date(String(endYear) + '-06-30T23:59:59.999+07:00'),
     },
   });
 }
@@ -349,29 +349,29 @@ async function ensureSemester(schoolYearId: string, date: Date) {
   await prisma.semester.upsert({
     where: { schoolYearId_type: { schoolYearId, type: SemesterType.ODD } },
     update: {
-      startsAt: new Date(startYear, 6, 1),
-      endsAt: new Date(startYear, 11, 31, 23, 59, 59, 999),
+      startsAt: new Date(String(startYear) + '-07-01T00:00:00+07:00'),
+      endsAt: new Date(String(startYear) + '-12-31T23:59:59.999+07:00'),
       deletedAt: null,
     },
     create: {
       schoolYearId,
       type: SemesterType.ODD,
-      startsAt: new Date(startYear, 6, 1),
-      endsAt: new Date(startYear, 11, 31, 23, 59, 59, 999),
+      startsAt: new Date(String(startYear) + '-07-01T00:00:00+07:00'),
+      endsAt: new Date(String(startYear) + '-12-31T23:59:59.999+07:00'),
     },
   });
   await prisma.semester.upsert({
     where: { schoolYearId_type: { schoolYearId, type: SemesterType.EVEN } },
     update: {
-      startsAt: new Date(endYear, 0, 1),
-      endsAt: new Date(endYear, 5, 30, 23, 59, 59, 999),
+      startsAt: new Date(String(endYear) + '-01-01T00:00:00+07:00'),
+      endsAt: new Date(String(endYear) + '-06-30T23:59:59.999+07:00'),
       deletedAt: null,
     },
     create: {
       schoolYearId,
       type: SemesterType.EVEN,
-      startsAt: new Date(endYear, 0, 1),
-      endsAt: new Date(endYear, 5, 30, 23, 59, 59, 999),
+      startsAt: new Date(String(endYear) + '-01-01T00:00:00+07:00'),
+      endsAt: new Date(String(endYear) + '-06-30T23:59:59.999+07:00'),
     },
   });
 

@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, type ClassJournal, type SchoolClass } from '../lib/api';
 import { PageHeader } from './ui/page-header';
+import { getSchoolDateKey } from '../lib/school-time';
 
-function localDate(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function localDate() { return getSchoolDateKey(); }
 function label(status:string){return status==='SUBMITTED'?'Terkirim':status==='LOCKED'?'Terkunci':status==='DRAFT'?'Draft':'Belum diisi';}
 function gradeOf(schoolClass:SchoolClass){return schoolClass.grade?.trim() || schoolClass.name.trim().split(/\s+/)[0] || 'Lainnya';}
 function gradeOrder(value:string){const roman:Record<string,number>={VII:7,VIII:8,IX:9,X:10,XI:11,XII:12};return roman[value.toUpperCase()] ?? (Number(value) || 99);}

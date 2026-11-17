@@ -9,6 +9,7 @@ import {
   type Teacher,
 } from '../../lib/api';
 import { getPreferredSchoolYear, getPreferredSemester } from '../../lib/school-year';
+import { formatSchoolDate, getSchoolDateKey } from '../../lib/school-time';
 
 export type ScheduleWithEffectiveRevision = Schedule & {
   hasRevision?: boolean;
@@ -40,18 +41,18 @@ export function getDayLabel(dayOfWeek: number) {
 }
 
 export function getToday() {
-  return new Date().toISOString().slice(0, 10);
+  return getSchoolDateKey();
 }
 
 export function getDateForSemester(semester?: Semester) {
   if (!semester) return getToday();
 
-  const today = new Date(getToday()).getTime();
-  const startsAt = new Date(semester.startsAt).getTime();
-  const endsAt = new Date(semester.endsAt).getTime();
+  const today = getToday();
+  const startsAt = getSchoolDateKey(semester.startsAt);
+  const endsAt = getSchoolDateKey(semester.endsAt);
 
   if (startsAt <= today && today <= endsAt) {
-    return getToday();
+    return today;
   }
 
   return formatDateInput(semester.startsAt);
@@ -59,19 +60,11 @@ export function getDateForSemester(semester?: Semester) {
 
 export function formatDateInput(value?: string | Date | null) {
   if (!value) return '';
-  return new Date(value).toISOString().slice(0, 10);
+  return getSchoolDateKey(value);
 }
 
 export function formatDateDisplay(value: string | Date) {
-  const date = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
-    ? new Date(`${value}T00:00:00`)
-    : new Date(value);
-
-  return new Intl.DateTimeFormat('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(date);
+  return formatSchoolDate(value);
 }
 
 export function getFirstScheduledClassId(

@@ -1,6 +1,6 @@
 ## 2026-11-17
 
-- Memperbaiki selisih tanggal pada badge kalender Audit Trail: kolom timestamp PostgreSQL tersimpan sebagai UTC tanpa timezone, sehingga agregasi kini menggeser waktu ke WIB sebelum mengelompokkan tanggal. Record login yang sebelumnya salah masuk ke 2 November kini masuk ke 3 November; total 14 November diselaraskan dengan 11 riwayat login.
+- Memperbaiki akar masalah timezone EduFlow: kolom waktu dinormalisasi menjadi `TIMESTAMPTZ(3)` dengan mempertahankan instant historis UTC, PostgreSQL serta container aplikasi menggunakan `Asia/Jakarta`, dan batas tanggal tahun ajaran/semester serta kalender Audit Trail dihitung konsisten dalam WIB.
 
 - Memperjelas sumber badge kalender Audit Trail dengan rincian hitungan Audit Log, Riwayat Login, dan Notification Log per tanggal; menambahkan area scroll pada Riwayat Login serta menampilkan identifier email/username yang dipakai saat login. Form login menegaskan dukungan username maupun email.
 

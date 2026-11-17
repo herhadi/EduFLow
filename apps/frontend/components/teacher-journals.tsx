@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, type TeachingJournalAgenda } from '../lib/api';
 import { PageHeader } from './ui/page-header';
+import { getSchoolDateKey } from '../lib/school-time';
 
 type JournalForm = { learningObjectives: string; material: string; learningActivities: string; learningOutcome: string; reflection: string; issueNotes: string };
 const emptyForm: JournalForm = { learningObjectives: '', material: '', learningActivities: '', learningOutcome: '', reflection: '', issueNotes: '' };
-function localDate() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function localDate() { return getSchoolDateKey(); }
 function statusLabel(status: string) { return status === 'SUBMITTED' ? 'Terkirim' : status === 'LOCKED' ? 'Terkunci' : status === 'DRAFT' ? 'Draft' : 'Belum diisi'; }
 
 export function TeacherJournals() {

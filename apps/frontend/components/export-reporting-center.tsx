@@ -5,6 +5,7 @@ import { api, type ReportFormat, type ReportType } from '../lib/api';
 import { Button } from './ui/button';
 import { SurfaceCard } from './ui/card';
 import { fieldClass, FormField } from './ui/form';
+import { getSchoolDateKey } from '../lib/school-time';
 
 const reports: Array<{
   type: ReportType;
@@ -34,7 +35,7 @@ const reports: Array<{
 ];
 
 export function ExportReportingCenter() {
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(getSchoolDateKey());
 
   function download(type: ReportType, format: ReportFormat) {
     window.open(api.getReportExportUrl(type, format, date), '_blank');

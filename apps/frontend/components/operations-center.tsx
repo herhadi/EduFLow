@@ -26,6 +26,7 @@ import {
 } from './operations-center/operations-status-components';
 import { Button } from './ui/button';
 import { EmptyState } from './ui/empty-state';
+import { formatSchoolDateTime, formatSchoolTime, getSchoolDateKey } from '../lib/school-time';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -39,8 +40,8 @@ export function OperationsCenter() {
   const [backups, setBackups] = useState(emptyOperationsBackups);
   const [backupState, setBackupState] = useState<'idle' | 'loading'>('idle');
   const [schoolYearId, setSchoolYearId] = useState('');
-  const [r2From, setR2From] = useState(() => new Date(Date.now() - 6 * 86_400_000).toISOString().slice(0, 10));
-  const [r2To, setR2To] = useState(() => new Date().toISOString().slice(0, 10));
+  const [r2From, setR2From] = useState(() => getSchoolDateKey(new Date(Date.now() - 6 * 86_400_000)));
+  const [r2To, setR2To] = useState(() => getSchoolDateKey());
   const [r2Prefix, setR2Prefix] = useState('');
   const [r2Preview, setR2Preview] = useState<R2StorageRangePreview | null>(null);
   const [r2Busy, setR2Busy] = useState(false);
@@ -391,7 +392,7 @@ export function OperationsCenter() {
               <div className="rounded-xl border border-[var(--border)] p-4"><p className="text-sm text-muted">Status data</p><p className="mt-1 text-lg font-bold">{r2Usage.isPartial ? 'Estimasi parsial' : 'Tersedia'}</p></div>
             </div>
             <p className="mt-3 text-xs text-muted">
-              Diperiksa: {new Date(r2Usage.checkedAt).toLocaleString('id-ID')} · Sumber: {r2Usage.source}.
+              Diperiksa: {formatSchoolDateTime(r2Usage.checkedAt)} · Sumber: {r2Usage.source}.
               {r2Usage.isPartial ? ' Hasil parsial karena batas listing 10.000 objek; gunakan Cloudflare Analytics untuk angka yang lebih lengkap.' : ''}
               {' '}Ukuran storage bukan tagihan biaya R2.
             </p>
@@ -436,7 +437,7 @@ export function OperationsCenter() {
               <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
                 <table className="w-full min-w-[620px] text-left text-sm">
                   <thead className="bg-[var(--surface-soft)]"><tr><th className="p-3">Key</th><th className="p-3">Waktu modifikasi (UTC)</th><th className="p-3 text-right">Ukuran</th></tr></thead>
-                  <tbody>{r2Preview.objects.slice(0, 100).map((object) => <tr className="border-t border-[var(--border)]" key={object.key}><td className="max-w-[420px] break-all p-3">{object.key}</td><td className="whitespace-nowrap p-3">{new Date(object.lastModified).toLocaleString('id-ID', { timeZone: 'UTC', hour12: false })}</td><td className="whitespace-nowrap p-3 text-right">{formatBytes(object.size)}</td></tr>)}</tbody>
+                  <tbody>{r2Preview.objects.slice(0, 100).map((object) => <tr className="border-t border-[var(--border)]" key={object.key}><td className="max-w-[420px] break-all p-3">{object.key}</td><td className="whitespace-nowrap p-3">{formatSchoolDateTime(object.lastModified, { dateStyle: 'short', timeStyle: 'medium', hour12: false })}</td><td className="whitespace-nowrap p-3 text-right">{formatBytes(object.size)}</td></tr>)}</tbody>
                 </table>
                 {r2Preview.objects.length > 100 ? <p className="border-t border-[var(--border)] p-3 text-xs text-muted">Menampilkan 100 objek pertama dari {r2Preview.objects.length} objek preview.</p> : null}
               </div>
@@ -545,8 +546,5 @@ export function OperationsCenter() {
 }
 
 function formatErrorTime(value: string) {
-  return new Date(value).toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return formatSchoolTime(value);
 }

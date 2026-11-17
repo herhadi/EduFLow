@@ -1,7 +1,5 @@
-import {
-  type AttendanceStatus,
-  type StudentReportItem,
-} from '../../lib/api';
+import { type AttendanceStatus, type StudentReportItem } from "../../lib/api";
+import { getSchoolMonthRange } from "../../lib/school-time";
 
 export type StudentDetailPanel = 'attendance' | 'grades';
 
@@ -27,14 +25,7 @@ export const riskClass: Record<StudentReportItem['riskLevel'], string> = {
 };
 
 export function getMonthRange() {
-  const now = new Date();
-  const startsAt = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endsAt = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-  return {
-    from: startsAt.toISOString().slice(0, 10),
-    to: endsAt.toISOString().slice(0, 10),
-  };
+  return getSchoolMonthRange();
 }
 
 export function summarizeStudents(students: StudentReportItem[]) {

@@ -22,6 +22,7 @@ import { Button } from './ui/button';
 import { SurfaceCard } from './ui/card';
 import { LoadingState } from './ui/loading';
 import { useToast } from './ui/toast';
+import { getSchoolDateKey, getSchoolMonthRange } from '../lib/school-time';
 
 export function TeacherAssessments() {
   const toast = useToast();
@@ -431,23 +432,9 @@ function getExportPayload({
 
 function getMonthRange(value: string) {
   const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    const fallback = new Date();
-    return getMonthRange(formatDateInput(fallback));
-  }
-
-  const from = new Date(date.getFullYear(), date.getMonth(), 1);
-  const to = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-
-  return {
-    from: formatDateInput(from),
-    to: formatDateInput(to),
-  };
+  if (Number.isNaN(date.getTime())) return getSchoolMonthRange();
+  const [year, month] = getSchoolDateKey(date).split('-').map(Number);
+  return getSchoolMonthRange(new Date(Date.UTC(year, month - 1, 1, 12)));
 }
 
-function formatDateInput(date: Date) {
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
-}
+function formatDateInput(date: Date) { return getSchoolDateKey(date); }

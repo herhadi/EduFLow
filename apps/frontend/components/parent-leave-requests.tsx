@@ -16,6 +16,7 @@ import { fieldClass, FormField } from './ui/form';
 import { LoadingState } from './ui/loading';
 import { SurfaceCard } from './ui/card';
 import { useToast } from './ui/toast';
+import { getSchoolDateKey } from '../lib/school-time';
 
 const typeLabels: Record<StudentLeaveRequestType, string> = {
   SICK: 'Sakit',
@@ -29,7 +30,7 @@ const statusLabels: Record<StudentLeaveRequest['status'], string> = {
   CANCELLED: 'Dibatalkan',
 };
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => getSchoolDateKey();
 
 export function ParentLeaveRequests() {
   const toast = useToast();

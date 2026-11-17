@@ -1,12 +1,13 @@
+import { getSchoolDateKey } from './school-time';
 import type { SchoolYear, Semester } from './api';
 
 export function getPreferredSchoolYear(schoolYears: SchoolYear[], now = new Date()) {
-  const nowTime = now.getTime();
+  const today = getSchoolDateKey(now);
   const currentSchoolYear = schoolYears.find((schoolYear) => {
-    const startsAt = new Date(schoolYear.startsAt).getTime();
-    const endsAt = new Date(schoolYear.endsAt).getTime();
+    const startsAt = getSchoolDateKey(schoolYear.startsAt);
+    const endsAt = getSchoolDateKey(schoolYear.endsAt);
 
-    return startsAt <= nowTime && nowTime <= endsAt;
+    return startsAt <= today && today <= endsAt;
   });
 
   if (currentSchoolYear) {
@@ -15,23 +16,19 @@ export function getPreferredSchoolYear(schoolYears: SchoolYear[], now = new Date
 
   return (
     schoolYears
-      .filter((schoolYear) => new Date(schoolYear.startsAt).getTime() <= nowTime)
-      .sort(
-        (firstSchoolYear, secondSchoolYear) =>
-          new Date(secondSchoolYear.startsAt).getTime() -
-          new Date(firstSchoolYear.startsAt).getTime(),
+      .filter((schoolYear) => getSchoolDateKey(schoolYear.startsAt) <= today)
+      .sort((firstSchoolYear, secondSchoolYear) =>
+        getSchoolDateKey(secondSchoolYear.startsAt).localeCompare(getSchoolDateKey(firstSchoolYear.startsAt)),
       )[0] ?? schoolYears[0]
   );
 }
 
 export function getUpcomingSchoolYear(schoolYears: SchoolYear[], now = new Date()) {
-  const nowTime = now.getTime();
+  const today = getSchoolDateKey(now);
   const upcomingSchoolYear = schoolYears
-    .filter((schoolYear) => new Date(schoolYear.startsAt).getTime() > nowTime)
-    .sort(
-      (firstSchoolYear, secondSchoolYear) =>
-        new Date(firstSchoolYear.startsAt).getTime() -
-        new Date(secondSchoolYear.startsAt).getTime(),
+    .filter((schoolYear) => getSchoolDateKey(schoolYear.startsAt) > today)
+    .sort((firstSchoolYear, secondSchoolYear) =>
+      getSchoolDateKey(firstSchoolYear.startsAt).localeCompare(getSchoolDateKey(secondSchoolYear.startsAt)),
     )[0];
 
   return upcomingSchoolYear ?? getPreferredSchoolYear(schoolYears, now);
@@ -44,17 +41,16 @@ export function getPreferredSemester(
 ) {
   const schoolYearSemesters = semesters
     .filter((semester) => semester.schoolYearId === schoolYearId)
-    .sort(
-      (firstSemester, secondSemester) =>
-        new Date(firstSemester.startsAt).getTime() - new Date(secondSemester.startsAt).getTime(),
+    .sort((firstSemester, secondSemester) =>
+      getSchoolDateKey(firstSemester.startsAt).localeCompare(getSchoolDateKey(secondSemester.startsAt)),
     );
 
-  const nowTime = now.getTime();
+  const today = getSchoolDateKey(now);
   const currentSemester = schoolYearSemesters.find((semester) => {
-    const startsAt = new Date(semester.startsAt).getTime();
-    const endsAt = new Date(semester.endsAt).getTime();
+    const startsAt = getSchoolDateKey(semester.startsAt);
+    const endsAt = getSchoolDateKey(semester.endsAt);
 
-    return startsAt <= nowTime && nowTime <= endsAt;
+    return startsAt <= today && today <= endsAt;
   });
 
   if (currentSemester) {
@@ -62,6 +58,6 @@ export function getPreferredSemester(
   }
 
   return schoolYearSemesters.find(
-    (semester) => new Date(semester.startsAt).getTime() > nowTime,
+    (semester) => getSchoolDateKey(semester.startsAt) > today,
   ) ?? schoolYearSemesters.at(-1);
 }

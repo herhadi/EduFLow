@@ -1,4 +1,5 @@
 import { type AttendanceStatus } from '../../lib/api';
+import { getSchoolDateKey } from '../../lib/school-time';
 
 export const attendanceStatuses: Array<{ value: AttendanceStatus; label: string }> = [
   { value: 'PRESENT', label: 'Hadir' },
@@ -21,7 +22,7 @@ export type ClassPhotoMetadata = {
 };
 
 export function getToday() {
-  return new Date().toISOString().slice(0, 10);
+  return getSchoolDateKey();
 }
 
 export function getChecklistLabel(key: ChecklistKey) {
@@ -187,5 +188,6 @@ function formatClassPhotoTakenAt(value: string) {
   return new Intl.DateTimeFormat('id-ID', {
     dateStyle: 'medium',
     timeStyle: 'short',
+    timeZone: 'Asia/Jakarta',
   }).format(date);
 }
