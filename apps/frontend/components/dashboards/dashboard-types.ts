@@ -17,11 +17,13 @@ export function getRoleDisplayLabels(roles?: string[] | null) {
         .replace(/_/g, ' ')
         .trim()
         .split(/\s+/)
-        .map((part) =>
-          part === part.toUpperCase()
+        .map((part) => {
+          const normalized = part.toLowerCase();
+          if (normalized === 'tu' || normalized === 'bk') return normalized.toUpperCase();
+          return part === part.toUpperCase()
             ? part
-            : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase(),
-        )
+            : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+        })
         .join(' '),
     )
     .sort((a, b) => a.localeCompare(b));
