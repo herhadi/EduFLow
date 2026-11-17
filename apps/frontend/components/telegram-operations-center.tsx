@@ -123,7 +123,7 @@ export function TelegramOperationsCenter() {
           </p>
         </div>
         <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:w-auto sm:grid-cols-3">
-          <Button onClick={() => void loadStatus()} variant="info">
+          <Button onClick={() => void loadStatus()} variant="outline">
             Refresh Status
           </Button>
           <Button

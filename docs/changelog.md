@@ -272,5 +272,5 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 ## 2026-11-17 — Standar aksi destruktif dan sapaan multi-role
 
 - Tombol hapus/reset/buang menggunakan gaya danger yang konsisten di light mode dan dark mode serta meminta konfirmasi sebelum aksi dijalankan.
-- Tombol Refresh Status Telegram menggunakan warna biru solid yang kontras.
-- Sapaan pengguna menampilkan semua role aktif dengan label yang mudah dibaca, termasuk Admin dan TU.
+- Tombol Refresh Status Telegram menggunakan gaya netral karena merupakan aksi penyegaran, bukan aksi utama.
+- Label role menggunakan format Title Case untuk setiap kata, dengan singkatan seperti TU dan BK tetap dipertahankan.

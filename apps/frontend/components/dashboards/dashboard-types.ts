@@ -24,7 +24,7 @@ const roleDisplayLabels: Record<string, string> = {
 export function getRoleDisplayLabels(roles?: string[] | null) {
   return [...new Set(roles ?? [])]
     .filter(Boolean)
-    .map((role) => roleDisplayLabels[role] ?? role.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' '));
+    .map((role) => roleDisplayLabels[role] ?? role.split('_').filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join(' '));
 }
 
 export function getRoleGreeting(roles?: string[] | null) {
