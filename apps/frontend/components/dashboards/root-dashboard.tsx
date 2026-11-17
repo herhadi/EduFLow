@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { type CurrentUser } from './dashboard-types';
+import { getRoleGreeting, type CurrentUser } from './dashboard-types';
 import { RoleActionCard, RoleHero, RoleSection } from './role-dashboard-shared';
 
 export function RootHome({ currentUser }: { currentUser: CurrentUser | null }) {
@@ -10,7 +10,7 @@ export function RootHome({ currentUser }: { currentUser: CurrentUser | null }) {
       <RoleHero
         description="Area root dipakai untuk support teknis: akses sistem, health check, queue, Telegram, audit, backup, dan pemulihan. Operasional akademik harian tetap berada di role operator sekolah."
         eyebrow="Support Teknis"
-        title={`Selamat datang, ${displayName}`}
+        title={`Selamat datang, ${displayName}${getRoleGreeting(currentUser?.roles)}`}
       />
 
       <section className="mt-7 rounded-[2rem] border border-sky-100 bg-sky-50/80 p-5 shadow-sm dark:border-sky-400/20 dark:bg-sky-400/10 dark:shadow-none">

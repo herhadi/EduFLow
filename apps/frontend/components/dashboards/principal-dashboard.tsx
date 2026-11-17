@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { api, type OperationalDashboardSummary, type TeachingPlan } from '../../lib/api';
-import { type CurrentUser, type LoadState } from './dashboard-types';
+import { getRoleGreeting, type CurrentUser, type LoadState } from './dashboard-types';
 import { RoleActionCard, RoleHero, RoleSection } from './role-dashboard-shared';
 
 export function PrincipalHome({ currentUser }: { currentUser: CurrentUser | null }) {
@@ -14,7 +14,7 @@ export function PrincipalHome({ currentUser }: { currentUser: CurrentUser | null
       <RoleHero
         description="Pantau kualitas pembelajaran, tindak lanjuti pekerjaan yang menunggu persetujuan, dan evaluasi kinerja sekolah."
         eyebrow="Kepala Sekolah"
-        title={`Selamat datang, ${displayName}`}
+        title={`Selamat datang, ${displayName}${getRoleGreeting(currentUser?.roles)}`}
       />
       <PrincipalDecisionSummary />
       <RoleSection description="Akses pendukung supervisi yang tidak perlu dibuka setiap hari." title="Akses Lanjutan">

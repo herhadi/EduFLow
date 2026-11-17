@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { api, type DailyAgenda, type TeacherDashboardSummary as TeacherDashboardSummaryData } from '../../lib/api';
 import { UserAvatar } from '../ui/user-avatar';
-import { type CurrentUser } from './dashboard-types';
+import { getRoleGreeting, type CurrentUser } from './dashboard-types';
 import { RoleActionCard, RoleSection } from './role-dashboard-shared';
 import { formatSchoolDate, getSchoolDateKey } from '../../lib/school-time';
 
@@ -26,7 +26,7 @@ export function TeacherHome({
           <UserAvatar className="size-20 sm:size-24" name={displayName} photoUrl={photoUrl} />
           <div className="min-w-0">
             <p className="text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">{isHomeroom ? 'Guru & Wali Kelas' : 'Guru'}</p>
-            <h1 className="mt-2 truncate text-2xl font-black tracking-tight sm:text-4xl">Halo, {displayName}</h1>
+            <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-4xl">Halo, {displayName}{getRoleGreeting(currentUser?.roles)}</h1>
             <p className="mt-2 text-sm leading-6 text-muted">Pantau agenda mengajar, presensi yang belum selesai, perangkat ajar, dan nilai harian dari satu beranda.</p>
           </div>
         </div>

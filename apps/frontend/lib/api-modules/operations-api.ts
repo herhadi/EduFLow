@@ -6,6 +6,11 @@ export const operationsApi = {
     request<ApiResponse<OperationsDashboard>>('/operations/dashboard'),
   getOperationsTelegram: () =>
     request<ApiResponse<TelegramOperationsStatus>>('/operations/telegram'),
+  updateOperationsTelegramWebhookUrl: (webhookUrl: string) =>
+    request<ApiResponse<TelegramOperationsStatus>>('/operations/telegram/webhook/url', {
+      method: 'POST',
+      body: JSON.stringify({ webhookUrl }),
+    }),
   setOperationsTelegramWebhook: () =>
     request<ApiResponse<TelegramOperationsStatus>>('/operations/telegram/webhook', {
       method: 'POST',

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { SchoolOverview } from './school-overview';
-import { type CurrentUser } from './dashboard-types';
+import { getRoleGreeting, type CurrentUser } from './dashboard-types';
 import { RoleActionCard, RoleHero, RoleSection } from './role-dashboard-shared';
 
 export function OperatorHome({ currentUser }: { currentUser: CurrentUser | null }) {
@@ -11,7 +11,7 @@ export function OperatorHome({ currentUser }: { currentUser: CurrentUser | null 
       <RoleHero
         description="Kelola data akademik, susun jadwal, dan pastikan kebutuhan operasional sekolah siap digunakan."
         eyebrow="Operator Sekolah"
-        title={`Selamat bekerja, ${displayName}`}
+        title={`Selamat bekerja, ${displayName}${getRoleGreeting(currentUser?.roles)}`}
       />
 
       <SchoolOverview audience="operator" />

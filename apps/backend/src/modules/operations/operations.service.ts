@@ -358,7 +358,7 @@ export class OperationsService {
   }
 
   async getTelegramStatus() {
-    const webhookUrl = this.getTelegramWebhookUrl();
+    const webhookUrl = await this.getTelegramWebhookUrl();
     const [
       linkedUsers,
       sent,
@@ -426,8 +426,37 @@ export class OperationsService {
     };
   }
 
+  async updateTelegramWebhookUrl(webhookUrlInput: string, userId: string) {
+    const webhookUrl = String(webhookUrlInput ?? '').trim();
+    if (!webhookUrl) throw new BadRequestException('URL webhook wajib diisi.');
+    let parsed: URL;
+    try { parsed = new URL(webhookUrl); } catch { throw new BadRequestException('URL webhook tidak valid.'); }
+    if (parsed.protocol !== 'https:') throw new BadRequestException('URL webhook harus menggunakan HTTPS.');
+    if (parsed.username || parsed.password || parsed.search || parsed.hash) {
+      throw new BadRequestException('URL webhook tidak boleh berisi kredensial, query, atau fragment.');
+    }
+    const previous = await this.getTelegramWebhookUrl();
+    await this.prisma.systemSetting.upsert({
+      where: { key: 'TELEGRAM_WEBHOOK_URL' },
+      create: { key: 'TELEGRAM_WEBHOOK_URL', value: webhookUrl },
+      update: { value: webhookUrl },
+    });
+    await this.auditService.record({
+      userId,
+      action: 'telegram.webhook.url.update',
+      entityType: 'Telegram',
+      entityId: 'TELEGRAM_WEBHOOK_URL',
+      before: { webhookUrl: previous },
+      after: { webhookUrl },
+    });
+    return {
+      data: (await this.getTelegramStatus()).data,
+      message: 'URL webhook berhasil disimpan. Klik Set Webhook untuk menerapkan URL ke Telegram.',
+    };
+  }
+
   async setTelegramWebhook(userId: string) {
-    const webhookUrl = this.getTelegramWebhookUrl();
+    const webhookUrl = await this.getTelegramWebhookUrl();
 
     if (!webhookUrl) {
       throw new BadRequestException('TELEGRAM_WEBHOOK_URL atau FRONTEND_URL wajib diisi');
@@ -717,8 +746,13 @@ export class OperationsService {
     }
   }
 
-  private getTelegramWebhookUrl() {
-    const explicitUrl = this.configService.get<string>('TELEGRAM_WEBHOOK_URL')?.trim();
+  private async getTelegramWebhookUrl() {
+    const stored = await this.prisma.systemSetting.findUnique({
+      where: { key: 'TELEGRAM_WEBHOOK_URL' },
+      select: { value: true },
+    });
+    const explicitUrl = stored?.value?.trim()
+      || this.configService.get<string>('TELEGRAM_WEBHOOK_URL')?.trim();
 
     if (explicitUrl) {
       return explicitUrl;

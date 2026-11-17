@@ -38,6 +38,8 @@ export function TelegramOperationsCenter() {
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [actionState, setActionState] = useState<'idle' | 'loading'>('idle');
   const [message, setMessage] = useState<string | null>(null);
+  const [webhookUrl, setWebhookUrl] = useState('');
+  const [savingUrl, setSavingUrl] = useState(false);
 
   const webhookInfoJson = useMemo(() => {
     const info = status.provider.info ?? {
@@ -62,13 +64,36 @@ export function TelegramOperationsCenter() {
     try {
       const response = await api.getOperationsTelegram();
       setStatus(response.data);
+      setWebhookUrl(response.data.config.webhookUrl ?? '');
       setLoadState('success');
     } catch {
       setLoadState('error');
     }
   }
 
+  async function saveWebhookUrl() {
+    setSavingUrl(true);
+    setMessage(null);
+    try {
+      const response = await api.updateOperationsTelegramWebhookUrl(webhookUrl.trim());
+      setStatus(response.data);
+      setWebhookUrl(response.data.config.webhookUrl ?? '');
+      setMessage(response.message ?? 'URL webhook berhasil disimpan.');
+      setLoadState('success');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'URL webhook gagal disimpan.');
+    } finally {
+      setSavingUrl(false);
+    }
+  }
+
   async function runWebhookAction(action: 'set' | 'delete') {
+    if (action === 'delete') {
+      const confirmed = window.confirm(
+        'Hapus webhook Telegram sekarang? Bot tidak akan menerima update melalui webhook sampai webhook dipasang kembali.'
+      );
+      if (!confirmed) return;
+    }
     setActionState('loading');
     setMessage(null);
 
@@ -98,7 +123,7 @@ export function TelegramOperationsCenter() {
           </p>
         </div>
         <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:w-auto sm:grid-cols-3">
-          <Button onClick={() => void loadStatus()} variant="outline">
+          <Button className="border-blue-600 bg-blue-600 text-white hover:border-blue-700 hover:bg-blue-700 dark:border-blue-500 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-500" onClick={() => void loadStatus()} variant="outline">
             Refresh Status
           </Button>
           <Button
@@ -108,7 +133,7 @@ export function TelegramOperationsCenter() {
             {actionState === 'loading' ? 'Memproses...' : 'Set Webhook'}
           </Button>
           <Button
-            className="border-rose-200 text-rose-700 hover:border-rose-300 hover:text-rose-700 dark:border-rose-400/30 dark:text-rose-100"
+            className="border-rose-600 bg-rose-600 text-white hover:border-rose-700 hover:bg-rose-700 dark:border-rose-500 dark:bg-rose-600 dark:text-white dark:hover:bg-rose-500"
             disabled={actionState === 'loading' || !status.config.botTokenConfigured}
             onClick={() => void runWebhookAction('delete')}
             variant="outline"
@@ -132,11 +157,12 @@ export function TelegramOperationsCenter() {
         <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
           <p className="text-sm font-black text-slate-900 dark:text-slate-100">Variabel Backend</p>
           <div className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-200">
-            <p className="break-words"><strong>Wajib:</strong> TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_URL</p>
+            <p className="break-words"><strong>Wajib:</strong> TELEGRAM_BOT_TOKEN</p>
             <p className="break-words"><strong>Opsional:</strong> TELEGRAM_WEBHOOK_SECRET, TELEGRAM_BOT_USERNAME</p>
+            <p className="text-xs leading-5 text-muted">URL webhook sekarang dikelola dari halaman ini dan disimpan di database. Tidak perlu mengubah .env.</p>
           </div>
           <div className="mt-4 grid gap-2">
-            <InfoRow label="TELEGRAM_WEBHOOK_URL" value={status.config.webhookUrl ? 'Ada' : 'Kosong'} />
+            <InfoRow label="URL webhook aktif" value={status.config.webhookUrl ? 'Ada' : 'Kosong'} />
             <InfoRow label="Secret webhook" value={status.config.webhookSecretConfigured ? 'Ada' : 'Kosong'} />
             <InfoRow label="Bot username env" value={status.config.botUsername ? 'Ada' : 'Kosong'} />
             <InfoRow label="Bot token" value={status.config.botTokenConfigured ? 'Ada' : 'Kosong'} />
@@ -144,10 +170,32 @@ export function TelegramOperationsCenter() {
         </div>
 
         <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
-          <p className="text-sm font-black text-slate-900 dark:text-slate-100">Webhook URL</p>
-          <p className="mt-2 break-all text-sm font-bold text-slate-700 dark:text-slate-200">
-            {status.config.webhookUrl ?? 'Belum tersedia'}
-          </p>
+          <label className="text-sm font-black text-slate-900 dark:text-slate-100" htmlFor="telegram-webhook-url">Webhook URL</label>
+          <p className="mt-1 text-xs leading-5 text-muted">Masukkan URL HTTPS lengkap menuju endpoint webhook EduFlow. Simpan, lalu klik Set Webhook agar Telegram memakai alamat baru.</p>
+          <input
+            id="telegram-webhook-url"
+            type="url"
+            required
+            value={webhookUrl}
+            onChange={(event) => setWebhookUrl(event.target.value)}
+            placeholder="https://domain-anda/api/backend/auth/telegram/webhook"
+            className="mt-3 w-full min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
+          />
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button
+              disabled={savingUrl || !webhookUrl.trim() || webhookUrl.trim() === (status.config.webhookUrl ?? '')}
+              onClick={() => void saveWebhookUrl()}
+            >
+              {savingUrl ? 'Menyimpan...' : 'Simpan URL'}
+            </Button>
+            <Button
+              className="border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+              onClick={() => setWebhookUrl(status.config.webhookUrl ?? '')}
+              variant="outline"
+            >
+              Batal
+            </Button>
+          </div>
           {status.provider.lastErrorMessage ? (
             <p className="mt-3 rounded-xl border border-rose-100 bg-rose-50 p-3 text-xs font-bold text-rose-700 dark:border-rose-400/20 dark:bg-rose-500/15 dark:text-rose-100">
               {status.provider.lastErrorMessage}

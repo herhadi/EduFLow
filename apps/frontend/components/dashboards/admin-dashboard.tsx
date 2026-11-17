@@ -1,4 +1,4 @@
-import { type CurrentUser } from './dashboard-types';
+import { getRoleGreeting, type CurrentUser } from './dashboard-types';
 import { RoleActionCard, RoleHero, RoleSection } from './role-dashboard-shared';
 
 export function AdminHome({ currentUser }: { currentUser: CurrentUser | null }) {
@@ -9,7 +9,7 @@ export function AdminHome({ currentUser }: { currentUser: CurrentUser | null }) 
       <RoleHero
         description="Kelola akses pengguna dan bantu operasional teknis aplikasi di tingkat sekolah. Untuk perubahan infrastruktur global atau insiden developer, koordinasikan dengan Root."
         eyebrow="Super Admin Sekolah"
-        title={`Selamat datang, ${displayName}`}
+        title={`Selamat datang, ${displayName}${getRoleGreeting(currentUser?.roles)}`}
       />
       <RoleSection description="Kewenangan pengelolaan aplikasi sekolah sesuai role dan permission." title="Administrasi Sistem Sekolah">
         <RoleActionCard href="/admin/access" label="Akun & Akses" description="Kelola akun pengguna, role, dan tindak lanjut reset password." />

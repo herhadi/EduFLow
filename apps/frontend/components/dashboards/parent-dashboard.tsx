@@ -1,6 +1,6 @@
 import { ParentPortal } from '../parent-portal';
 import { PageHeader } from '../ui/page-header';
-import { type CurrentUser } from './dashboard-types';
+import { getRoleGreeting, type CurrentUser } from './dashboard-types';
 
 export function ParentHome({ currentUser }: { currentUser: CurrentUser | null }) {
   const displayName = currentUser?.name ?? 'Wali Murid';
@@ -11,7 +11,7 @@ export function ParentHome({ currentUser }: { currentUser: CurrentUser | null })
         description="Pantau status anak hari ini, ajukan izin/sakit bila diperlukan, dan buka riwayat presensi atau nilai harian."
         eyebrow="Portal Orang Tua"
         showBackLink={false}
-        title={`Halo, ${displayName}`}
+        title={`Halo, ${displayName}${getRoleGreeting(currentUser?.roles)}`}
       />
       <section className="mt-6 rounded-[2rem] border border-blue-100 bg-blue-50/70 p-5 shadow-sm dark:border-blue-400/20 dark:bg-blue-400/10 dark:shadow-none">
         <div className="grid gap-3 md:grid-cols-3">

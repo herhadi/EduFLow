@@ -9,4 +9,9 @@ export type CurrentUser = {
   username?: string | null;
 };
 
+export function getRoleGreeting(roles?: string[] | null) {
+  const labels = (roles ?? []).map((role) => role.replaceAll('_', ' ')).filter(Boolean);
+  return labels.length ? ' (' + labels.join(', ') + ')' : '';
+}
+
 export type LoadState = 'idle' | 'loading' | 'success' | 'error';

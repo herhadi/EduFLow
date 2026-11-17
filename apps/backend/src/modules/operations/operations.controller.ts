@@ -22,6 +22,12 @@ export class OperationsController {
     return this.operationsService.getTelegramStatus();
   }
 
+  @Post('telegram/webhook/url')
+  @RequirePermissions(PERMISSIONS.SYSTEM_RECOVERY_MANAGE)
+  updateTelegramWebhookUrl(@Body() body: { webhookUrl: string }, @Req() request: RequestWithUser) {
+    return this.operationsService.updateTelegramWebhookUrl(body.webhookUrl, request.user.id);
+  }
+
   @Post('telegram/webhook')
   @RequirePermissions(PERMISSIONS.SYSTEM_RECOVERY_MANAGE)
   setTelegramWebhook(@Req() request: RequestWithUser) {

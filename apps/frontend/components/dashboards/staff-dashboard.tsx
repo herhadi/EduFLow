@@ -1,7 +1,7 @@
 'use client';
 
 import { RoleActionCard, RoleSection, RoleHero } from './role-dashboard-shared';
-import { type CurrentUser } from './dashboard-types';
+import { getRoleGreeting, type CurrentUser } from './dashboard-types';
 import { SchoolOverview } from './school-overview';
 
 export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) {
@@ -11,7 +11,7 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
       <RoleHero
         description="Pantau ringkasan data sekolah dan lanjutkan pekerjaan administrasi dari satu beranda."
         eyebrow="Tata Usaha"
-        title={'Selamat bekerja, ' + displayName}
+        title={'Selamat bekerja, ' + displayName + getRoleGreeting(currentUser?.roles)}
       />
       <SchoolOverview audience="tu" />
       <RoleSection description="Pilih pekerjaan administrasi yang ingin dilanjutkan." title="Pekerjaan Administrasi">
@@ -49,7 +49,7 @@ export function CounselingHome({ currentUser }: { currentUser: CurrentUser | nul
       <RoleHero
         description="Pantau siswa yang membutuhkan perhatian dan gunakan data presensi sebagai dasar tindak lanjut."
         eyebrow="Bimbingan Konseling"
-        title={`Selamat bekerja, ${displayName}`}
+        title={`Selamat bekerja, ${displayName}${getRoleGreeting(currentUser?.roles)}`}
       />
       <section className="mt-7 grid gap-3 md:grid-cols-3">
         <StaffFocusCard label="Siswa Perlu Perhatian" text="Gunakan data presensi sebagai awal tindak lanjut siswa." />
