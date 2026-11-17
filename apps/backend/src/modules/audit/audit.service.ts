@@ -41,30 +41,54 @@ export class AuditService {
     const start = new Date(`${month}-01T00:00:00+07:00`);
     const end = new Date(Date.UTC(year, monthNumber, 1) - 7 * 60 * 60 * 1000);
 
-    const rows = await this.prisma.$queryRaw<Array<{ day: string; count: number }>>`
-      SELECT day, SUM(total)::int AS count
-      FROM (
-        SELECT TO_CHAR("createdAt" AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') AS day, COUNT(*)::int AS total
+    const rows = await this.prisma.$queryRaw<Array<{
+      day: string;
+      audit_count: number;
+      login_count: number;
+      notification_count: number;
+    }>>`
+      WITH audit_days AS (
+        SELECT TO_CHAR("createdAt" AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') AS day, COUNT(*)::int AS audit_count
         FROM "AuditLog"
         WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
         GROUP BY 1
-        UNION ALL
-        SELECT TO_CHAR("createdAt" AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') AS day, COUNT(*)::int AS total
+      ),
+      login_days AS (
+        SELECT TO_CHAR("createdAt" AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') AS day, COUNT(*)::int AS login_count
         FROM "LoginAudit"
         WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
         GROUP BY 1
-        UNION ALL
-        SELECT TO_CHAR(COALESCE("sentAt", "failedAt", "createdAt") AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') AS day, COUNT(*)::int AS total
+      ),
+      notification_days AS (
+        SELECT TO_CHAR(COALESCE("sentAt", "failedAt", "createdAt") AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD') AS day, COUNT(*)::int AS notification_count
         FROM "NotificationLog"
         WHERE COALESCE("sentAt", "failedAt", "createdAt") >= ${start}
           AND COALESCE("sentAt", "failedAt", "createdAt") < ${end}
         GROUP BY 1
-      ) activity_days
-      GROUP BY day
+      )
+      SELECT
+        COALESCE(a.day, l.day, n.day) AS day,
+        COALESCE(a.audit_count, 0)::int AS audit_count,
+        COALESCE(l.login_count, 0)::int AS login_count,
+        COALESCE(n.notification_count, 0)::int AS notification_count
+      FROM audit_days a
+      FULL OUTER JOIN login_days l ON l.day = a.day
+      FULL OUTER JOIN notification_days n ON n.day = COALESCE(a.day, l.day)
       ORDER BY day
     `;
 
-    return ok(rows.map((row) => ({ date: row.day, count: Number(row.count) })));
+    return ok(rows.map((row) => {
+      const auditCount = Number(row.audit_count);
+      const loginCount = Number(row.login_count);
+      const notificationCount = Number(row.notification_count);
+      return {
+        date: row.day,
+        count: auditCount + loginCount + notificationCount,
+        auditCount,
+        loginCount,
+        notificationCount,
+      };
+    }));
   }
 
   async getActivityTrail(date?: string) {

@@ -49,7 +49,7 @@ export const reportingApi = {
       `/reporting/students${params.size ? `?${params}` : ''}`,
     );
   },
-  getAuditCalendar: (month: string) => request<ApiResponse<Array<{ date: string; count: number }>>>(`/audit/calendar?month=${encodeURIComponent(month)}`),
+  getAuditCalendar: (month: string) => request<ApiResponse<Array<{ date: string; count: number; auditCount: number; loginCount: number; notificationCount: number }>>>(`/audit/calendar?month=${encodeURIComponent(month)}`),
   getActivityTrail: (date?: string) => request<ApiResponse<ActivityTrailItem[]>>(`/audit/activity${date ? `?date=${encodeURIComponent(date)}` : ''}`),
   getLoginAudit: (date?: string) => request<ApiResponse<LoginAuditItem[]>>(`/audit/login${date ? `?date=${encodeURIComponent(date)}` : ''}`),
 };

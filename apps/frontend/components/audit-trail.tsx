@@ -10,7 +10,7 @@ import { SearchInput } from './ui/search';
 import { SurfaceCard } from './ui/card';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
-type CalendarDay = { date: string; count: number };
+type CalendarDay = { date: string; count: number; auditCount: number; loginCount: number; notificationCount: number };
 
 const actionTone: Record<string, string> = {
   'attendance.submitted': 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/15 dark:text-blue-200 dark:border-blue-400/20',
@@ -95,6 +95,7 @@ export function AuditTrail() {
   const leadingDays = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1).getDay();
   const counts = useMemo(() => new Map(calendarDays.map((day) => [day.date, day.count])), [calendarDays]);
   const totalCount = calendarDays.reduce((sum, day) => sum + day.count, 0);
+  const selectedCalendarDay = calendarDays.find((day) => day.date === selectedDate);
 
   function changeMonth(offset: number) {
     setVisibleMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
@@ -156,7 +157,10 @@ export function AuditTrail() {
 
       <div className="mt-5 grid gap-2 sm:grid-cols-[minmax(14rem,1fr)_auto]">
         <SearchInput id="audit-search" onClear={() => setQuery('')} onChange={(event) => setQuery(event.target.value)} placeholder="Cari aktivitas atau pengguna..." value={query} />
-        <div className="flex items-center rounded-xl bg-slate-50 px-3 text-sm font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">{new Date(`${selectedDate}T00:00:00`).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+        <div className="flex flex-col justify-center rounded-xl bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+          <span>{new Date(`${selectedDate}T00:00:00`).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+          {selectedCalendarDay ? <span className="mt-0.5 text-[11px] font-medium text-muted">Kalender: Audit {selectedCalendarDay.auditCount} · Login {selectedCalendarDay.loginCount} · Notifikasi {selectedCalendarDay.notificationCount}</span> : null}
+        </div>
       </div>
 
       {loadState === 'error' ? <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">Audit trail belum bisa dimuat. Pastikan backend berjalan.</div> : null}
@@ -202,7 +206,7 @@ function LoginAuditPanel({ audits, query, loadState }: { audits: LoginAuditItem[
         <Badge tone="muted">{filtered.length}</Badge>
       </div>
       <p className="mt-1 text-sm text-muted">Siapa yang login, dari IP mana, menggunakan browser/perangkat apa, dan kapan.</p>
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 max-h-[min(24rem,48vh)] space-y-3 overflow-y-auto pr-1">
         {filtered.map((audit) => <LoginAuditCard audit={audit} key={audit.id} />)}
         {loadState === 'success' && filtered.length === 0 ? <EmptyState title="Belum ada riwayat login pada tanggal ini." /> : null}
       </div>
@@ -215,7 +219,7 @@ function LoginAuditCard({ audit }: { audit: LoginAuditItem }) {
   return (
     <article className="rounded-xl border border-slate-200 bg-white/80 p-4 dark:bg-[var(--surface-soft)]">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div><p className="font-bold text-slate-900 dark:text-white">{audit.user?.name ?? audit.email}</p><p className="text-xs text-muted">{audit.user?.username ? `@${audit.user.username} · ` : ''}{audit.user?.roles.join(', ') || 'User tidak ditemukan'}</p></div>
+        <div className="min-w-0"><p className="font-bold text-slate-900 dark:text-white">{audit.user?.name ?? audit.email}</p><p className="break-all text-xs text-muted">Login dengan: {audit.email}</p><p className="text-xs text-muted">{audit.user?.username ? `@${audit.user.username} · ` : ''}{audit.user?.roles.join(', ') || 'User tidak ditemukan'}</p></div>
         <Badge className={statusClass} tone="muted">{audit.status}</Badge>
       </div>
       <div className="mt-3 grid gap-1 text-xs text-muted sm:grid-cols-2">

@@ -51,7 +51,7 @@ export default function LoginPage() {
       const submittedPassword = String(formData.get('password') ?? '');
 
       if (!submittedUsername || !submittedPassword) {
-        setErrorMessage('Username dan password wajib diisi.');
+        setErrorMessage('Username/email dan password wajib diisi.');
         return;
       }
 
@@ -72,7 +72,7 @@ export default function LoginPage() {
       keepLoadingForRedirect = true;
       redirectToDashboard(session.user.roles ?? []);
     } catch {
-      setErrorMessage('Username atau password salah. Periksa kembali data login Anda.');
+      setErrorMessage('Username/email atau password salah. Periksa kembali data login Anda.');
     } finally {
       if (!keepLoadingForRedirect) {
         setIsLoading(false);
@@ -272,7 +272,7 @@ export default function LoginPage() {
                     className="rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-3 text-sm font-normal outline-none transition focus:border-brand-600 focus:bg-white"
                     name="username"
                     onChange={(event) => setUsername(event.target.value)}
-                    placeholder=""
+                    placeholder="Masukkan username atau email"
                     type="text"
                     value={username}
                   />
