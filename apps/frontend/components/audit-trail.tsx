@@ -82,6 +82,9 @@ export function AuditTrail() {
     const normalizedQuery = query.trim().toLowerCase();
     return activities.filter((activity) => !normalizedQuery || [
       activity.action, activity.description, activity.entityType, activity.entityId, activity.source, activity.actor,
+      activity.notification?.channel, activity.notification?.status, activity.notification?.recipient,
+      activity.notification?.recipientName, activity.notification?.subject, activity.notification?.message,
+      activity.notification?.templateKey, activity.notification?.lastError,
     ].filter(Boolean).join(' ').toLowerCase().includes(normalizedQuery));
   }, [activities, query]);
 
@@ -107,7 +110,7 @@ export function AuditTrail() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">Audit Trail</h2>
-          <p className="mt-1 text-sm text-muted">Pilih tanggal pada kalender untuk melihat aktivitas dan riwayat login.</p>
+          <p className="mt-1 text-sm text-muted">Pilih tanggal untuk melihat aktivitas sistem, notifikasi, dan riwayat login.</p>
         </div>
         <Button onClick={() => { void loadCalendar(); void loadDetails(); }}>Refresh</Button>
       </div>
@@ -135,7 +138,7 @@ export function AuditTrail() {
             const today = key === dateKey(new Date());
             return (
               <button key={key} type="button" onClick={() => setSelectedDate(key)} aria-pressed={selected}
-                className={`relative flex min-h-12 flex-col items-center justify-center rounded-xl border text-sm transition-colors sm:min-h-14 ${selected ? 'border-brand-600 bg-brand-600 text-white' : 'border-transparent text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'} ${today && !selected ? 'ring-1 ring-brand-500' : ''}`}>
+                className={`relative flex min-h-12 flex-col items-center justify-center rounded-xl border text-sm transition-colors sm:min-h-14 ${selected ? 'aspect-square w-full border-brand-600 bg-brand-600 text-white' : 'border-transparent text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'} ${today && !selected ? 'ring-1 ring-brand-500' : ''}`}>
                 <span className="font-semibold">{day}</span>
                 {count > 0 ? <span className={`mt-0.5 min-w-4 rounded-full px-1 text-[9px] font-bold leading-4 ${selected ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'}`}>{count > 99 ? '99+' : count}</span> : <span className="mt-0.5 h-4" />}
               </button>
@@ -157,7 +160,7 @@ export function AuditTrail() {
       <div className="mt-5 max-h-[min(34rem,62vh)] space-y-3 overflow-y-auto pr-1">
         {loadState === 'loading' ? <LoadingState label="Memuat audit trail..." /> : null}
         {filteredActivities.map((activity) => <ActivityCard activity={activity} key={activity.id} />)}
-        {loadState === 'success' && filteredActivities.length === 0 ? <EmptyState title="Belum ada aktivitas pada tanggal ini." /> : null}
+        {loadState === 'success' && filteredActivities.length === 0 ? <EmptyState title="Belum ada aktivitas sistem atau notifikasi pada tanggal ini." /> : null}
       </div>
       <LoginAuditPanel audits={loginAudits} query={query} />
     </SurfaceCard>
@@ -207,6 +210,10 @@ function getDeviceLabel(userAgent?: string | null) {
 }
 
 function ActivityCard({ activity }: { activity: ActivityTrailItem }) {
+  if (activity.source === 'notification' && activity.notification) {
+    return <NotificationActivityCard activity={activity} />;
+  }
+
   return (
     <article className="relative rounded-xl border border-slate-200 bg-white/80 p-4 shadow-sm dark:bg-[var(--surface-soft)] dark:shadow-black/20 sm:p-5">
       <div className="flex gap-4">
@@ -214,13 +221,47 @@ function ActivityCard({ activity }: { activity: ActivityTrailItem }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <Badge className={actionTone[activity.action] ?? 'border-slate-200 bg-white text-slate-700 dark:bg-[var(--surface-solid)]'} tone="muted">{activity.action}</Badge>
-            <Badge className="border-slate-200 bg-white text-slate-600 dark:bg-[var(--surface-solid)]" tone="muted">{activity.source}</Badge>
+            <Badge className="border-slate-200 bg-white text-slate-600 dark:bg-[var(--surface-solid)]" tone="muted">Aktivitas</Badge>
           </div>
           <h3 className="mt-3 text-base font-bold text-slate-900 dark:text-white">{activity.description}</h3>
           <p className="mt-1 text-sm text-muted">{activity.entityType} · {activity.entityId}</p>
           {activity.actor ? <p className="mt-2 text-xs text-slate-500">Actor: {activity.actor}</p> : null}
         </div>
       </div>
+    </article>
+  );
+}
+
+function NotificationActivityCard({ activity }: { activity: ActivityTrailItem }) {
+  const notification = activity.notification!;
+  const statusLabel = notification.status === 'SENT' ? 'Terkirim' : notification.status === 'FAILED' ? 'Gagal' : 'Menunggu';
+  const statusClass = notification.status === 'SENT'
+    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-200'
+    : notification.status === 'FAILED'
+      ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-400/20 dark:bg-red-500/15 dark:text-red-200'
+      : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-200';
+
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white/80 p-4 shadow-sm dark:bg-[var(--surface-soft)] dark:shadow-black/20 sm:p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-200">
+            <span className="text-xs font-bold">{formatTime(activity.time)}</span>
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold text-slate-900 dark:text-white">{notification.subject || notification.templateKey || 'Notifikasi'}</p>
+            <p className="mt-0.5 text-xs text-muted">{notification.channel.replace('_', ' ')} · {notification.recipientName || notification.recipient}</p>
+          </div>
+        </div>
+        <Badge className={statusClass} tone="muted">{statusLabel}</Badge>
+      </div>
+      <p className="mt-3 whitespace-pre-wrap break-words text-sm text-slate-700 dark:text-slate-200">{notification.message}</p>
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 pt-3 text-xs text-muted dark:border-slate-700">
+        <span>Penerima: {notification.recipient}</span>
+        <span>Percobaan: {notification.attempts}</span>
+        <span>Waktu: {new Date(activity.time).toLocaleString('id-ID')}</span>
+      </div>
+      {notification.lastError ? <p className="mt-2 break-words rounded-lg bg-red-50 p-2 text-xs text-red-700 dark:bg-red-500/10 dark:text-red-200">Keterangan gagal: {notification.lastError}</p> : null}
     </article>
   );
 }

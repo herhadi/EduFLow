@@ -12,6 +12,20 @@ export interface ActivityItem {
   source: 'audit' | 'notification';
   actor?: string | null;
   metadata?: unknown;
+  notification?: {
+    channel: string;
+    status: string;
+    recipient: string;
+    recipientName?: string | null;
+    subject?: string | null;
+    message: string;
+    templateKey?: string | null;
+    attempts: number;
+    lastError?: string | null;
+    sentAt?: string | null;
+    failedAt?: string | null;
+    createdAt: string;
+  };
 }
 
 @Injectable()
@@ -66,7 +80,7 @@ export class AuditService {
           where: {
             OR: [
               { sentAt: dateRange },
-              { failedAt: dateRange },
+              { sentAt: null, failedAt: dateRange },
               { sentAt: null, failedAt: null, createdAt: dateRange },
             ],
           },
@@ -102,6 +116,20 @@ export class AuditService {
         source: 'notification' as const,
         actor: null,
         metadata: { channel: notification.channel, status: notification.status, attempts: notification.attempts, lastError: notification.lastError },
+        notification: {
+          channel: notification.channel,
+          status: notification.status,
+          recipient: notification.recipient,
+          recipientName: notification.recipientName,
+          subject: notification.subject,
+          message: notification.message,
+          templateKey: notification.templateKey,
+          attempts: notification.attempts,
+          lastError: notification.lastError,
+          sentAt: notification.sentAt?.toISOString() ?? null,
+          failedAt: notification.failedAt?.toISOString() ?? null,
+          createdAt: notification.createdAt.toISOString(),
+        },
       })),
     ];
 

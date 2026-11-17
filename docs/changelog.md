@@ -1,5 +1,7 @@
 ## 2026-11-17
 
+- Memperjelas Audit Trail dengan menampilkan detail notification log (status, kanal, penerima, isi pesan, percobaan, dan error), menyelaraskan filter tanggal notifikasi dengan tanggal efektifnya, serta membuat tombol tanggal aktif berbentuk kotak tanpa mengubah layout kalender.
+
 - Memperbaiki varian tombol `Hari ini` pada kalender Audit Trail agar sesuai dengan varian komponen Button yang tersedia.
 - Mengganti filter tanggal Audit Trail dengan kalender bulanan berbadge jumlah aktivitas, navigasi bulan/tahun, tombol Hari ini, dan rincian aktivitas serta login berdasarkan tanggal terpilih.
 - Menambahkan endpoint agregasi kalender audit per tanggal agar indikator kalender menghitung seluruh data bulan terkait, tidak hanya 100/200 log terbaru.

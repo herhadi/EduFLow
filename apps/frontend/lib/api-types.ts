@@ -479,6 +479,20 @@ export interface ActivityTrailItem {
   source: 'audit' | 'notification';
   actor?: string | null;
   metadata?: unknown;
+  notification?: {
+    channel: string;
+    status: string;
+    recipient: string;
+    recipientName?: string | null;
+    subject?: string | null;
+    message: string;
+    templateKey?: string | null;
+    attempts: number;
+    lastError?: string | null;
+    sentAt?: string | null;
+    failedAt?: string | null;
+    createdAt: string;
+  };
 }
 
 export interface LoginAuditItem {
