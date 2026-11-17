@@ -121,7 +121,7 @@ export function AuditTrail() {
             <button type="button" aria-label="Bulan berikutnya" onClick={() => changeMonth(1)} className="rounded-lg border border-slate-200 px-2 py-2 text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">›</button>
             <button type="button" aria-label="Tahun berikutnya" onClick={() => changeYear(1)} className="rounded-lg border border-slate-200 px-2 py-2 text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">»</button>
           </div>
-          <Button size="sm" variant="secondary" onClick={goToday}>Hari ini</Button>
+          <Button size="sm" variant="outline" onClick={goToday}>Hari ini</Button>
         </div>
 
         <div className="mt-4 grid grid-cols-7 gap-1">
