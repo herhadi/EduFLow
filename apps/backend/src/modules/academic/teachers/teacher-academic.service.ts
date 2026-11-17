@@ -546,7 +546,7 @@ export class TeacherAcademicService {
     guruRoleId: string,
     passwordHash?: string,
   ) {
-    const baseUsername = this.toAccountSlug(teacher.nip || teacher.email?.split('@')[0] || teacher.name) || 'guru';
+    const baseUsername = this.toAccountUsername(teacher.name) || 'guru';
     let username = baseUsername;
     for (let suffix = 2; await tx.user.findUnique({ where: { username }, select: { id: true } }); suffix += 1) {
       username = `${baseUsername}_${suffix}`;
@@ -570,9 +570,9 @@ export class TeacherAcademicService {
     return user;
   }
 
-  private toAccountSlug(value: string) {
+  private toAccountUsername(value: string) {
     return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40);
+      .toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '').slice(0, 40);
   }
 
   private async withTeacherPhotoUrl<T extends { photoKey?: string | null; photoName?: string | null }>(teacher: T) {
