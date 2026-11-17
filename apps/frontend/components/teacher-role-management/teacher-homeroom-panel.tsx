@@ -26,7 +26,7 @@ export function TeacherHomeroomPanel({
       </p>
       {selectedHomeroomClassIds.length ? (
         <button
-          className="mt-3 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-black text-amber-800 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100"
+          className="mt-3 rounded-full border border-red-700 bg-red-600 px-3 py-2 text-xs font-black text-white hover:bg-red-700 dark:border-red-500 dark:bg-red-600 dark:text-white dark:hover:bg-red-500"
           onClick={onClearHomeroomClasses}
           type="button"
         >

@@ -9,8 +9,26 @@ export type CurrentUser = {
   username?: string | null;
 };
 
+const roleDisplayLabels: Record<string, string> = {
+  admin: 'Admin',
+  bk: 'BK',
+  guru: 'Guru',
+  kepala_sekolah: 'Kepala Sekolah',
+  operator_sekolah: 'Operator Sekolah',
+  orang_tua: 'Orang Tua',
+  root: 'Root',
+  tu: 'TU',
+  wali_kelas: 'Wali Kelas',
+};
+
+export function getRoleDisplayLabels(roles?: string[] | null) {
+  return [...new Set(roles ?? [])]
+    .filter(Boolean)
+    .map((role) => roleDisplayLabels[role] ?? role.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' '));
+}
+
 export function getRoleGreeting(roles?: string[] | null) {
-  const labels = (roles ?? []).map((role) => role.replaceAll('_', ' ')).filter(Boolean);
+  const labels = getRoleDisplayLabels(roles);
   return labels.length ? ' (' + labels.join(', ') + ')' : '';
 }
 

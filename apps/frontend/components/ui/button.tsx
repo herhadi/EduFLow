@@ -2,7 +2,8 @@ import { type ComponentPropsWithoutRef } from 'react';
 import { cn } from '../../lib/cn';
 
 const variantClass = {
-  danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-slate-200 disabled:text-slate-500',
+  danger: 'border border-red-700 bg-red-600 text-white hover:border-red-800 hover:bg-red-700 disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-500 dark:border-red-500 dark:bg-red-600 dark:text-white dark:hover:border-red-400 dark:hover:bg-red-500 dark:disabled:border-slate-700 dark:disabled:bg-slate-800 dark:disabled:text-slate-500',
+  info: 'border border-blue-700 bg-blue-600 text-white hover:border-blue-800 hover:bg-blue-700 disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-500 dark:border-blue-500 dark:bg-blue-600 dark:text-white dark:hover:border-blue-400 dark:hover:bg-blue-500 dark:disabled:border-slate-700 dark:disabled:bg-slate-800 dark:disabled:text-slate-500',
   ghost: 'border border-transparent bg-transparent text-slate-700 hover:bg-slate-50 disabled:text-slate-400 dark:text-slate-200 dark:hover:bg-slate-800 dark:disabled:text-slate-600',
   outline: 'border border-slate-200 bg-white text-slate-700 hover:border-brand-200 hover:text-brand-700 disabled:bg-slate-100 disabled:text-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-blue-400/50 dark:hover:text-blue-100 dark:disabled:bg-slate-900 dark:disabled:text-slate-600',
   primary: 'bg-brand-600 text-white hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-500',

@@ -365,10 +365,9 @@ function ScheduleRows({
                 Edit
               </Button>
               <Button
-                className="border-red-100 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100"
                 onClick={() => void handleDelete(schedule)}
                 size="sm"
-                variant="outline"
+                variant="danger"
               >
                 Hapus
               </Button>

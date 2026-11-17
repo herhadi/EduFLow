@@ -152,15 +152,15 @@ export function UserManagementPanel({
                       return (
                         <span className="inline-flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-800 dark:border-brand-400/30 dark:bg-brand-500/10 dark:text-brand-100" key={roleName}>
                           {role?.label ?? roleName}
-                          <button aria-label={`Hapus role ${role?.label ?? roleName}`} className="ml-1 rounded-full px-1 hover:bg-brand-100 dark:hover:bg-brand-500/20" disabled={userActionState === 'loading' || (!canAssignRootRole && roleName === 'root')} onClick={() => setSelectedRoles((current) => ({ ...current, [user.id]: rolesForUser.filter((item) => item !== roleName) }))} type="button">×</button>
+                          <button aria-label={`Hapus role ${role?.label ?? roleName}`} className="ml-1 rounded-full px-1 text-red-700 hover:bg-red-100 dark:text-red-300 dark:hover:bg-red-500/20" disabled={userActionState === 'loading' || (!canAssignRootRole && roleName === 'root')} onClick={() => { if (window.confirm(`Hapus role ${role?.label ?? roleName} dari perubahan akun ${user.name}? Perubahan berlaku setelah tombol Simpan Role ditekan.`)) setSelectedRoles((current) => ({ ...current, [user.id]: rolesForUser.filter((item) => item !== roleName) })); }} type="button">×</button>
                         </span>
                       );
                     })}
                   </div>
                   <Button className="w-full sm:w-auto sm:justify-self-end" disabled={userActionState === 'loading' || !rolesForUser.length || !rolesChanged} onClick={() => onUpdateUserRoles(user, rolesForUser)} size="sm" variant="outline">Simpan Role</Button>
                   <div className="grid grid-cols-1 gap-2 border-t border-slate-200 pt-3 dark:border-slate-700 sm:grid-cols-3">
-                    <Button className="w-full" disabled={userActionState === 'loading'} onClick={() => void onResetUserPassword(user)} size="sm" variant="outline">Reset Password</Button>
-                    <Button className="w-full border-amber-200 text-amber-800 hover:border-amber-300 hover:text-amber-900 dark:border-amber-400/30 dark:text-amber-100" disabled={userActionState === 'loading'} onClick={() => void onDeactivateUser(user)} size="sm" variant="outline">Nonaktifkan</Button>
+                    <Button className="w-full" disabled={userActionState === 'loading'} onClick={() => void onResetUserPassword(user)} size="sm" variant="danger">Reset Password</Button>
+                    <Button className="w-full" disabled={userActionState === 'loading'} onClick={() => void onDeactivateUser(user)} size="sm" variant="danger">Nonaktifkan</Button>
                     <Button className="w-full" disabled={userActionState === 'loading'} onClick={() => void onDeleteUser(user)} size="sm" variant="danger">Hapus</Button>
                   </div>
                 </div>

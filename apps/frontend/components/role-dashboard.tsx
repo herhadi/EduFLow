@@ -17,6 +17,7 @@ import { CounselingHome, StaffHome } from './dashboards/staff-dashboard';
 import { TeacherHome } from './dashboards/teacher-dashboard';
 import { TelegramActivationPrompt } from './dashboards/telegram-activation-prompt';
 import { type CurrentUser } from './dashboards/dashboard-types';
+import { SESSION_CHANGED_EVENT } from '../lib/session';
 import { OperationalDashboard } from './operational-dashboard';
 import { PageHeader } from './ui/page-header';
 
@@ -48,9 +49,11 @@ export function RoleDashboard({
       void import('../lib/api')
         .then(({ api }) => api.getMyProfile())
         .then((response) => {
-          setCurrentUser(response.data);
+          const refreshedUser = { ...user, ...response.data, roles: [...new Set(response.data.roles ?? user.roles ?? [])] };
+          setCurrentUser(refreshedUser);
           setTeacherPhotoUrl(response.data.photoUrl ?? null);
-          localStorage.setItem('currentUser', JSON.stringify({ ...user, ...response.data }));
+          localStorage.setItem('currentUser', JSON.stringify(refreshedUser));
+          window.dispatchEvent(new Event(SESSION_CHANGED_EVENT));
         })
         .catch(() => undefined)
         .finally(() => setProfileChecked(true));

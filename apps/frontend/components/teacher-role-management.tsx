@@ -224,6 +224,8 @@ export function TeacherRoleManagement() {
   }
 
   function clearHomeroomClasses() {
+    const confirmed = window.confirm('Kosongkan seluruh pilihan kelas wali untuk guru ini? Perubahan baru diterapkan setelah disimpan.');
+    if (!confirmed) return;
     setSelectedHomeroomClassIds([]);
     setSelectedRoles((currentRoles) =>
       currentRoles.filter((currentRole) => currentRole !== 'wali_kelas'),

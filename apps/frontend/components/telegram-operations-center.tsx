@@ -123,7 +123,7 @@ export function TelegramOperationsCenter() {
           </p>
         </div>
         <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:w-auto sm:grid-cols-3">
-          <Button className="border-blue-600 bg-blue-600 text-white hover:border-blue-700 hover:bg-blue-700 dark:border-blue-500 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-500" onClick={() => void loadStatus()} variant="outline">
+          <Button onClick={() => void loadStatus()} variant="info">
             Refresh Status
           </Button>
           <Button
@@ -133,10 +133,9 @@ export function TelegramOperationsCenter() {
             {actionState === 'loading' ? 'Memproses...' : 'Set Webhook'}
           </Button>
           <Button
-            className="border-rose-600 bg-rose-600 text-white hover:border-rose-700 hover:bg-rose-700 dark:border-rose-500 dark:bg-rose-600 dark:text-white dark:hover:bg-rose-500"
             disabled={actionState === 'loading' || !status.config.botTokenConfigured}
             onClick={() => void runWebhookAction('delete')}
-            variant="outline"
+            variant="danger"
           >
             Hapus Webhook
           </Button>

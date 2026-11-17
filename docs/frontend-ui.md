@@ -34,3 +34,11 @@ apps/frontend/components/ui/
 
 - Aksi yang menghapus data, termasuk hapus permanen, wajib memakai `Button` dengan `variant="danger"` agar mudah dikenali sebagai tindakan berisiko.
 - Aksi nonaktifkan, batal, atau tindakan yang masih dapat dipulihkan tidak memakai warna danger; gunakan variant sekunder/warning sesuai konteks.
+
+## Standar tombol aksi destruktif
+
+- Aksi yang menghapus, membuang, mereset, menonaktifkan, mengosongkan, atau membatalkan data/konfigurasi harus menggunakan gaya danger (merah solid dengan teks putih) yang tetap kontras pada light mode dan dark mode.
+- Setiap aksi destruktif yang benar-benar dijalankan harus meminta konfirmasi sebelum memanggil API atau mengubah data. Konfirmasi menyebutkan objek yang terdampak dan konsekuensi penting; pembatalan tidak boleh menjalankan aksi.
+- Tombol batal/tutup tetap netral. Menghapus pilihan lokal yang belum disimpan dapat menggunakan konfirmasi singkat bila kontrolnya secara eksplisit berlabel Hapus/Kosongkan.
+- Gunakan `Button` dengan `variant="danger"` untuk aksi destruktif dan `variant="info"` untuk aksi refresh/status yang perlu warna biru solid. Hindari menggabungkan `variant="outline"` dengan kelas latar danger/info karena gaya outline dapat mengalahkan warna yang dimaksud, khususnya pada dark mode.
+- Role pada sapaan akun harus menampilkan seluruh role aktif, bukan hanya role utama. Gunakan label UI yang ramah, misalnya `admin` menjadi `Admin` dan `tu` menjadi `TU`.

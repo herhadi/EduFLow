@@ -39,9 +39,9 @@ export function TeacherDetailActions({
 
       {selectedTeacher.user ? (
         <Button
-          className="w-full border-amber-300 text-amber-900 hover:border-amber-400 hover:text-amber-900 dark:border-amber-400/30 dark:text-amber-100"
+          className="w-full"
           onClick={() => void onResetPassword()}
-          variant="outline"
+          variant="danger"
         >
           Reset Password ke Default
         </Button>

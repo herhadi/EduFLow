@@ -186,6 +186,8 @@ export function OperationsCenter() {
   }
 
   async function handleDiscard(job: FailedJob) {
+    const confirmed = window.confirm(`Hapus job gagal ${job.name} (ID ${job.id}) dari antrean? Data job ini tidak dapat dipulihkan.`);
+    if (!confirmed) return;
     setMessage(null);
 
     try {
@@ -423,7 +425,7 @@ export function OperationsCenter() {
         <div className="mt-3 flex flex-wrap gap-2">
           <button className="school-primary-button rounded-xl px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60" disabled={r2Busy || !r2From || !r2To || r2From > r2To} onClick={() => void previewR2Range()} type="button">{r2Busy ? 'Memproses...' : 'Preview Objek'}</button>
           <button className="secondary-button rounded-xl px-4 py-2 text-sm font-black disabled:cursor-not-allowed disabled:opacity-60" disabled={r2Busy || !r2Preview || r2Preview.truncated || r2Preview.objectCount === 0 || r2Preview.from !== r2From || r2Preview.to !== r2To || r2Preview.prefix !== (r2Prefix.trim() || null)} onClick={() => void backupR2Range()} type="button">Download Backup ZIP</button>
-          <button className="rounded-xl border border-red-300 px-4 py-2 text-sm font-black text-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-500/40 dark:text-red-200" disabled={r2Busy || !r2Preview || r2Preview.truncated || r2Preview.objectCount === 0 || r2Preview.from !== r2From || r2Preview.to !== r2To || r2Preview.prefix !== (r2Prefix.trim() || null)} onClick={() => void deleteR2Range()} type="button">Hapus Objek Rentang</button>
+          <Button disabled={r2Busy || !r2Preview || r2Preview.truncated || r2Preview.objectCount === 0 || r2Preview.from !== r2From || r2Preview.to !== r2To || r2Preview.prefix !== (r2Prefix.trim() || null)} onClick={() => void deleteR2Range()} size="sm" variant="danger">Hapus Objek Rentang</Button>
         </div>
         {r2Preview ? (
           <div className="mt-4 space-y-3">
@@ -513,10 +515,9 @@ export function OperationsCenter() {
                     Retry
                   </Button>
                   <Button
-                    className="border-red-200 text-red-700 hover:border-red-300 hover:text-red-800"
                     onClick={() => void handleDiscard(job)}
                     size="sm"
-                    variant="outline"
+                    variant="danger"
                   >
                     Discard
                   </Button>

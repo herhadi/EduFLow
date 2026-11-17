@@ -268,3 +268,9 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Memisahkan port PostgreSQL/Redis lokal ke `docker-compose.local.yml` agar production tidak bentrok dengan port host.
 - Menambahkan smart deploy, cleanup Docker image lama, endpoint frontend `GET /api/health`, dan retry healthcheck frontend/backend.
 - Memindahkan beranda Operator Sekolah ke `/opsek/dashboard`, menghapus route `/admin/dashboard`, dan memisahkan namespace admin sistem untuk pengembangan berikutnya.
+
+## 2026-11-17 — Standar aksi destruktif dan sapaan multi-role
+
+- Tombol hapus/reset/buang menggunakan gaya danger yang konsisten di light mode dan dark mode serta meminta konfirmasi sebelum aksi dijalankan.
+- Tombol Refresh Status Telegram menggunakan warna biru solid yang kontras.
+- Sapaan pengguna menampilkan semua role aktif dengan label yang mudah dibaca, termasuk Admin dan TU.

@@ -24,10 +24,10 @@ import {
   UsersRound,
 } from 'lucide-react';
 import { api } from '../../lib/api';
+import { getRoleDisplayLabels } from '../dashboards/dashboard-types';
 import { cn } from '../../lib/cn';
 import {
   getPrimaryNavigation,
-  getPrimaryRole,
   getSectionFromPath,
   type NavigationItem,
 } from '../../lib/navigation.config';
@@ -46,7 +46,7 @@ export function MobileGreeting({
 }) {
   const displayName =
     currentUser?.name ?? currentUser?.username ?? 'Pengguna EduFlow';
-  const displayRole = getPrimaryRole(currentUser?.roles ?? []).replaceAll('_', ' ');
+  const displayRole = getRoleDisplayLabels(currentUser?.roles ?? []).join(', ');
 
   return (
     <div className="surface-card mb-3 rounded-[1.5rem] px-4 py-3 min-[390px]:hidden">
@@ -54,7 +54,7 @@ export function MobileGreeting({
       <p className="mt-1 truncate text-sm font-black text-brand-700">
         Hai, {displayName}
       </p>
-      <p className="mt-1 truncate text-[0.65rem] font-bold capitalize text-muted">
+      <p className="mt-1 truncate text-[0.65rem] font-bold text-muted">
         {displayRole}
       </p>
     </div>
@@ -95,7 +95,7 @@ export function AppTopBar({
 
   const displayName =
     currentUser?.name ?? currentUser?.username ?? 'Pengguna EduFlow';
-  const displayRole = getPrimaryRole(currentUser?.roles ?? []).replaceAll('_', ' ');
+  const displayRole = getRoleDisplayLabels(currentUser?.roles ?? []).join(', ');
 
   return (
     <header className="app-topbar px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur-xl sm:px-6">
@@ -126,7 +126,7 @@ export function AppTopBar({
             <p className="max-w-48 truncate text-xs font-black text-brand-700">
               Hai, {displayName}
             </p>
-            <p className="max-w-32 truncate text-[0.65rem] font-bold capitalize text-slate-700 dark:text-slate-300">
+            <p className="max-w-48 truncate text-[0.65rem] font-bold text-slate-700 dark:text-slate-300">
               {displayRole}
             </p>
           </div>
