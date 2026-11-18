@@ -56,11 +56,28 @@ export class SchoolOrganizationService {
   }
 
   async get() {
-    const [setting, principal, teachers] = await Promise.all([
+    const now = new Date();
+    const [setting, principal, teachers, currentSchoolYear] = await Promise.all([
       this.prisma.systemSetting.findUnique({ where: { key: SETTING_KEY } }),
       this.prisma.teacher.findFirst({ where: { isActive: true, deletedAt: null, user: { is: { roles: { some: { role: { name: 'kepala_sekolah' } } } } } }, select: { id: true, name: true } }),
       this.prisma.teacher.findMany({ where: { isActive: true, deletedAt: null }, select: { id: true, name: true, nip: true, photoUrl: true, photoKey: true, photoName: true } }),
+      this.prisma.schoolYear.findFirst({ where: { deletedAt: null, startsAt: { lte: now }, endsAt: { gte: now } }, orderBy: { startsAt: 'desc' }, select: { id: true, name: true } }),
     ]);
+    const selectedSchoolYear = currentSchoolYear ?? await this.prisma.schoolYear.findFirst({ where: { deletedAt: null, startsAt: { lte: now } }, orderBy: { startsAt: 'desc' }, select: { id: true, name: true } }) ?? await this.prisma.schoolYear.findFirst({ where: { deletedAt: null }, orderBy: { startsAt: 'desc' }, select: { id: true, name: true } });
+    const classes = selectedSchoolYear ? await this.prisma.class.findMany({
+      where: { schoolYearId: selectedSchoolYear.id, deletedAt: null },
+      include: { homeroomTeacher: { select: { id: true, name: true, nip: true, photoUrl: true, photoKey: true, photoName: true } } },
+      orderBy: [{ grade: 'asc' }, { name: 'asc' }],
+    }) : [];
+    const classCards = await Promise.all(classes.map(async (schoolClass) => ({
+      id: schoolClass.id, name: schoolClass.name, grade: schoolClass.grade,
+      teacherId: schoolClass.homeroomTeacher?.id ?? null,
+      teacherName: schoolClass.homeroomTeacher?.name ?? null,
+      nip: schoolClass.homeroomTeacher?.nip ?? null,
+      photoUrl: schoolClass.homeroomTeacher?.photoKey
+        ? await this.storage.createDownloadUrl(schoolClass.homeroomTeacher.photoKey, schoolClass.homeroomTeacher.photoName ?? 'foto-wali-kelas')
+        : schoolClass.homeroomTeacher?.photoUrl ?? null,
+    })));
     const teacherById = new Map(teachers.map((teacher) => [teacher.id, teacher]));
     const stored: Array<Record<string, unknown>> = setting ? JSON.parse(setting.value) as Array<Record<string, unknown>> : DEFAULT_POSITIONS;
     const positions: Array<Record<string, any>> = await Promise.all(stored.map(async (position) => {
@@ -95,7 +112,7 @@ export class SchoolOrganizationService {
           : principalTeacher?.photoUrl ?? null;
       }
     }
-    return { positions, defaults: DEFAULT_POSITIONS };
+    return { positions, defaults: DEFAULT_POSITIONS, schoolYear: selectedSchoolYear, classes: classCards };
   }
 
   async save(input: Array<{ id?: string; title: string; personName?: string; nip?: string | null; teacherId?: string | null; parentId?: string | null; sortOrder?: number; category?: string; x?: number; y?: number }>) {

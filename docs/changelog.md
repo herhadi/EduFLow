@@ -330,3 +330,5 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - 2026-11-18: Perbaiki penyimpanan koordinat seluruh kartu bagan agar posisi hasil layout dan drag tetap konsisten setelah disimpan; perbaiki drag konektor dengan menaikkan layer titik kontrol di atas kartu, memperbesar area sentuh, dan mengoreksi skala gerak horizontal kartu.
 
 - 2026-11-18: Perbaiki drag titik konektor (parser kunci relasi dan pointer capture), sediakan pengaturan atasan langsung untuk kartu Peserta Didik, turunkan tinggi minimum kartu menjadi 50 px dengan tampilan ringkas, dan poles visual kartu serta kanvas bagan.
+
+- 2026-11-18: Penyempurnaan bagan organisasi: ujung konektor otomatis snap ke titik tengah sisi kartu terdekat agar garis mudah dirapikan dan dibuat lurus; kartu jabatan memakai palet warna berbeda per kelompok; bagan menampilkan kartu Wali Kelas untuk setiap rombel pada tahun ajaran yang sedang berlaku, lengkap dengan nama guru, foto, dan NIP bila tersedia. Kartu wali kelas ditata otomatis dalam beberapa baris dan dihubungkan ke Peserta Didik.
