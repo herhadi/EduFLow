@@ -81,7 +81,7 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
     const assignedRoles = currentUser.roles ?? [];
     const requiredRole = getRequiredRoleForPath(pathname);
     const isSchoolOrganizationPage = pathname.startsWith('/school-profile');
-    const isExcludedFromSchoolProfile = assignedRoles.includes('root') || assignedRoles.some((role) => role.trim().toLowerCase() === 'super admin');
+    const isExcludedFromSchoolProfile = assignedRoles.includes('root');
 
     if (isSchoolOrganizationPage && isExcludedFromSchoolProfile) {
       window.alert('Menu Profil Sekolah tidak tersedia untuk role ini.');

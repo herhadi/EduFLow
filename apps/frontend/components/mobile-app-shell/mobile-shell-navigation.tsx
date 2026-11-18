@@ -18,6 +18,7 @@ import {
   MoreHorizontal,
   Presentation,
   ShieldCheck,
+  School,
   Upload,
   UserCog,
   UserRound,
@@ -385,6 +386,7 @@ function NavigationIcon({ icon }: { icon?: string }) {
 
 const navigationIcons: Record<string, typeof Home> = {
   access: UserCog,
+  school: School,
   activity: Activity,
   attendance: CheckSquare,
   audit: ShieldCheck,
