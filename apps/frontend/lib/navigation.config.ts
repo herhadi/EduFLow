@@ -313,7 +313,7 @@ export function getPrimaryNavigation(roles: string[] = []) {
     .filter((role) => role !== primaryRole && !(primaryRole === 'guru' && role === 'wali_kelas'))
     .flatMap((role) => roleNavigation[role]);
 
-  const canViewSchoolProfile = assignedRoles.length > 0 && !assignedRoles.includes('root') && !assignedRoles.includes('admin');
+  const canViewSchoolProfile = assignedRoles.length > 0 && !assignedRoles.includes('root');
   const schoolProfileItem: NavigationItem[] = canViewSchoolProfile ? [{
     href: '/school-profile/organization-structure', label: 'Bagan Organisasi', icon: 'school',
   }] : [];

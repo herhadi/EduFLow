@@ -28,7 +28,7 @@ export class SchoolOrganizationController {
 
   private assertSchoolProfileAccess(req: RequestWithUser) {
     const roles = req.user.roles ?? [];
-    if (roles.includes('root') || roles.some((role) => role.trim().toLowerCase() === 'super admin')) {
+    if (roles.includes('root')) {
       throw new ForbiddenException('Profil Sekolah tidak tersedia untuk role ini.');
     }
   }

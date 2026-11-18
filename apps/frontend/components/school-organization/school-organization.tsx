@@ -14,7 +14,7 @@ const categoryOptions = ['Pimpinan', 'Wakil Kepala Sekolah', 'Tenaga Kependidika
 export function SchoolOrganization() {
   const [roles, setRoles] = useState<string[]>([]);
   useEffect(() => { setRoles(getCurrentSessionUser()?.roles ?? []); }, []);
-  const canManage = roles.includes('operator_sekolah') && !roles.includes('root') && !roles.some((role) => role.trim().toLowerCase() === 'super admin');
+  const canManage = roles.includes('operator_sekolah') && !roles.includes('root');
   const [positions, setPositions] = useState<Position[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [editing, setEditing] = useState(false);
