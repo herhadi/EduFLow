@@ -89,7 +89,7 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
   const visibleAccounts = filteredAccounts.slice((page - 1) * DEFAULT_PAGE_SIZE, page * DEFAULT_PAGE_SIZE);
 
   const buildPages = (paperSize: PrintPaperSize): ReactNode[] => {
-    const rowsPerPage = paperSize === 'A4_LANDSCAPE' ? 26 : paperSize === 'A4' ? 20 : 22;
+    const rowsPerPage = paperSize === 'A4_LANDSCAPE' ? 26 : paperSize === 'A4' ? 38 : 45;
     const chunks: AppUser[][] = [];
     for (let index = 0; index < filteredAccounts.length; index += rowsPerPage) {
       chunks.push(filteredAccounts.slice(index, index + rowsPerPage));
@@ -166,8 +166,8 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
     <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-black text-slate-900 dark:text-[var(--text)]">Akun yang belum dinonaktifkan</h2>
-          <p className="mt-1 text-xs text-muted">{filteredAccounts.length} dari {accounts.length} akun · Hanya lihat dan cetak</p>
+          <h2 className="text-base font-black text-slate-900 dark:text-[var(--text)]">Daftar Akun Aktif</h2>
+          <p className="mt-1 text-xs text-muted">Seluruh akun yang belum dinonaktifkan · Hanya lihat dan cetak</p>
         </div>
         <button
           className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40"
@@ -175,6 +175,17 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
           onClick={() => setShowPreview(true)}
           type="button"
         >Preview & Cetak</button>
+      </div>
+
+      <div className="mb-4 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 dark:border-brand-900 dark:bg-brand-950/30">
+          <p className="text-xs font-semibold text-muted">Total akun ditampilkan</p>
+          <p className="mt-1 text-2xl font-black text-brand-700 dark:text-brand-300">{filteredAccounts.length}</p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-[var(--border)] dark:bg-[var(--surface-soft)]">
+          <p className="text-xs font-semibold text-muted">Akun terkunci</p>
+          <p className="mt-1 text-2xl font-black text-slate-800 dark:text-[var(--text)]">{filteredAccounts.filter((account) => getAccountStatus(account) === 'Terkunci').length}</p>
+        </div>
       </div>
 
       <div className="mb-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_200px_160px]">

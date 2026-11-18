@@ -23,7 +23,7 @@ EduFlow memakai permission-based RBAC. Role hanya kumpulan permission, bukan log
 | `bk` | Bimbingan konseling |
 | `orang_tua` | Wali murid |
 
-## Akses Daftar Akun
+## Akses Daftar Akun (di dalam Akun & Akses)
 
 - Endpoint daftar akun aktif (`GET /auth/active-accounts`) hanya dapat diakses role `super admin` dan `operator_sekolah`; data yang ditampilkan mengecualikan akun yang sudah dinonaktifkan (`deletedAt` terisi). Endpoint ini bersifat baca-saja.
 

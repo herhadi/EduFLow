@@ -284,3 +284,9 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Label role mengikuti data backend dan diformat Title Case; `tu` dan `bk` ditampilkan sebagai `TU` dan `BK`. Role database `super admin` diperlakukan sebagai nama baru dari role lama `admin` untuk pemetaan navigasi, dan pemeriksaan pengelolaan role memakai nama `super admin`.
 - Memperbaiki pemeriksaan akses namespace `/admin` agar role database `super admin` dikenali sebagai role internal `admin` setelah login.
 - Merapikan navbar akun multi-role: menu dengan tujuan halaman yang sama (Pesan/Helpdesk, Profil, Laporan, Audit, Operasional, dan Import Data) hanya ditampilkan sekali; submenu dari beberapa role digabung ke satu menu Lainnya.
+
+## 2026-11-18 — Integrasi Daftar Akun ke Akun & Akses
+
+- Menggabungkan akses daftar akun ke menu **Akun & Akses** agar navbar tidak memiliki menu terpisah. Pada halaman Super Administrator, daftar akun tampil langsung di bawah panel pengelolaan akun; Operator Sekolah membuka daftar melalui menu Akun & Akses.
+- Menonjolkan ringkasan total akun dan akun terkunci pada bagian daftar.
+- Menambah kapasitas halaman cetak daftar akun: F4 portrait 45 baris, A4 portrait 38 baris, dan A4 landscape 26 baris agar ruang kertas digunakan lebih efektif.

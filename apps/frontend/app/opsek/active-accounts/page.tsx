@@ -7,9 +7,9 @@ export default function ActiveAccountsPage() {
     <main>
       <Container>
         <PageHeader
-          description="Lihat informasi akun pengguna sekolah yang belum dinonaktifkan. Halaman ini hanya menyediakan akses baca dan cetak."
+          description="Lihat daftar akun pengguna sekolah beserta username, email, role, dan status akses. Halaman ini hanya menyediakan akses baca dan cetak."
           eyebrow="Operator Sekolah"
-          title="Daftar Akun Aktif"
+          title="Akun & Akses"
         />
         <ActiveAccountDirectory audience="operator" />
       </Container>

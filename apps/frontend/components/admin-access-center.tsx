@@ -4,6 +4,7 @@ import { type FormEvent, useEffect, useState } from 'react';
 import { api, type AppUser } from '../lib/api';
 import { type NewUserForm } from './admin-access-center/admin-access-center-utils';
 import { UserManagementPanel } from './admin-access-center/user-management-panel';
+import { ActiveAccountDirectory } from './active-account-directory';
 import { useToast } from './ui/toast';
 
 type ActionState = 'idle' | 'loading' | 'success' | 'error';
@@ -250,6 +251,7 @@ export function AdminAccessCenter({
         users={users}
       />
 
+      {!bootstrapOnly ? <ActiveAccountDirectory audience="admin" /> : null}
     </section>
   );
 }

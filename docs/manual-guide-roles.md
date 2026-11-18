@@ -13,7 +13,7 @@ Dokumen ini merupakan panduan penggunaan EduFlow untuk role:
 
 Super Administrator adalah role baru untuk pengelolaan akses, monitoring sistem, helpdesk, audit, dan backup/recovery sesuai kewenangan. Role ini bukan untuk kegiatan KBM.
 
-Super Administrator dan Operator Sekolah dapat membuka menu **Daftar Akun** untuk melihat akun yang belum dinonaktifkan, termasuk nama, username, email, role, login terakhir, status akun, dan tanggal dibuat. Halaman ini hanya-baca; akun terkunci tetap ditampilkan dengan status Terkunci. Preview/cetak menggunakan komponen PrintPreview bersama dengan F4 sebagai ukuran awal, opsi A4, footer tanggal dan nomor halaman, serta opsi Download Excel.
+Super Administrator menemukan daftar akun di halaman **Akun & Akses**, sedangkan Operator Sekolah membukanya melalui menu **Akun & Akses**. Daftar ditampilkan sebagai bagian yang menonjol di halaman tersebut dan memuat akun yang belum dinonaktifkan: nama, username, email, role, login terakhir, status akun, dan tanggal dibuat. Halaman ini hanya-baca; akun terkunci tetap ditampilkan dengan status Terkunci. Preview/cetak menggunakan PrintPreview bersama dengan F4 sebagai ukuran awal, opsi A4, footer tanggal dan nomor halaman, serta opsi Download Excel.
 
 Panduan Bimbingan Konseling (`bk`) dibahas pada panduan role BK.
 
@@ -120,7 +120,7 @@ Menu utama Super Admin tersedia di namespace `/admin/*`. Namespace `/system/*` d
 
 ## 2.2 Menu Utama Super Admin
 
-- **Akun & Akses** (`/admin/access`): pengguna, role, dan reset akses.
+- **Akun & Akses** (`/admin/access`): pengelolaan pengguna, role, reset akses, dan daftar akun aktif.
 - **Monitoring Sistem** (`/admin/operations`): health check, queue, worker, dan status layanan.
 - **Helpdesk** (`/admin/notifications`): notifikasi operasional dan tindak lanjut bantuan pengguna.
 - **Audit** (`/admin/audit`): jejak aktivitas aplikasi.
