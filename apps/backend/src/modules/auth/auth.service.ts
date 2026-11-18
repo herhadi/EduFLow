@@ -614,6 +614,30 @@ export class AuthService {
     };
   }
 
+  async getActiveAccounts() {
+    const users = await this.prisma.user.findMany({
+      where: { deletedAt: null },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        name: true,
+        lastLoginAt: true,
+        lockedUntil: true,
+        createdAt: true,
+        roles: { include: { role: { select: { name: true } } } },
+      },
+      orderBy: [{ name: 'asc' }, { createdAt: 'desc' }],
+    });
+
+    return {
+      data: users.map((user) => ({
+        ...user,
+        roles: user.roles.map(({ role }) => role.name),
+      })),
+    };
+  }
+
   async createUser(dto: CreateUserDto, actorIsRoot = false) {
     const username = dto.username.trim().toLowerCase();
     const email = dto.email?.trim().toLowerCase() || `${username}@eduflow.local`;

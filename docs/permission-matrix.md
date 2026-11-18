@@ -23,6 +23,10 @@ EduFlow memakai permission-based RBAC. Role hanya kumpulan permission, bukan log
 | `bk` | Bimbingan konseling |
 | `orang_tua` | Wali murid |
 
+## Akses Daftar Akun
+
+- Endpoint daftar akun aktif (`GET /auth/active-accounts`) hanya dapat diakses role `super admin` dan `operator_sekolah`; data yang ditampilkan mengecualikan akun yang sudah dinonaktifkan (`deletedAt` terisi). Endpoint ini bersifat baca-saja.
+
 Role `super admin` memiliki permission teknis sekolah berikut: `auth.session.manage`, `notification.read`, `notification.manage`, `reporting.read`, `reporting.manage`, `audit.read`, `user.manage`, dan `system.recovery.manage`. Role ini tidak menerima permission KBM seperti `schedule.manage`, `agenda.generate`, `attendance.manage`, atau permission nilai/perangkat ajar. Role `root` memperoleh seluruh permission yang terdaftar untuk kebutuhan owner/developer. Pada deployment EduFlow satu sekolah, cakupan admin dibatasi pada instalasi/database sekolah tersebut; database saat ini belum menerapkan multi-tenant lintas sekolah.
 
 ## Permission Awal

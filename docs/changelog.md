@@ -1,3 +1,7 @@
+## 2026-11-18
+
+- Menambahkan menu Daftar Akun untuk Super Administrator dan Operator Sekolah, berisi akun yang belum dinonaktifkan beserta username, email, role, login terakhir, status, dan tanggal dibuat; tersedia pencarian/filter, preview cetak F4/A4, serta unduh Excel. Endpoint baca-saja dibatasi untuk kedua role tersebut.
+
 ## 2026-11-17
 
 - Mengurutkan label role pada sapaan menjadi Super Administrator, Operator Sekolah, lalu TU; mengganti nama tampilan Super Admin Sekolah menjadi Super Administrator tanpa mengubah identifier role database `super admin`.

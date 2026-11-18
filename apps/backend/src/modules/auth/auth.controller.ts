@@ -158,6 +158,15 @@ export class AuthController {
     return this.authService.getUsers();
   }
 
+  @Get('active-accounts')
+  getActiveAccounts(@Req() request: RequestWithUser) {
+    const roles = (request.user.roles ?? []).map((role) => role.trim().toLowerCase());
+    if (!roles.includes('super admin') && !roles.includes('operator_sekolah')) {
+      throw new ForbiddenException('Hanya Super Administrator atau Operator Sekolah yang dapat melihat daftar akun aktif');
+    }
+    return this.authService.getActiveAccounts();
+  }
+
   @RequirePermissions(PERMISSIONS.USER_MANAGE)
   @Post('users')
   createUser(@Body() dto: CreateUserDto, @Req() request: RequestWithUser) {
