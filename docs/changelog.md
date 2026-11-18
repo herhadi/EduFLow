@@ -328,3 +328,5 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Bagan Struktur Organisasi: kanvas menyesuaikan lebar area layar dengan skala dasar responsif, tetap mendukung zoom dan pan, serta menyimpan posisi kartu Peserta Didik agar dapat dipindahkan, serta titik awal dan akhir setiap konektor dapat diseret secara terpisah dan tersimpan. Pengelolaan bagan dibatasi pada desktop/tablet; mobile tetap untuk melihat bagan.
 
 - 2026-11-18: Perbaiki penyimpanan koordinat seluruh kartu bagan agar posisi hasil layout dan drag tetap konsisten setelah disimpan; perbaiki drag konektor dengan menaikkan layer titik kontrol di atas kartu, memperbesar area sentuh, dan mengoreksi skala gerak horizontal kartu.
+
+- 2026-11-18: Perbaiki drag titik konektor (parser kunci relasi dan pointer capture), sediakan pengaturan atasan langsung untuk kartu Peserta Didik, turunkan tinggi minimum kartu menjadi 50 px dengan tampilan ringkas, dan poles visual kartu serta kanvas bagan.
