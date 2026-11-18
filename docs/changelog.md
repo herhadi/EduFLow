@@ -315,3 +315,4 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Menyimpan susunan pada pengaturan sekolah, mendukung jabatan tambahan, penugasan rangkap, dan membatasi jabatan Wakil Kepala Sekolah maksimal tiga. Penetapan jabatan tidak mengubah role akun.
 
 - Perbaikan bagan struktur organisasi: pastikan pembaruan komponen frontend ikut terdeteksi dan dibangun pada deployment agar tampilan hierarki terbaru tersaji.
+- Merapikan proporsi bagan organisasi: kartu Kepala Sekolah dipusatkan dan dibatasi lebarnya; kartu turunan memakai lebar minimum agar teks tidak terlipat vertikal, dengan area bagan yang dapat digulir horizontal bila cabang banyak.
