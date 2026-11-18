@@ -297,3 +297,8 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 
 - Menyamakan tinggi setiap baris tabel cetak menjadi 5,5 mm dengan isi maksimal dua baris agar baris pendek dan panjang tetap sejajar.
 - Menghitung kapasitas per halaman berdasarkan tinggi fisik kertas dan ruang yang disediakan untuk margin, judul, header tabel, serta footer, bukan jumlah baris perkiraan yang terpisah.
+
+## 2026-11-18
+- Dialog pada layar mobile kini berada di tengah area konten dan bergeser ke atas untuk memberi ruang setinggi navigasi bawah, sehingga tidak tertutup navbar.
+- Tinggi tombol pada modal diseragamkan, dengan jarak horizontal dan vertikal yang lebih lega.
+- Kartu Pengelolaan Akun diselaraskan ukuran tipografi, padding, dan tinggi tombolnya dengan kartu Daftar Akun Aktif.

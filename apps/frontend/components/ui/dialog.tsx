@@ -21,10 +21,10 @@ export function Dialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex min-h-dvh items-end justify-center overflow-y-auto bg-slate-950/55 p-0 backdrop-blur-[2px] sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-[130] flex min-h-dvh items-center justify-center overflow-y-auto bg-slate-950/55 px-3 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-[2px] sm:p-4">
       <div
         aria-modal="true"
-        className={cn('my-0 max-h-[min(92dvh,820px)] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-[var(--border)] dark:bg-slate-950 dark:text-slate-100 sm:my-auto sm:rounded-2xl sm:p-5', className)}
+        className={cn('my-auto max-h-[min(calc(100dvh-6.5rem),820px)] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-[var(--border)] dark:bg-slate-950 dark:text-slate-100 sm:max-h-[min(92dvh,820px)] sm:p-5', className)}
         role="dialog"
         {...props}
       >

@@ -32,17 +32,17 @@ export function UserManagementPanel({
   }
 
   return (
-    <section className="mb-2 rounded-xl border border-slate-200 bg-white px-3 py-3 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] sm:px-4">
+    <section className="mb-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-sm font-bold text-ink">Pengelolaan Akun</h2>
-          <p className="mt-0.5 text-xs text-muted">Tambah akun dan siapkan akses pengguna. Pengelolaan akun tersedia dari daftar di bawah.</p>
+          <h2 className="text-base font-black text-ink">Pengelolaan Akun</h2>
+          <p className="mt-1 text-sm text-muted">Tambah akun dan siapkan akses pengguna. Pengelolaan akun tersedia dari daftar di bawah.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button disabled={userActionState === 'loading'} onClick={onProvisionTeacherAccounts} size="sm" variant="outline">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+          <Button disabled={userActionState === 'loading'} onClick={onProvisionTeacherAccounts} className="min-h-11 w-full px-4 text-sm sm:w-auto" size="md" variant="outline">
             {userActionState === 'loading' ? 'Memproses...' : 'Buat Akun Login Guru'}
           </Button>
-          <Button disabled={userActionState === 'loading'} onClick={() => setShowCreateDialog(true)} size="sm">
+          <Button disabled={userActionState === 'loading'} onClick={() => setShowCreateDialog(true)} className="min-h-11 w-full px-4 text-sm sm:w-auto" size="md">
             + Tambah Akun
           </Button>
         </div>
@@ -83,9 +83,9 @@ export function UserManagementPanel({
               {creationRoles.map((role) => <option key={role.role} value={role.role}>{role.label}</option>)}
             </select>
           </label>
-          <div className="grid grid-cols-1 gap-2 border-t border-slate-100 pt-3 dark:border-[var(--border)] sm:flex sm:justify-end">
-            <Button className="w-full sm:w-auto" onClick={() => setShowCreateDialog(false)} size="md" variant="outline">Batal</Button>
-            <Button className="w-full sm:w-auto" disabled={userActionState === 'loading' || !newUser.username.trim() || !newUser.name.trim()} size="md" type="submit">
+          <div className="grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 dark:border-[var(--border)] sm:flex sm:justify-end">
+            <Button className="min-h-11 w-full px-5 sm:w-auto" onClick={() => setShowCreateDialog(false)} size="md" variant="outline">Batal</Button>
+            <Button className="min-h-11 w-full px-5 sm:w-auto" disabled={userActionState === 'loading' || !newUser.username.trim() || !newUser.name.trim()} size="md" type="submit">
               {userActionState === 'loading' ? 'Menyimpan...' : 'Simpan Akun'}
             </Button>
           </div>

@@ -203,7 +203,7 @@ export function ActiveAccountDirectory({
           <p className="mt-1 text-xs text-muted">Akun pengguna, identitas, role, dan status akses</p>
         </div>
         <button
-          className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40"
+          className="min-h-11 rounded-xl bg-brand-600 px-4 text-sm font-bold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40"
           disabled={loadState !== 'success' || filteredAccounts.length === 0}
           onClick={() => setShowPreview(true)}
           type="button"
@@ -308,14 +308,14 @@ export function ActiveAccountDirectory({
           open
           title="Kelola Akun"
         >
-          <div className="grid gap-4">
-            <div className="rounded-xl bg-slate-50 p-3 dark:bg-[var(--surface-soft)]">
+          <div className="grid gap-5">
+            <div className="rounded-xl bg-slate-50 p-4 dark:bg-[var(--surface-soft)]">
               <p className="text-sm font-bold text-ink">{selectedAccount.name}</p>
               <p className="mt-0.5 break-all text-xs text-muted">@{selectedAccount.username || selectedAccount.email}</p>
             </div>
-            <div className="grid gap-2">
-              <p className="text-xs font-bold text-muted">Role akun</p>
-              <div className="flex min-h-10 flex-wrap content-start gap-2 rounded-xl border border-slate-200 p-3 dark:border-[var(--border)]">
+            <div className="grid gap-3">
+              <p className="text-sm font-bold text-muted">Role akun</p>
+              <div className="flex min-h-12 flex-wrap content-start gap-2 rounded-xl border border-slate-200 p-3 dark:border-[var(--border)]">
                 {selectedRoles.map((roleName) => {
                   const role = roleCards.find((item) => item.role === roleName);
                   return (
@@ -327,18 +327,18 @@ export function ActiveAccountDirectory({
                 })}
               </div>
             </div>
-            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-              <select className={`${fieldClass} min-w-0`} onChange={(event) => setRoleToAdd(event.target.value)} value={roleToAdd}>
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+              <select className={`${fieldClass} min-h-11 min-w-0`} onChange={(event) => setRoleToAdd(event.target.value)} value={roleToAdd}>
                 <option value="">Pilih role untuk ditambahkan...</option>
                 {availableRoles.map((role) => <option key={role.role} value={role.role}>{role.label}</option>)}
               </select>
-              <Button className="w-full sm:w-auto" disabled={!roleToAdd} onClick={() => { setSelectedRoles((current) => [...current, roleToAdd]); setRoleToAdd(''); }} size="sm" variant="outline">+ Tambah Role</Button>
+              <Button className="min-h-11 w-full px-4 sm:w-auto" disabled={!roleToAdd} onClick={() => { setSelectedRoles((current) => [...current, roleToAdd]); setRoleToAdd(''); }} size="md" variant="outline">+ Tambah Role</Button>
             </div>
-            <Button className="w-full" disabled={!selectedRoles.length || (selectedRoles.length === selectedAccount.roles.length && selectedRoles.every((role) => selectedAccount.roles.includes(role)))} onClick={async () => { await onUpdateUserRoles?.(selectedAccount, selectedRoles); await refreshAccounts(); setSelectedAccount(null); }} size="md">Simpan Perubahan Role</Button>
-            <div className="grid grid-cols-1 gap-2 border-t border-slate-200 pt-3 dark:border-[var(--border)] sm:grid-cols-2">
-              <Button className="w-full" onClick={async () => { await onResetUserPassword?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="sm" variant="info">Reset Password</Button>
-              <Button className="w-full" onClick={async () => { await onDeactivateUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="sm" variant="outline">Nonaktifkan</Button>
-              <Button className="w-full sm:col-span-2" onClick={async () => { await onDeleteUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="sm" variant="danger">Hapus Permanen</Button>
+            <Button className="min-h-11 w-full px-4" disabled={!selectedRoles.length || (selectedRoles.length === selectedAccount.roles.length && selectedRoles.every((role) => selectedAccount.roles.includes(role)))} onClick={async () => { await onUpdateUserRoles?.(selectedAccount, selectedRoles); await refreshAccounts(); setSelectedAccount(null); }} size="md">Simpan Perubahan Role</Button>
+            <div className="grid grid-cols-1 gap-3 border-t border-slate-200 pt-4 dark:border-[var(--border)] sm:grid-cols-2">
+              <Button className="min-h-11 w-full px-4" onClick={async () => { await onResetUserPassword?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="md" variant="info">Reset Password</Button>
+              <Button className="min-h-11 w-full px-4" onClick={async () => { await onDeactivateUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="md" variant="outline">Nonaktifkan</Button>
+              <Button className="min-h-11 w-full px-4 sm:col-span-2" onClick={async () => { await onDeleteUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="md" variant="danger">Hapus Permanen</Button>
             </div>
           </div>
         </Dialog>
