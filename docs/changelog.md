@@ -313,3 +313,5 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Menambahkan halaman Bagan Struktur Organisasi dengan pengelolaan khusus Operator Sekolah dan tampilan baca untuk role lainnya.
 - Kepala Sekolah diambil otomatis dari akun ber-role `kepala_sekolah`; jabatan lain dapat diisi dari daftar guru atau nama pegawai non-guru.
 - Menyimpan susunan pada pengaturan sekolah, mendukung jabatan tambahan, penugasan rangkap, dan membatasi jabatan Wakil Kepala Sekolah maksimal tiga. Penetapan jabatan tidak mengubah role akun.
+
+- Perbaikan bagan struktur organisasi: pastikan pembaruan komponen frontend ikut terdeteksi dan dibangun pada deployment agar tampilan hierarki terbaru tersaji.
