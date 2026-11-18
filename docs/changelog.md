@@ -323,3 +323,6 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Mode edit bagan: klik satu kartu untuk membuka formulir kartu itu saja; tekan dan tahan 0,4 detik lalu geser untuk memindahkan kartu. Tersedia pengaturan lebar kartu seragam dan node Peserta Didik di bagian akhir bagan.
 - Bagan organisasi: tersedia preview cetak A3 landscape dan alur simpan PDF melalui dialog cetak browser dengan garis SVG tetap vektor.
 - Bagan organisasi: proxy API mendukung PUT untuk penyimpanan; pengaturan ukuran kartu lebar/tinggi dan jarak baris; posisi kartu snap ke grid serta otomatis sejajar pada baris/kolom terdekat.
+
+## 2026-11-18
+- Bagan Struktur Organisasi: kanvas menyesuaikan lebar area layar dengan skala dasar responsif, tetap mendukung zoom dan pan, serta menyimpan posisi kartu Peserta Didik agar dapat dipindahkan dan garis penghubung mengikuti posisinya. Pengelolaan bagan dibatasi pada desktop/tablet; mobile tetap untuk melihat bagan.
