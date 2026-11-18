@@ -30,6 +30,8 @@ export function SchoolOrganization() {
   const dragRef = useRef<{ id: string | null; pointerId: number; startX: number; startY: number; originX: number; originY: number; panX: number; panY: number } | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [cardWidth, setCardWidth] = useState(220);
+  const [cardHeight, setCardHeight] = useState(112);
+  const [rowGap, setRowGap] = useState(300);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pressRef = useRef<{ id: string; pointerId: number; startX: number; startY: number; originX: number; originY: number; dragging: boolean } | null>(null);
   const [zoom, setZoom] = useState(0.85);
@@ -105,18 +107,27 @@ export function SchoolOrganization() {
         const index = rows.get(depth) ?? 0;
         const rowStart = (canvasWidth - ((depthCounts.get(depth) ?? 1) * 260 - 40)) / 2;
         const x = Number.isFinite(item.x) ? Number(item.x) : rowStart + index * 260;
-        const y = Number.isFinite(item.y) ? Number(item.y) : 70 + depth * (editing ? 390 : 190);
+        const y = Number.isFinite(item.y) ? Number(item.y) : 70 + depth * (editing ? rowGap : 190);
         rows.set(depth, index + 1); result.set(item.id, { x, y }); place(item.id, depth + 1);
       });
     };
     place(null, 0);
     return result;
-  }, [positions, editing]);
+  }, [positions, editing, rowGap]);
 
-  const cardHeight = editing ? 340 : 112;
+  const expandedCardHeight = Math.max(cardHeight, 310);
 
   function movePosition(id: string, x: number, y: number) {
-    setPositions((items) => items.map((item) => item.id === id ? { ...item, x: Math.max(0, x), y: Math.max(0, y) } : item));
+    setPositions((items) => {
+      const others = items.filter((item) => item.id !== id).map((item) => nodePositions.get(item.id)).filter((point): point is { x: number; y: number } => Boolean(point));
+      let snappedX = Math.round(Math.max(0, x) / 20) * 20;
+      let snappedY = Math.round(Math.max(0, y) / 20) * 20;
+      const alignX = others.find((point) => Math.abs(point.x - x) <= 14);
+      const alignY = others.find((point) => Math.abs(point.y - y) <= 14);
+      if (alignX) snappedX = alignX.x;
+      if (alignY) snappedY = alignY.y;
+      return items.map((item) => item.id === id ? { ...item, x: snappedX, y: snappedY } : item);
+    });
   }
 
   function onCanvasPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
@@ -179,7 +190,7 @@ export function SchoolOrganization() {
     const nip = teacher?.nip ?? item.nip;
     const photoUrl = teacher?.photoUrl ?? item.photoUrl;
     const point = nodePositions.get(item.id) ?? { x: 80, y: 80 };
-    return <article key={item.id} data-org-card="true" onPointerDown={(event) => beginCardPress(event, item)} style={{ position: 'absolute', left: 950 + (point.x - 950) * (cardWidth / 220), top: point.y, width: cardWidth, minHeight: editing && selectedCardId === item.id ? cardHeight : 112, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className={`org-print-node z-10 overflow-visible rounded-xl border bg-card shadow-sm ${editing && selectedCardId === item.id ? 'ring-2 ring-blue-500 shadow-lg' : editing ? 'ring-1 ring-dashed ring-slate-300' : ''} ${item.id === 'principal' ? 'border-blue-400' : 'border-border'}`}>
+    return <article key={item.id} data-org-card="true" onPointerDown={(event) => beginCardPress(event, item)} style={{ position: 'absolute', left: 950 + (point.x - 950) * (cardWidth / 220), top: point.y, width: cardWidth, minHeight: editing && selectedCardId === item.id ? expandedCardHeight : cardHeight, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className={`org-print-node z-10 overflow-visible rounded-xl border bg-card shadow-sm ${editing && selectedCardId === item.id ? 'ring-2 ring-blue-500 shadow-lg' : editing ? 'ring-1 ring-dashed ring-slate-300' : ''} ${item.id === 'principal' ? 'border-blue-400' : 'border-border'}`}>
       <div className={`h-1 w-full rounded-t-xl ${item.id === 'principal' ? 'bg-blue-600' : item.category === 'Wakil Kepala Sekolah' ? 'bg-emerald-500' : 'bg-sky-500'}`} />
       <div className="flex items-center gap-2 p-2.5">
         <div className="relative size-11 shrink-0 overflow-hidden rounded-lg border bg-muted">
@@ -262,13 +273,13 @@ export function SchoolOrganization() {
       <div className="overflow-hidden rounded-2xl border bg-muted/20">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-card px-3 py-2">
           <p className="flex items-center gap-2 text-xs text-muted-foreground"><Move size={14}/>{editing ? 'Klik kartu untuk mengisi data · tekan dan tahan 0,4 detik untuk drag · geser area kosong untuk pan.' : 'Geser kanvas dan gunakan zoom untuk melihat bagan.'}</p>
-          <div className="flex flex-wrap items-center gap-2">{editing && <label className="flex items-center gap-2 text-[11px] text-muted-foreground">Lebar kartu <input aria-label="Lebar kartu" type="range" min="160" max="280" step="10" value={cardWidth} onChange={(event) => setCardWidth(Number(event.target.value))} className="w-24"/><span className="w-8 tabular-nums">{cardWidth}</span></label>}<div className="flex items-center gap-1"><button type="button" onClick={() => setZoom((v) => Math.min(1.5, v + 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perbesar"><ZoomIn size={16}/></button><span className="min-w-12 text-center text-xs tabular-nums">{Math.round(zoom * 100)}%</span><button type="button" onClick={() => setZoom((v) => Math.max(0.35, v - 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perkecil"><ZoomOut size={16}/></button><button type="button" onClick={() => { setZoom(0.85); setPan({ x: 80, y: 40 }); }} className="rounded-lg border p-2 hover:bg-muted" title="Atur ulang tampilan"><Maximize2 size={16}/></button></div></div>
+          <div className="flex flex-wrap items-center gap-2">{editing && <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground"><label className="flex items-center gap-2">Lebar <input aria-label="Lebar kartu" type="range" min="160" max="280" step="10" value={cardWidth} onChange={(event) => setCardWidth(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{cardWidth}</span></label><label className="flex items-center gap-2">Tinggi <input aria-label="Tinggi kartu" type="range" min="90" max="180" step="10" value={cardHeight} onChange={(event) => setCardHeight(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{cardHeight}</span></label><label className="flex items-center gap-2">Jarak baris <input aria-label="Jarak vertikal antarbaris" type="range" min="180" max="380" step="10" value={rowGap} onChange={(event) => setRowGap(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{rowGap}</span></label></div>}<div className="flex items-center gap-1"><button type="button" onClick={() => setZoom((v) => Math.min(1.5, v + 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perbesar"><ZoomIn size={16}/></button><span className="min-w-12 text-center text-xs tabular-nums">{Math.round(zoom * 100)}%</span><button type="button" onClick={() => setZoom((v) => Math.max(0.35, v - 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perkecil"><ZoomOut size={16}/></button><button type="button" onClick={() => { setZoom(0.85); setPan({ x: 80, y: 40 }); }} className="rounded-lg border p-2 hover:bg-muted" title="Atur ulang tampilan"><Maximize2 size={16}/></button></div></div>
         </div>
         <div ref={canvasRef} className="org-print-canvas relative h-[680px] w-full overflow-hidden bg-background" onPointerDown={onCanvasPointerDown} onPointerMove={(event) => { moveCardPress(event); onCanvasPointerMove(event); }} onPointerUp={(event) => { endCardPress(event); if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null; }} onPointerCancel={() => { if (holdTimer.current) clearTimeout(holdTimer.current); pressRef.current = null; dragRef.current = null; }} onWheel={(event) => { if (event.ctrlKey || event.metaKey) { event.preventDefault(); setZoom((v) => Math.max(0.35, Math.min(1.5, v + (event.deltaY < 0 ? 0.05 : -0.05)))); } }} style={{ touchAction: 'none' }}>
           <div ref={printSourceRef} className="org-print-source" style={{ position: 'relative', width: canvasWidth, height: canvasHeight, transform: 'none' }}><div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, width: canvasWidth, height: canvasHeight }}>
             <div className={`absolute inset-0 ${editing ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: 'radial-gradient(#94a3b8 0.8px, transparent 0.8px)', backgroundSize: '20px 20px' }}/>
-            <svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible">{positions.filter((item) => item.parentId && nodePositions.has(item.parentId)).map((item) => { const child = nodePositions.get(item.id)!; const parent = nodePositions.get(item.parentId!)!; const x1 = 950 + (parent.x - 950) * (cardWidth / 220) + cardWidth / 2; const y1 = parent.y + (editing && selectedCardId === item.parentId ? cardHeight : 112); const x2 = 950 + (child.x - 950) * (cardWidth / 220) + cardWidth / 2; const y2 = child.y; const mid = y1 + (y2 - y1) / 2; return <path key={`${item.parentId}-${item.id}`} d={`M ${x1} ${y1} V ${mid} H ${x2} V ${y2}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth={editing ? 2 : 1.7} strokeDasharray={editing ? '6 5' : undefined}/>; })}</svg>
-            {positions.map(renderCanvasCard)}{(() => { const parent = positions.find((item) => item.id === 'vice-student') ?? positions.find((item) => item.id === 'principal'); const point = parent ? nodePositions.get(parent.id) : null; if (!point) return null; const px = 950 + (point.x - 950) * (cardWidth / 220) + cardWidth / 2; const py = point.y + 112; const studentY = Math.max(70 + 4 * (editing ? 390 : 190), py + 150); return <><svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible"><path d={`M ${px} ${py} V ${studentY - 28} H 950 V ${studentY}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth="2" strokeDasharray={editing ? '6 5' : undefined}/></svg><div style={{ position: 'absolute', left: 840, top: studentY, width: 220 }} className="z-10 rounded-xl border-2 border-amber-400 bg-card px-4 py-3 text-center shadow-sm"><Users size={22} className="mx-auto mb-1 text-amber-600"/><p className="text-xs font-bold">PESERTA DIDIK</p><p className="mt-0.5 text-[10px] text-muted-foreground">Seluruh peserta didik</p></div></>; })()}
+            <svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible">{positions.filter((item) => item.parentId && nodePositions.has(item.parentId)).map((item) => { const child = nodePositions.get(item.id)!; const parent = nodePositions.get(item.parentId!)!; const x1 = 950 + (parent.x - 950) * (cardWidth / 220) + cardWidth / 2; const y1 = parent.y + (editing && selectedCardId === item.parentId ? expandedCardHeight : cardHeight); const x2 = 950 + (child.x - 950) * (cardWidth / 220) + cardWidth / 2; const y2 = child.y; const mid = y1 + (y2 - y1) / 2; return <path key={`${item.parentId}-${item.id}`} d={`M ${x1} ${y1} V ${mid} H ${x2} V ${y2}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth={editing ? 2 : 1.7} strokeDasharray={editing ? '6 5' : undefined}/>; })}</svg>
+            {positions.map(renderCanvasCard)}{(() => { const parent = positions.find((item) => item.id === 'vice-student') ?? positions.find((item) => item.id === 'principal'); const point = parent ? nodePositions.get(parent.id) : null; if (!point) return null; const px = 950 + (point.x - 950) * (cardWidth / 220) + cardWidth / 2; const py = point.y + cardHeight; const studentY = Math.max(70 + 4 * (editing ? rowGap : 190), py + 150); return <><svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible"><path d={`M ${px} ${py} V ${studentY - 28} H 950 V ${studentY}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth="2" strokeDasharray={editing ? '6 5' : undefined}/></svg><div style={{ position: 'absolute', left: 840, top: studentY, width: 220 }} className="z-10 rounded-xl border-2 border-amber-400 bg-card px-4 py-3 text-center shadow-sm"><Users size={22} className="mx-auto mb-1 text-amber-600"/><p className="text-xs font-bold">PESERTA DIDIK</p><p className="mt-0.5 text-[10px] text-muted-foreground">Seluruh peserta didik</p></div></>; })()}
           </div></div>
         </div>
       </div>
