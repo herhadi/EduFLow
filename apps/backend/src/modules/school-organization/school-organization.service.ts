@@ -134,9 +134,10 @@ export class SchoolOrganizationService {
     if (!positions.some((item) => item.id === 'principal')) throw new BadRequestException('Jabatan Kepala Sekolah wajib tersedia.');
     const ids = new Set(positions.map((item) => item.id));
     if (positions.some((item) => item.id !== 'principal' && !item.parentId)) throw new BadRequestException('Setiap jabatan harus memiliki atasan langsung.');
-    if (positions.some((item) => item.parentId && (!ids.has(item.parentId) || item.parentId === item.id))) throw new BadRequestException('Atasan pada bagan tidak valid.');
+      if (positions.some((item) => item.parentId && item.id !== '__students__' && (!ids.has(item.parentId) || item.parentId === item.id))) throw new BadRequestException('Atasan pada bagan tidak valid.');
     const byId = new Map(positions.map((item) => [item.id, item]));
     for (const item of positions) {
+        if (item.id === '__students__' && item.parentId?.startsWith('homeroom:')) continue;
       const visited = new Set([item.id]);
       let parentId = item.parentId;
       while (parentId) {

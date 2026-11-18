@@ -338,3 +338,10 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - 2026-11-18: Konektor kelompok Wali Kelas kini berasal langsung dari Kepala Sekolah; tinggi kanvas dan area preview cetak dihitung dinamis berdasarkan posisi jabatan, jumlah baris Wali Kelas, serta kartu Peserta Didik.
 
 - 2026-11-18: Garis penghubung Wali Kelas dipindahkan ke atas kartu; cabang turun dari jalur horizontal menuju sisi atas setiap kartu.
+
+
+### Bagan Struktur Organisasi Sekolah
+- Preview cetak bagan menggunakan A4 portrait di dalam preview aplikasi yang sama dengan modul lain, tanpa membuka jendela baru.
+- Relasi Peserta Didik dapat diarahkan langsung ke kartu Wali Kelas tertentu dan disimpan sebagai pengaturan bagan.
+- Garis cabang Wali Kelas tampil putus-putus saat mode edit dan menyediakan titik tarik untuk mengatur kedua ujung konektor.
+- Tinggi area canvas mengikuti tinggi konten bagan agar bagian bawah tidak terpotong.
