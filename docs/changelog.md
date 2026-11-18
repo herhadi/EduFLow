@@ -320,3 +320,4 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Penyesuaian visual bagan mengikuti referensi poster organisasi sekolah: kartu ringkas maksimal 210 px, avatar 44 px, tipografi lebih kecil, dan jarak antarbagan dirapatkan.
 - Bagan struktur organisasi beralih ke canvas bebas: zoom in/out, geser area, grid titik saat edit, drag kartu, dan garis penghubung otomatis mengikuti posisi serta atasan. Koordinat kartu disimpan bersama struktur organisasi.
 - Posisi awal bagan canvas otomatis disusun per tingkat hierarki, dengan Kepala Sekolah di tengah dan level bawahan pada baris berikutnya.
+- Mode edit bagan: klik satu kartu untuk membuka formulir kartu itu saja; tekan dan tahan 0,4 detik lalu geser untuk memindahkan kartu. Tersedia pengaturan lebar kartu seragam dan node Peserta Didik di bagian akhir bagan.

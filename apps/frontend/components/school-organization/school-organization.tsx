@@ -28,6 +28,10 @@ export function SchoolOrganization() {
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ id: string | null; pointerId: number; startX: number; startY: number; originX: number; originY: number; panX: number; panY: number } | null>(null);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [cardWidth, setCardWidth] = useState(220);
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pressRef = useRef<{ id: string; pointerId: number; startX: number; startY: number; originX: number; originY: number; dragging: boolean } | null>(null);
   const [zoom, setZoom] = useState(0.85);
   const [pan, setPan] = useState({ x: 80, y: 40 });
 
@@ -59,7 +63,8 @@ export function SchoolOrganization() {
 
   function addPosition() {
     const id = `custom-${Date.now()}`;
-    setPositions((items) => [...items, { id, title: '', personName: '', teacherId: null, parentId: 'principal', category: 'Jabatan Lainnya', sortOrder: items.length, x: 760, y: 520 }]);
+    setPositions((items) => [...items, { id, title: '', personName: '', teacherId: null, parentId: 'principal', category: 'Jabatan Lainnya', sortOrder: items.length }]);
+    setSelectedCardId(id);
   }
 
   async function changePhoto(position: Position, file?: File) {
@@ -78,28 +83,36 @@ export function SchoolOrganization() {
     finally { setUploadingId(null); }
   }
 
+  const canvasWidth = 1900;
+  const canvasHeight = 2200;
+
   const nodePositions = useMemo(() => {
     const result = new Map<string, { x: number; y: number }>();
     const children = new Map<string | null, Position[]>();
     positions.forEach((item) => children.set(item.parentId ?? null, [...(children.get(item.parentId ?? null) ?? []), item]));
+    const depthCounts = new Map<number, number>();
+    const countDepth = (parentId: string | null, depth: number) => {
+      const items = children.get(parentId) ?? [];
+      depthCounts.set(depth, (depthCounts.get(depth) ?? 0) + items.length);
+      items.forEach((item) => countDepth(item.id, depth + 1));
+    };
+    countDepth(null, 0);
     const rows = new Map<number, number>();
     const place = (parentId: string | null, depth: number) => {
       const items = children.get(parentId) ?? [];
       items.forEach((item) => {
         const index = rows.get(depth) ?? 0;
-        const x = Number.isFinite(item.x) ? Number(item.x) : depth === 0 ? 520 : 100 + index * 260;
+        const rowStart = (canvasWidth - ((depthCounts.get(depth) ?? 1) * 260 - 40)) / 2;
+        const x = Number.isFinite(item.x) ? Number(item.x) : rowStart + index * 260;
         const y = Number.isFinite(item.y) ? Number(item.y) : 70 + depth * (editing ? 390 : 190);
         rows.set(depth, index + 1); result.set(item.id, { x, y }); place(item.id, depth + 1);
       });
     };
     place(null, 0);
     return result;
-  }, [positions]);
+  }, [positions, editing]);
 
-  const canvasWidth = 1900;
-  const canvasHeight = 1300;
-  const cardWidth = 220;
-  const cardHeight = editing ? 350 : 112;
+  const cardHeight = editing ? 340 : 112;
 
   function movePosition(id: string, x: number, y: number) {
     setPositions((items) => items.map((item) => item.id === id ? { ...item, x: Math.max(0, x), y: Math.max(0, y) } : item));
@@ -121,13 +134,43 @@ export function SchoolOrganization() {
     } else setPan({ x: drag.panX + event.clientX - drag.startX, y: drag.panY + event.clientY - drag.startY });
   }
 
-  function beginCardDrag(event: ReactPointerEvent<HTMLElement>, item: Position) {
+  function beginCardPress(event: ReactPointerEvent<HTMLElement>, item: Position) {
     if (!editing || (event.target as HTMLElement).closest('button,input,select')) return;
     event.stopPropagation();
     const point = nodePositions.get(item.id) ?? { x: 80, y: 80 };
-    dragRef.current = { id: item.id, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: point.x, originY: point.y, panX: pan.x, panY: pan.y };
-    canvasRef.current?.setPointerCapture(event.pointerId);
+    pressRef.current = { id: item.id, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: point.x, originY: point.y, dragging: false };
+    if (holdTimer.current) clearTimeout(holdTimer.current);
+    holdTimer.current = setTimeout(() => {
+      const press = pressRef.current;
+      if (!press || press.pointerId !== event.pointerId) return;
+      press.dragging = true;
+      setSelectedCardId(null);
+      canvasRef.current?.setPointerCapture(press.pointerId);
+    }, 420);
   }
+
+  function moveCardPress(event: ReactPointerEvent<HTMLDivElement>) {
+    const press = pressRef.current;
+    if (!press || press.pointerId !== event.pointerId) return;
+    const dx = event.clientX - press.startX;
+    const dy = event.clientY - press.startY;
+    if (!press.dragging && Math.hypot(dx, dy) > 8) {
+      if (holdTimer.current) clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+      return;
+    }
+    if (press.dragging) movePosition(press.id, press.originX + dx / zoom, press.originY + dy / zoom);
+  }
+
+  function endCardPress(event: ReactPointerEvent<HTMLDivElement>) {
+    const press = pressRef.current;
+    if (!press || press.pointerId !== event.pointerId) return;
+    if (holdTimer.current) clearTimeout(holdTimer.current);
+    holdTimer.current = null;
+    if (!press.dragging) setSelectedCardId(press.id);
+    pressRef.current = null;
+  }
+
 
   const renderCanvasCard = (item: Position) => {
     const teacher = teachers.find((person) => person.id === item.teacherId);
@@ -135,7 +178,7 @@ export function SchoolOrganization() {
     const nip = teacher?.nip ?? item.nip;
     const photoUrl = teacher?.photoUrl ?? item.photoUrl;
     const point = nodePositions.get(item.id) ?? { x: 80, y: 80 };
-    return <article key={item.id} data-org-card="true" onPointerDown={(event) => beginCardDrag(event, item)} style={{ position: 'absolute', left: point.x, top: point.y, width: cardWidth, minHeight: cardHeight, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className={`z-10 overflow-visible rounded-xl border bg-card shadow-sm ${editing ? 'ring-1 ring-blue-300' : ''} ${item.id === 'principal' ? 'border-blue-400' : 'border-border'}`}>
+    return <article key={item.id} data-org-card="true" onPointerDown={(event) => beginCardPress(event, item)} style={{ position: 'absolute', left: 950 + (point.x - 950) * (cardWidth / 220), top: point.y, width: cardWidth, minHeight: editing && selectedCardId === item.id ? cardHeight : 112, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className={`z-10 overflow-visible rounded-xl border bg-card shadow-sm ${editing && selectedCardId === item.id ? 'ring-2 ring-blue-500 shadow-lg' : editing ? 'ring-1 ring-dashed ring-slate-300' : ''} ${item.id === 'principal' ? 'border-blue-400' : 'border-border'}`}>
       <div className={`h-1 w-full rounded-t-xl ${item.id === 'principal' ? 'bg-blue-600' : item.category === 'Wakil Kepala Sekolah' ? 'bg-emerald-500' : 'bg-sky-500'}`} />
       <div className="flex items-center gap-2 p-2.5">
         <div className="relative size-11 shrink-0 overflow-hidden rounded-lg border bg-muted">
@@ -145,7 +188,7 @@ export function SchoolOrganization() {
         <div className="min-w-0 flex-1 text-left"><p className="text-[9px] font-bold uppercase leading-tight tracking-wide text-primary">{item.title || 'Jabatan belum diisi'}</p><p className="mt-1 break-words text-[11px] font-bold leading-tight text-foreground">{name}</p><p className="mt-1 text-[9px] text-muted-foreground">NIP: {nip || '—'}</p></div>
       </div>
       {editing && canManage && item.teacherId && <input ref={(node) => { fileInputRefs.current[item.id] = node; }} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => { void changePhoto(item, event.target.files?.[0]); event.currentTarget.value = ''; }} />}
-      {editing && canManage && <div className="space-y-2 border-t bg-muted/20 p-2 text-left">
+      {editing && canManage && selectedCardId === item.id && <div className="space-y-2 border-t bg-muted/20 p-2 text-left">
         <label className="block space-y-1 text-[10px] font-semibold"><span>Nama Jabatan</span><input value={item.title} disabled={item.locked} onChange={(event) => update(item.id, { title: event.target.value })} className="w-full rounded-md border bg-background px-2 py-1.5 text-xs font-normal" /></label>
         <label className="block space-y-1 text-[10px] font-semibold"><span>Kelompok Jabatan</span><select value={item.category} disabled={item.locked} onChange={(event) => update(item.id, { category: event.target.value })} className="w-full rounded-md border bg-background px-2 py-1.5 text-xs font-normal">{categoryOptions.map((category) => <option key={category}>{category}</option>)}</select></label>
         <label className="block space-y-1 text-[10px] font-semibold"><span>Guru/Pegawai</span><select value={item.teacherId ?? ''} disabled={item.locked} onChange={(event) => { const selected = teachers.find((person) => person.id === event.target.value); update(item.id, { teacherId: selected?.id ?? null, personName: selected?.name ?? '', nip: selected?.nip ?? null, photoUrl: selected?.photoUrl ?? null }); }} className="w-full rounded-md border bg-background px-2 py-1.5 text-xs font-normal"><option value="">Belum ditentukan / manual</option>{teachers.map((person) => <option key={person.id} value={person.id}>{person.name}{person.nip ? ` · ${person.nip}` : ''}</option>)}</select></label>
@@ -162,23 +205,23 @@ export function SchoolOrganization() {
     <section className="space-y-5">
       <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4 shadow-sm">
         <div className="flex items-center gap-3"><div className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary"><Users size={22}/></div><div><h2 className="font-bold">Bagan Struktur Organisasi Sekolah</h2><p className="mt-0.5 text-xs text-muted-foreground">Canvas organisasi: zoom, geser, dan atur posisi kartu secara bebas</p></div></div>
-        {canManage && !editing && <button type="button" onClick={() => { setEditing(true); setNotice(''); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"><Users size={17}/> Kelola Struktur <ChevronDown size={16}/></button>}
+        {canManage && !editing && <button type="button" onClick={() => { setEditing(true); setSelectedCardId(null); setNotice(''); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"><Users size={17}/> Kelola Struktur <ChevronDown size={16}/></button>}
         {canManage && editing && <div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setEditing(false); void load(); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold hover:bg-muted"><X size={16}/> Batal</button><button type="button" disabled={saving} onClick={() => void save()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"><Save size={17}/>{saving ? 'Menyimpan...' : 'Simpan Perubahan'} <Check size={16}/></button></div>}
       </header>
-      {editing && <div className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-200"><ImagePlus size={18} className="mt-0.5 shrink-0"/><p><b>Mode pengelolaan aktif.</b> Seret kartu pada grid untuk mengatur posisi; garis mengikuti hubungan atasan. Ubah jabatan, tentukan guru/pegawai, atau klik <b>Ganti foto</b> pada kartu. Foto yang diunggah juga memperbarui foto profil akun guru terkait.</p></div>}
+      {editing && <div className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-200"><ImagePlus size={18} className="mt-0.5 shrink-0"/><p><b>Mode pengelolaan aktif.</b> Klik kartu untuk membuka isian jabatan tersebut. Tekan dan tahan sekitar setengah detik lalu geser untuk memindahkan kartu. Ubah jabatan, tentukan guru/pegawai, atau klik <b>Ganti foto</b> pada kartu. Foto yang diunggah juga memperbarui foto profil akun guru terkait.</p></div>}
       {error && <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</div>}
       {notice && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200">{notice}</div>}
       {editing && <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3"><div><p className="text-sm font-bold">Tambah posisi organisasi</p><p className="text-xs text-muted-foreground">Posisi baru otomatis ditempatkan di bawah Kepala Sekolah. Atasan dapat diubah pada kartu.</p></div><button type="button" onClick={addPosition} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-dashed border-blue-400 bg-blue-50 px-4 text-sm font-bold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-200"><Plus size={17}/> Tambah Jabatan</button></div>}
       <div className="overflow-hidden rounded-2xl border bg-muted/20">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-card px-3 py-2">
-          <p className="flex items-center gap-2 text-xs text-muted-foreground"><Move size={14}/>{editing ? 'Seret kartu untuk mengatur posisi. Geser area kosong untuk menggerakkan kanvas.' : 'Geser kanvas dan gunakan zoom untuk melihat bagan.'}</p>
-          <div className="flex items-center gap-1"><button type="button" onClick={() => setZoom((v) => Math.min(1.5, v + 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perbesar"><ZoomIn size={16}/></button><span className="min-w-12 text-center text-xs tabular-nums">{Math.round(zoom * 100)}%</span><button type="button" onClick={() => setZoom((v) => Math.max(0.35, v - 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perkecil"><ZoomOut size={16}/></button><button type="button" onClick={() => { setZoom(0.85); setPan({ x: 80, y: 40 }); }} className="rounded-lg border p-2 hover:bg-muted" title="Atur ulang tampilan"><Maximize2 size={16}/></button></div>
+          <p className="flex items-center gap-2 text-xs text-muted-foreground"><Move size={14}/>{editing ? 'Klik kartu untuk mengisi data · tekan dan tahan 0,4 detik untuk drag · geser area kosong untuk pan.' : 'Geser kanvas dan gunakan zoom untuk melihat bagan.'}</p>
+          <div className="flex flex-wrap items-center gap-2">{editing && <label className="flex items-center gap-2 text-[11px] text-muted-foreground">Lebar kartu <input aria-label="Lebar kartu" type="range" min="160" max="280" step="10" value={cardWidth} onChange={(event) => setCardWidth(Number(event.target.value))} className="w-24"/><span className="w-8 tabular-nums">{cardWidth}</span></label>}<div className="flex items-center gap-1"><button type="button" onClick={() => setZoom((v) => Math.min(1.5, v + 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perbesar"><ZoomIn size={16}/></button><span className="min-w-12 text-center text-xs tabular-nums">{Math.round(zoom * 100)}%</span><button type="button" onClick={() => setZoom((v) => Math.max(0.35, v - 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perkecil"><ZoomOut size={16}/></button><button type="button" onClick={() => { setZoom(0.85); setPan({ x: 80, y: 40 }); }} className="rounded-lg border p-2 hover:bg-muted" title="Atur ulang tampilan"><Maximize2 size={16}/></button></div></div>
         </div>
-        <div ref={canvasRef} className="relative h-[680px] w-full overflow-hidden bg-background" onPointerDown={onCanvasPointerDown} onPointerMove={onCanvasPointerMove} onPointerUp={(event) => { if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null; }} onPointerCancel={() => { dragRef.current = null; }} onWheel={(event) => { if (event.ctrlKey || event.metaKey) { event.preventDefault(); setZoom((v) => Math.max(0.35, Math.min(1.5, v + (event.deltaY < 0 ? 0.05 : -0.05)))); } }} style={{ touchAction: 'none' }}>
+        <div ref={canvasRef} className="relative h-[680px] w-full overflow-hidden bg-background" onPointerDown={onCanvasPointerDown} onPointerMove={(event) => { moveCardPress(event); onCanvasPointerMove(event); }} onPointerUp={(event) => { endCardPress(event); if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null; }} onPointerCancel={() => { if (holdTimer.current) clearTimeout(holdTimer.current); pressRef.current = null; dragRef.current = null; }} onWheel={(event) => { if (event.ctrlKey || event.metaKey) { event.preventDefault(); setZoom((v) => Math.max(0.35, Math.min(1.5, v + (event.deltaY < 0 ? 0.05 : -0.05)))); } }} style={{ touchAction: 'none' }}>
           <div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, width: canvasWidth, height: canvasHeight }}>
             <div className={`absolute inset-0 ${editing ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: 'radial-gradient(#94a3b8 0.8px, transparent 0.8px)', backgroundSize: '20px 20px' }}/>
-            <svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible">{positions.filter((item) => item.parentId && nodePositions.has(item.parentId)).map((item) => { const child = nodePositions.get(item.id)!; const parent = nodePositions.get(item.parentId!)!; const x1 = parent.x + cardWidth / 2; const y1 = parent.y + cardHeight; const x2 = child.x + cardWidth / 2; const y2 = child.y; const mid = y1 + (y2 - y1) / 2; return <path key={`${item.parentId}-${item.id}`} d={`M ${x1} ${y1} V ${mid} H ${x2} V ${y2}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth={editing ? 2 : 1.7} strokeDasharray={editing ? '6 5' : undefined}/>; })}</svg>
-            {positions.map(renderCanvasCard)}
+            <svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible">{positions.filter((item) => item.parentId && nodePositions.has(item.parentId)).map((item) => { const child = nodePositions.get(item.id)!; const parent = nodePositions.get(item.parentId!)!; const x1 = 950 + (parent.x - 950) * (cardWidth / 220) + cardWidth / 2; const y1 = parent.y + (editing && selectedCardId === parent.id ? cardHeight : 112); const x2 = 950 + (child.x - 950) * (cardWidth / 220) + cardWidth / 2; const y2 = child.y; const mid = y1 + (y2 - y1) / 2; return <path key={`${item.parentId}-${item.id}`} d={`M ${x1} ${y1} V ${mid} H ${x2} V ${y2}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth={editing ? 2 : 1.7} strokeDasharray={editing ? '6 5' : undefined}/>; })}</svg>
+            {positions.map(renderCanvasCard)}{(() => { const parent = positions.find((item) => item.id === 'vice-student') ?? positions.find((item) => item.id === 'principal'); const point = parent ? nodePositions.get(parent.id) : null; if (!point) return null; const px = 950 + (point.x - 950) * (cardWidth / 220) + cardWidth / 2; const py = point.y + (editing && selectedCardId === parent.id ? cardHeight : 112); const studentY = Math.max(70 + 4 * (editing ? 390 : 190), py + 150); return <><svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible"><path d={`M ${px} ${py} V ${studentY - 28} H 950 V ${studentY}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth="2" strokeDasharray={editing ? '6 5' : undefined}/></svg><div style={{ position: 'absolute', left: 840, top: studentY, width: 220 }} className="z-10 rounded-xl border-2 border-amber-400 bg-card px-4 py-3 text-center shadow-sm"><Users size={22} className="mx-auto mb-1 text-amber-600"/><p className="text-xs font-bold">PESERTA DIDIK</p><p className="mt-0.5 text-[10px] text-muted-foreground">Seluruh peserta didik</p></div></>; })()}
           </div>
         </div>
       </div>
