@@ -1,6 +1,7 @@
 'use client';
 
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { Pencil } from 'lucide-react';
 import { api, type AppUser } from '../../lib/api';
 import { getRoleDisplayLabels } from '../dashboards/dashboard-types';
 import { PrintPreview, type PrintPaperSize } from '../print/print-preview';
@@ -249,20 +250,20 @@ export function ActiveAccountDirectory({
                 <th className="px-3 py-3 text-left">Login terakhir</th>
                 <th className="px-3 py-3 text-left">Status</th>
                 <th className="px-3 py-3 text-left">Dibuat</th>
-                {canManage ? <th className="px-3 py-3 text-center">Aksi</th> : null}
+                {canManage ? <th className="sticky right-0 z-10 bg-slate-50 px-3 py-3 text-center shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.5)] dark:bg-[var(--surface-soft)]">Aksi</th> : null}
               </tr>
             </thead>
             <tbody>
               {visibleAccounts.map((account, index) => {
                 const status = getAccountStatus(account);
                 return (
-                  <tr className="border-t border-slate-100 text-slate-700 dark:border-[var(--border)] dark:text-[var(--text)]" key={account.id}>
-                    <td className="px-2 py-2 text-center text-xs text-muted">{(page - 1) * DEFAULT_PAGE_SIZE + index + 1}</td>
-                    <td className="px-2 py-2 font-semibold">{account.name}</td>
-                    <td className="px-2 py-2">{account.username || '—'}</td>
-                    <td className="px-2 py-2">{account.email}</td>
-                    <td className="px-3 py-2">
-                      <div className="flex flex-wrap gap-1">
+                  <tr className="border-t border-slate-100 text-slate-700 dark:border-[var(--border)] dark:text-[var(--text)] [&>td]:py-3 dark:[&>td]:border-slate-800" key={account.id}>
+                    <td className="px-3 py-3 text-center text-xs text-muted">{(page - 1) * DEFAULT_PAGE_SIZE + index + 1}</td>
+                    <td className="px-3 py-3 font-semibold">{account.name}</td>
+                    <td className="px-3 py-3">{account.username || '—'}</td>
+                    <td className="px-3 py-3">{account.email}</td>
+                    <td className="px-3 py-3">
+                      <div className="flex flex-wrap gap-1.5">
                         {account.roles.length ? account.roles.map((roleName) => (
                           <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-800 dark:bg-brand-500/10 dark:text-brand-200" key={roleName}>
                             {roleCards.find((role) => role.role === roleName)?.label ?? getRoleLabels([roleName])}
@@ -270,12 +271,15 @@ export function ActiveAccountDirectory({
                         )) : <span className="text-xs text-muted">Belum ada role</span>}
                       </div>
                     </td>
-                    <td className="px-2 py-2">{formatDateTime(account.lastLoginAt)}</td>
-                    <td className="px-2 py-2"><span className={status === 'Terkunci' ? 'rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800' : 'rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-800'}>{status}</span></td>
-                    <td className="px-2 py-2">{formatDate(account.createdAt)}</td>
-                    {canManage && !account.roles.includes('orang_tua') ? (
-                      <td className="px-2 py-1.5 text-center">
-                        <Button onClick={() => { setSelectedAccount(account); setSelectedRoles(account.roles); setRoleToAdd(''); }} size="sm" variant="outline">Kelola</Button>
+                    <td className="px-3 py-3">{formatDateTime(account.lastLoginAt)}</td>
+                    <td className="px-3 py-3"><span className={status === 'Terkunci' ? 'rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800' : 'rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-800'}>{status}</span></td>
+                    <td className="px-3 py-3">{formatDate(account.createdAt)}</td>
+                    {canManage ? (
+                      <td className="sticky right-0 z-[1] bg-white px-2 py-2 text-center shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.5)] dark:bg-[var(--surface-solid)]">
+                        <Button aria-label={`Edit akun ${account.name}`} className="gap-1.5 whitespace-nowrap" onClick={() => { setSelectedAccount(account); setSelectedRoles(account.roles); setRoleToAdd(''); }} size="sm" variant="info">
+                          <Pencil aria-hidden="true" size={14} strokeWidth={2.5} />
+                          <span>Kelola</span>
+                        </Button>
                       </td>
                     ) : null}
                   </tr>
@@ -298,16 +302,20 @@ export function ActiveAccountDirectory({
 
       {canManage && selectedAccount ? (
         <Dialog
-          className="max-w-xl"
-          description={`${selectedAccount.name} · ${selectedAccount.username ?? selectedAccount.email}`}
+          className="max-w-lg"
+          description="Perbarui role atau lakukan tindakan pada akun ini."
           onClose={() => setSelectedAccount(null)}
           open
           title="Kelola Akun"
         >
-          <div className="grid gap-3">
-            <div>
-              <p className="mb-1 text-xs font-bold text-muted">Role saat ini</p>
-              <div className="flex flex-wrap gap-2">
+          <div className="grid gap-4">
+            <div className="rounded-xl bg-slate-50 p-3 dark:bg-[var(--surface-soft)]">
+              <p className="text-sm font-bold text-ink">{selectedAccount.name}</p>
+              <p className="mt-0.5 break-all text-xs text-muted">@{selectedAccount.username || selectedAccount.email}</p>
+            </div>
+            <div className="grid gap-2">
+              <p className="text-xs font-bold text-muted">Role akun</p>
+              <div className="flex min-h-10 flex-wrap content-start gap-2 rounded-xl border border-slate-200 p-3 dark:border-[var(--border)]">
                 {selectedRoles.map((roleName) => {
                   const role = roleCards.find((item) => item.role === roleName);
                   return (
@@ -319,18 +327,18 @@ export function ActiveAccountDirectory({
                 })}
               </div>
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <select className={fieldClass} onChange={(event) => setRoleToAdd(event.target.value)} value={roleToAdd}>
-                <option value="">Tambah role...</option>
+            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+              <select className={`${fieldClass} min-w-0`} onChange={(event) => setRoleToAdd(event.target.value)} value={roleToAdd}>
+                <option value="">Pilih role untuk ditambahkan...</option>
                 {availableRoles.map((role) => <option key={role.role} value={role.role}>{role.label}</option>)}
               </select>
-              <Button disabled={!roleToAdd} onClick={() => { setSelectedRoles((current) => [...current, roleToAdd]); setRoleToAdd(''); }} size="sm" variant="outline">Tambah</Button>
+              <Button className="w-full sm:w-auto" disabled={!roleToAdd} onClick={() => { setSelectedRoles((current) => [...current, roleToAdd]); setRoleToAdd(''); }} size="sm" variant="outline">+ Tambah Role</Button>
             </div>
-            <Button disabled={!selectedRoles.length || (selectedRoles.length === selectedAccount.roles.length && selectedRoles.every((role) => selectedAccount.roles.includes(role)))} onClick={async () => { await onUpdateUserRoles?.(selectedAccount, selectedRoles); await refreshAccounts(); setSelectedAccount(null); }} size="sm">Simpan Role</Button>
-            <div className="grid gap-2 border-t border-slate-200 pt-3 dark:border-[var(--border)] sm:grid-cols-3">
-              <Button onClick={async () => { await onResetUserPassword?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="sm" variant="info">Reset Password</Button>
-              <Button onClick={async () => { await onDeactivateUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="sm" variant="outline">Nonaktifkan</Button>
-              <Button onClick={async () => { await onDeleteUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="sm" variant="danger">Hapus Permanen</Button>
+            <Button className="w-full" disabled={!selectedRoles.length || (selectedRoles.length === selectedAccount.roles.length && selectedRoles.every((role) => selectedAccount.roles.includes(role)))} onClick={async () => { await onUpdateUserRoles?.(selectedAccount, selectedRoles); await refreshAccounts(); setSelectedAccount(null); }} size="md">Simpan Perubahan Role</Button>
+            <div className="grid grid-cols-1 gap-2 border-t border-slate-200 pt-3 dark:border-[var(--border)] sm:grid-cols-2">
+              <Button className="w-full" onClick={async () => { await onResetUserPassword?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="sm" variant="info">Reset Password</Button>
+              <Button className="w-full" onClick={async () => { await onDeactivateUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="sm" variant="outline">Nonaktifkan</Button>
+              <Button className="w-full sm:col-span-2" onClick={async () => { await onDeleteUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="sm" variant="danger">Hapus Permanen</Button>
             </div>
           </div>
         </Dialog>

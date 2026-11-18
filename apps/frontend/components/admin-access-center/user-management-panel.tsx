@@ -66,7 +66,7 @@ export function UserManagementPanel({
         open={showCreateDialog}
         title="Tambah Akun"
       >
-        <form className="grid gap-3" onSubmit={submitCreateUser}>
+        <form className="grid gap-4" onSubmit={submitCreateUser}>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="grid gap-1 text-xs font-semibold text-muted">Nama lengkap
               <input autoFocus className={fieldClass} onChange={(event) => onNewUserChange('name', event.target.value)} placeholder="Nama lengkap" type="text" value={newUser.name} />
@@ -83,9 +83,9 @@ export function UserManagementPanel({
               {creationRoles.map((role) => <option key={role.role} value={role.role}>{role.label}</option>)}
             </select>
           </label>
-          <div className="flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-[var(--border)]">
-            <Button onClick={() => setShowCreateDialog(false)} size="sm" variant="outline">Batal</Button>
-            <Button disabled={userActionState === 'loading' || !newUser.username.trim() || !newUser.name.trim()} size="sm" type="submit">
+          <div className="grid grid-cols-1 gap-2 border-t border-slate-100 pt-3 dark:border-[var(--border)] sm:flex sm:justify-end">
+            <Button className="w-full sm:w-auto" onClick={() => setShowCreateDialog(false)} size="md" variant="outline">Batal</Button>
+            <Button className="w-full sm:w-auto" disabled={userActionState === 'loading' || !newUser.username.trim() || !newUser.name.trim()} size="md" type="submit">
               {userActionState === 'loading' ? 'Menyimpan...' : 'Simpan Akun'}
             </Button>
           </div>

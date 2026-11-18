@@ -1,6 +1,6 @@
 ## 2026-11-18
 
-- Menyatukan daftar dan pengelolaan akun Super Administrator dalam satu tabel agar tidak ada dua daftar pengguna yang berulang. Tambah akun dan kelola role/reset password/nonaktifkan/hapus dibuka melalui modal; ringkasan, filter, dan kontrol tabel dibuat lebih ringkas. Operator Sekolah tetap mendapat tampilan baca/cetak sesuai kewenangannya.
+- Menyatukan daftar dan pengelolaan akun Super Administrator dalam satu tabel agar tidak ada dua daftar pengguna yang berulang. Merenggangkan tinggi baris, membuat tombol Kelola berikon dan tetap terlihat saat tabel digulir horizontal, serta menata ulang modal agar nyaman di layar ponsel dan desktop. Tambah akun dan kelola role/reset password/nonaktifkan/hapus dibuka melalui modal; ringkasan, filter, dan kontrol tabel dibuat lebih ringkas. Operator Sekolah tetap mendapat tampilan baca/cetak sesuai kewenangannya.
 - Daftar akun memuat username, email, role, login terakhir, status, dan tanggal dibuat; tersedia pencarian/filter, preview cetak F4/A4, serta unduh Excel. Endpoint baca-saja untuk Operator Sekolah tetap dibatasi sesuai role.
 
 ## 2026-11-17
