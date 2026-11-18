@@ -334,3 +334,5 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - 2026-11-18: Penyempurnaan bagan organisasi: ujung konektor otomatis snap ke titik tengah sisi kartu terdekat agar garis mudah dirapikan dan dibuat lurus; kartu jabatan memakai palet warna berbeda per kelompok; bagan menampilkan kartu Wali Kelas untuk setiap rombel pada tahun ajaran yang sedang berlaku, lengkap dengan nama guru, foto, dan NIP bila tersedia. Kartu wali kelas ditata otomatis dalam beberapa baris dan dihubungkan ke Peserta Didik.
 
 - 2026-11-18: Tata letak Wali Kelas dipindahkan ke bawah seluruh koordinator dan tepat di atas Peserta Didik dengan susunan portrait empat kolom yang bertambah tinggi mengikuti jumlah rombel; ukuran foto seluruh kartu diseragamkan dan isi kartu dipusatkan agar tetap rapi saat lebar kartu diubah.
+
+- 2026-11-18: Konektor kelompok Wali Kelas kini berasal langsung dari Kepala Sekolah; tinggi kanvas dan area preview cetak dihitung dinamis berdasarkan posisi jabatan, jumlah baris Wali Kelas, serta kartu Peserta Didik.
