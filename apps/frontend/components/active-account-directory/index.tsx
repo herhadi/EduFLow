@@ -6,10 +6,24 @@ import { getRoleDisplayLabels } from '../dashboards/dashboard-types';
 import { PrintPreview, type PrintPaperSize } from '../print/print-preview';
 import { formatSchoolDate, formatSchoolDateTime, getSchoolDateKey } from '../../lib/school-time';
 import { DEFAULT_PAGE_SIZE, Pagination } from '../ui/pagination';
+import { roleCards } from '../admin-access-center/admin-access-center-utils';
+import { Button } from '../ui/button';
+import { Dialog } from '../ui/dialog';
+import { fieldClass } from '../ui/form';
 
 type Audience = 'admin' | 'operator';
 type LoadState = 'loading' | 'success' | 'error';
 type AccountStatus = 'Aktif' | 'Terkunci';
+type DirectoryProps = {
+  audience: Audience;
+  canManage?: boolean;
+  canAssignRootRole?: boolean;
+  refreshKey?: number;
+  onUpdateUserRoles?: (user: AppUser, roles: string[]) => Promise<void>;
+  onResetUserPassword?: (user: AppUser) => Promise<void>;
+  onDeactivateUser?: (user: AppUser) => Promise<void>;
+  onDeleteUser?: (user: AppUser) => Promise<void>;
+};
 
 function formatDate(value?: string | null) {
   if (!value) return 'Belum pernah';
@@ -42,7 +56,10 @@ function getRoleLabels(roles: string[]) {
   return getRoleDisplayLabels(roles).join(', ') || 'Belum ada role';
 }
 
-export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
+export function ActiveAccountDirectory({
+  audience, canManage = false, canAssignRootRole = false, refreshKey = 0,
+  onUpdateUserRoles, onResetUserPassword, onDeactivateUser, onDeleteUser,
+}: DirectoryProps) {
   const [accounts, setAccounts] = useState<AppUser[]>([]);
   const [query, setQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -50,6 +67,9 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [showPreview, setShowPreview] = useState(false);
   const [page, setPage] = useState(1);
+  const [selectedAccount, setSelectedAccount] = useState<AppUser | null>(null);
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [roleToAdd, setRoleToAdd] = useState('');
 
   useEffect(() => {
     let ignore = false;
@@ -63,9 +83,9 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
         if (!ignore) setLoadState('error');
       });
     return () => { ignore = true; };
-  }, []);
+  }, [refreshKey]);
 
-  const availableRoles = useMemo(() => {
+  const availableRoleNames = useMemo(() => {
     const roles = [...new Set(accounts.flatMap((account) => account.roles))];
     return roles.sort((a, b) => getRoleLabels([a]).localeCompare(getRoleLabels([b]), 'id'));
   }, [accounts]);
@@ -87,6 +107,13 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
   }, [accounts, query, roleFilter, statusFilter]);
 
   const visibleAccounts = filteredAccounts.slice((page - 1) * DEFAULT_PAGE_SIZE, page * DEFAULT_PAGE_SIZE);
+  const assignableRoles = roleCards.filter((role) => canAssignRootRole || role.role !== 'root');
+  const availableRoles = assignableRoles.filter((role) => !selectedRoles.includes(role.role));
+
+  async function refreshAccounts() {
+    const response = await api.getActiveAccounts();
+    setAccounts(response.data);
+  }
 
   const buildPages = (paperSize: PrintPaperSize): ReactNode[] => {
     // Reserve physical space for page margins, heading, table header, and footer.
@@ -168,11 +195,11 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
   const roleLabel = audience === 'admin' ? 'Super Administrator' : 'Operator Sekolah';
 
   return (
-    <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] sm:p-5">
+    <section className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-black text-slate-900 dark:text-[var(--text)]">Daftar Akun Aktif</h2>
-          <p className="mt-1 text-xs text-muted">Seluruh akun yang belum dinonaktifkan · Hanya lihat dan cetak</p>
+          <p className="mt-1 text-xs text-muted">Akun pengguna, identitas, role, dan status akses</p>
         </div>
         <button
           className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40"
@@ -182,15 +209,9 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
         >Preview & Cetak</button>
       </div>
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 dark:border-brand-900 dark:bg-brand-950/30">
-          <p className="text-xs font-semibold text-muted">Total akun ditampilkan</p>
-          <p className="mt-1 text-2xl font-black text-brand-700 dark:text-brand-300">{filteredAccounts.length}</p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-[var(--border)] dark:bg-[var(--surface-soft)]">
-          <p className="text-xs font-semibold text-muted">Akun terkunci</p>
-          <p className="mt-1 text-2xl font-black text-slate-800 dark:text-[var(--text)]">{filteredAccounts.filter((account) => getAccountStatus(account) === 'Terkunci').length}</p>
-        </div>
+      <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-slate-50 px-3 py-2 text-xs dark:bg-[var(--surface-soft)]">
+        <span><strong className="text-ink">{filteredAccounts.length}</strong> akun ditampilkan</span>
+        <span className="text-muted"><strong className="text-ink">{accounts.filter((account) => getAccountStatus(account) === 'Terkunci').length}</strong> akun terkunci</span>
       </div>
 
       <div className="mb-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_200px_160px]">
@@ -202,7 +223,7 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
         />
         <select className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]" onChange={(event) => { setRoleFilter(event.target.value); setPage(1); }} value={roleFilter}>
           <option value="all">Semua role</option>
-          {availableRoles.map((role) => <option key={role} value={role}>{getRoleLabels([role])}</option>)}
+          {availableRoleNames.map((role) => <option key={role} value={role}>{getRoleLabels([role])}</option>)}
         </select>
         <select className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]" onChange={(event) => { setStatusFilter(event.target.value as 'all' | AccountStatus); setPage(1); }} value={statusFilter}>
           <option value="all">Semua status</option>
@@ -217,7 +238,7 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
 
       {loadState === 'success' && filteredAccounts.length > 0 ? (
         <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-[var(--border)]">
-          <table className="w-full min-w-[950px] text-sm">
+          <table className="w-full min-w-[980px] text-sm">
             <thead className="bg-slate-50 text-xs text-slate-600 dark:bg-[var(--surface-soft)] dark:text-muted">
               <tr>
                 <th className="px-3 py-3 text-center">No</th>
@@ -228,6 +249,7 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
                 <th className="px-3 py-3 text-left">Login terakhir</th>
                 <th className="px-3 py-3 text-left">Status</th>
                 <th className="px-3 py-3 text-left">Dibuat</th>
+                {canManage ? <th className="px-3 py-3 text-center">Aksi</th> : null}
               </tr>
             </thead>
             <tbody>
@@ -235,14 +257,27 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
                 const status = getAccountStatus(account);
                 return (
                   <tr className="border-t border-slate-100 text-slate-700 dark:border-[var(--border)] dark:text-[var(--text)]" key={account.id}>
-                    <td className="px-3 py-3 text-center text-xs text-muted">{(page - 1) * DEFAULT_PAGE_SIZE + index + 1}</td>
-                    <td className="px-3 py-3 font-semibold">{account.name}</td>
-                    <td className="px-3 py-3">{account.username || '—'}</td>
-                    <td className="px-3 py-3">{account.email}</td>
-                    <td className="px-3 py-3">{getRoleLabels(account.roles)}</td>
-                    <td className="px-3 py-3">{formatDateTime(account.lastLoginAt)}</td>
-                    <td className="px-3 py-3"><span className={status === 'Terkunci' ? 'rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800' : 'rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-800'}>{status}</span></td>
-                    <td className="px-3 py-3">{formatDate(account.createdAt)}</td>
+                    <td className="px-2 py-2 text-center text-xs text-muted">{(page - 1) * DEFAULT_PAGE_SIZE + index + 1}</td>
+                    <td className="px-2 py-2 font-semibold">{account.name}</td>
+                    <td className="px-2 py-2">{account.username || '—'}</td>
+                    <td className="px-2 py-2">{account.email}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex flex-wrap gap-1">
+                        {account.roles.length ? account.roles.map((roleName) => (
+                          <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-800 dark:bg-brand-500/10 dark:text-brand-200" key={roleName}>
+                            {roleCards.find((role) => role.role === roleName)?.label ?? getRoleLabels([roleName])}
+                          </span>
+                        )) : <span className="text-xs text-muted">Belum ada role</span>}
+                      </div>
+                    </td>
+                    <td className="px-2 py-2">{formatDateTime(account.lastLoginAt)}</td>
+                    <td className="px-2 py-2"><span className={status === 'Terkunci' ? 'rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800' : 'rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-800'}>{status}</span></td>
+                    <td className="px-2 py-2">{formatDate(account.createdAt)}</td>
+                    {canManage && !account.roles.includes('orang_tua') ? (
+                      <td className="px-2 py-1.5 text-center">
+                        <Button onClick={() => { setSelectedAccount(account); setSelectedRoles(account.roles); setRoleToAdd(''); }} size="sm" variant="outline">Kelola</Button>
+                      </td>
+                    ) : null}
                   </tr>
                 );
               })}
@@ -259,7 +294,47 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
         />
       ) : null}
 
-      <p className="mt-3 text-xs text-muted">Menampilkan akun yang belum dinonaktifkan. Akun yang sedang terkunci tetap ditampilkan dengan status Terkunci.</p>
+      <p className="mt-2 text-xs text-muted">Menampilkan akun yang belum dinonaktifkan. Akun terkunci tetap ditampilkan dengan status Terkunci.</p>
+
+      {canManage && selectedAccount ? (
+        <Dialog
+          className="max-w-xl"
+          description={`${selectedAccount.name} · ${selectedAccount.username ?? selectedAccount.email}`}
+          onClose={() => setSelectedAccount(null)}
+          open
+          title="Kelola Akun"
+        >
+          <div className="grid gap-3">
+            <div>
+              <p className="mb-1 text-xs font-bold text-muted">Role saat ini</p>
+              <div className="flex flex-wrap gap-2">
+                {selectedRoles.map((roleName) => {
+                  const role = roleCards.find((item) => item.role === roleName);
+                  return (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-800 dark:border-brand-400/30 dark:bg-brand-500/10 dark:text-brand-100" key={roleName}>
+                      {role?.label ?? roleName}
+                      <button aria-label={`Hapus role ${role?.label ?? roleName}`} className="ml-1 rounded-full px-1 text-rose-700 hover:bg-rose-100 dark:text-rose-300" disabled={!canAssignRootRole && roleName === 'root'} onClick={() => setSelectedRoles((current) => current.filter((item) => item !== roleName))} type="button">×</button>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <select className={fieldClass} onChange={(event) => setRoleToAdd(event.target.value)} value={roleToAdd}>
+                <option value="">Tambah role...</option>
+                {availableRoles.map((role) => <option key={role.role} value={role.role}>{role.label}</option>)}
+              </select>
+              <Button disabled={!roleToAdd} onClick={() => { setSelectedRoles((current) => [...current, roleToAdd]); setRoleToAdd(''); }} size="sm" variant="outline">Tambah</Button>
+            </div>
+            <Button disabled={!selectedRoles.length || (selectedRoles.length === selectedAccount.roles.length && selectedRoles.every((role) => selectedAccount.roles.includes(role)))} onClick={async () => { await onUpdateUserRoles?.(selectedAccount, selectedRoles); await refreshAccounts(); setSelectedAccount(null); }} size="sm">Simpan Role</Button>
+            <div className="grid gap-2 border-t border-slate-200 pt-3 dark:border-[var(--border)] sm:grid-cols-3">
+              <Button onClick={async () => { await onResetUserPassword?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="sm" variant="info">Reset Password</Button>
+              <Button onClick={async () => { await onDeactivateUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="sm" variant="outline">Nonaktifkan</Button>
+              <Button onClick={async () => { await onDeleteUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="sm" variant="danger">Hapus Permanen</Button>
+            </div>
+          </div>
+        </Dialog>
+      ) : null}
 
       <style jsx global>{`
         .active-account-print-table { border-collapse: collapse; table-layout: fixed; }

@@ -1,6 +1,7 @@
 ## 2026-11-18
 
-- Menambahkan menu Daftar Akun untuk Super Administrator dan Operator Sekolah, berisi akun yang belum dinonaktifkan beserta username, email, role, login terakhir, status, dan tanggal dibuat; tersedia pencarian/filter, preview cetak F4/A4, serta unduh Excel. Endpoint baca-saja dibatasi untuk kedua role tersebut.
+- Menyatukan daftar dan pengelolaan akun Super Administrator dalam satu tabel agar tidak ada dua daftar pengguna yang berulang. Tambah akun dan kelola role/reset password/nonaktifkan/hapus dibuka melalui modal; ringkasan, filter, dan kontrol tabel dibuat lebih ringkas. Operator Sekolah tetap mendapat tampilan baca/cetak sesuai kewenangannya.
+- Daftar akun memuat username, email, role, login terakhir, status, dan tanggal dibuat; tersedia pencarian/filter, preview cetak F4/A4, serta unduh Excel. Endpoint baca-saja untuk Operator Sekolah tetap dibatasi sesuai role.
 
 ## 2026-11-17
 
@@ -287,7 +288,7 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 
 ## 2026-11-18 — Integrasi Daftar Akun ke Akun & Akses
 
-- Menggabungkan akses daftar akun ke menu **Akun & Akses** agar navbar tidak memiliki menu terpisah. Pada halaman Super Administrator, daftar akun tampil langsung di bawah panel pengelolaan akun; Operator Sekolah membuka daftar melalui menu Akun & Akses.
+- Menggabungkan akses daftar akun ke menu **Akun & Akses** agar navbar tidak memiliki menu terpisah. Pada halaman Super Administrator, satu tabel menjadi pusat daftar sekaligus pengelolaan akun; form tambah dan tindakan per akun dibuka melalui modal. Operator Sekolah membuka daftar baca/cetak melalui menu Akun & Akses.
 - Menonjolkan ringkasan total akun dan akun terkunci pada bagian daftar.
 - Menata kapasitas halaman cetak daftar akun berdasarkan ukuran kertas; rincian penghitungan tinggi baris diperbarui pada catatan konsistensi tinggi baris di bawah.
 

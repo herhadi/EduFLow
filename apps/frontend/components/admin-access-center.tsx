@@ -1,6 +1,6 @@
 'use client';
 
-import { type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { api, type AppUser } from '../lib/api';
 import { type NewUserForm } from './admin-access-center/admin-access-center-utils';
 import { UserManagementPanel } from './admin-access-center/user-management-panel';
@@ -17,7 +17,7 @@ export function AdminAccessCenter({
   bootstrapOnly?: boolean;
 }) {
   const toast = useToast();
-  const [users, setUsers] = useState<AppUser[]>([]);
+  const [directoryRefreshKey, setDirectoryRefreshKey] = useState(0);
   const [userActionState, setUserActionState] = useState<ActionState>('idle');
   const [userMessage, setUserMessage] = useState<string>('');
   const [newUser, setNewUser] = useState<NewUserForm>({
@@ -27,41 +27,13 @@ export function AdminAccessCenter({
     role: 'operator_sekolah',
   });
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadAccessData() {
-      try {
-        const userResponse = await api.getUsers();
-
-        if (!isMounted) {
-          return;
-        }
-
-        setUsers(userResponse.data);
-      } catch (error) {
-        if (isMounted) {
-          const errorMessage = error instanceof Error ? error.message : 'Gagal memuat daftar pengguna.';
-          setUserActionState('error');
-          setUserMessage(`Gagal memuat akun: ${errorMessage}`);
-        }
-      }
-    }
-
-    void loadAccessData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   async function handleProvisionTeacherAccounts() {
     setUserActionState('loading');
     setUserMessage('');
     try {
       const response = await api.provisionMissingTeacherAccounts();
-      const userResponse = await api.getUsers();
-      setUsers(userResponse.data);
+      setDirectoryRefreshKey((current) => current + 1);
       setUserActionState('success');
       setUserMessage(response.message ?? `${response.data.created} akun guru berhasil dibuat.`);
       toast.success(response.message ?? 'Akun login guru berhasil disiapkan.', 'Akun Guru');
@@ -85,7 +57,7 @@ export function AdminAccessCenter({
         name: newUser.name.trim(),
         roles: [newUser.role],
       });
-      setUsers((currentUsers) => [response.data, ...currentUsers]);
+      setDirectoryRefreshKey((current) => current + 1);
       setNewUser({
         email: '',
         username: '',
@@ -111,9 +83,6 @@ export function AdminAccessCenter({
     setUserMessage('');
     try {
       const response = await api.updateUserRoles(user.id, roles);
-      setUsers((currentUsers) => currentUsers.map((currentUser) =>
-        currentUser.id === user.id ? { ...currentUser, roles: response.data.roles } : currentUser,
-      ));
       setUserActionState('success');
       setUserMessage(response.message ?? 'Role user berhasil diperbarui.');
       toast.success(response.message ?? 'Role user berhasil diperbarui.', 'Role Diperbarui');
@@ -141,9 +110,6 @@ export function AdminAccessCenter({
 
     try {
       const response = await api.deactivateUser(user.id);
-      setUsers((currentUsers) =>
-        currentUsers.filter((currentUser) => currentUser.id !== user.id),
-      );
       setUserActionState('success');
       setUserMessage(response.message ?? 'User berhasil dinonaktifkan.');
       toast.success(
@@ -175,11 +141,6 @@ export function AdminAccessCenter({
 
     try {
       const response = await api.resetUserPassword(user.id);
-      setUsers((currentUsers) =>
-        currentUsers.map((currentUser) =>
-          currentUser.id === user.id ? response.data : currentUser,
-        ),
-      );
       setUserActionState('success');
       setUserMessage(response.message ?? 'Password user berhasil direset.');
       toast.success(
@@ -211,9 +172,6 @@ export function AdminAccessCenter({
 
     try {
       const response = await api.deleteUser(user.id);
-      setUsers((currentUsers) =>
-        currentUsers.filter((currentUser) => currentUser.id !== user.id),
-      );
       setUserActionState('success');
       setUserMessage(response.message ?? 'User berhasil dihapus permanen.');
       toast.success(
@@ -232,26 +190,32 @@ export function AdminAccessCenter({
   }
 
   return (
-    <section className="mt-6 space-y-5">
+    <section className="mt-4 space-y-3">
       <UserManagementPanel
         bootstrapOnly={bootstrapOnly}
         canAssignRootRole={canAssignRootRole}
         newUser={newUser}
         onCreateUser={handleCreateUser}
         onProvisionTeacherAccounts={handleProvisionTeacherAccounts}
-        onDeactivateUser={handleDeactivateUser}
-        onUpdateUserRoles={handleUpdateUserRoles}
-        onDeleteUser={handleDeleteUser}
         onNewUserChange={(field, value) =>
           setNewUser((current) => ({ ...current, [field]: value }))
         }
-        onResetUserPassword={handleResetUserPassword}
         userActionState={userActionState}
         userMessage={userMessage}
-        users={users}
       />
 
-      {!bootstrapOnly ? <ActiveAccountDirectory audience="admin" /> : null}
+      {!bootstrapOnly ? (
+        <ActiveAccountDirectory
+          audience="admin"
+          canManage
+          canAssignRootRole={canAssignRootRole}
+          refreshKey={directoryRefreshKey}
+          onDeactivateUser={handleDeactivateUser}
+          onDeleteUser={handleDeleteUser}
+          onResetUserPassword={handleResetUserPassword}
+          onUpdateUserRoles={handleUpdateUserRoles}
+        />
+      ) : null}
     </section>
   );
 }
