@@ -19,6 +19,7 @@ export function SchoolOrganization() {
   const canManage = roles.includes('operator_sekolah') && !roles.includes('root');
   const [positions, setPositions] = useState<Position[]>([]);
   const [studentPosition, setStudentPosition] = useState<{ x?: number; y?: number }>({});
+  const [connectorPositions, setConnectorPositions] = useState<Record<string, { start?: { x: number; y: number }; end?: { x: number; y: number } }>>({});
   const [viewportWidth, setViewportWidth] = useState(1200);
   const [canEditViewport, setCanEditViewport] = useState(true);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -37,6 +38,8 @@ export function SchoolOrganization() {
   const [rowGap, setRowGap] = useState(300);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pressRef = useRef<{ id: string; pointerId: number; startX: number; startY: number; originX: number; originY: number; dragging: boolean } | null>(null);
+  const canvasWidth = 1900;
+  const canvasHeight = 2200;
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 24 });
   const fitScale = Math.min(1, Math.max(0.12, (viewportWidth - 24) / canvasWidth));
@@ -48,9 +51,13 @@ export function SchoolOrganization() {
     setError('');
     try {
       const data = await request<OrganizationResponse>('/school-organization');
+      const connectorNode = data.positions.find((item) => item.id === '__connectors__');
+      let parsedConnectors: Record<string, { start?: { x: number; y: number }; end?: { x: number; y: number } }> = {};
+      try { parsedConnectors = connectorNode?.personName ? JSON.parse(connectorNode.personName) : {}; } catch { parsedConnectors = {}; }
+      setConnectorPositions(parsedConnectors);
       const studentNode = data.positions.find((item) => item.id === '__students__');
       setStudentPosition(studentNode ? { x: studentNode.x, y: studentNode.y } : {});
-      setPositions(data.positions.filter((item) => item.id !== '__students__'));
+      setPositions(data.positions.filter((item) => item.id !== '__students__' && item.id !== '__connectors__'));
       if (canManage) setTeachers(await request<Teacher[]>('/school-organization/teachers'));
     } catch (err) { setError(err instanceof Error ? err.message : 'Gagal memuat struktur organisasi.'); }
     finally { setLoading(false); }
@@ -81,10 +88,13 @@ export function SchoolOrganization() {
     setSaving(true); setError(''); setNotice('');
     try {
       const studentNode: Position = { id: '__students__', title: 'Peserta Didik', category: 'Peserta Didik', sortOrder: 9999, parentId: positions.some((item) => item.id === 'vice-student') ? 'vice-student' : 'principal', locked: true, x: studentPosition.x, y: studentPosition.y };
-      const result = await request<OrganizationResponse>('/school-organization', { method: 'PUT', body: JSON.stringify({ positions: [...positions, studentNode] }) });
+      const connectorNode: Position = { id: '__connectors__', title: 'Pengaturan Konektor', category: 'Pengaturan', sortOrder: 10000, parentId: 'principal', personName: JSON.stringify(connectorPositions), locked: true };
+      const result = await request<OrganizationResponse>('/school-organization', { method: 'PUT', body: JSON.stringify({ positions: [...positions, studentNode, connectorNode] }) });
       const savedStudentNode = result.positions.find((item) => item.id === '__students__');
+      const savedConnectorNode = result.positions.find((item) => item.id === '__connectors__');
+      setConnectorPositions(savedConnectorNode?.personName ? JSON.parse(savedConnectorNode.personName) as typeof connectorPositions : {});
       setStudentPosition(savedStudentNode ? { x: savedStudentNode.x, y: savedStudentNode.y } : {});
-      setPositions(result.positions.filter((item) => item.id !== '__students__')); setEditing(false); setNotice('Struktur organisasi berhasil disimpan.');
+      setPositions(result.positions.filter((item) => item.id !== '__students__' && item.id !== '__connectors__')); setEditing(false); setNotice('Struktur organisasi berhasil disimpan.');
     } catch (err) { setError(err instanceof Error ? err.message : 'Gagal menyimpan struktur organisasi.'); }
     finally { setSaving(false); }
   }
@@ -110,9 +120,6 @@ export function SchoolOrganization() {
     } catch (err) { setError(err instanceof Error ? err.message : 'Gagal memperbarui foto.'); }
     finally { setUploadingId(null); }
   }
-
-  const canvasWidth = 1900;
-  const canvasHeight = 2200;
 
   const nodePositions = useMemo(() => {
     const result = new Map<string, { x: number; y: number }>();
@@ -167,6 +174,15 @@ export function SchoolOrganization() {
   }
 
   function onCanvasPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    const endpoint = (event.target as HTMLElement).closest<HTMLElement>('[data-connector-handle]');
+    if (endpoint) {
+      const key = endpoint.dataset.connectorKey!;
+      const end = endpoint.dataset.connectorEnd as 'start' | 'end';
+      dragRef.current = { id: `connector:${key}:${end}`, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: 0, originY: 0, panX: pan.x, panY: pan.y };
+      (event.target as Element).setPointerCapture(event.pointerId);
+      event.stopPropagation();
+      return;
+    }
     if ((event.target as HTMLElement).closest('[data-org-card]')) return;
     dragRef.current = { id: null, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: 0, originY: 0, panX: pan.x, panY: pan.y };
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -175,7 +191,14 @@ export function SchoolOrganization() {
   function onCanvasPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
-    if (drag.id) {
+    if (drag.id?.startsWith('connector:')) {
+      const [, key, end] = drag.id.split(':') as [string, string, 'start' | 'end'];
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const x = Math.max(0, (event.clientX - rect.left - pan.x) / effectiveScale);
+      const y = Math.max(0, (event.clientY - rect.top - pan.y) / effectiveScale);
+      setConnectorPositions((items) => ({ ...items, [key]: { ...items[key], [end]: { x, y } } }));
+    } else if (drag.id) {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
       movePosition(drag.id, drag.originX + (event.clientX - drag.startX) / effectiveScale, drag.originY + (event.clientY - drag.startY) / effectiveScale);
@@ -314,14 +337,14 @@ export function SchoolOrganization() {
       {editing && <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3"><div><p className="text-sm font-bold">Tambah posisi organisasi</p><p className="text-xs text-muted-foreground">Posisi baru otomatis ditempatkan di bawah Kepala Sekolah. Atasan dapat diubah pada kartu.</p></div><button type="button" onClick={addPosition} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-dashed border-blue-400 bg-blue-50 px-4 text-sm font-bold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-200"><Plus size={17}/> Tambah Jabatan</button></div>}
       <div className="overflow-hidden rounded-2xl border bg-muted/20">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-card px-3 py-2">
-          <p className="flex items-center gap-2 text-xs text-muted-foreground"><Move size={14}/>{editing ? 'Klik kartu untuk mengisi data · tekan dan tahan 0,4 detik untuk memindahkan kartu · geser area kosong untuk pan.' : 'Geser kanvas dan gunakan zoom untuk melihat bagan.'}</p>
+          <p className="flex items-center gap-2 text-xs text-muted-foreground"><Move size={14}/>{editing ? 'Klik kartu untuk mengisi data · tekan dan tahan 0,4 detik untuk memindahkan kartu · seret titik biru di garis untuk mengatur ujung konektor · geser area kosong untuk pan.' : 'Geser kanvas dan gunakan zoom untuk melihat bagan.'}</p>
           <div className="flex flex-wrap items-center gap-2">{editing && <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground"><label className="flex items-center gap-2">Lebar <input aria-label="Lebar kartu" type="range" min="160" max="280" step="10" value={cardWidth} onChange={(event) => setCardWidth(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{cardWidth}</span></label><label className="flex items-center gap-2">Tinggi <input aria-label="Tinggi kartu" type="range" min="90" max="180" step="10" value={cardHeight} onChange={(event) => setCardHeight(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{cardHeight}</span></label><label className="flex items-center gap-2">Jarak baris <input aria-label="Jarak vertikal antarbaris" type="range" min="180" max="380" step="10" value={rowGap} onChange={(event) => setRowGap(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{rowGap}</span></label></div>}<div className="flex items-center gap-1"><button type="button" onClick={() => setZoom((v) => Math.min(1.5, v + 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perbesar"><ZoomIn size={16}/></button><span className="min-w-12 text-center text-xs tabular-nums">{Math.round(zoom * 100)}%</span><button type="button" onClick={() => setZoom((v) => Math.max(0.35, v - 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perkecil"><ZoomOut size={16}/></button><button type="button" onClick={() => { setZoom(1); setPan({ x: 0, y: 24 }); }} className="rounded-lg border p-2 hover:bg-muted" title="Atur ulang tampilan"><Maximize2 size={16}/></button></div></div>
         </div>
         <div ref={canvasRef} className="org-print-canvas relative h-[680px] w-full overflow-hidden bg-background" onPointerDown={onCanvasPointerDown} onPointerMove={(event) => { moveCardPress(event); onCanvasPointerMove(event); }} onPointerUp={(event) => { endCardPress(event); if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null; }} onPointerCancel={() => { if (holdTimer.current) clearTimeout(holdTimer.current); pressRef.current = null; dragRef.current = null; }} onWheel={(event) => { if (event.ctrlKey || event.metaKey) { event.preventDefault(); setZoom((v) => Math.max(0.35, Math.min(1.5, v + (event.deltaY < 0 ? 0.05 : -0.05)))); } }} style={{ touchAction: 'none' }}>
           <div ref={printSourceRef} className="org-print-source" style={{ position: 'relative', width: canvasWidth, height: canvasHeight, transform: 'none' }}><div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${effectiveScale})`, width: canvasWidth, height: canvasHeight }}>
             <div className={`absolute inset-0 ${editing ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: 'radial-gradient(#94a3b8 0.8px, transparent 0.8px)', backgroundSize: '20px 20px' }}/>
-            <svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible">{positions.filter((item) => item.parentId && nodePositions.has(item.parentId)).map((item) => { const child = nodePositions.get(item.id)!; const parent = nodePositions.get(item.parentId!)!; const x1 = 950 + (parent.x - 950) * (cardWidth / 220) + cardWidth / 2; const y1 = parent.y + (editing && selectedCardId === item.parentId ? expandedCardHeight : cardHeight); const x2 = 950 + (child.x - 950) * (cardWidth / 220) + cardWidth / 2; const y2 = child.y; const mid = y1 + (y2 - y1) / 2; return <path key={`${item.parentId}-${item.id}`} d={`M ${x1} ${y1} V ${mid} H ${x2} V ${y2}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth={editing ? 2 : 1.7} strokeDasharray={editing ? '6 5' : undefined}/>; })}</svg>
-            {positions.map(renderCanvasCard)}{(() => { const parent = positions.find((item) => item.id === 'vice-student') ?? positions.find((item) => item.id === 'principal'); const point = parent ? nodePositions.get(parent.id) : null; if (!point) return null; const px = 950 + (point.x - 950) * (cardWidth / 220) + cardWidth / 2; const py = point.y + cardHeight; const defaultY = Math.max(70 + 4 * (editing ? rowGap : 190), py + 150); const studentX = Number.isFinite(studentPosition.x) ? Number(studentPosition.x) : 840; const studentY = Number.isFinite(studentPosition.y) ? Number(studentPosition.y) : defaultY; const sx = 950 + (studentX - 950) * (cardWidth / 220); return <><svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible"><path d={`M ${px} ${py} V ${studentY - 28} H ${sx + 110} V ${studentY}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth="2" strokeDasharray={editing ? '6 5' : undefined}/></svg><div data-org-card="true" onPointerDown={(event) => beginCardPress(event, { id: '__students__', title: 'Peserta Didik', category: 'Peserta Didik', sortOrder: 9999, parentId: 'vice-student', locked: true })} style={{ position: 'absolute', left: sx, top: studentY, width: cardWidth, minHeight: cardHeight, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className="z-10 rounded-xl border-2 border-amber-400 bg-card px-4 py-3 text-center shadow-sm"><Users size={22} className="mx-auto mb-1 text-amber-600"/><p className="text-xs font-bold">PESERTA DIDIK</p><p className="mt-0.5 text-[10px] text-muted-foreground">Seluruh peserta didik</p></div></>; })()}
+            <svg width={canvasWidth} height={canvasHeight} className="absolute inset-0 overflow-visible pointer-events-none">{positions.filter((item) => item.parentId && nodePositions.has(item.parentId)).map((item) => { const child = nodePositions.get(item.id)!; const parent = nodePositions.get(item.parentId!)!; const baseStart = { x: 950 + (parent.x - 950) * (cardWidth / 220) + cardWidth / 2, y: parent.y + (editing && selectedCardId === item.parentId ? expandedCardHeight : cardHeight) }; const baseEnd = { x: 950 + (child.x - 950) * (cardWidth / 220) + cardWidth / 2, y: child.y }; const key = `${item.parentId}:${item.id}`; const start = connectorPositions[key]?.start ?? baseStart; const end = connectorPositions[key]?.end ?? baseEnd; const midY = (start.y + end.y) / 2; return <g key={key}><path d={`M ${start.x} ${start.y} L ${start.x} ${midY} L ${end.x} ${midY} L ${end.x} ${end.y}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth={editing ? 2 : 1.7} strokeDasharray={editing ? '6 5' : undefined}/>{editing && <><circle style={{ pointerEvents: 'all', cursor: 'crosshair' }} data-connector-handle="true" data-connector-key={key} data-connector-end="start" onPointerDown={(event) => { event.stopPropagation(); const target = event.currentTarget as SVGCircleElement; const key = target.dataset.connectorKey!; const side = target.dataset.connectorEnd as 'start' | 'end'; dragRef.current = { id: `connector:${key}:${side}`, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: 0, originY: 0, panX: pan.x, panY: pan.y }; target.setPointerCapture(event.pointerId); }} cx={start.x} cy={start.y} r="9" fill="#2563eb" stroke="white" strokeWidth="2"/><circle style={{ pointerEvents: 'all', cursor: 'crosshair' }} data-connector-handle="true" data-connector-key={key} data-connector-end="end" onPointerDown={(event) => { event.stopPropagation(); const target = event.currentTarget as SVGCircleElement; const key = target.dataset.connectorKey!; const side = target.dataset.connectorEnd as 'start' | 'end'; dragRef.current = { id: `connector:${key}:${side}`, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: 0, originY: 0, panX: pan.x, panY: pan.y }; target.setPointerCapture(event.pointerId); }} cx={end.x} cy={end.y} r="9" fill="#2563eb" stroke="white" strokeWidth="2"/></>}</g>; })}</svg>
+            {positions.map(renderCanvasCard)}{(() => { const parent = positions.find((item) => item.id === 'vice-student') ?? positions.find((item) => item.id === 'principal'); const point = parent ? nodePositions.get(parent.id) : null; if (!point) return null; const px = 950 + (point.x - 950) * (cardWidth / 220) + cardWidth / 2; const py = point.y + cardHeight; const defaultY = Math.max(70 + 4 * (editing ? rowGap : 190), py + 150); const studentX = Number.isFinite(studentPosition.x) ? Number(studentPosition.x) : 840; const studentY = Number.isFinite(studentPosition.y) ? Number(studentPosition.y) : defaultY; const sx = 950 + (studentX - 950) * (cardWidth / 220); const specialKey = `${parent.id}:__students__`; const specialStart = connectorPositions[specialKey]?.start ?? { x: px, y: py }; const specialEnd = connectorPositions[specialKey]?.end ?? { x: sx + cardWidth / 2, y: studentY }; return <><svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible"><path d={`M ${specialStart.x} ${specialStart.y} L ${specialStart.x} ${(specialStart.y + specialEnd.y) / 2} L ${specialEnd.x} ${(specialStart.y + specialEnd.y) / 2} L ${specialEnd.x} ${specialEnd.y}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth="2" strokeDasharray={editing ? '6 5' : undefined}/>{editing && <><circle style={{ pointerEvents: 'all', cursor: 'crosshair' }} data-connector-handle="true" data-connector-key={specialKey} data-connector-end="start" onPointerDown={(event) => { event.stopPropagation(); const target = event.currentTarget as SVGCircleElement; const key = target.dataset.connectorKey!; const side = target.dataset.connectorEnd as 'start' | 'end'; dragRef.current = { id: `connector:${key}:${side}`, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: 0, originY: 0, panX: pan.x, panY: pan.y }; target.setPointerCapture(event.pointerId); }} cx={specialStart.x} cy={specialStart.y} r="9" fill="#2563eb" stroke="white" strokeWidth="2"/><circle style={{ pointerEvents: 'all', cursor: 'crosshair' }} data-connector-handle="true" data-connector-key={specialKey} data-connector-end="end" onPointerDown={(event) => { event.stopPropagation(); const target = event.currentTarget as SVGCircleElement; const key = target.dataset.connectorKey!; const side = target.dataset.connectorEnd as 'start' | 'end'; dragRef.current = { id: `connector:${key}:${side}`, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: 0, originY: 0, panX: pan.x, panY: pan.y }; target.setPointerCapture(event.pointerId); }} cx={specialEnd.x} cy={specialEnd.y} r="9" fill="#2563eb" stroke="white" strokeWidth="2"/></>}</svg><div data-org-card="true" onPointerDown={(event) => beginCardPress(event, { id: '__students__', title: 'Peserta Didik', category: 'Peserta Didik', sortOrder: 9999, parentId: 'vice-student', locked: true })} style={{ position: 'absolute', left: sx, top: studentY, width: cardWidth, minHeight: cardHeight, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className="z-10 rounded-xl border-2 border-amber-400 bg-card px-4 py-3 text-center shadow-sm"><Users size={22} className="mx-auto mb-1 text-amber-600"/><p className="text-xs font-bold">PESERTA DIDIK</p><p className="mt-0.5 text-[10px] text-muted-foreground">Seluruh peserta didik</p></div></>; })()}
           </div></div>
         </div>
       </div>

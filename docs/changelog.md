@@ -325,4 +325,4 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Bagan organisasi: proxy API mendukung PUT untuk penyimpanan; pengaturan ukuran kartu lebar/tinggi dan jarak baris; posisi kartu snap ke grid serta otomatis sejajar pada baris/kolom terdekat.
 
 ## 2026-11-18
-- Bagan Struktur Organisasi: kanvas menyesuaikan lebar area layar dengan skala dasar responsif, tetap mendukung zoom dan pan, serta menyimpan posisi kartu Peserta Didik agar dapat dipindahkan dan garis penghubung mengikuti posisinya. Pengelolaan bagan dibatasi pada desktop/tablet; mobile tetap untuk melihat bagan.
+- Bagan Struktur Organisasi: kanvas menyesuaikan lebar area layar dengan skala dasar responsif, tetap mendukung zoom dan pan, serta menyimpan posisi kartu Peserta Didik agar dapat dipindahkan, serta titik awal dan akhir setiap konektor dapat diseret secara terpisah dan tersimpan. Pengelolaan bagan dibatasi pada desktop/tablet; mobile tetap untuk melihat bagan.
