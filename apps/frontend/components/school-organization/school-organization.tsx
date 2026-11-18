@@ -90,18 +90,18 @@ export function SchoolOrganization() {
     const photoUrl = teacher?.photoUrl ?? item.photoUrl;
     const children = childrenByParent.get(item.id) ?? [];
     return (
-      <div className={`relative flex w-full ${depth === 0 ? 'min-w-0' : 'min-w-[280px]'} flex-col items-center`} key={item.id}>
-        <article className={`relative z-10 mx-auto w-full max-w-[360px] overflow-hidden rounded-2xl border bg-card shadow-sm transition-shadow hover:shadow-md ${item.id === 'principal' ? 'border-blue-300 ring-2 ring-blue-100 dark:border-blue-700 dark:ring-blue-950' : 'border-border'}`}>
+      <div className={`relative flex w-full ${depth === 0 ? 'min-w-0' : 'min-w-[240px]'} flex-col items-center`} key={item.id}>
+        <article style={{ width: '100%', maxWidth: 280 }} className={`relative z-10 mx-auto overflow-hidden rounded-xl border bg-card shadow-sm transition-shadow hover:shadow-md ${item.id === 'principal' ? 'border-blue-300 ring-2 ring-blue-100 dark:border-blue-700 dark:ring-blue-950' : 'border-border'}`}>
           <div className={`h-1.5 w-full ${item.id === 'principal' ? 'bg-blue-600' : item.category === 'Wakil Kepala Sekolah' ? 'bg-emerald-500' : 'bg-sky-500'}`} />
-          <div className="flex items-center gap-3 p-4">
-            <div className="relative size-[76px] shrink-0 overflow-hidden rounded-xl border bg-muted">
-              {photoUrl ? <img src={photoUrl} alt={`Foto ${name}`} className="size-full object-cover" /> : <div className="grid size-full place-items-center text-2xl font-bold text-muted-foreground">{name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '—'}</div>}
+          <div className="flex items-center gap-2.5 p-3">
+            <div className="relative size-14 shrink-0 overflow-hidden rounded-lg border bg-muted">
+              {photoUrl ? <img src={photoUrl} alt={`Foto ${name}`} className="size-full object-cover" /> : <div className="grid size-full place-items-center text-lg font-bold text-muted-foreground">{name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '—'}</div>}
               {editing && canManage && item.teacherId && <button type="button" title="Ganti foto dan perbarui foto profil" onClick={() => fileInputRefs.current[item.id]?.click()} disabled={uploadingId === item.id} className="absolute inset-x-1 bottom-1 inline-flex items-center justify-center gap-1 rounded-lg bg-slate-950/80 px-1.5 py-1 text-[10px] font-semibold text-white hover:bg-slate-950 disabled:opacity-60"><ImagePlus size={12}/>{uploadingId === item.id ? 'Mengunggah' : 'Ganti foto'}</button>}
             </div>
             <div className="min-w-0 flex-1 text-left">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-primary">{item.title || 'Jabatan belum diisi'}</p>
-              <p className="mt-1 break-words text-sm font-bold text-foreground">{name}</p>
-              <p className="mt-1 text-xs text-muted-foreground">NIP: {nip || '—'}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-primary">{item.title || 'Jabatan belum diisi'}</p>
+              <p className="mt-1 break-words text-[13px] font-bold text-foreground">{name}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">NIP: {nip || '—'}</p>
             </div>
           </div>
           {editing && canManage && item.teacherId && <input ref={(node) => { fileInputRefs.current[item.id] = node; }} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => { void changePhoto(item, event.target.files?.[0]); event.currentTarget.value = ''; }} />}
@@ -115,7 +115,7 @@ export function SchoolOrganization() {
           </div>}
         </article>
         {children.length > 0 && <div className="relative mt-8 w-full pt-7 before:absolute before:left-1/2 before:top-0 before:h-7 before:border-l-2 before:border-sky-300 dark:before:border-sky-800 after:absolute after:left-[8%] after:right-[8%] after:top-0 after:border-t-2 after:border-sky-300 dark:after:border-sky-800">
-          <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(280px,1fr))] items-start gap-x-4 gap-y-7">{children.map((child) => <div className="relative flex min-w-0 justify-center before:absolute before:-top-7 before:left-1/2 before:h-7 before:border-l-2 before:border-sky-300 dark:before:border-sky-800" key={child.id}>{renderNode(child, depth + 1)}</div>)}</div>
+          <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,240px),280px))] justify-center items-start gap-x-3 gap-y-5">{children.map((child) => <div className="relative flex min-w-0 justify-center before:absolute before:-top-7 before:left-1/2 before:h-7 before:border-l-2 before:border-sky-300 dark:before:border-sky-800" key={child.id}>{renderNode(child, depth + 1)}</div>)}</div>
         </div>}
       </div>
     );
@@ -136,7 +136,7 @@ export function SchoolOrganization() {
       {notice && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200">{notice}</div>}
       {editing && <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3"><div><p className="text-sm font-bold">Tambah posisi organisasi</p><p className="text-xs text-muted-foreground">Posisi baru otomatis ditempatkan di bawah Kepala Sekolah. Atasan dapat diubah pada kartu.</p></div><button type="button" onClick={addPosition} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-dashed border-blue-400 bg-blue-50 px-4 text-sm font-bold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-200"><Plus size={17}/> Tambah Jabatan</button></div>}
       <div className="overflow-x-auto rounded-2xl border bg-muted/20 p-4 sm:p-6">
-        <div className="mx-auto flex w-full min-w-[320px] max-w-[1180px] flex-col items-center pb-5">
+        <div className="mx-auto flex w-full min-w-[320px] max-w-[960px] flex-col items-center pb-5">
           {roots.length ? roots.map((root) => renderNode(root)) : <div className="rounded-xl border border-dashed bg-card p-8 text-center text-sm text-muted-foreground">Bagan struktur organisasi belum diisi.</div>}
         </div>
       </div>

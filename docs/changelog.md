@@ -316,3 +316,4 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 
 - Perbaikan bagan struktur organisasi: pastikan pembaruan komponen frontend ikut terdeteksi dan dibangun pada deployment agar tampilan hierarki terbaru tersaji.
 - Merapikan proporsi bagan organisasi: kartu Kepala Sekolah dipusatkan dan dibatasi lebarnya; kartu turunan memakai lebar minimum agar teks tidak terlipat vertikal, dengan area bagan yang dapat digulir horizontal bila cabang banyak.
+- Pengecilan ulang bagan organisasi sesuai umpan balik: kartu dibatasi 280 px, foto 56 px, padding dan tipografi diperkecil, serta susunan cabang dipusatkan.
