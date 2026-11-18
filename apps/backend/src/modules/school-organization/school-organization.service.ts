@@ -63,7 +63,7 @@ export class SchoolOrganizationService {
     ]);
     const teacherById = new Map(teachers.map((teacher) => [teacher.id, teacher]));
     const stored: Array<Record<string, unknown>> = setting ? JSON.parse(setting.value) as Array<Record<string, unknown>> : DEFAULT_POSITIONS;
-    const positions = await Promise.all(stored.map(async (position) => {
+    const positions: Array<Record<string, any>> = await Promise.all(stored.map(async (position) => {
       const teacherId = typeof position.teacherId === 'string' ? position.teacherId : null;
       const teacher = teacherId ? teacherById.get(teacherId) : null;
       const fallbackParent = position.id === 'principal' ? null
