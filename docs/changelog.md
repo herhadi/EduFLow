@@ -1,5 +1,6 @@
 ## 2026-11-18
 
+- Mengubah Bagan Organisasi menjadi bagan hierarki dengan konektor antarjabatan dan pengaturan atasan langsung. Kartu menampilkan foto, nama, dan NIP; Operator dapat mengganti foto dari bagan, yang menyinkronkan foto profil Guru dan akun terkait. Tombol pengelolaan, tambah jabatan, batal, dan simpan diperjelas dengan status interaksi.
 - Merapikan navigasi Bagan Organisasi: ikon memakai ikon School yang sesuai, jumlah navbar tetap lima item (empat menu utama dan Lainnya), dan Bagan Organisasi ditempatkan paling bawah di menu Lainnya. Super Administrator multi-role dapat membuka halaman; hanya Root yang dikecualikan.
 - Memberikan akses lihat Bagan Organisasi kepada Super Administrator yang ditugaskan di sekolah, termasuk akun multi-role Super Administrator + role operasional. Root tetap dikecualikan; pengelolaan bagan tetap memerlukan role Operator Sekolah.
 - Menampilkan menu **Bagan Organisasi** secara langsung pada navigasi utama untuk role operasional, bukan menyembunyikannya di menu Lainnya.
