@@ -1,13 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Check, ChevronDown, ImagePlus, Plus, Save, Trash2, Users, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { Check, ChevronDown, ImagePlus, Plus, Save, Trash2, Users, X, ZoomIn, ZoomOut, Maximize2, Move } from 'lucide-react';
 import { request, upload } from '../../lib/api-client';
 import { getCurrentSessionUser } from '../../lib/session';
 import { prepareProfilePhotoForUpload } from '../../lib/image-compression';
 
 type Teacher = { id: string; name: string; nip?: string | null; photoUrl?: string | null };
-type Position = { id: string; title: string; personName?: string | null; teacherId?: string | null; parentId?: string | null; category: string; sortOrder: number; locked?: boolean; nip?: string | null; photoUrl?: string | null };
+type Position = { id: string; title: string; personName?: string | null; teacherId?: string | null; parentId?: string | null; category: string; sortOrder: number; locked?: boolean; nip?: string | null; photoUrl?: string | null; x?: number; y?: number };
 type OrganizationResponse = { positions: Position[]; defaults: Position[] };
 type UploadResponse = { data?: Teacher; message?: string };
 
@@ -26,6 +26,10 @@ export function SchoolOrganization() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const canvasRef = useRef<HTMLDivElement | null>(null);
+  const dragRef = useRef<{ id: string | null; pointerId: number; startX: number; startY: number; originX: number; originY: number; panX: number; panY: number } | null>(null);
+  const [zoom, setZoom] = useState(0.85);
+  const [pan, setPan] = useState({ x: 80, y: 40 });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -39,15 +43,6 @@ export function SchoolOrganization() {
   }, [canManage]);
 
   useEffect(() => { void load(); }, [load]);
-
-  const childrenByParent = useMemo(() => {
-    const result = new Map<string | null, Position[]>();
-    for (const item of [...positions].sort((a, b) => a.sortOrder - b.sortOrder)) {
-      const parentId = item.parentId ?? null;
-      result.set(parentId, [...(result.get(parentId) ?? []), item]);
-    }
-    return result;
-  }, [positions]);
 
   function update(id: string, patch: Partial<Position>) {
     setPositions((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
@@ -64,7 +59,7 @@ export function SchoolOrganization() {
 
   function addPosition() {
     const id = `custom-${Date.now()}`;
-    setPositions((items) => [...items, { id, title: '', personName: '', teacherId: null, parentId: 'principal', category: 'Jabatan Lainnya', sortOrder: items.length }]);
+    setPositions((items) => [...items, { id, title: '', personName: '', teacherId: null, parentId: 'principal', category: 'Jabatan Lainnya', sortOrder: items.length, x: 760, y: 520 }]);
   }
 
   async function changePhoto(position: Position, file?: File) {
@@ -83,61 +78,108 @@ export function SchoolOrganization() {
     finally { setUploadingId(null); }
   }
 
-  const renderNode = (item: Position, depth = 0): ReactNode => {
+  const nodePositions = useMemo(() => {
+    const result = new Map<string, { x: number; y: number }>();
+    const children = new Map<string | null, Position[]>();
+    positions.forEach((item) => children.set(item.parentId ?? null, [...(children.get(item.parentId ?? null) ?? []), item]));
+    const rows = new Map<number, number>();
+    const place = (parentId: string | null, depth: number) => {
+      const items = children.get(parentId) ?? [];
+      items.forEach((item) => {
+        const index = rows.get(depth) ?? 0;
+        const x = Number.isFinite(item.x) ? Number(item.x) : depth === 0 ? 520 : 100 + index * 260;
+        const y = Number.isFinite(item.y) ? Number(item.y) : 70 + depth * (editing ? 390 : 190);
+        rows.set(depth, index + 1); result.set(item.id, { x, y }); place(item.id, depth + 1);
+      });
+    };
+    place(null, 0);
+    return result;
+  }, [positions]);
+
+  const canvasWidth = 1900;
+  const canvasHeight = 1300;
+  const cardWidth = 220;
+  const cardHeight = editing ? 350 : 112;
+
+  function movePosition(id: string, x: number, y: number) {
+    setPositions((items) => items.map((item) => item.id === id ? { ...item, x: Math.max(0, x), y: Math.max(0, y) } : item));
+  }
+
+  function onCanvasPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement).closest('[data-org-card]')) return;
+    dragRef.current = { id: null, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: 0, originY: 0, panX: pan.x, panY: pan.y };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function onCanvasPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    if (drag.id) {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      movePosition(drag.id, drag.originX + (event.clientX - drag.startX) / zoom, drag.originY + (event.clientY - drag.startY) / zoom);
+    } else setPan({ x: drag.panX + event.clientX - drag.startX, y: drag.panY + event.clientY - drag.startY });
+  }
+
+  function beginCardDrag(event: ReactPointerEvent<HTMLElement>, item: Position) {
+    if (!editing || (event.target as HTMLElement).closest('button,input,select')) return;
+    event.stopPropagation();
+    const point = nodePositions.get(item.id) ?? { x: 80, y: 80 };
+    dragRef.current = { id: item.id, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: point.x, originY: point.y, panX: pan.x, panY: pan.y };
+    canvasRef.current?.setPointerCapture(event.pointerId);
+  }
+
+  const renderCanvasCard = (item: Position) => {
     const teacher = teachers.find((person) => person.id === item.teacherId);
     const name = teacher?.name ?? item.personName ?? 'Belum ditentukan';
     const nip = teacher?.nip ?? item.nip;
     const photoUrl = teacher?.photoUrl ?? item.photoUrl;
-    const children = childrenByParent.get(item.id) ?? [];
-    return (
-      <div className={`relative flex w-full ${depth === 0 ? 'min-w-0' : 'min-w-[210px]'} flex-col items-center`} key={item.id}>
-        <article style={{ width: '100%', maxWidth: 210 }} className={`relative z-10 mx-auto overflow-hidden rounded-xl border bg-card shadow-sm transition-shadow hover:shadow-md ${item.id === 'principal' ? 'border-blue-300 ring-2 ring-blue-100 dark:border-blue-700 dark:ring-blue-950' : 'border-border'}`}>
-          <div className={`h-1.5 w-full ${item.id === 'principal' ? 'bg-blue-600' : item.category === 'Wakil Kepala Sekolah' ? 'bg-emerald-500' : 'bg-sky-500'}`} />
-          <div className="flex items-center gap-2 p-2.5">
-            <div className="relative size-11 shrink-0 overflow-hidden rounded-lg border bg-muted">
-              {photoUrl ? <img src={photoUrl} alt={`Foto ${name}`} className="size-full object-cover" /> : <div className="grid size-full place-items-center text-base font-bold text-muted-foreground">{name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '—'}</div>}
-              {editing && canManage && item.teacherId && <button type="button" title="Ganti foto dan perbarui foto profil" onClick={() => fileInputRefs.current[item.id]?.click()} disabled={uploadingId === item.id} className="absolute inset-x-1 bottom-1 inline-flex items-center justify-center gap-1 rounded-lg bg-slate-950/80 px-1.5 py-1 text-[10px] font-semibold text-white hover:bg-slate-950 disabled:opacity-60"><ImagePlus size={12}/>{uploadingId === item.id ? 'Mengunggah' : 'Ganti foto'}</button>}
-            </div>
-            <div className="min-w-0 flex-1 text-left">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-primary">{item.title || 'Jabatan belum diisi'}</p>
-              <p className="mt-0.5 break-words text-[11px] leading-snug font-bold text-foreground">{name}</p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">NIP: {nip || '—'}</p>
-            </div>
-          </div>
-          {editing && canManage && item.teacherId && <input ref={(node) => { fileInputRefs.current[item.id] = node; }} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => { void changePhoto(item, event.target.files?.[0]); event.currentTarget.value = ''; }} />}
-          {editing && canManage && <div className="space-y-3 border-t bg-muted/20 p-3 text-left">
-            <label className="block space-y-1 text-xs font-semibold"><span>Nama Jabatan</span><input value={item.title} disabled={item.locked} onChange={(event) => update(item.id, { title: event.target.value })} className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-normal disabled:opacity-60" /></label>
-            <label className="block space-y-1 text-xs font-semibold"><span>Kelompok Jabatan</span><select value={item.category} disabled={item.locked} onChange={(event) => update(item.id, { category: event.target.value })} className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-normal disabled:opacity-60">{categoryOptions.map((category) => <option key={category}>{category}</option>)}</select></label>
-            <label className="block space-y-1 text-xs font-semibold"><span>Guru/Pegawai</span><select value={item.teacherId ?? ''} disabled={item.locked} onChange={(event) => { const selected = teachers.find((person) => person.id === event.target.value); update(item.id, { teacherId: selected?.id ?? null, personName: selected?.name ?? '', nip: selected?.nip ?? null, photoUrl: selected?.photoUrl ?? null }); }} className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-normal disabled:opacity-60"><option value="">Belum ditentukan / isi nama manual</option>{teachers.map((person) => <option key={person.id} value={person.id}>{person.name}{person.nip ? ` · ${person.nip}` : ''}</option>)}</select></label>
-            {!item.teacherId && !item.locked && <><label className="block space-y-1 text-xs font-semibold"><span>Nama pegawai di luar daftar guru</span><input value={item.personName ?? ''} onChange={(event) => update(item.id, { personName: event.target.value })} placeholder="Nama lengkap pegawai" className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-normal" /></label><label className="block space-y-1 text-xs font-semibold"><span>NIP (opsional)</span><input value={item.nip ?? ''} onChange={(event) => update(item.id, { nip: event.target.value })} placeholder="Masukkan NIP" className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-normal" /></label></>}
-            <label className="block space-y-1 text-xs font-semibold"><span>Atasan langsung</span><select value={item.parentId ?? ''} disabled={item.locked} onChange={(event) => update(item.id, { parentId: event.target.value || null })} className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-normal disabled:opacity-60"><option value="">Pilih atasan langsung</option>{positions.filter((candidate) => candidate.id !== item.id).map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.title || 'Jabatan belum diisi'}</option>)}</select></label>
-            {!item.locked && <button type="button" onClick={() => setPositions((items) => items.filter((candidate) => candidate.id !== item.id).map((candidate) => candidate.parentId === item.id ? { ...candidate, parentId: item.parentId ?? null } : candidate))} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-red-200 px-3 text-xs font-semibold text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40"><Trash2 size={14}/> Hapus jabatan</button>}
-          </div>}
-        </article>
-        {children.length > 0 && <div className="relative mt-8 w-full pt-7 before:absolute before:left-1/2 before:top-0 before:h-7 before:border-l-2 before:border-sky-300 dark:before:border-sky-800 after:absolute after:left-[8%] after:right-[8%] after:top-0 after:border-t-2 after:border-sky-300 dark:after:border-sky-800">
-          <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,210px),210px))] justify-center items-start gap-x-2 gap-y-4">{children.map((child) => <div className="relative flex min-w-0 justify-center before:absolute before:-top-7 before:left-1/2 before:h-7 before:border-l-2 before:border-sky-300 dark:before:border-sky-800" key={child.id}>{renderNode(child, depth + 1)}</div>)}</div>
-        </div>}
+    const point = nodePositions.get(item.id) ?? { x: 80, y: 80 };
+    return <article key={item.id} data-org-card="true" onPointerDown={(event) => beginCardDrag(event, item)} style={{ position: 'absolute', left: point.x, top: point.y, width: cardWidth, minHeight: cardHeight, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className={`z-10 overflow-visible rounded-xl border bg-card shadow-sm ${editing ? 'ring-1 ring-blue-300' : ''} ${item.id === 'principal' ? 'border-blue-400' : 'border-border'}`}>
+      <div className={`h-1 w-full rounded-t-xl ${item.id === 'principal' ? 'bg-blue-600' : item.category === 'Wakil Kepala Sekolah' ? 'bg-emerald-500' : 'bg-sky-500'}`} />
+      <div className="flex items-center gap-2 p-2.5">
+        <div className="relative size-11 shrink-0 overflow-hidden rounded-lg border bg-muted">
+          {photoUrl ? <img src={photoUrl} alt={`Foto ${name}`} className="size-full object-cover" /> : <div className="grid size-full place-items-center text-sm font-bold text-muted-foreground">{name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '—'}</div>}
+          {editing && canManage && item.teacherId && <button type="button" title="Ganti foto" onClick={() => fileInputRefs.current[item.id]?.click()} className="absolute inset-x-0 bottom-0 bg-slate-950/80 py-1 text-[9px] text-white"><ImagePlus size={11} className="mx-auto"/></button>}
+        </div>
+        <div className="min-w-0 flex-1 text-left"><p className="text-[9px] font-bold uppercase leading-tight tracking-wide text-primary">{item.title || 'Jabatan belum diisi'}</p><p className="mt-1 break-words text-[11px] font-bold leading-tight text-foreground">{name}</p><p className="mt-1 text-[9px] text-muted-foreground">NIP: {nip || '—'}</p></div>
       </div>
-    );
+      {editing && canManage && item.teacherId && <input ref={(node) => { fileInputRefs.current[item.id] = node; }} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => { void changePhoto(item, event.target.files?.[0]); event.currentTarget.value = ''; }} />}
+      {editing && canManage && <div className="space-y-2 border-t bg-muted/20 p-2 text-left">
+        <label className="block space-y-1 text-[10px] font-semibold"><span>Nama Jabatan</span><input value={item.title} disabled={item.locked} onChange={(event) => update(item.id, { title: event.target.value })} className="w-full rounded-md border bg-background px-2 py-1.5 text-xs font-normal" /></label>
+        <label className="block space-y-1 text-[10px] font-semibold"><span>Kelompok Jabatan</span><select value={item.category} disabled={item.locked} onChange={(event) => update(item.id, { category: event.target.value })} className="w-full rounded-md border bg-background px-2 py-1.5 text-xs font-normal">{categoryOptions.map((category) => <option key={category}>{category}</option>)}</select></label>
+        <label className="block space-y-1 text-[10px] font-semibold"><span>Guru/Pegawai</span><select value={item.teacherId ?? ''} disabled={item.locked} onChange={(event) => { const selected = teachers.find((person) => person.id === event.target.value); update(item.id, { teacherId: selected?.id ?? null, personName: selected?.name ?? '', nip: selected?.nip ?? null, photoUrl: selected?.photoUrl ?? null }); }} className="w-full rounded-md border bg-background px-2 py-1.5 text-xs font-normal"><option value="">Belum ditentukan / manual</option>{teachers.map((person) => <option key={person.id} value={person.id}>{person.name}{person.nip ? ` · ${person.nip}` : ''}</option>)}</select></label>
+        {!item.teacherId && !item.locked && <><input value={item.personName ?? ''} onChange={(event) => update(item.id, { personName: event.target.value })} placeholder="Nama pegawai" className="w-full rounded-md border bg-background px-2 py-1.5 text-xs"/><input value={item.nip ?? ''} onChange={(event) => update(item.id, { nip: event.target.value })} placeholder="NIP (opsional)" className="w-full rounded-md border bg-background px-2 py-1.5 text-xs"/></>}
+        <label className="block space-y-1 text-[10px] font-semibold"><span>Atasan langsung</span><select value={item.parentId ?? ''} disabled={item.locked} onChange={(event) => update(item.id, { parentId: event.target.value || null })} className="w-full rounded-md border bg-background px-2 py-1.5 text-xs font-normal"><option value="">Tanpa atasan</option>{positions.filter((candidate) => candidate.id !== item.id).map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.title || 'Jabatan belum diisi'}</option>)}</select></label>
+        {!item.locked && <button type="button" onClick={() => setPositions((items) => items.filter((candidate) => candidate.id !== item.id).map((candidate) => candidate.parentId === item.id ? { ...candidate, parentId: item.parentId ?? null } : candidate))} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold text-red-700 hover:bg-red-50"><Trash2 size={12}/> Hapus</button>}
+      </div>}
+    </article>;
   };
 
   if (loading) return <div className="rounded-2xl border p-6 text-sm text-muted-foreground">Memuat bagan organisasi...</div>;
-  const roots = (childrenByParent.get(null) ?? []).concat(childrenByParent.get('') ?? []);
 
   return (
     <section className="space-y-5">
       <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4 shadow-sm">
-        <div className="flex items-center gap-3"><div className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary"><Users size={22}/></div><div><h2 className="font-bold">Bagan Struktur Organisasi Sekolah</h2><p className="mt-0.5 text-xs text-muted-foreground">Bagan bertingkat dengan foto, nama, NIP, dan garis hubungan atasan langsung</p></div></div>
+        <div className="flex items-center gap-3"><div className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary"><Users size={22}/></div><div><h2 className="font-bold">Bagan Struktur Organisasi Sekolah</h2><p className="mt-0.5 text-xs text-muted-foreground">Canvas organisasi: zoom, geser, dan atur posisi kartu secara bebas</p></div></div>
         {canManage && !editing && <button type="button" onClick={() => { setEditing(true); setNotice(''); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"><Users size={17}/> Kelola Struktur <ChevronDown size={16}/></button>}
         {canManage && editing && <div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setEditing(false); void load(); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold hover:bg-muted"><X size={16}/> Batal</button><button type="button" disabled={saving} onClick={() => void save()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"><Save size={17}/>{saving ? 'Menyimpan...' : 'Simpan Perubahan'} <Check size={16}/></button></div>}
       </header>
-      {editing && <div className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-200"><ImagePlus size={18} className="mt-0.5 shrink-0"/><p><b>Mode pengelolaan aktif.</b> Ubah jabatan, pilih atasan langsung, tentukan guru/pegawai, atau klik <b>Ganti foto</b> pada kartu. Foto yang diunggah juga memperbarui foto profil akun guru terkait.</p></div>}
+      {editing && <div className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-200"><ImagePlus size={18} className="mt-0.5 shrink-0"/><p><b>Mode pengelolaan aktif.</b> Seret kartu pada grid untuk mengatur posisi; garis mengikuti hubungan atasan. Ubah jabatan, tentukan guru/pegawai, atau klik <b>Ganti foto</b> pada kartu. Foto yang diunggah juga memperbarui foto profil akun guru terkait.</p></div>}
       {error && <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</div>}
       {notice && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200">{notice}</div>}
       {editing && <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3"><div><p className="text-sm font-bold">Tambah posisi organisasi</p><p className="text-xs text-muted-foreground">Posisi baru otomatis ditempatkan di bawah Kepala Sekolah. Atasan dapat diubah pada kartu.</p></div><button type="button" onClick={addPosition} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-dashed border-blue-400 bg-blue-50 px-4 text-sm font-bold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-200"><Plus size={17}/> Tambah Jabatan</button></div>}
-      <div className="overflow-x-auto rounded-2xl border bg-muted/20 p-4 sm:p-6">
-        <div className="mx-auto flex w-full min-w-[320px] max-w-[860px] flex-col items-center pb-5">
-          {roots.length ? roots.map((root) => renderNode(root)) : <div className="rounded-xl border border-dashed bg-card p-8 text-center text-sm text-muted-foreground">Bagan struktur organisasi belum diisi.</div>}
+      <div className="overflow-hidden rounded-2xl border bg-muted/20">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-card px-3 py-2">
+          <p className="flex items-center gap-2 text-xs text-muted-foreground"><Move size={14}/>{editing ? 'Seret kartu untuk mengatur posisi. Geser area kosong untuk menggerakkan kanvas.' : 'Geser kanvas dan gunakan zoom untuk melihat bagan.'}</p>
+          <div className="flex items-center gap-1"><button type="button" onClick={() => setZoom((v) => Math.min(1.5, v + 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perbesar"><ZoomIn size={16}/></button><span className="min-w-12 text-center text-xs tabular-nums">{Math.round(zoom * 100)}%</span><button type="button" onClick={() => setZoom((v) => Math.max(0.35, v - 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perkecil"><ZoomOut size={16}/></button><button type="button" onClick={() => { setZoom(0.85); setPan({ x: 80, y: 40 }); }} className="rounded-lg border p-2 hover:bg-muted" title="Atur ulang tampilan"><Maximize2 size={16}/></button></div>
+        </div>
+        <div ref={canvasRef} className="relative h-[680px] w-full overflow-hidden bg-background" onPointerDown={onCanvasPointerDown} onPointerMove={onCanvasPointerMove} onPointerUp={(event) => { if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null; }} onPointerCancel={() => { dragRef.current = null; }} onWheel={(event) => { if (event.ctrlKey || event.metaKey) { event.preventDefault(); setZoom((v) => Math.max(0.35, Math.min(1.5, v + (event.deltaY < 0 ? 0.05 : -0.05)))); } }} style={{ touchAction: 'none' }}>
+          <div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, width: canvasWidth, height: canvasHeight }}>
+            <div className={`absolute inset-0 ${editing ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: 'radial-gradient(#94a3b8 0.8px, transparent 0.8px)', backgroundSize: '20px 20px' }}/>
+            <svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible">{positions.filter((item) => item.parentId && nodePositions.has(item.parentId)).map((item) => { const child = nodePositions.get(item.id)!; const parent = nodePositions.get(item.parentId!)!; const x1 = parent.x + cardWidth / 2; const y1 = parent.y + cardHeight; const x2 = child.x + cardWidth / 2; const y2 = child.y; const mid = y1 + (y2 - y1) / 2; return <path key={`${item.parentId}-${item.id}`} d={`M ${x1} ${y1} V ${mid} H ${x2} V ${y2}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth={editing ? 2 : 1.7} strokeDasharray={editing ? '6 5' : undefined}/>; })}</svg>
+            {positions.map(renderCanvasCard)}
+          </div>
         </div>
       </div>
       <p className="text-center text-xs text-muted-foreground">Foto dan identitas mengikuti data profil guru/pegawai. NIP ditampilkan jika tersedia. Penetapan jabatan tidak mengubah role akun EduFlow.</p>

@@ -98,7 +98,7 @@ export class SchoolOrganizationService {
     return { positions, defaults: DEFAULT_POSITIONS };
   }
 
-  async save(input: Array<{ id?: string; title: string; personName?: string; nip?: string | null; teacherId?: string | null; parentId?: string | null; sortOrder?: number; category?: string }>) {
+  async save(input: Array<{ id?: string; title: string; personName?: string; nip?: string | null; teacherId?: string | null; parentId?: string | null; sortOrder?: number; category?: string; x?: number; y?: number }>) {
     if (!Array.isArray(input)) throw new BadRequestException('Format struktur organisasi tidak valid.');
     const positions = input.map((item, index) => ({
       id: item.id || `position-${index + 1}`,
@@ -109,6 +109,8 @@ export class SchoolOrganizationService {
       parentId: item.parentId || null,
       category: String(item.category ?? 'Jabatan Lainnya').trim(),
       sortOrder: Number.isFinite(item.sortOrder) ? Number(item.sortOrder) : index,
+      ...(Number.isFinite(item.x) ? { x: Math.max(0, Number(item.x)) } : {}),
+      ...(Number.isFinite(item.y) ? { y: Math.max(0, Number(item.y)) } : {}),
     }));
     if (positions.some((item) => !item.title)) throw new BadRequestException('Nama jabatan wajib diisi.');
     if (positions.filter((item) => item.category === 'Wakil Kepala Sekolah').length > 3) throw new BadRequestException('Maksimal tiga jabatan Wakil Kepala Sekolah.');
