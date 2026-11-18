@@ -315,12 +315,19 @@ export function getPrimaryNavigation(roles: string[] = []) {
 
   const canViewSchoolProfile = assignedRoles.length > 0 && !assignedRoles.includes('root') && !assignedRoles.includes('admin');
   const schoolProfileItem: NavigationItem[] = canViewSchoolProfile ? [{
-    href: '/school-profile/organization-structure', label: 'Profil Sekolah', icon: 'school',
+    href: '/school-profile/organization-structure', label: 'Bagan Organisasi', icon: 'school',
   }] : [];
-  const combinedItems = [...baseNavigation, ...additionalItems, ...schoolProfileItem];
+  // Keep the school organization chart directly visible in the main navigation,
+  // rather than burying it in the overflow menu.
+  const combinedItems = [
+    ...baseNavigation.slice(0, 4),
+    ...schoolProfileItem,
+    ...baseNavigation.slice(4),
+    ...additionalItems,
+  ];
   const groupItems = combinedItems.filter((item) => item.children?.length);
   const directItems = uniqueNavigationItems(combinedItems.filter((item) => !item.children?.length));
-  const mainItems = directItems.slice(0, 4);
+  const mainItems = directItems.slice(0, schoolProfileItem.length ? 5 : 4);
   const overflowItems = [
     ...directItems.slice(4),
     ...groupItems.flatMap((item) => item.children ?? []),
