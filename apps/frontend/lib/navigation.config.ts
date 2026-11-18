@@ -313,7 +313,11 @@ export function getPrimaryNavigation(roles: string[] = []) {
     .filter((role) => role !== primaryRole && !(primaryRole === 'guru' && role === 'wali_kelas'))
     .flatMap((role) => roleNavigation[role]);
 
-  const combinedItems = [...baseNavigation, ...additionalItems];
+  const canViewSchoolProfile = assignedRoles.length > 0 && !assignedRoles.includes('root') && !assignedRoles.includes('admin');
+  const schoolProfileItem: NavigationItem[] = canViewSchoolProfile ? [{
+    href: '/school-profile/organization-structure', label: 'Profil Sekolah', icon: 'school',
+  }] : [];
+  const combinedItems = [...baseNavigation, ...additionalItems, ...schoolProfileItem];
   const groupItems = combinedItems.filter((item) => item.children?.length);
   const directItems = uniqueNavigationItems(combinedItems.filter((item) => !item.children?.length));
   const mainItems = directItems.slice(0, 4);

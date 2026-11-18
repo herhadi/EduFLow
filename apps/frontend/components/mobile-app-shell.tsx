@@ -78,7 +78,16 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
     }
 
     const primaryRole = getPrimaryRole(currentUser.roles ?? []);
+    const assignedRoles = currentUser.roles ?? [];
     const requiredRole = getRequiredRoleForPath(pathname);
+    const isSchoolOrganizationPage = pathname.startsWith('/school-profile');
+    const isExcludedFromSchoolProfile = assignedRoles.includes('root') || assignedRoles.some((role) => role.trim().toLowerCase() === 'super admin');
+
+    if (isSchoolOrganizationPage && isExcludedFromSchoolProfile) {
+      window.alert('Menu Profil Sekolah tidak tersedia untuk role ini.');
+      window.location.href = getDashboardPathForRole(primaryRole);
+      return;
+    }
 
     if (!requiredRole || hasRoleNamespaceAccess(primaryRole, requiredRole)) {
       return;

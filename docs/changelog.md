@@ -302,3 +302,10 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Dialog pada layar mobile kini berada di tengah area konten dan bergeser ke atas untuk memberi ruang setinggi navigasi bawah, sehingga tidak tertutup navbar.
 - Tinggi tombol pada modal diseragamkan, dengan jarak horizontal dan vertikal yang lebih lega.
 - Kartu Pengelolaan Akun diselaraskan ukuran tipografi, padding, dan tinggi tombolnya dengan kartu Daftar Akun Aktif.
+
+## 2026-11-18 — Bagan Struktur Organisasi Sekolah
+
+- Menambahkan menu Profil Sekolah untuk seluruh role operasional selain Root dan Super Administrator.
+- Menambahkan halaman Bagan Struktur Organisasi dengan pengelolaan khusus Operator Sekolah dan tampilan baca untuk role lainnya.
+- Kepala Sekolah diambil otomatis dari akun ber-role `kepala_sekolah`; jabatan lain dapat diisi dari daftar guru atau nama pegawai non-guru.
+- Menyimpan susunan pada pengaturan sekolah, mendukung jabatan tambahan, penugasan rangkap, dan membatasi jabatan Wakil Kepala Sekolah maksimal tiga. Penetapan jabatan tidak mengubah role akun.

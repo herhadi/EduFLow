@@ -29,6 +29,7 @@ import { ReportingModule } from './modules/reporting/reporting.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
 import { StudentGradesModule } from './modules/student-grades/student-grades.module';
 import { StudentLeavesModule } from './modules/student-leaves/student-leaves.module';
+import { SchoolOrganizationModule } from './modules/school-organization/school-organization.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { QueueModule } from './queue/queue.module';
 import { WorkersModule } from './workers/workers.module';
@@ -58,6 +59,7 @@ import { WorkersModule } from './workers/workers.module';
     SchedulerModule,
     StudentGradesModule,
     StudentLeavesModule,
+    SchoolOrganizationModule,
     AuditModule,
     WorkersModule,
   ],
