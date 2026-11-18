@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { Check, ChevronDown, ImagePlus, Plus, Save, Trash2, Users, X, ZoomIn, ZoomOut, Maximize2, Move } from 'lucide-react';
+import { Check, ChevronDown, ImagePlus, Plus, Save, Trash2, Users, X, ZoomIn, ZoomOut, Maximize2, Move, Printer, FileDown } from 'lucide-react';
 import { request, upload } from '../../lib/api-client';
 import { getCurrentSessionUser } from '../../lib/session';
 import { prepareProfilePhotoForUpload } from '../../lib/image-compression';
@@ -34,6 +34,7 @@ export function SchoolOrganization() {
   const pressRef = useRef<{ id: string; pointerId: number; startX: number; startY: number; originX: number; originY: number; dragging: boolean } | null>(null);
   const [zoom, setZoom] = useState(0.85);
   const [pan, setPan] = useState({ x: 80, y: 40 });
+  const printSourceRef = useRef<HTMLDivElement | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -178,7 +179,7 @@ export function SchoolOrganization() {
     const nip = teacher?.nip ?? item.nip;
     const photoUrl = teacher?.photoUrl ?? item.photoUrl;
     const point = nodePositions.get(item.id) ?? { x: 80, y: 80 };
-    return <article key={item.id} data-org-card="true" onPointerDown={(event) => beginCardPress(event, item)} style={{ position: 'absolute', left: 950 + (point.x - 950) * (cardWidth / 220), top: point.y, width: cardWidth, minHeight: editing && selectedCardId === item.id ? cardHeight : 112, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className={`z-10 overflow-visible rounded-xl border bg-card shadow-sm ${editing && selectedCardId === item.id ? 'ring-2 ring-blue-500 shadow-lg' : editing ? 'ring-1 ring-dashed ring-slate-300' : ''} ${item.id === 'principal' ? 'border-blue-400' : 'border-border'}`}>
+    return <article key={item.id} data-org-card="true" onPointerDown={(event) => beginCardPress(event, item)} style={{ position: 'absolute', left: 950 + (point.x - 950) * (cardWidth / 220), top: point.y, width: cardWidth, minHeight: editing && selectedCardId === item.id ? cardHeight : 112, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className={`org-print-node z-10 overflow-visible rounded-xl border bg-card shadow-sm ${editing && selectedCardId === item.id ? 'ring-2 ring-blue-500 shadow-lg' : editing ? 'ring-1 ring-dashed ring-slate-300' : ''} ${item.id === 'principal' ? 'border-blue-400' : 'border-border'}`}>
       <div className={`h-1 w-full rounded-t-xl ${item.id === 'principal' ? 'bg-blue-600' : item.category === 'Wakil Kepala Sekolah' ? 'bg-emerald-500' : 'bg-sky-500'}`} />
       <div className="flex items-center gap-2 p-2.5">
         <div className="relative size-11 shrink-0 overflow-hidden rounded-lg border bg-muted">
@@ -199,12 +200,58 @@ export function SchoolOrganization() {
     </article>;
   };
 
+  const openPrintView = () => {
+    const source = printSourceRef.current;
+    if (!source) return;
+    const popup = window.open('', '_blank', 'width=1400,height=1000');
+    if (!popup) { setError('Popup diblokir browser. Izinkan popup untuk membuka preview cetak.'); return; }
+    const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style')).map((node) => node.outerHTML).join('\n');
+    const clone = source.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('input,select,button').forEach((node) => node.remove());
+    clone.querySelectorAll('.org-print-node > div.border-t').forEach((node) => node.remove());
+    clone.querySelectorAll('.org-print-node').forEach((node) => { node.querySelectorAll('div.absolute.inset-x-0').forEach((overlay) => overlay.remove()); });
+    clone.querySelectorAll('.org-print-node').forEach((node) => {
+      const card = node as HTMLElement;
+      card.style.minHeight = '112px';
+      card.style.height = '112px';
+      card.style.width = '220px';
+      card.style.left = `${950 + ((Number.parseFloat(card.style.left) || 0) - 950) * (220 / cardWidth)}px`;
+      card.style.transform = 'none';
+      card.style.boxShadow = 'none';
+      card.style.backgroundColor = '#fff';
+      card.style.color = '#111';
+      card.style.borderColor = '#64748b';
+      card.querySelectorAll('img').forEach((img) => { (img as HTMLImageElement).style.objectFit = 'cover'; });
+    });
+    clone.style.cssText = 'position:relative;width:1900px;height:2200px;transform:none;overflow:visible;';
+    const inner = clone.firstElementChild as HTMLElement | null;
+    if (inner) inner.style.cssText = 'position:relative;width:1900px;height:2200px;transform:none;inset:auto;overflow:visible;';
+    const transformLayer = clone.firstElementChild as HTMLElement | null;
+    if (transformLayer) { transformLayer.style.transform = 'none'; transformLayer.style.position = 'relative'; transformLayer.style.left = '0'; transformLayer.style.top = '0'; }
+    const grid = clone.querySelector('[style*="radial-gradient"]') as HTMLElement | null;
+    if (grid) grid.style.display = 'none';
+    popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Bagan Struktur Organisasi Sekolah</title>${styles}<style>@page{size:A3 landscape;margin:10mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}html,body{margin:0;background:#fff;color:#111;font-family:Arial,sans-serif}.print-sheet{width:100%;overflow:hidden;display:flex;flex-direction:column;align-items:center}.org-print-title{text-align:center;font-size:22px;font-weight:700;margin:0 0 8mm}.print-canvas{width:1900px;height:2200px;transform:scale(.43);transform-origin:top left;position:relative;overflow:visible;margin:0 auto}.org-print-node{position:absolute!important;break-inside:avoid;box-shadow:none!important}.print-help{font:12px Arial;color:#666;margin:8px 0 16px}.print-toolbar{display:flex;justify-content:flex-end;margin-bottom:10px}.print-toolbar button{padding:9px 16px;background:#1d4ed8;color:#fff;border:0;border-radius:6px;cursor:pointer}@media screen{body{padding:24px}.print-sheet{width:100%;overflow:auto}.print-canvas{margin:auto}}@media print{.print-help,.print-toolbar{display:none}}</style></head><body><main class="print-sheet"><h1 class="org-print-title">BAGAN STRUKTUR ORGANISASI SEKOLAH</h1><div class="print-toolbar"><button onclick="window.print()">Cetak / Simpan PDF</button></div><p class="print-help">Kertas A3 Landscape. Pilih Save as PDF untuk menyimpan dokumen.</p><div class="print-canvas">${clone.innerHTML}</div></main><script>window.onload=()=>{document.title='Preview Bagan Struktur Organisasi';}<\/script></body></html>`);
+    popup.document.close();
+  };
+
+  const printOrganization = () => {
+    openPrintView();
+    // Preview is displayed first; user starts printing from its browser print command.
+  };
+
+  const downloadOrganizationPdf = () => {
+    openPrintView();
+    // Browser's Save as PDF destination generates a vector PDF without rasterizing the chart.
+  };
+
+
   if (loading) return <div className="rounded-2xl border p-6 text-sm text-muted-foreground">Memuat bagan organisasi...</div>;
 
   return (
     <section className="space-y-5">
       <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4 shadow-sm">
         <div className="flex items-center gap-3"><div className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary"><Users size={22}/></div><div><h2 className="font-bold">Bagan Struktur Organisasi Sekolah</h2><p className="mt-0.5 text-xs text-muted-foreground">Canvas organisasi: zoom, geser, dan atur posisi kartu secara bebas</p></div></div>
+        {!editing && <div className="flex flex-wrap gap-2"><button type="button" onClick={printOrganization} className="inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold hover:bg-muted"><Printer size={16}/> Preview Cetak</button><button type="button" onClick={downloadOrganizationPdf} className="inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold hover:bg-muted"><FileDown size={16}/> Unduh PDF</button></div>}
         {canManage && !editing && <button type="button" onClick={() => { setEditing(true); setSelectedCardId(null); setNotice(''); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"><Users size={17}/> Kelola Struktur <ChevronDown size={16}/></button>}
         {canManage && editing && <div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setEditing(false); void load(); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold hover:bg-muted"><X size={16}/> Batal</button><button type="button" disabled={saving} onClick={() => void save()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"><Save size={17}/>{saving ? 'Menyimpan...' : 'Simpan Perubahan'} <Check size={16}/></button></div>}
       </header>
@@ -217,12 +264,12 @@ export function SchoolOrganization() {
           <p className="flex items-center gap-2 text-xs text-muted-foreground"><Move size={14}/>{editing ? 'Klik kartu untuk mengisi data · tekan dan tahan 0,4 detik untuk drag · geser area kosong untuk pan.' : 'Geser kanvas dan gunakan zoom untuk melihat bagan.'}</p>
           <div className="flex flex-wrap items-center gap-2">{editing && <label className="flex items-center gap-2 text-[11px] text-muted-foreground">Lebar kartu <input aria-label="Lebar kartu" type="range" min="160" max="280" step="10" value={cardWidth} onChange={(event) => setCardWidth(Number(event.target.value))} className="w-24"/><span className="w-8 tabular-nums">{cardWidth}</span></label>}<div className="flex items-center gap-1"><button type="button" onClick={() => setZoom((v) => Math.min(1.5, v + 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perbesar"><ZoomIn size={16}/></button><span className="min-w-12 text-center text-xs tabular-nums">{Math.round(zoom * 100)}%</span><button type="button" onClick={() => setZoom((v) => Math.max(0.35, v - 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perkecil"><ZoomOut size={16}/></button><button type="button" onClick={() => { setZoom(0.85); setPan({ x: 80, y: 40 }); }} className="rounded-lg border p-2 hover:bg-muted" title="Atur ulang tampilan"><Maximize2 size={16}/></button></div></div>
         </div>
-        <div ref={canvasRef} className="relative h-[680px] w-full overflow-hidden bg-background" onPointerDown={onCanvasPointerDown} onPointerMove={(event) => { moveCardPress(event); onCanvasPointerMove(event); }} onPointerUp={(event) => { endCardPress(event); if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null; }} onPointerCancel={() => { if (holdTimer.current) clearTimeout(holdTimer.current); pressRef.current = null; dragRef.current = null; }} onWheel={(event) => { if (event.ctrlKey || event.metaKey) { event.preventDefault(); setZoom((v) => Math.max(0.35, Math.min(1.5, v + (event.deltaY < 0 ? 0.05 : -0.05)))); } }} style={{ touchAction: 'none' }}>
-          <div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, width: canvasWidth, height: canvasHeight }}>
+        <div ref={canvasRef} className="org-print-canvas relative h-[680px] w-full overflow-hidden bg-background" onPointerDown={onCanvasPointerDown} onPointerMove={(event) => { moveCardPress(event); onCanvasPointerMove(event); }} onPointerUp={(event) => { endCardPress(event); if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null; }} onPointerCancel={() => { if (holdTimer.current) clearTimeout(holdTimer.current); pressRef.current = null; dragRef.current = null; }} onWheel={(event) => { if (event.ctrlKey || event.metaKey) { event.preventDefault(); setZoom((v) => Math.max(0.35, Math.min(1.5, v + (event.deltaY < 0 ? 0.05 : -0.05)))); } }} style={{ touchAction: 'none' }}>
+          <div ref={printSourceRef} className="org-print-source" style={{ position: 'relative', width: canvasWidth, height: canvasHeight, transform: 'none' }}><div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, width: canvasWidth, height: canvasHeight }}>
             <div className={`absolute inset-0 ${editing ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: 'radial-gradient(#94a3b8 0.8px, transparent 0.8px)', backgroundSize: '20px 20px' }}/>
-            <svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible">{positions.filter((item) => item.parentId && nodePositions.has(item.parentId)).map((item) => { const child = nodePositions.get(item.id)!; const parent = nodePositions.get(item.parentId!)!; const x1 = 950 + (parent.x - 950) * (cardWidth / 220) + cardWidth / 2; const y1 = parent.y + (editing && selectedCardId === parent.id ? cardHeight : 112); const x2 = 950 + (child.x - 950) * (cardWidth / 220) + cardWidth / 2; const y2 = child.y; const mid = y1 + (y2 - y1) / 2; return <path key={`${item.parentId}-${item.id}`} d={`M ${x1} ${y1} V ${mid} H ${x2} V ${y2}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth={editing ? 2 : 1.7} strokeDasharray={editing ? '6 5' : undefined}/>; })}</svg>
-            {positions.map(renderCanvasCard)}{(() => { const parent = positions.find((item) => item.id === 'vice-student') ?? positions.find((item) => item.id === 'principal'); const point = parent ? nodePositions.get(parent.id) : null; if (!point) return null; const px = 950 + (point.x - 950) * (cardWidth / 220) + cardWidth / 2; const py = point.y + (editing && selectedCardId === parent.id ? cardHeight : 112); const studentY = Math.max(70 + 4 * (editing ? 390 : 190), py + 150); return <><svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible"><path d={`M ${px} ${py} V ${studentY - 28} H 950 V ${studentY}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth="2" strokeDasharray={editing ? '6 5' : undefined}/></svg><div style={{ position: 'absolute', left: 840, top: studentY, width: 220 }} className="z-10 rounded-xl border-2 border-amber-400 bg-card px-4 py-3 text-center shadow-sm"><Users size={22} className="mx-auto mb-1 text-amber-600"/><p className="text-xs font-bold">PESERTA DIDIK</p><p className="mt-0.5 text-[10px] text-muted-foreground">Seluruh peserta didik</p></div></>; })()}
-          </div>
+            <svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible">{positions.filter((item) => item.parentId && nodePositions.has(item.parentId)).map((item) => { const child = nodePositions.get(item.id)!; const parent = nodePositions.get(item.parentId!)!; const x1 = 950 + (parent.x - 950) * (cardWidth / 220) + cardWidth / 2; const y1 = parent.y + (editing && selectedCardId === item.parentId ? cardHeight : 112); const x2 = 950 + (child.x - 950) * (cardWidth / 220) + cardWidth / 2; const y2 = child.y; const mid = y1 + (y2 - y1) / 2; return <path key={`${item.parentId}-${item.id}`} d={`M ${x1} ${y1} V ${mid} H ${x2} V ${y2}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth={editing ? 2 : 1.7} strokeDasharray={editing ? '6 5' : undefined}/>; })}</svg>
+            {positions.map(renderCanvasCard)}{(() => { const parent = positions.find((item) => item.id === 'vice-student') ?? positions.find((item) => item.id === 'principal'); const point = parent ? nodePositions.get(parent.id) : null; if (!point) return null; const px = 950 + (point.x - 950) * (cardWidth / 220) + cardWidth / 2; const py = point.y + 112; const studentY = Math.max(70 + 4 * (editing ? 390 : 190), py + 150); return <><svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 overflow-visible"><path d={`M ${px} ${py} V ${studentY - 28} H 950 V ${studentY}`} fill="none" stroke={editing ? '#3b82f6' : '#94a3b8'} strokeWidth="2" strokeDasharray={editing ? '6 5' : undefined}/></svg><div style={{ position: 'absolute', left: 840, top: studentY, width: 220 }} className="z-10 rounded-xl border-2 border-amber-400 bg-card px-4 py-3 text-center shadow-sm"><Users size={22} className="mx-auto mb-1 text-amber-600"/><p className="text-xs font-bold">PESERTA DIDIK</p><p className="mt-0.5 text-[10px] text-muted-foreground">Seluruh peserta didik</p></div></>; })()}
+          </div></div>
         </div>
       </div>
       <p className="text-center text-xs text-muted-foreground">Foto dan identitas mengikuti data profil guru/pegawai. NIP ditampilkan jika tersedia. Penetapan jabatan tidak mengubah role akun EduFlow.</p>
