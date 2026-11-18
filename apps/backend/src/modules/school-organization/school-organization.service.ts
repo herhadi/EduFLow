@@ -29,10 +29,16 @@ export class SchoolOrganizationService {
       this.prisma.teacher.findMany({ where: { isActive: true, deletedAt: null }, select: { id: true, name: true } }),
     ]);
     const teacherNames = new Map(teachers.map((teacher) => [teacher.id, teacher.name]));
-    const stored = setting ? JSON.parse(setting.value) as Array<Record<string, unknown>> : DEFAULT_POSITIONS;
-    const positions = stored.map((position) => position.id === 'principal'
-      ? { ...position, teacherId: principal?.id ?? null, personName: principal?.name ?? null, locked: true }
-      : { ...position, personName: position.teacherId ? teacherNames.get(String(position.teacherId)) ?? null : position.personName ?? null });
+    const stored: Array<Record<string, unknown>> = setting
+      ? JSON.parse(setting.value) as Array<Record<string, unknown>>
+      : DEFAULT_POSITIONS;
+    const positions = stored.map((position) => {
+      const teacherId = typeof position.teacherId === 'string' ? position.teacherId : null;
+      const savedPersonName = typeof position.personName === 'string' ? position.personName : null;
+      return position.id === 'principal'
+        ? { ...position, teacherId: principal?.id ?? null, personName: principal?.name ?? null, locked: true }
+        : { ...position, personName: teacherId ? teacherNames.get(teacherId) ?? null : savedPersonName };
+    });
     return { positions, defaults: DEFAULT_POSITIONS };
   }
 
