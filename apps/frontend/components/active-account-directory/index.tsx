@@ -89,7 +89,12 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
   const visibleAccounts = filteredAccounts.slice((page - 1) * DEFAULT_PAGE_SIZE, page * DEFAULT_PAGE_SIZE);
 
   const buildPages = (paperSize: PrintPaperSize): ReactNode[] => {
-    const rowsPerPage = paperSize === 'A4_LANDSCAPE' ? 26 : paperSize === 'A4' ? 38 : 45;
+    // Reserve physical space for page margins, heading, table header, and footer.
+    // Fixed 5.5 mm rows accommodate up to two compact text lines.
+    const paperHeightMm = paperSize === 'F4' ? 330 : paperSize === 'A4' ? 297 : 210;
+    const reservedHeightMm = 24 + 14 + 18 + 6;
+    const rowHeightMm = 5.5;
+    const rowsPerPage = Math.floor((paperHeightMm - reservedHeightMm) / rowHeightMm);
     const chunks: AppUser[][] = [];
     for (let index = 0; index < filteredAccounts.length; index += rowsPerPage) {
       chunks.push(filteredAccounts.slice(index, index + rowsPerPage));
@@ -101,7 +106,7 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
           <h2 className="mt-1 text-base font-black">Daftar Akun Aktif</h2>
           <p className="mt-1 text-[9px]">Jumlah: {filteredAccounts.length} akun · Lembar {pageIndex + 1}/{chunks.length}</p>
         </div>
-        <table className="w-full table-fixed border-collapse text-[7px] leading-tight">
+        <table className="active-account-print-table w-full table-fixed border-collapse text-[7px] leading-none">
           <thead>
             <tr className="bg-slate-100">
               <th className="w-[4%] border border-slate-400 px-1 py-1 text-center">No</th>
@@ -116,15 +121,15 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
           </thead>
           <tbody>
             {chunk.map((account, index) => (
-              <tr key={account.id}>
-                <td className="border border-slate-300 px-1 py-1 text-center">{pageIndex * rowsPerPage + index + 1}</td>
-                <td className="break-words border border-slate-300 px-1 py-1 font-semibold">{account.name}</td>
-                <td className="break-words border border-slate-300 px-1 py-1">{account.username || '—'}</td>
-                <td className="break-words border border-slate-300 px-1 py-1">{account.email}</td>
-                <td className="break-words border border-slate-300 px-1 py-1">{getRoleLabels(account.roles)}</td>
-                <td className="border border-slate-300 px-1 py-1">{formatDateTime(account.lastLoginAt)}</td>
-                <td className="border border-slate-300 px-1 py-1 text-center">{getAccountStatus(account)}</td>
-                <td className="border border-slate-300 px-1 py-1">{formatDate(account.createdAt)}</td>
+              <tr className="active-account-print-row" key={account.id}>
+                <td className="active-account-print-cell border border-slate-300 px-1 py-0 text-center"><div>{pageIndex * rowsPerPage + index + 1}</div></td>
+                <td className="active-account-print-cell border border-slate-300 px-1 py-0 font-semibold"><div>{account.name}</div></td>
+                <td className="active-account-print-cell border border-slate-300 px-1 py-0"><div>{account.username || '—'}</div></td>
+                <td className="active-account-print-cell border border-slate-300 px-1 py-0"><div>{account.email}</div></td>
+                <td className="active-account-print-cell border border-slate-300 px-1 py-0"><div>{getRoleLabels(account.roles)}</div></td>
+                <td className="active-account-print-cell border border-slate-300 px-1 py-0"><div>{formatDateTime(account.lastLoginAt)}</div></td>
+                <td className="active-account-print-cell border border-slate-300 px-1 py-0 text-center"><div>{getAccountStatus(account)}</div></td>
+                <td className="active-account-print-cell border border-slate-300 px-1 py-0"><div>{formatDate(account.createdAt)}</div></td>
               </tr>
             ))}
           </tbody>
@@ -255,6 +260,13 @@ export function ActiveAccountDirectory({ audience }: { audience: Audience }) {
       ) : null}
 
       <p className="mt-3 text-xs text-muted">Menampilkan akun yang belum dinonaktifkan. Akun yang sedang terkunci tetap ditampilkan dengan status Terkunci.</p>
+
+      <style jsx global>{`
+        .active-account-print-table { border-collapse: collapse; table-layout: fixed; }
+        .active-account-print-row { height: 5.5mm; }
+        .active-account-print-cell { height: 5.5mm; max-height: 5.5mm; padding-top: 0.5mm !important; padding-bottom: 0.5mm !important; vertical-align: middle; overflow: hidden; line-height: 1.05 !important; overflow-wrap: anywhere; }
+        .active-account-print-cell > div { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-height: 2.1em; line-height: 1.05; }
+      `}</style>
 
       {showPreview ? (
         <PrintPreview

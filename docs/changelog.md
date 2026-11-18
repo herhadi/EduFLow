@@ -289,4 +289,10 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 
 - Menggabungkan akses daftar akun ke menu **Akun & Akses** agar navbar tidak memiliki menu terpisah. Pada halaman Super Administrator, daftar akun tampil langsung di bawah panel pengelolaan akun; Operator Sekolah membuka daftar melalui menu Akun & Akses.
 - Menonjolkan ringkasan total akun dan akun terkunci pada bagian daftar.
-- Menambah kapasitas halaman cetak daftar akun: F4 portrait 45 baris, A4 portrait 38 baris, dan A4 landscape 26 baris agar ruang kertas digunakan lebih efektif.
+- Menata kapasitas halaman cetak daftar akun berdasarkan ukuran kertas; rincian penghitungan tinggi baris diperbarui pada catatan konsistensi tinggi baris di bawah.
+
+
+## 2026-11-18 — Konsistensi tinggi baris cetak daftar akun
+
+- Menyamakan tinggi setiap baris tabel cetak menjadi 5,5 mm dengan isi maksimal dua baris agar baris pendek dan panjang tetap sejajar.
+- Menghitung kapasitas per halaman berdasarkan tinggi fisik kertas dan ruang yang disediakan untuk margin, judul, header tabel, serta footer, bukan jumlah baris perkiraan yang terpisah.
