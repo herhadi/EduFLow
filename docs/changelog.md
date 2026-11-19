@@ -370,3 +370,8 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Lapisan pemilihan garis tidak lagi menutupi kartu; hanya jalur garis dan titik kendali yang menerima klik sehingga kartu tetap dapat dibuka dan diedit.
 - Garis baru dan garis terpilih menggunakan garis hitam solid dengan ketebalan seragam; titik ujung tetap menjadi penanda saat pengeditan.
 - ID segmen dibuat lebih unik untuk mencegah tabrakan ketika beberapa titik dibuat berurutan dengan cepat.
+
+
+## 2026-11-19 — Perbaikan tipe geometri kartu bagan organisasi
+- Menambahkan lebar kartu pada hasil deteksi kartu berbasis koordinat agar konsisten dengan deteksi elemen DOM saat menyelesaikan konektor.
+- Memperbaiki kegagalan pemeriksaan TypeScript pada proses build frontend.
