@@ -364,3 +364,9 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Garis/shape dapat dipilih dengan mode panah, diberi penanda visual saat terpilih, serta diedit dengan menggeser titik ujung tanpa membuat garis duplikat.
 - Saat menggambar garis, pratinjau garis mengikuti pointer sebelum titik akhir dipilih.
 - Panel edit kartu diberi ruang vertikal dengan menggeser kartu-kartu di bawahnya agar bidang isian tidak tertutup.
+
+## 2026-11-19 — Koreksi konektor bagan organisasi
+- Klik kartu tujuan saat menggambar konektor kini dikenali dari elemen kartu aktual agar segmen terakhir tetap tersimpan.
+- Lapisan pemilihan garis tidak lagi menutupi kartu; hanya jalur garis dan titik kendali yang menerima klik sehingga kartu tetap dapat dibuka dan diedit.
+- Garis baru dan garis terpilih menggunakan garis hitam solid dengan ketebalan seragam; titik ujung tetap menjadi penanda saat pengeditan.
+- ID segmen dibuat lebih unik untuk mencegah tabrakan ketika beberapa titik dibuat berurutan dengan cepat.
