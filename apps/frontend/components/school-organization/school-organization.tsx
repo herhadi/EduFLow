@@ -14,19 +14,25 @@ type OrganizationClass = { id: string; name: string; grade?: string | null; teac
 type OrganizationResponse = { positions: Position[]; defaults: Position[]; schoolYear?: { id: string; name: string } | null; classes?: OrganizationClass[] };
 type UploadResponse = { data?: Teacher; message?: string };
 
-type Connector = { start?: { x: number; y: number }; end?: { x: number; y: number }; type?: 'line' | 'rect'; hidden?: boolean };
+type Connector = { start?: { x: number; y: number }; end?: { x: number; y: number }; points?: Array<{ x: number; y: number }>; type?: 'line' | 'rect'; hidden?: boolean };
 type ConnectorMap = Record<string, Connector>;
 
 function normalizeConnectors(input: Record<string, Connector>): ConnectorMap {
   return Object.fromEntries(
     Object.entries(input)
-      .filter(([key, value]) => key.startsWith('shape:') || (!key.startsWith('__') && value.start && value.end))
+      .filter(([key, value]) => key.startsWith('shape:') || (!key.startsWith('__') && ((value.start && value.end) || (value.points && value.points.length >= 2))))
       .map(([key, value]) => {
         const cleanKey = key.replace(/^`|`$/g, '');
         const normalizedKey = cleanKey.startsWith('shape:')
           ? cleanKey
           : `shape:${crypto.randomUUID()}`;
-        return [normalizedKey, { ...value, type: value.type === 'rect' ? 'rect' : 'line' }];
+        const points = value.points && value.points.length >= 2 ? value.points : undefined;
+        return [normalizedKey, {
+          ...value,
+          start: value.start ?? points?.[0],
+          end: value.end ?? points?.[points.length - 1],
+          type: value.type === 'rect' ? 'rect' : 'line',
+        }];
       }),
   );
 }
