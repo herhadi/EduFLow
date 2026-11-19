@@ -398,3 +398,12 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Tata letak awal kartu menggunakan grid berdasarkan urutan jabatan, sementara posisi yang sudah disimpan tetap dipertahankan.
 - Titik sudut garis manual menggunakan grid 10 px dan auto-align horizontal/vertikal saat mendekati garis lurus untuk menghasilkan sambungan yang presisi.
 - Ujung garis tetap diarahkan ke sisi kartu saat garis diselesaikan pada kartu tujuan.
+
+
+## 2026-11-19 — Fokus konektor manual bagan organisasi
+- Menghapus seluruh rendering garis hierarki otomatis, termasuk konektor untuk rombel Wali Kelas dan Peserta Didik.
+- Mengosongkan parentId saat menyimpan posisi agar relasi hierarki lama tidak dipakai kembali.
+- Normalisasi konektor hanya menerima objek dengan key shape:, sehingga garis hierarki lama tidak diimpor sebagai garis manual.
+- Mengubah proses gambar garis menjadi satu polyline utuh: mulai dari kartu, tambahkan titik sudut di kanvas, lalu akhiri pada kartu tujuan.
+- Deteksi dan snapping ujung garis memakai batas DOM aktual untuk card jabatan, Wali Kelas, dan Peserta Didik; titik sudut mendekati horizontal/vertikal dirapikan dan di-grid.
+- Garis manual disimpan sebagai satu objek dengan daftar titik, sehingga segmen tidak saling menimpa dan bisa dipilih/dihapus sebagai satu garis.
