@@ -375,3 +375,11 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 ## 2026-11-19 — Perbaikan tipe geometri kartu bagan organisasi
 - Menambahkan lebar kartu pada hasil deteksi kartu berbasis koordinat agar konsisten dengan deteksi elemen DOM saat menyelesaikan konektor.
 - Memperbaiki kegagalan pemeriksaan TypeScript pada proses build frontend.
+
+
+## 2026-11-19 — Penyempurnaan editor bagan organisasi
+- Memperbaiki deteksi batas kartu tujuan berdasarkan posisi aktual elemen pada kanvas saat menyelesaikan garis.
+- Menggunakan ID unik untuk setiap segmen agar klik beruntun tidak menimpa segmen garis sebelumnya.
+- Semua kartu jabatan dapat diedit, termasuk Nama dan NIP meskipun terhubung ke data Guru/Pegawai; Peserta Didik tetap dikecualikan.
+- Menyeragamkan garis menjadi hitam dengan ketebalan yang sama; seluruh garis tampil putus-putus saat mode Kelola Struktur dan solid saat tampilan biasa.
+- Memusatkan foto dengan ukuran tetap pada kartu jabatan dan mengecilkan handle konektor biru menjadi setengah ukuran sebelumnya.
