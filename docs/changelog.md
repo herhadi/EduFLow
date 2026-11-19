@@ -383,3 +383,10 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Semua kartu jabatan dapat diedit, termasuk Nama dan NIP meskipun terhubung ke data Guru/Pegawai; Peserta Didik tetap dikecualikan.
 - Menyeragamkan garis menjadi hitam dengan ketebalan yang sama; seluruh garis tampil putus-putus saat mode Kelola Struktur dan solid saat tampilan biasa.
 - Memusatkan foto dengan ukuran tetap pada kartu jabatan dan mengecilkan handle konektor biru menjadi setengah ukuran sebelumnya.
+
+
+## 2026-11-19 — Koreksi interaksi card Wali Kelas dan geometri kartu
+- Mengembalikan tata letak foto horizontal seperti semula, dengan foto dan teks disejajarkan di tengah vertikal.
+- Menetapkan tinggi kartu organisasi secara eksplisit agar titik konektor bawah konsisten dengan geometri kartu.
+- Menjadikan card Wali Kelas dapat dipilih dan dipindahkan dalam mode pilih; posisi manual disimpan bersama metadata konektor.
+- Menambahkan dukungan penghapusan visual card Wali Kelas tanpa menghapus data rombel akademik sumber.
