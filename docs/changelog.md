@@ -358,3 +358,9 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Alat garis memakai klik bertahap: titik awal dan tujuan otomatis menempel pada titik tengah sisi kartu; klik area kosong menambahkan titik sudut tanpa mengakhiri proses menggambar.
 - Menambahkan hapus untuk kartu jabatan dan shape, serta undo/redo untuk perubahan tata letak dan elemen bagan.
 - Scroll biasa menggeser kanvas, sedangkan Ctrl/Command + scroll mengatur zoom. Pemindahan kartu tidak lagi memerlukan tekan-tahan.
+
+## 2026-11-19 — Penyempurnaan editor bagan organisasi
+- Nama jabatan dapat diketik manual; jabatan yang sudah dibuat tersedia kembali sebagai saran pilihan pada input nama jabatan.
+- Garis/shape dapat dipilih dengan mode panah, diberi penanda visual saat terpilih, serta diedit dengan menggeser titik ujung tanpa membuat garis duplikat.
+- Saat menggambar garis, pratinjau garis mengikuti pointer sebelum titik akhir dipilih.
+- Panel edit kartu diberi ruang vertikal dengan menggeser kartu-kartu di bawahnya agar bidang isian tidak tertutup.
