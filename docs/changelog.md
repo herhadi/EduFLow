@@ -417,3 +417,10 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 ## 2026-11-19 — Penyempurnaan konektor bagan organisasi
 - Mengecilkan lingkaran biru penanda ujung konektor menjadi 50% tanpa memperkecil area klik/drag.
 - Menambahkan auto-correct pada penyambungan dua kartu: sudut terakhir digeser ke sumbu tujuan bila selisihnya kecil, serta titik duplikat dan titik segaris yang tidak diperlukan dibersihkan agar garis tidak melewati titik sambung.
+
+## 2026-11-19 — Perapian kartu bagan organisasi
+- Memisahkan perhitungan layout dan auto-alignment kartu ke `card-layout.ts` agar mudah ditelusuri dan diuji terpisah dari komponen kanvas.
+- Memindahkan editor kartu jabatan dan editor wali kelas ke modal, sehingga form tidak lagi memperbesar atau menutupi kartu di bagan.
+- Menyamakan ukuran kartu jabatan, wali kelas, dan peserta didik mengikuti pengaturan lebar/tinggi kartu.
+- Menjaga jarak vertikal minimum antarbaris agar tidak tumpang tindih; baris terakhir yang jumlah kartunya tidak penuh diratakan di tengah.
+- Mengaktifkan snap grid dan auto-alignment horizontal/vertikal saat memindahkan kartu, termasuk kartu wali kelas dan peserta didik.
