@@ -11,7 +11,7 @@ import { getOrganizationCardLayout, snapCardPosition } from './card-layout';
 import { OrganizationCardEditor } from './organization-card-editor';
 
 type Teacher = { id: string; name: string; nip?: string | null; photoUrl?: string | null };
-type Position = { id: string; title: string; personName?: string | null; teacherId?: string | null; parentId?: string | null; category: string; sortOrder: number; locked?: boolean; nip?: string | null; photoUrl?: string | null; x?: number; y?: number };
+type Position = { id: string; title: string; personName?: string | null; teacherId?: string | null; category: string; sortOrder: number; locked?: boolean; nip?: string | null; photoUrl?: string | null; x?: number; y?: number };
 type OrganizationClass = { id: string; name: string; grade?: string | null; teacherId?: string | null; teacherName?: string | null; nip?: string | null; photoUrl?: string | null };
 type OrganizationResponse = { positions: Position[]; defaults: Position[]; schoolYear?: { id: string; name: string } | null; classes?: OrganizationClass[] };
 type UploadResponse = { data?: Teacher; message?: string };
@@ -123,10 +123,13 @@ export function SchoolOrganization() {
     const safeRowGap = Math.max(rowGap, cardHeight + 40);
     if (!editing || previousRowGapRef.current === safeRowGap) return;
     const ordered = [...positions].sort((a, b) => a.sortOrder - b.sortOrder);
-    const indexById = new Map(ordered.map((item, index) => [item.id, index]));
+    const rowById = new Map(ordered.map((item, index) => [
+      item.id,
+      index === 0 ? 0 : 1 + Math.floor((index - 1) / 4),
+    ]));
     setPositions((items) => items.map((item) => {
-      const index = indexById.get(item.id);
-      return index === undefined ? item : { ...item, y: 70 + Math.floor(index / 4) * safeRowGap };
+      const row = rowById.get(item.id);
+      return row === undefined ? item : { ...item, y: 70 + row * safeRowGap };
     }));
     previousRowGapRef.current = safeRowGap;
   }, [editing, positions, rowGap, cardHeight]);
@@ -178,10 +181,8 @@ export function SchoolOrganization() {
 
   function addOrganizationCard(x: number, y: number) {
     rememberChange();
-    const principalPoint = nodePositions.get('principal');
-    const top = Math.max(y, (principalPoint?.y ?? 70) + cardHeight + 100);
     const id = `custom-${crypto.randomUUID()}`;
-    setPositions((items) => [...items, { id, title: 'Jabatan Baru', category: 'Jabatan Lainnya', sortOrder: items.length + 1, parentId: null, x: Math.round(x / 20) * 20, y: Math.round(top / 20) * 20 }]);
+    setPositions((items) => [...items, { id, title: 'Jabatan Baru', category: 'Jabatan Lainnya', sortOrder: items.length + 1, x: Math.round(x / 20) * 20, y: Math.round(Math.max(0, y) / 20) * 20 }]);
     setSelectedCardId(id); setSelectedShapeId(null); setDrawTool('select');
   }
 
@@ -198,13 +199,19 @@ export function SchoolOrganization() {
       // recalculating their positions with a different row gap after save.
       const persistedPositions = positions.map((item) => {
         const point = nodePositions.get(item.id);
-        return { ...item, parentId: null, ...(point ? { x: point.x, y: point.y } : {}) };
+        return { ...item, ...(point ? { x: point.x, y: point.y } : {}) };
       });
-      const studentParent = positions.find((item) => item.id === 'principal');
-      const studentParentPoint = studentParent ? nodePositions.get(studentParent.id) : null;
-      const defaultStudentY = studentParentPoint ? Math.max(70 + 4 * rowGap, studentParentPoint.y + cardHeight + 150) : 900;
-      const studentNode: Position = { id: '__students__', title: 'Peserta Didik', category: 'Peserta Didik', sortOrder: 9999, parentId: null, locked: true, x: studentPosition.x ?? 840, y: studentPosition.y ?? defaultStudentY };
-      const connectorNode: Position = { id: '__connectors__', title: 'Pengaturan Konektor', category: 'Pengaturan', sortOrder: 10000, parentId: null, personName: JSON.stringify(connectorPositions), locked: true };
+      const deepestOrgBottom = Math.max(0, ...positions.map((item) => {
+        const point = nodePositions.get(item.id);
+        return point ? point.y + cardHeight : 0;
+      }));
+      const classRows = Math.ceil(classCards.length / 4);
+      const classSectionBottom = classCards.length
+        ? deepestOrgBottom + 170 + Math.max(0, classRows - 1) * Math.max(150, cardHeight + 40) + cardHeight
+        : deepestOrgBottom;
+      const defaultStudentY = Math.max(900, classSectionBottom + (classCards.length ? 100 : 150));
+      const studentNode: Position = { id: '__students__', title: 'Peserta Didik', category: 'Peserta Didik', sortOrder: 9999, locked: true, x: studentPosition.x ?? 840, y: studentPosition.y ?? defaultStudentY };
+      const connectorNode: Position = { id: '__connectors__', title: 'Pengaturan Konektor', category: 'Pengaturan', sortOrder: 10000, personName: JSON.stringify(connectorPositions), locked: true };
       const result = await request<OrganizationResponse>('/school-organization', { method: 'PUT', body: JSON.stringify({ positions: [...persistedPositions, studentNode, connectorNode] }) });
       const savedStudentNode = result.positions.find((item) => item.id === '__students__');
       const savedConnectorNode = result.positions.find((item) => item.id === '__connectors__');
@@ -421,7 +428,15 @@ export function SchoolOrganization() {
       let y = Math.max(0, (event.clientY - rect.top - pan.y) / effectiveScale);
       const anchors = positions.flatMap((item) => { const point = nodePositions.get(item.id); if (!point) return []; const left = 950 + (point.x - 950) * (cardWidth / 220); const top = point.y; const width = cardWidth; const height = editing && selectedCardId === item.id ? expandedCardHeight : cardHeight; return [{ x: left + width / 2, y: top }, { x: left + width / 2, y: top + height }, { x: left, y: top + height / 2 }, { x: left + width, y: top + height / 2 }]; });
       const studentX = 950 + ((studentPosition.x ?? 840) - 950) * (cardWidth / 220);
-      const studentY = studentPosition.y ?? Math.max(70 + 4 * (editing ? rowGap : 190), 900);
+      const deepestOrgBottom = Math.max(0, ...positions.map((item) => {
+        const point = nodePositions.get(item.id);
+        return point ? point.y + cardHeight : 0;
+      }));
+      const classRows = Math.ceil(classCards.length / 4);
+      const classSectionBottom = classCards.length
+        ? deepestOrgBottom + 170 + Math.max(0, classRows - 1) * Math.max(150, cardHeight + 40) + cardHeight
+        : deepestOrgBottom;
+      const studentY = studentPosition.y ?? Math.max(900, classSectionBottom + (classCards.length ? 100 : 150));
       anchors.push({ x: studentX + cardWidth / 2, y: studentY }, { x: studentX + cardWidth / 2, y: studentY + cardHeight }, { x: studentX, y: studentY + cardHeight / 2 }, { x: studentX + cardWidth, y: studentY + cardHeight / 2 });
       const nearest = anchors.map((point) => ({ point, distance: Math.hypot(point.x - x, point.y - y) })).sort((a, b) => a.distance - b.distance)[0];
       if (nearest && nearest.distance <= 34) ({ x, y } = nearest.point);
@@ -442,9 +457,15 @@ export function SchoolOrganization() {
   function beginCardPress(event: ReactPointerEvent<HTMLElement>, item: Position) {
     if (!editing || drawTool === 'pan' || drawTool === 'line' || drawTool === 'rect' || (event.target as HTMLElement).closest('button,input,select')) return;
     event.stopPropagation();
-    const studentParent = positions.find((candidate) => candidate.id === 'principal');
-    const studentParentPoint = studentParent ? nodePositions.get(studentParent.id) : null;
-    const defaultStudentY = studentParentPoint ? Math.max(70 + 4 * (editing ? rowGap : 190), studentParentPoint.y + cardHeight + 150) : 900;
+    const deepestOrgBottom = Math.max(0, ...positions.map((candidate) => {
+      const candidatePoint = nodePositions.get(candidate.id);
+      return candidatePoint ? candidatePoint.y + cardHeight : 0;
+    }));
+    const classRows = Math.ceil(classCards.length / 4);
+    const classSectionBottom = classCards.length
+      ? deepestOrgBottom + 170 + Math.max(0, classRows - 1) * Math.max(150, cardHeight + 40) + cardHeight
+      : deepestOrgBottom;
+    const defaultStudentY = Math.max(900, classSectionBottom + (classCards.length ? 100 : 150));
     const point = item.id === '__students__'
       ? { x: studentPosition.x ?? 840, y: studentPosition.y ?? defaultStudentY }
       : nodePositions.get(item.id) ?? { x: 80, y: 80 };
@@ -544,7 +565,7 @@ export function SchoolOrganization() {
             <div className={`absolute inset-0 ${editing ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: 'radial-gradient(#94a3b8 0.8px, transparent 0.8px)', backgroundSize: '20px 20px' }}/>
             <svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 z-30 overflow-visible" style={{ overflow: 'visible' }}>{Object.entries(connectorPositions).filter(([key, value]) => key.startsWith('shape:') && value.start && value.end).map(([key, value]) => { const start = value.start!; const end = value.end!; const points = value.points?.length ? value.points : [start, end]; const pathData = points.map((point, index) => (index ? 'L ' : 'M ') + point.x + ' ' + point.y).join(' '); const selected = selectedShapeId === key; return <g key={key} onPointerDown={(event) => { if (!editing || drawTool !== 'select') return; event.stopPropagation(); setSelectedShapeId(key); setSelectedCardId(null); }} style={{ pointerEvents: 'none', cursor: editing ? 'pointer' : 'default' }}>{value.type === 'rect' ? <><rect x={Math.min(start.x,end.x)} y={Math.min(start.y,end.y)} width={Math.max(1,Math.abs(end.x-start.x))} height={Math.max(1,Math.abs(end.y-start.y))} fill="none" stroke="transparent" strokeWidth="18" style={{ pointerEvents: editing && drawTool === 'select' ? 'stroke' : 'none' }} onPointerDown={(event) => { if (!editing || drawTool !== 'select') return; event.stopPropagation(); setSelectedShapeId(key); setSelectedCardId(null); }}/><rect x={Math.min(start.x,end.x)} y={Math.min(start.y,end.y)} width={Math.max(1,Math.abs(end.x-start.x))} height={Math.max(1,Math.abs(end.y-start.y))} fill="none" stroke="#000000" strokeWidth="1.7" strokeDasharray={editing ? '6 5' : undefined}/></> : <><path d={pathData} fill="none" stroke="transparent" strokeWidth="20" style={{ pointerEvents: editing && drawTool === 'select' ? 'stroke' : 'none' }} onPointerDown={(event) => { if (!editing || drawTool !== 'select') return; event.stopPropagation(); setSelectedShapeId(key); setSelectedCardId(null); }}/><path d={pathData} fill="none" stroke="#000000" strokeWidth="1.7" strokeDasharray={editing ? '6 5' : undefined}/></>}{editing && selected && <><circle cx={start.x} cy={start.y} r="4" fill="#000000" stroke="white" strokeWidth="1.4"/><circle cx={end.x} cy={end.y} r="4" fill="#000000" stroke="white" strokeWidth="1.4"/><circle cx={start.x} cy={start.y} r="14" fill="transparent" style={{ cursor:'grab', pointerEvents: 'all' }} onPointerDown={(event) => { event.stopPropagation(); rememberChange(); dragRef.current = { id:`connector:${key}:start`, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY, originX:0, originY:0, panX:pan.x, panY:pan.y }; canvasRef.current?.setPointerCapture(event.pointerId); }}/><circle cx={end.x} cy={end.y} r="14" fill="transparent" style={{ cursor:'grab', pointerEvents: 'all' }} onPointerDown={(event) => { event.stopPropagation(); rememberChange(); dragRef.current = { id:`connector:${key}:end`, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY, originX:0, originY:0, panX:pan.x, panY:pan.y }; canvasRef.current?.setPointerCapture(event.pointerId); }}/></>}</g>; })}{editing && drawTool === 'line' && linePointsRef.current.length > 0 && linePreview && <polyline points={[...linePointsRef.current, linePreview].map((point) => point.x + ',' + point.y).join(' ')} fill="none" stroke="#000000" strokeWidth="1.7" pointerEvents="none"/>}</svg>
 
-            {positions.map(renderCanvasCard)}{(() => { const parent = positions.find((item) => item.id === 'principal'); const point = parent ? nodePositions.get(parent.id) : null; if (!parent || !point) return null; const py = point.y + cardHeight; const columns = Math.min(4, Math.max(1, classCards.length)); const classRows = Math.ceil(classCards.length / columns); const classCardWidth = cardWidth; const classCardHeight = cardHeight; const classGap = 34; const classRowGap = Math.max(150, cardHeight + 40); const lastOrgY = Math.max(...positions.map((item) => { const point = nodePositions.get(item.id); return point ? point.y + (editing && selectedCardId === item.id ? expandedCardHeight : cardHeight) : 0; }), py); const classTop = lastOrgY + 170; const classItems = classCards.filter((item) => !connectorPositions['__homeroom_hidden__:' + item.id]?.hidden).map((item, index) => { const row = Math.floor(index / columns); const col = index % columns; const countInRow = Math.min(columns, classCards.length - row * columns); const rowWidth = countInRow * classCardWidth + Math.max(0, countInRow - 1) * classGap; const saved = connectorPositions['__homeroom_position__:' + item.id]?.start; return { item, x: saved?.x ?? (canvasWidth - rowWidth) / 2 + col * (classCardWidth + classGap), y: saved?.y ?? classTop + row * classRowGap }; }); const classBottom = classCards.length ? classTop + (classRows - 1) * classRowGap + classCardHeight : lastOrgY; const defaultY = Math.max(70 + 4 * (editing ? rowGap : 190), py + 150, classBottom + 100); const studentX = Number.isFinite(studentPosition.x) ? Number(studentPosition.x) : 840; const studentY = Math.max(Number.isFinite(studentPosition.y) ? Number(studentPosition.y) : defaultY, classBottom + (classCards.length ? 100 : 0)); const sx = 950 + (studentX - 950) * (cardWidth / 220); return <>{classCards.length > 0 && <>{classItems.map(({ item, x, y }) => <div key={'homeroom-' + item.id} data-homeroom-card="true" onPointerDown={(event) => beginCardPress(event, { id: 'homeroom:' + item.id, title: 'Wali Kelas', category: 'Wali Kelas', sortOrder: 9998, parentId: null })} className="absolute z-10 overflow-hidden rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-100 via-yellow-50 to-orange-100 text-center shadow-[0_8px_24px_-12px_rgba(180,83,9,0.45)] dark:from-amber-950 dark:via-yellow-950/70 dark:to-orange-950" style={{ left: x, top: y, width: classCardWidth, height: classCardHeight, touchAction: 'none', cursor: editing ? 'grab' : 'default' }}><div className="h-1.5 bg-gradient-to-r from-amber-600 via-yellow-500 to-orange-500"/><div className="flex min-w-0 items-center justify-center gap-3 p-2">{item.photoUrl ? <img src={item.photoUrl} alt={`Foto ${item.teacherName ?? 'wali kelas'}`} className="size-12 shrink-0 rounded-xl border-2 border-white object-cover shadow"/> : <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-amber-200 text-sm font-black text-amber-800 dark:bg-amber-900 dark:text-amber-100">{item.teacherName?.split(/\s+/).filter(Boolean).slice(0,2).map((part) => part[0]).join('').toUpperCase() || 'WK'}</div>}<div className="w-full min-w-0 text-center"><p className="text-[9px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-200">Wali Kelas</p><p className="truncate text-xs font-extrabold text-slate-900 dark:text-slate-100">{item.teacherName ?? 'Belum ditentukan'}</p><p className="truncate text-[10px] font-bold text-amber-800 dark:text-amber-200">{item.name}</p>{item.nip && <p className="truncate text-[9px] text-muted-foreground">NIP: {item.nip}</p>}</div></div></div>)}</>}<div data-org-card="true" onPointerDown={(event) => beginCardPress(event, { id: '__students__', title: 'Peserta Didik', category: 'Peserta Didik', sortOrder: 9999, parentId: null, locked: true })} style={{ position: 'absolute', left: sx, top: studentY, width: cardWidth, height: cardHeight, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className={`z-10 rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 via-card to-orange-50 px-3 text-center shadow-[0_8px_24px_-12px_rgba(180,83,9,0.45)] dark:from-amber-950/40 dark:to-orange-950/30 ${cardHeight <= 70 ? 'py-1' : 'py-3'} ${editing && selectedCardId === '__students__' ? 'ring-2 ring-blue-500' : ''}`}><Users size={cardHeight <= 70 ? 14 : 22} className="mx-auto mb-1 text-amber-600"/><p className="text-xs font-bold">PESERTA DIDIK</p><p className="mt-0.5 text-[10px] text-muted-foreground">Seluruh peserta didik</p>{editing && selectedCardId === '__students__' && <p className="mt-1 text-[9px] font-bold text-blue-700 dark:text-blue-300">Hubungkan dengan garis manual</p>}</div></>; })()}
+            {positions.map(renderCanvasCard)}{(() => { const columns = Math.min(4, Math.max(1, classCards.length)); const classRows = Math.ceil(classCards.length / columns); const classCardWidth = cardWidth; const classCardHeight = cardHeight; const classGap = 34; const classRowGap = Math.max(150, cardHeight + 40); const lastOrgY = Math.max(...positions.map((item) => { const point = nodePositions.get(item.id); return point ? point.y + (editing && selectedCardId === item.id ? expandedCardHeight : cardHeight) : 0; }), 0); const classTop = lastOrgY + 170; const classItems = classCards.filter((item) => !connectorPositions['__homeroom_hidden__:' + item.id]?.hidden).map((item, index) => { const row = Math.floor(index / columns); const col = index % columns; const countInRow = Math.min(columns, classCards.length - row * columns); const rowWidth = countInRow * classCardWidth + Math.max(0, countInRow - 1) * classGap; const saved = connectorPositions['__homeroom_position__:' + item.id]?.start; return { item, x: saved?.x ?? (canvasWidth - rowWidth) / 2 + col * (classCardWidth + classGap), y: saved?.y ?? classTop + row * classRowGap }; }); const classBottom = classCards.length ? classTop + (classRows - 1) * classRowGap + classCardHeight : lastOrgY; const defaultY = Math.max(900, classBottom + (classCards.length ? 100 : 150)); const studentX = Number.isFinite(studentPosition.x) ? Number(studentPosition.x) : 840; const studentY = Math.max(Number.isFinite(studentPosition.y) ? Number(studentPosition.y) : defaultY, classBottom + (classCards.length ? 100 : 0)); const sx = 950 + (studentX - 950) * (cardWidth / 220); return <>{classCards.length > 0 && <>{classItems.map(({ item, x, y }) => <div key={'homeroom-' + item.id} data-homeroom-card="true" onPointerDown={(event) => beginCardPress(event, { id: 'homeroom:' + item.id, title: 'Wali Kelas', category: 'Wali Kelas', sortOrder: 9998 })} className="absolute z-10 overflow-hidden rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-100 via-yellow-50 to-orange-100 text-center shadow-[0_8px_24px_-12px_rgba(180,83,9,0.45)] dark:from-amber-950 dark:via-yellow-950/70 dark:to-orange-950" style={{ left: x, top: y, width: classCardWidth, height: classCardHeight, touchAction: 'none', cursor: editing ? 'grab' : 'default' }}><div className="h-1.5 bg-gradient-to-r from-amber-600 via-yellow-500 to-orange-500"/><div className="flex min-w-0 items-center justify-center gap-3 p-2">{item.photoUrl ? <img src={item.photoUrl} alt={`Foto ${item.teacherName ?? 'wali kelas'}`} className="size-12 shrink-0 rounded-xl border-2 border-white object-cover shadow"/> : <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-amber-200 text-sm font-black text-amber-800 dark:bg-amber-900 dark:text-amber-100">{item.teacherName?.split(/\s+/).filter(Boolean).slice(0,2).map((part) => part[0]).join('').toUpperCase() || 'WK'}</div>}<div className="w-full min-w-0 text-center"><p className="text-[9px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-200">Wali Kelas</p><p className="truncate text-xs font-extrabold text-slate-900 dark:text-slate-100">{item.teacherName ?? 'Belum ditentukan'}</p><p className="truncate text-[10px] font-bold text-amber-800 dark:text-amber-200">{item.name}</p>{item.nip && <p className="truncate text-[9px] text-muted-foreground">NIP: {item.nip}</p>}</div></div></div>)}</>}<div data-org-card="true" onPointerDown={(event) => beginCardPress(event, { id: '__students__', title: 'Peserta Didik', category: 'Peserta Didik', sortOrder: 9999, locked: true })} style={{ position: 'absolute', left: sx, top: studentY, width: cardWidth, height: cardHeight, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className={`z-10 rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 via-card to-orange-50 px-3 text-center shadow-[0_8px_24px_-12px_rgba(180,83,9,0.45)] dark:from-amber-950/40 dark:to-orange-950/30 ${cardHeight <= 70 ? 'py-1' : 'py-3'} ${editing && selectedCardId === '__students__' ? 'ring-2 ring-blue-500' : ''}`}><Users size={cardHeight <= 70 ? 14 : 22} className="mx-auto mb-1 text-amber-600"/><p className="text-xs font-bold">PESERTA DIDIK</p><p className="mt-0.5 text-[10px] text-muted-foreground">Seluruh peserta didik</p>{editing && selectedCardId === '__students__' && <p className="mt-1 text-[9px] font-bold text-blue-700 dark:text-blue-300">Hubungkan dengan garis manual</p>}</div></>; })()}
           </div></div>
         </div>
       </div>
