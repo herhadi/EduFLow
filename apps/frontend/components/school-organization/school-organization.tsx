@@ -80,6 +80,22 @@ export function SchoolOrganization() {
   useEffect(() => { void load(); }, [load]);
 
   useEffect(() => {
+    if (!editing) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      lineStartRef.current = null;
+      setLinePreview(null);
+      setSelectedCardId(null);
+      setSelectedShapeId(null);
+      setEditing(false);
+      void load();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [editing, load]);
+
+  useEffect(() => {
     if (loading) return;
     const updateViewport = () => {
       const width = canvasRef.current?.clientWidth ?? window.innerWidth;
@@ -382,7 +398,10 @@ export function SchoolOrganization() {
   function endCardPress(event: ReactPointerEvent<HTMLDivElement>) {
     const press = pressRef.current;
     if (!press || press.pointerId !== event.pointerId) return;
-    if (!press.dragging) { setSelectedCardId(press.id); setSelectedShapeId(null); }
+    if (!press.dragging) {
+      setSelectedCardId((current) => current === press.id ? null : press.id);
+      setSelectedShapeId(null);
+    }
     pressRef.current = null;
   }
 
@@ -475,7 +494,7 @@ export function SchoolOrganization() {
         const selectedClass = classCards.find((item) => item.id === selectedCardId.slice('homeroom:'.length));
         return selectedClass ? <HomeroomCardEditor selectedClass={selectedClass} teachers={teachers} onChange={(classId, teacherId) => void updateHomeroomTeacher(classId, teacherId)} /> : null;
       })()}
-      <style>{`.org-print-source svg[style*="display: none"] { display: block !important; }`}</style>
+      <style>{`.org-print-source svg[style*="display: none"] { display: none !important; } .org-print-source svg.z-20 { display: none !important; } .org-print-source svg.z-30 circle[r="8"] { fill: #2563eb !important; }`}</style>
       <p className="text-center text-xs text-muted-foreground">Foto dan identitas mengikuti data profil guru/pegawai. NIP ditampilkan jika tersedia. Penetapan jabatan tidak mengubah role akun EduFlow.</p>
       {printMarkup !== null && <PrintPreview title="Bagan Struktur Organisasi Sekolah" paperSize="A4" paperId="school-organization-print" footerText="Bagan Struktur Organisasi Sekolah" onClose={() => setPrintMarkup(null)} pages={[<div key="organization-chart" className="relative mx-auto" style={{ width: `${1900 * Math.min(696 / 1900, 1024 / canvasHeight)}px`, height: `${canvasHeight * Math.min(696 / 1900, 1024 / canvasHeight)}px` }}><div style={{ width: 1900, height: canvasHeight, transform: `scale(${Math.min(696 / 1900, 1024 / canvasHeight)})`, transformOrigin: 'top left' }} dangerouslySetInnerHTML={{ __html: printMarkup }} /></div>]}/>}
     </section>

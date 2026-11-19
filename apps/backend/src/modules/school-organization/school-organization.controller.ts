@@ -3,7 +3,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { RequestWithUser } from '../../core/http/request-with-user';
 import { SchoolOrganizationService } from './school-organization.service';
 
-type PositionInput = { id?: string; title: string; personName?: string; nip?: string | null; teacherId?: string | null; parentId?: string | null; sortOrder?: number; category?: string };
+type PositionInput = { id?: string; title: string; personName?: string; nip?: string | null; teacherId?: string | null; sortOrder?: number; category?: string };
 
 @Controller('school-organization')
 export class SchoolOrganizationController {
