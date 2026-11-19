@@ -345,3 +345,9 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Relasi Peserta Didik dapat diarahkan langsung ke kartu Wali Kelas tertentu dan disimpan sebagai pengaturan bagan.
 - Garis cabang Wali Kelas tampil putus-putus saat mode edit dan menyediakan titik tarik untuk mengatur kedua ujung konektor.
 - Tinggi area canvas mengikuti tinggi konten bagan agar bagian bawah tidak terpotong.
+
+
+### Bagan Struktur Organisasi Sekolah
+- Menghapus panel tambah posisi organisasi dari atas canvas.
+- Menambahkan toolbar gambar ringkas di kanan atas canvas: mode pilih/geser, gambar garis, dan gambar kotak.
+- Garis dan kotak yang digambar disimpan bersama pengaturan konektor bagan dan ikut tampil pada preview cetak.
