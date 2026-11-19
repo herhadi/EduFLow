@@ -407,3 +407,9 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Mengubah proses gambar garis menjadi satu polyline utuh: mulai dari kartu, tambahkan titik sudut di kanvas, lalu akhiri pada kartu tujuan.
 - Deteksi dan snapping ujung garis memakai batas DOM aktual untuk card jabatan, Wali Kelas, dan Peserta Didik; titik sudut mendekati horizontal/vertikal dirapikan dan di-grid.
 - Garis manual disimpan sebagai satu objek dengan daftar titik, sehingga segmen tidak saling menimpa dan bisa dipilih/dihapus sebagai satu garis.
+
+
+## 2026-11-19 — Snap garis dan auto alignment konektor
+- Mengizinkan titik awal maupun akhir konektor manual menempel pada segmen garis manual yang sudah ada, dengan proyeksi ke titik terdekat pada segmen.
+- Mengaktifkan auto alignment ortogonal: titik sudut mengikuti arah segmen sebelumnya dan ujung garis otomatis membentuk belokan horizontal/vertikal saat diperlukan.
+- Memperhalus grid snapping menjadi 5 px dan memperluas toleransi alignment agar jalur lebih konsisten.

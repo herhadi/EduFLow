@@ -340,6 +340,22 @@ export function SchoolOrganization() {
         const bounds = cardElement.getBoundingClientRect();
         cardBounds = { left: (bounds.left - rect.left - pan.x) / effectiveScale, top: (bounds.top - rect.top - pan.y) / effectiveScale, width: bounds.width / effectiveScale, height: bounds.height / effectiveScale };
       }
+      let lineSnap: { point: { x: number; y: number }; distance: number } | null = null;
+      if (!cardBounds) {
+        for (const [key, connector] of Object.entries(connectorPositions)) {
+          if (!key.startsWith('shape:') || connector.type !== 'line') continue;
+          const vertices = connector.points?.length ? connector.points : [connector.start, connector.end].filter((value): value is { x: number; y: number } => Boolean(value));
+          for (let index = 0; index < vertices.length - 1; index++) {
+            const a = vertices[index]; const b = vertices[index + 1];
+            const vx = b.x - a.x; const vy = b.y - a.y;
+            const lengthSquared = vx * vx + vy * vy;
+            const ratio = lengthSquared ? Math.max(0, Math.min(1, ((point.x - a.x) * vx + (point.y - a.y) * vy) / lengthSquared)) : 0;
+            const projected = { x: a.x + ratio * vx, y: a.y + ratio * vy };
+            const distance = Math.hypot(projected.x - point.x, projected.y - point.y);
+            if (distance <= 16 && (!lineSnap || distance < lineSnap.distance)) lineSnap = { point: projected, distance };
+          }
+        }
+      }
       if (cardBounds) {
         const sides = [
           { x: cardBounds.left + cardBounds.width / 2, y: cardBounds.top },
@@ -348,23 +364,40 @@ export function SchoolOrganization() {
           { x: cardBounds.left + cardBounds.width, y: cardBounds.top + cardBounds.height / 2 },
         ];
         point = sides.reduce((best, side) => Math.hypot(side.x - point.x, side.y - point.y) < Math.hypot(best.x - point.x, best.y - point.y) ? side : best);
+      } else if (lineSnap) {
+        point = { x: Math.round(lineSnap.point.x / 5) * 5, y: Math.round(lineSnap.point.y / 5) * 5 };
+      }
+      if (cardBounds || lineSnap) {
         if (!linePointsRef.current.length) {
           linePointsRef.current = [point]; lineStartRef.current = point; setLinePreview(point);
-          setNotice('Titik awal terpasang pada kartu. Klik titik sudut bila diperlukan, lalu klik kartu tujuan.');
+          setNotice(lineSnap ? 'Titik awal menempel pada garis yang sudah ada. Klik titik sudut, lalu klik kartu atau garis tujuan.' : 'Titik awal terpasang pada kartu. Klik titik sudut, lalu klik kartu atau garis tujuan.');
         } else {
-          const points = [...linePointsRef.current, point]; rememberChange();
+          const aligned = [...linePointsRef.current];
+          const last = aligned[aligned.length - 1];
+          if (Math.abs(point.x - last.x) > 5 && Math.abs(point.y - last.y) > 5) {
+            const beforeLast = aligned.length > 1 ? aligned[aligned.length - 2] : null;
+            const previousWasHorizontal = beforeLast ? Math.abs(last.x - beforeLast.x) >= Math.abs(last.y - beforeLast.y) : true;
+            aligned.push(previousWasHorizontal ? { x: point.x, y: last.y } : { x: last.x, y: point.y });
+          }
+          const points = [...aligned, point]; rememberChange();
           const key = 'shape:' + crypto.randomUUID();
           setConnectorPositions((items) => ({ ...items, [key]: { type: 'line', start: points[0], end: point, points } }));
           setSelectedShapeId(key); setSelectedCardId(null); linePointsRef.current = []; lineStartRef.current = null;
-          setLinePreview(null); setDrawTool('select'); setNotice('Garis berhasil menghubungkan kedua kartu.');
+          setLinePreview(null); setDrawTool('select'); setNotice(lineSnap ? 'Garis berhasil menempel pada garis yang sudah ada.' : 'Garis berhasil terhubung dengan auto alignment.');
         }
       } else if (!linePointsRef.current.length) {
         setNotice('Mulai garis dengan mengeklik sisi kartu asal.');
       } else {
         const previous = linePointsRef.current[linePointsRef.current.length - 1];
         const dx = Math.abs(point.x - previous.x); const dy = Math.abs(point.y - previous.y);
-        if (dx <= 18) point.x = previous.x; else if (dy <= 18) point.y = previous.y;
-        point = { x: Math.round(point.x / 10) * 10, y: Math.round(point.y / 10) * 10 };
+        if (dx <= 24) point.x = previous.x;
+        else if (dy <= 24) point.y = previous.y;
+        else {
+          const beforePrevious = linePointsRef.current.length > 1 ? linePointsRef.current[linePointsRef.current.length - 2] : null;
+          const horizontal = beforePrevious ? Math.abs(previous.x - beforePrevious.x) >= Math.abs(previous.y - beforePrevious.y) : true;
+          if (horizontal) point.y = previous.y; else point.x = previous.x;
+        }
+        point = { x: Math.round(point.x / 5) * 5, y: Math.round(point.y / 5) * 5 };
         linePointsRef.current = [...linePointsRef.current, point]; lineStartRef.current = point; setLinePreview(point);
       }
       return;
