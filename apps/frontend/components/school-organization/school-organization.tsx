@@ -6,6 +6,7 @@ import { request, upload } from '../../lib/api-client';
 import { getCurrentSessionUser } from '../../lib/session';
 import { prepareProfilePhotoForUpload } from '../../lib/image-compression';
 import { PrintPreview } from '../print/print-preview';
+import { HomeroomCardEditor } from './homeroom-card-editor';
 
 type Teacher = { id: string; name: string; nip?: string | null; photoUrl?: string | null };
 type Position = { id: string; title: string; personName?: string | null; teacherId?: string | null; parentId?: string | null; category: string; sortOrder: number; locked?: boolean; nip?: string | null; photoUrl?: string | null; x?: number; y?: number };
@@ -175,6 +176,28 @@ export function SchoolOrganization() {
     finally { setUploadingId(null); }
   }
 
+  async function updateHomeroomTeacher(classId: string, teacherId: string) {
+    setError('');
+    setNotice('');
+    try {
+      const response = await request<{ data?: OrganizationClass; message?: string }>(
+        `/academic/classes/${classId}/homeroom-teacher`,
+        { method: 'PATCH', body: JSON.stringify({ teacherId: teacherId || null }) },
+      );
+      const teacher = teachers.find((item) => item.id === teacherId);
+      setClassCards((items) => items.map((item) => item.id === classId ? {
+        ...item,
+        teacherId: teacher?.id ?? null,
+        teacherName: teacher?.name ?? null,
+        nip: teacher?.nip ?? null,
+        photoUrl: teacher?.photoUrl ?? null,
+      } : item));
+      setNotice(response.message ?? 'Wali kelas berhasil diperbarui.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal memperbarui wali kelas.');
+    }
+  }
+
   const expandedCardHeight = Math.max(cardHeight, 390);
 
   const nodePositions = useMemo(() => {
@@ -276,12 +299,12 @@ export function SchoolOrganization() {
         if (!lineStartRef.current) { lineStartRef.current = point; setLinePreview(point); setNotice('Titik awal garis dipilih. Klik titik sudut bila diperlukan, lalu klik sisi kartu tujuan untuk menyelesaikan garis.'); }
         else {
           if (targetCard || (nearest && nearest.distance < 48)) {
-            rememberChange(); const key = String.fromCharCode(96) + 'shape:' + crypto.randomUUID() + String.fromCharCode(96);
+            rememberChange(); const key = 'shape:' + crypto.randomUUID();
             setConnectorPositions((items) => ({ ...items, [key]: { type:'line', start:lineStartRef.current!, end:point } }));
             setSelectedShapeId(key); setSelectedCardId(null); lineStartRef.current = null; setLinePreview(null); setDrawTool('select'); setNotice('Garis berhasil dibuat dan dipilih.');
           } else {
             // Empty-canvas clicks add a corner node; the next click continues the connector.
-            const from = lineStartRef.current; rememberChange(); const key = String.fromCharCode(96) + 'shape:' + crypto.randomUUID() + String.fromCharCode(96);
+            const from = lineStartRef.current; rememberChange(); const key = 'shape:' + crypto.randomUUID();
             setConnectorPositions((items) => ({ ...items, [key]: { type:'line', start:from, end:point } }));
             lineStartRef.current = point; setLinePreview(point);
           }
@@ -448,6 +471,11 @@ export function SchoolOrganization() {
           </div></div>
         </div>
       </div>
+      {editing && selectedCardId?.startsWith('homeroom:') && (() => {
+        const selectedClass = classCards.find((item) => item.id === selectedCardId.slice('homeroom:'.length));
+        return selectedClass ? <HomeroomCardEditor selectedClass={selectedClass} teachers={teachers} onChange={(classId, teacherId) => void updateHomeroomTeacher(classId, teacherId)} /> : null;
+      })()}
+      <style>{`.org-print-source svg[style*="display: none"] { display: block !important; }`}</style>
       <p className="text-center text-xs text-muted-foreground">Foto dan identitas mengikuti data profil guru/pegawai. NIP ditampilkan jika tersedia. Penetapan jabatan tidak mengubah role akun EduFlow.</p>
       {printMarkup !== null && <PrintPreview title="Bagan Struktur Organisasi Sekolah" paperSize="A4" paperId="school-organization-print" footerText="Bagan Struktur Organisasi Sekolah" onClose={() => setPrintMarkup(null)} pages={[<div key="organization-chart" className="relative mx-auto" style={{ width: `${1900 * Math.min(696 / 1900, 1024 / canvasHeight)}px`, height: `${canvasHeight * Math.min(696 / 1900, 1024 / canvasHeight)}px` }}><div style={{ width: 1900, height: canvasHeight, transform: `scale(${Math.min(696 / 1900, 1024 / canvasHeight)})`, transformOrigin: 'top left' }} dangerouslySetInnerHTML={{ __html: printMarkup }} /></div>]}/>}
     </section>
