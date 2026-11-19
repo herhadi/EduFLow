@@ -14,6 +14,23 @@ type OrganizationClass = { id: string; name: string; grade?: string | null; teac
 type OrganizationResponse = { positions: Position[]; defaults: Position[]; schoolYear?: { id: string; name: string } | null; classes?: OrganizationClass[] };
 type UploadResponse = { data?: Teacher; message?: string };
 
+type Connector = { start?: { x: number; y: number }; end?: { x: number; y: number }; type?: 'line' | 'rect'; hidden?: boolean };
+type ConnectorMap = Record<string, Connector>;
+
+function normalizeConnectors(input: Record<string, Connector>): ConnectorMap {
+  return Object.fromEntries(
+    Object.entries(input)
+      .filter(([key, value]) => key.startsWith('shape:') || (!key.startsWith('__') && value.start && value.end))
+      .map(([key, value]) => {
+        const cleanKey = key.replace(/^`|`$/g, '');
+        const normalizedKey = cleanKey.startsWith('shape:')
+          ? cleanKey
+          : `shape:${crypto.randomUUID()}`;
+        return [normalizedKey, { ...value, type: value.type === 'rect' ? 'rect' : 'line' }];
+      }),
+  );
+}
+
 const categoryOptions = ['Pimpinan', 'Wakil Kepala Sekolah', 'Tenaga Kependidikan', 'Koordinator', 'Jabatan Lainnya'];
 
 export function SchoolOrganization() {
@@ -26,7 +43,7 @@ export function SchoolOrganization() {
   const [printMarkup, setPrintMarkup] = useState<string | null>(null);
   const [studentPosition, setStudentPosition] = useState<{ x?: number; y?: number }>({});
   const [studentParentId, setStudentParentId] = useState('vice-student');
-  const [connectorPositions, setConnectorPositions] = useState<Record<string, { start?: { x: number; y: number }; end?: { x: number; y: number }; type?: 'line' | 'rect'; hidden?: boolean }>>({});
+  const [connectorPositions, setConnectorPositions] = useState<ConnectorMap>({});
   const [drawTool, setDrawTool] = useState<'pan' | 'select' | 'line' | 'rect'>('pan');
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
   const [history, setHistory] = useState<{ positions: Position[]; connectors: typeof connectorPositions }[]>([]);
@@ -49,6 +66,7 @@ export function SchoolOrganization() {
   const [cardWidth, setCardWidth] = useState(220);
   const [cardHeight, setCardHeight] = useState(100);
   const [rowGap, setRowGap] = useState(300);
+  const previousRowGapRef = useRef(rowGap);
   const pressRef = useRef<{ id: string; pointerId: number; startX: number; startY: number; originX: number; originY: number; dragging: boolean } | null>(null);
   const canvasWidth = 1900;
   const [zoom, setZoom] = useState(1);
@@ -63,8 +81,11 @@ export function SchoolOrganization() {
     try {
       const data = await request<OrganizationResponse>('/school-organization');
       const connectorNode = data.positions.find((item) => item.id === '__connectors__');
-      let parsedConnectors: Record<string, { start?: { x: number; y: number }; end?: { x: number; y: number }; type?: 'line' | 'rect' }> = {};
-      try { parsedConnectors = connectorNode?.personName ? JSON.parse(connectorNode.personName) : {}; } catch { parsedConnectors = {}; }
+      let parsedConnectors: ConnectorMap = {};
+      try {
+        const storedConnectors = connectorNode?.personName ? JSON.parse(connectorNode.personName) as ConnectorMap : {};
+        parsedConnectors = normalizeConnectors(storedConnectors);
+      } catch { parsedConnectors = {}; }
       setConnectorPositions(parsedConnectors);
       setClassCards(data.classes ?? []);
       setSchoolYearName(data.schoolYear?.name ?? '');
@@ -94,6 +115,22 @@ export function SchoolOrganization() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [editing, load]);
+
+  useEffect(() => {
+    if (!editing || previousRowGapRef.current === rowGap) return;
+    const ordered = [...positions].sort((a, b) => a.sortOrder - b.sortOrder);
+    const indexById = new Map(ordered.map((item, index) => [item.id, index]));
+    setPositions((items) => items.map((item) => {
+      const index = indexById.get(item.id);
+      return index === undefined ? item : { ...item, y: 70 + Math.floor(index / 4) * rowGap };
+    }));
+    previousRowGapRef.current = rowGap;
+  }, [editing, positions, rowGap]);
+
+  useEffect(() => {
+    canvasRef.current?.style.setProperty('--org-card-width', `${cardWidth}px`);
+    canvasRef.current?.style.setProperty('--org-card-height', `${cardHeight}px`);
+  }, [cardWidth, cardHeight]);
 
   useEffect(() => {
     if (loading) return;
@@ -167,7 +204,7 @@ export function SchoolOrganization() {
       const result = await request<OrganizationResponse>('/school-organization', { method: 'PUT', body: JSON.stringify({ positions: [...persistedPositions, studentNode, connectorNode] }) });
       const savedStudentNode = result.positions.find((item) => item.id === '__students__');
       const savedConnectorNode = result.positions.find((item) => item.id === '__connectors__');
-      setConnectorPositions(savedConnectorNode?.personName ? JSON.parse(savedConnectorNode.personName) as typeof connectorPositions : {});
+      setConnectorPositions(savedConnectorNode?.personName ? normalizeConnectors(JSON.parse(savedConnectorNode.personName) as ConnectorMap) : {});
       setStudentPosition(savedStudentNode ? { x: savedStudentNode.x, y: savedStudentNode.y } : {});
       setPositions(result.positions.filter((item) => item.id !== '__students__' && item.id !== '__connectors__')); setEditing(false); setNotice('Struktur organisasi berhasil disimpan.');
     } catch (err) { setError(err instanceof Error ? err.message : 'Gagal menyimpan struktur organisasi.'); }
@@ -494,7 +531,7 @@ export function SchoolOrganization() {
         const selectedClass = classCards.find((item) => item.id === selectedCardId.slice('homeroom:'.length));
         return selectedClass ? <HomeroomCardEditor selectedClass={selectedClass} teachers={teachers} onChange={(classId, teacherId) => void updateHomeroomTeacher(classId, teacherId)} /> : null;
       })()}
-      <style>{`.org-print-source svg[style*="display: none"] { display: none !important; } .org-print-source svg.z-20 { display: none !important; } .org-print-source svg.z-30 circle[r="8"] { fill: #2563eb !important; }`}</style>
+      <style>{`.org-print-source svg[style*="display: none"] { display: none !important; } .org-print-source svg.z-20 { display: none !important; } .org-print-source svg.z-30 circle[r="8"] { fill: #2563eb !important; } [data-homeroom-card="true"] { width: var(--org-card-width) !important; height: var(--org-card-height) !important; }`}</style>
       <p className="text-center text-xs text-muted-foreground">Foto dan identitas mengikuti data profil guru/pegawai. NIP ditampilkan jika tersedia. Penetapan jabatan tidak mengubah role akun EduFlow.</p>
       {printMarkup !== null && <PrintPreview title="Bagan Struktur Organisasi Sekolah" paperSize="A4" paperId="school-organization-print" footerText="Bagan Struktur Organisasi Sekolah" onClose={() => setPrintMarkup(null)} pages={[<div key="organization-chart" className="relative mx-auto" style={{ width: `${1900 * Math.min(696 / 1900, 1024 / canvasHeight)}px`, height: `${canvasHeight * Math.min(696 / 1900, 1024 / canvasHeight)}px` }}><div style={{ width: 1900, height: canvasHeight, transform: `scale(${Math.min(696 / 1900, 1024 / canvasHeight)})`, transformOrigin: 'top left' }} dangerouslySetInnerHTML={{ __html: printMarkup }} /></div>]}/>}
     </section>
