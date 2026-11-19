@@ -351,3 +351,10 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Menghapus panel tambah posisi organisasi dari atas canvas.
 - Menambahkan toolbar gambar ringkas di kanan atas canvas: mode pilih/geser, gambar garis, dan gambar kotak.
 - Garis dan kotak yang digambar disimpan bersama pengaturan konektor bagan dan ikut tampil pada preview cetak.
+
+### Bagan Struktur Organisasi Sekolah
+- Toolbar editor bagan diubah menjadi panel vertikal dengan mode tangan sebagai alat default untuk menggeser kanvas.
+- Alat kotak kini menambahkan kartu jabatan baru yang dapat diedit seperti kartu organisasi lainnya.
+- Alat garis memakai klik bertahap: titik awal dan tujuan otomatis menempel pada titik tengah sisi kartu; klik area kosong menambahkan titik sudut tanpa mengakhiri proses menggambar.
+- Menambahkan hapus untuk kartu jabatan dan shape, serta undo/redo untuk perubahan tata letak dan elemen bagan.
+- Scroll biasa menggeser kanvas, sedangkan Ctrl/Command + scroll mengatur zoom. Pemindahan kartu tidak lagi memerlukan tekan-tahan.
