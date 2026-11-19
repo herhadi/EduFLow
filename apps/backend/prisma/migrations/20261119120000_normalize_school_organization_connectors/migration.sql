@@ -42,7 +42,7 @@ BEGIN
       END
     )
   ) FILTER (
-    WHERE NOT item.key LIKE '__%'
+    WHERE NOT (item.key LIKE '\_\_%' ESCAPE '\\')
       AND (
         (jsonb_typeof(item.value->'points') = 'array' AND jsonb_array_length(item.value->'points') >= 2)
         OR (item.value ? 'start' AND item.value ? 'end')
