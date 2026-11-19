@@ -390,3 +390,11 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Menetapkan tinggi kartu organisasi secara eksplisit agar titik konektor bawah konsisten dengan geometri kartu.
 - Menjadikan card Wali Kelas dapat dipilih dan dipindahkan dalam mode pilih; posisi manual disimpan bersama metadata konektor.
 - Menambahkan dukungan penghapusan visual card Wali Kelas tanpa menghapus data rombel akademik sumber.
+
+
+## 2026-11-19 — Konektor manual bagan organisasi
+- Menonaktifkan seluruh garis hierarki otomatis, termasuk konektor otomatis untuk Wali Kelas dan Peserta Didik; hubungan antarobjek kini dibuat dengan satu alat garis manual.
+- Menghapus pilihan Atasan Langsung dari editor kartu dan menghilangkan ketergantungan tata letak kartu pada parentId.
+- Tata letak awal kartu menggunakan grid berdasarkan urutan jabatan, sementara posisi yang sudah disimpan tetap dipertahankan.
+- Titik sudut garis manual menggunakan grid 10 px dan auto-align horizontal/vertikal saat mendekati garis lurus untuk menghasilkan sambungan yang presisi.
+- Ujung garis tetap diarahkan ke sisi kartu saat garis diselesaikan pada kartu tujuan.
