@@ -413,3 +413,7 @@ Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis gran
 - Mengizinkan titik awal maupun akhir konektor manual menempel pada segmen garis manual yang sudah ada, dengan proyeksi ke titik terdekat pada segmen.
 - Mengaktifkan auto alignment ortogonal: titik sudut mengikuti arah segmen sebelumnya dan ujung garis otomatis membentuk belokan horizontal/vertikal saat diperlukan.
 - Memperhalus grid snapping menjadi 5 px dan memperluas toleransi alignment agar jalur lebih konsisten.
+
+## 2026-11-19 — Penyempurnaan konektor bagan organisasi
+- Mengecilkan lingkaran biru penanda ujung konektor menjadi 50% tanpa memperkecil area klik/drag.
+- Menambahkan auto-correct pada penyambungan dua kartu: sudut terakhir digeser ke sumbu tujuan bila selisihnya kecil, serta titik duplikat dan titik segaris yang tidak diperlukan dibersihkan agar garis tidak melewati titik sambung.
