@@ -120,19 +120,12 @@ export function SchoolOrganization() {
   }, [editing, load]);
 
   useEffect(() => {
-    const safeRowGap = Math.max(rowGap, cardHeight + 40);
-    if (!editing || previousRowGapRef.current === safeRowGap) return;
+    if (!editing || previousRowGapRef.current === rowGap) return;
     const ordered = [...positions].sort((a, b) => a.sortOrder - b.sortOrder);
-    const rowById = new Map(ordered.map((item, index) => [
-      item.id,
-      index === 0 ? 0 : 1 + Math.floor((index - 1) / 4),
-    ]));
-    setPositions((items) => items.map((item) => {
-      const row = rowById.get(item.id);
-      return row === undefined ? item : { ...item, y: 70 + row * safeRowGap };
-    }));
-    previousRowGapRef.current = safeRowGap;
-  }, [editing, positions, rowGap, cardHeight]);
+    const rowById = new Map(ordered.map((item, index) => [item.id, index === 0 ? 0 : 1 + Math.floor((index - 1) / 4)]));
+    setPositions((items) => items.map((item) => { const row = rowById.get(item.id); return row === undefined ? item : { ...item, y: 70 + row * rowGap }; }));
+    previousRowGapRef.current = rowGap;
+  }, [editing, rowGap]);
 
   useEffect(() => {
     canvasRef.current?.style.setProperty('--org-card-width', `${cardWidth}px`);
