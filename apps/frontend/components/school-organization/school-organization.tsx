@@ -332,8 +332,8 @@ export function SchoolOrganization() {
   }
 
   const expandedCardHeight = cardHeight;
-  const contentScale = Math.max(0.7, Math.min(1.8, Math.sqrt((cardWidth / 220) * (cardHeight / 100))));
-  const photoHeight = Math.max(42, cardHeight - 22);
+  const contentScale = Math.max(0.65, Math.min(1.8, Math.min(cardWidth / 220, cardHeight / 100)));
+  const photoHeight = Math.max(32, 78 * contentScale);
   const photoWidth = photoHeight * 2 / 3;
   const contentGap = Math.max(6, 12 * contentScale);
   const contentPadding = Math.max(4, 10 * contentScale);
