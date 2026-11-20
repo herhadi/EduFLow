@@ -23,7 +23,7 @@ export function getOrganizationCardLayout<T extends { id: string; sortOrder: num
     const defaultX = (canvasWidth - rowWidth) / 2 + col * stepX;
     result.set(item.id, {
       x: Number.isFinite(item.x) ? Number(item.x) : defaultX,
-      y: 70 + row * safeRowGap,
+      y: Number.isFinite(item.y) ? Number(item.y) : 70 + row * safeRowGap,
     });
   });
 

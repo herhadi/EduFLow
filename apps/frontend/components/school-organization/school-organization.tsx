@@ -69,9 +69,9 @@ export function SchoolOrganization() {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [cardWidth, setCardWidth] = useState(220);
   const [cardHeight, setCardHeight] = useState(100);
-  const [rowGap, setRowGap] = useState(40);
+  const [rowGap, setRowGap] = useState(420);
   const previousRowGapRef = useRef(rowGap);
-  const pressRef = useRef<{ id: string; pointerId: number; startX: number; startY: number; originX: number; originY: number; dragging: boolean } | null>(null);
+  const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);\n  const pressRef = useRef<{ id: string; pointerId: number; startX: number; startY: number; originX: number; originY: number; groupOrigins: Array<{ id: string; x: number; y: number }>; dragging: boolean } | null>(null);
   const canvasWidth = 1900;
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 24 });
@@ -179,11 +179,19 @@ export function SchoolOrganization() {
     });
   }
 
-  function addOrganizationCard(x: number, y: number) {
+  function addOrganizationCard() {
     rememberChange();
     const id = `custom-${crypto.randomUUID()}`;
-    setPositions((items) => [...items, { id, title: 'Jabatan Baru', category: 'Jabatan Lainnya', sortOrder: items.length + 1, x: Math.round(x / 20) * 20, y: Math.round(Math.max(0, y) / 20) * 20 }]);
-    setSelectedCardId(id); setSelectedShapeId(null); setDrawTool('select');
+    const occupied = new Set(positions.map((item) => {
+      const point = nodePositions.get(item.id) ?? { x: item.x ?? 0, y: item.y ?? 0 };
+      return `${Math.round((point.x - 430) / (cardWidth + 40))}:${Math.round((point.y - 70) / rowGap)}`;
+    }));
+    let cell = 0;
+    while (occupied.has(`${cell % 4}:${Math.floor(cell / 4)}`)) cell++;
+    const x = 430 + (cell % 4) * (cardWidth + 40);
+    const y = 70 + Math.floor(cell / 4) * rowGap;
+    setPositions((items) => [...items, { id, title: 'Jabatan Baru', category: 'Jabatan Lainnya', sortOrder: items.length + 1, x, y }]);
+    setSelectedCardId(id); setSelectedCardIds([id]); setSelectedShapeId(null); setDrawTool('select');
   }
 
   function update(id: string, patch: Partial<Position>) {
@@ -284,21 +292,9 @@ export function SchoolOrganization() {
   function movePosition(id: string, x: number, y: number) {
     if (id.startsWith('homeroom:')) {
       const key = '__homeroom_position__:' + id.slice('homeroom:'.length);
-      const peers = [...nodePositions.values(), ...Object.entries(connectorPositions).filter(([name, value]) => name.startsWith('__homeroom_position__:') && name !== key && value.start).map(([, value]) => value.start!)];
-      const snapped = snapCardPosition({ x, y }, peers);
-      setConnectorPositions((items) => ({ ...items, [key]: { ...items[key], start: snapped } }));
-      return;
-    }
-    if (id === '__students__') {
-      const peers = [...nodePositions.values(), ...Object.entries(connectorPositions).filter(([name, value]) => name.startsWith('__homeroom_position__:') && value.start).map(([, value]) => value.start!)];
-      setStudentPosition(snapCardPosition({ x, y }, peers));
-      return;
-    }
-    setPositions((items) => {
-      const others = items.filter((item) => item.id !== id).map((item) => nodePositions.get(item.id)).filter((point): point is { x: number; y: number } => Boolean(point));
-      const snapped = snapCardPosition({ x, y }, others);
-      return items.map((item) => item.id === id ? { ...item, x: snapped.x, y: snapped.y } : item);
-    });
+      setConnectorPositions((items) => ({ ...items, [key]: { ...items[key], start: { x: Math.max(0, x), y: Math.max(0, y) } } }));
+    } else if (id === '__students__') setStudentPosition({ x: Math.max(0, x), y: Math.max(0, y) });
+    else setPositions((items) => items.map((item) => item.id === id ? { ...item, x: Math.max(0, x), y: Math.max(0, y) } : item));
   }
 
   function onCanvasPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
@@ -307,7 +303,7 @@ export function SchoolOrganization() {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (rect) {
         const point = { x: Math.max(0, (event.clientX - rect.left - pan.x) / effectiveScale), y: Math.max(0, (event.clientY - rect.top - pan.y) / effectiveScale) };
-        addOrganizationCard(point.x, point.y);
+        addOrganizationCard();
       }
       return;
     }
@@ -454,45 +450,36 @@ export function SchoolOrganization() {
     } else setPan({ x: drag.panX + event.clientX - drag.startX, y: drag.panY + event.clientY - drag.startY });
   }
 
+  function cardPoint(id: string) {
+    if (id.startsWith('homeroom:')) return connectorPositions['__homeroom_position__:' + id.slice(9)]?.start ?? { x: 80, y: 80 };
+    if (id === '__students__') return { x: studentPosition.x ?? 840, y: studentPosition.y ?? 900 };
+    return nodePositions.get(id) ?? { x: 80, y: 80 };
+  }
   function beginCardPress(event: ReactPointerEvent<HTMLElement>, item: Position) {
     if (!editing || drawTool === 'pan' || drawTool === 'line' || drawTool === 'rect' || (event.target as HTMLElement).closest('button,input,select')) return;
     event.stopPropagation();
-    const deepestOrgBottom = Math.max(0, ...positions.map((candidate) => {
-      const candidatePoint = nodePositions.get(candidate.id);
-      return candidatePoint ? candidatePoint.y + cardHeight : 0;
-    }));
-    const classRows = Math.ceil(classCards.length / 4);
-    const classSectionBottom = classCards.length
-      ? deepestOrgBottom + 170 + Math.max(0, classRows - 1) * Math.max(150, cardHeight + 40) + cardHeight
-      : deepestOrgBottom;
-    const defaultStudentY = Math.max(900, classSectionBottom + (classCards.length ? 100 : 150));
-    const point = item.id === '__students__'
-      ? { x: studentPosition.x ?? 840, y: studentPosition.y ?? defaultStudentY }
-      : nodePositions.get(item.id) ?? { x: 80, y: 80 };
-    pressRef.current = { id: item.id, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: point.x, originY: point.y, dragging: false };
+    let group = selectedCardIds.includes(item.id) ? selectedCardIds : [item.id];
+    if (event.shiftKey) {
+      group = selectedCardIds.includes(item.id) ? selectedCardIds.filter((id) => id !== item.id) : [...selectedCardIds, item.id];
+      setSelectedCardIds(group); setSelectedCardId(item.id); return;
+    }
+    if (!selectedCardIds.includes(item.id)) setSelectedCardIds([item.id]);
+    const point = cardPoint(item.id);
+    const groupOrigins = group.map((id) => ({ id, ...cardPoint(id) }));
+    pressRef.current = { id: item.id, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: point.x, originY: point.y, groupOrigins, dragging: false };
     canvasRef.current?.setPointerCapture(event.pointerId);
   }
-
   function moveCardPress(event: ReactPointerEvent<HTMLDivElement>) {
-    const press = pressRef.current;
-    if (!press || press.pointerId !== event.pointerId) return;
-    const dx = event.clientX - press.startX;
-    const dy = event.clientY - press.startY;
+    const press = pressRef.current; if (!press || press.pointerId !== event.pointerId) return;
+    const dx = event.clientX - press.startX, dy = event.clientY - press.startY;
     if (!press.dragging && Math.hypot(dx, dy) > 5) { press.dragging = true; rememberChange(); setSelectedCardId(null); }
-    if (press.dragging) movePosition(press.id, press.originX + dx / (effectiveScale * (cardWidth / 220)), press.originY + dy / effectiveScale);
+    if (press.dragging) press.groupOrigins.forEach((origin) => movePosition(origin.id, origin.x + dx / (effectiveScale * (cardWidth / 220)), origin.y + dy / effectiveScale));
   }
-
   function endCardPress(event: ReactPointerEvent<HTMLDivElement>) {
-    const press = pressRef.current;
-    if (!press || press.pointerId !== event.pointerId) return;
-    if (!press.dragging) {
-      setSelectedCardId((current) => current === press.id ? null : press.id);
-      if (!press.id.startsWith('homeroom:') && press.id !== '__students__') setCardEditorId(press.id);
-      setSelectedShapeId(null);
-    }
+    const press = pressRef.current; if (!press || press.pointerId !== event.pointerId) return;
+    if (!press.dragging) { setSelectedCardId(press.id); if (!press.id.startsWith('homeroom:') && press.id !== '__students__') setCardEditorId(press.id); setSelectedShapeId(null); }
     pressRef.current = null;
   }
-
 
   const renderCanvasCard = (item: Position) => {
     const teacher = teachers.find((person) => person.id === item.teacherId);
@@ -557,7 +544,7 @@ export function SchoolOrganization() {
       <div className="overflow-hidden rounded-2xl border bg-muted/20">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-card px-3 py-2">
           <p className="flex items-center gap-2 text-xs text-muted-foreground"><Hand size={14}/>{editing ? 'Mode tangan: geser kanvas · scroll untuk pan, Ctrl/⌘ + scroll untuk zoom · pilih kartu untuk mengedit · alat kotak untuk menambah jabatan · alat garis: klik kartu asal, klik titik sudut bila perlu, lalu klik kartu tujuan.' : 'Geser kanvas dan gunakan zoom untuk melihat bagan. Garis wali kelas menampilkan seluruh rombel tahun ajaran aktif.'}</p>
-          <div className="flex flex-wrap items-center gap-2">{editing && <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground"><label className="flex items-center gap-2">Lebar <input aria-label="Lebar kartu" type="range" min="160" max="280" step="10" value={cardWidth} onChange={(event) => setCardWidth(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{cardWidth}</span></label><label className="flex items-center gap-2">Tinggi <input aria-label="Tinggi kartu" type="range" min="90" max="180" step="5" value={cardHeight} onChange={(event) => setCardHeight(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{cardHeight}</span></label><label className="flex items-center gap-2">Jarak baris <input aria-label="Jarak vertikal antarbaris" type="range" min="40" max="120" step="10" value={rowGap} onChange={(event) => setRowGap(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{rowGap}</span></label></div>}<div className="flex items-center gap-1"><button type="button" onClick={() => setZoom((v) => Math.min(1.5, v + 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perbesar"><ZoomIn size={16}/></button><span className="min-w-12 text-center text-xs tabular-nums">{Math.round(zoom * 100)}%</span><button type="button" onClick={() => setZoom((v) => Math.max(0.35, v - 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perkecil"><ZoomOut size={16}/></button><button type="button" onClick={() => { setZoom(1); setPan({ x: 0, y: 24 }); }} className="rounded-lg border p-2 hover:bg-muted" title="Atur ulang tampilan"><Maximize2 size={16}/></button></div></div>
+          <div className="flex flex-wrap items-center gap-2">{editing && <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground"><label className="flex items-center gap-2">Lebar <input aria-label="Lebar kartu" type="range" min="160" max="280" step="10" value={cardWidth} onChange={(event) => setCardWidth(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{cardWidth}</span></label><label className="flex items-center gap-2">Tinggi <input aria-label="Tinggi kartu" type="range" min="90" max="180" step="5" value={cardHeight} onChange={(event) => setCardHeight(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{cardHeight}</span></label><label className="flex items-center gap-2">Jarak baris <input aria-label="Jarak vertikal antarbaris" type="range" min="140" max="900" step="20" value={rowGap} onChange={(event) => setRowGap(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{rowGap}</span></label></div>}<div className="flex items-center gap-1"><button type="button" onClick={() => setZoom((v) => Math.min(1.5, v + 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perbesar"><ZoomIn size={16}/></button><span className="min-w-12 text-center text-xs tabular-nums">{Math.round(zoom * 100)}%</span><button type="button" onClick={() => setZoom((v) => Math.max(0.35, v - 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perkecil"><ZoomOut size={16}/></button><button type="button" onClick={() => { setZoom(1); setPan({ x: 0, y: 24 }); }} className="rounded-lg border p-2 hover:bg-muted" title="Atur ulang tampilan"><Maximize2 size={16}/></button></div></div>
         </div>
         <div ref={canvasRef} className="org-print-canvas relative min-h-[680px] w-full overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-50/70 via-background to-slate-100/70 dark:from-blue-950/20 dark:via-background dark:to-slate-950/30" onPointerDown={onCanvasPointerDown} onPointerMove={(event) => { moveCardPress(event); onCanvasPointerMove(event); if (editing && drawTool === 'line' && lineStartRef.current) { const bounds = canvasRef.current?.getBoundingClientRect(); if (bounds) setLinePreview({ x: Math.max(0, (event.clientX - bounds.left - pan.x) / effectiveScale), y: Math.max(0, (event.clientY - bounds.top - pan.y) / effectiveScale) }); } }} onPointerUp={(event) => { endCardPress(event); if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null; }} onPointerCancel={() => { pressRef.current = null; dragRef.current = null; }} onWheel={(event) => { event.preventDefault(); if (event.ctrlKey || event.metaKey) setZoom((v) => Math.max(0.35, Math.min(1.5, v + (event.deltaY < 0 ? 0.05 : -0.05)))); else setPan((v) => ({ x: v.x - event.deltaX, y: v.y - event.deltaY })); }} style={{ touchAction: 'none', height: Math.max(680, Math.ceil(canvasHeight * effectiveScale + 48)), cursor: editing ? (drawTool === 'pan' ? 'grab' : drawTool === 'line' ? 'crosshair' : 'copy') : undefined }}>
           {editing && <div className="absolute right-3 top-3 z-40 flex flex-col items-center gap-1 rounded-xl border bg-card/95 p-1.5 shadow-lg backdrop-blur" onPointerDown={(event) => event.stopPropagation()} aria-label="Alat bagan"><button type="button" onClick={() => { setDrawTool('pan'); lineStartRef.current = null; linePointsRef.current = []; setLinePreview(null); }} title="Geser bagan" aria-pressed={drawTool === 'pan'} className={`rounded-lg p-2 ${drawTool === 'pan' ? 'bg-blue-600 text-white' : 'hover:bg-muted'}`}><Hand size={18}/></button><button type="button" onClick={() => { setDrawTool('select'); lineStartRef.current = null; linePointsRef.current = []; setLinePreview(null); }} title="Pilih kartu" aria-pressed={drawTool === 'select'} className={`rounded-lg p-2 ${drawTool === 'select' ? 'bg-blue-600 text-white' : 'hover:bg-muted'}`}><MousePointer2 size={18}/></button><button type="button" onClick={() => { setDrawTool('line'); lineStartRef.current = null; linePointsRef.current = []; setLinePreview(null); setSelectedShapeId(null); setSelectedCardId(null); }} title="Gambar konektor" aria-pressed={drawTool === 'line'} className={`rounded-lg p-2 ${drawTool === 'line' ? 'bg-blue-600 text-white' : 'hover:bg-muted'}`}><Minus size={18}/></button><button type="button" onClick={() => { setDrawTool('rect'); lineStartRef.current = null; linePointsRef.current = []; setLinePreview(null); }} title="Tambah kartu jabatan" aria-pressed={drawTool === 'rect'} className={`rounded-lg p-2 ${drawTool === 'rect' ? 'bg-blue-600 text-white' : 'hover:bg-muted'}`}><Square size={18}/></button><span className="my-1 h-px w-7 bg-border"/><button type="button" disabled={!history.length} onClick={undoChange} title="Undo" className="rounded-lg p-2 hover:bg-muted disabled:opacity-30"><Undo2 size={18}/></button><button type="button" disabled={!future.length} onClick={redoChange} title="Redo" className="rounded-lg p-2 hover:bg-muted disabled:opacity-30"><Redo2 size={18}/></button><button type="button" disabled={!selectedShapeId && !selectedCardId} onClick={() => { if (selectedShapeId) { rememberChange(); setConnectorPositions((items) => { const next = {...items}; delete next[selectedShapeId]; return next; }); setSelectedShapeId(null); setNotice('Garis berhasil dihapus.'); } else if (selectedCardId?.startsWith('homeroom:')) { const id = selectedCardId.slice('homeroom:'.length); rememberChange(); setConnectorPositions((items) => ({ ...items, ['__homeroom_hidden__:' + id]: { ...items['__homeroom_hidden__:' + id], hidden: true } })); setSelectedCardId(null); } else if (selectedCardId) { const target = positions.find((item) => item.id === selectedCardId); if (target && !target.locked) { rememberChange(); setPositions((items) => items.filter((item) => item.id !== target.id)); setSelectedCardId(null); } } }} title="Hapus pilihan" className="rounded-lg p-2 text-red-600 hover:bg-red-50 disabled:opacity-30"><Trash2 size={18}/></button></div>}
@@ -565,7 +552,7 @@ export function SchoolOrganization() {
             <div className={`absolute inset-0 ${editing ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: 'radial-gradient(#94a3b8 0.8px, transparent 0.8px)', backgroundSize: '20px 20px' }}/>
             <svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 z-30 overflow-visible" style={{ overflow: 'visible' }}>{Object.entries(connectorPositions).filter(([key, value]) => key.startsWith('shape:') && value.start && value.end).map(([key, value]) => { const start = value.start!; const end = value.end!; const points = value.points?.length ? value.points : [start, end]; const pathData = points.map((point, index) => (index ? 'L ' : 'M ') + point.x + ' ' + point.y).join(' '); const selected = selectedShapeId === key; return <g key={key} onPointerDown={(event) => { if (!editing || drawTool !== 'select') return; event.stopPropagation(); setSelectedShapeId(key); setSelectedCardId(null); }} style={{ pointerEvents: 'none', cursor: editing ? 'pointer' : 'default' }}>{value.type === 'rect' ? <><rect x={Math.min(start.x,end.x)} y={Math.min(start.y,end.y)} width={Math.max(1,Math.abs(end.x-start.x))} height={Math.max(1,Math.abs(end.y-start.y))} fill="none" stroke="transparent" strokeWidth="18" style={{ pointerEvents: editing && drawTool === 'select' ? 'stroke' : 'none' }} onPointerDown={(event) => { if (!editing || drawTool !== 'select') return; event.stopPropagation(); setSelectedShapeId(key); setSelectedCardId(null); }}/><rect x={Math.min(start.x,end.x)} y={Math.min(start.y,end.y)} width={Math.max(1,Math.abs(end.x-start.x))} height={Math.max(1,Math.abs(end.y-start.y))} fill="none" stroke="#000000" strokeWidth="1.7" strokeDasharray={editing ? '6 5' : undefined}/></> : <><path d={pathData} fill="none" stroke="transparent" strokeWidth="20" style={{ pointerEvents: editing && drawTool === 'select' ? 'stroke' : 'none' }} onPointerDown={(event) => { if (!editing || drawTool !== 'select') return; event.stopPropagation(); setSelectedShapeId(key); setSelectedCardId(null); }}/><path d={pathData} fill="none" stroke="#000000" strokeWidth="1.7" strokeDasharray={editing ? '6 5' : undefined}/></>}{editing && selected && <><circle cx={start.x} cy={start.y} r="4" fill="#000000" stroke="white" strokeWidth="1.4"/><circle cx={end.x} cy={end.y} r="4" fill="#000000" stroke="white" strokeWidth="1.4"/><circle cx={start.x} cy={start.y} r="14" fill="transparent" style={{ cursor:'grab', pointerEvents: 'all' }} onPointerDown={(event) => { event.stopPropagation(); rememberChange(); dragRef.current = { id:`connector:${key}:start`, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY, originX:0, originY:0, panX:pan.x, panY:pan.y }; canvasRef.current?.setPointerCapture(event.pointerId); }}/><circle cx={end.x} cy={end.y} r="14" fill="transparent" style={{ cursor:'grab', pointerEvents: 'all' }} onPointerDown={(event) => { event.stopPropagation(); rememberChange(); dragRef.current = { id:`connector:${key}:end`, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY, originX:0, originY:0, panX:pan.x, panY:pan.y }; canvasRef.current?.setPointerCapture(event.pointerId); }}/></>}</g>; })}{editing && drawTool === 'line' && linePointsRef.current.length > 0 && linePreview && <polyline points={[...linePointsRef.current, linePreview].map((point) => point.x + ',' + point.y).join(' ')} fill="none" stroke="#000000" strokeWidth="1.7" pointerEvents="none"/>}</svg>
 
-            {positions.map(renderCanvasCard)}{(() => { const columns = Math.min(4, Math.max(1, classCards.length)); const classRows = Math.ceil(classCards.length / columns); const classCardWidth = cardWidth; const classCardHeight = cardHeight; const classGap = 40; const classRowGap = cardHeight + 40; const lastOrgY = Math.max(...positions.map((item) => { const point = nodePositions.get(item.id); return point ? point.y + (editing && selectedCardId === item.id ? expandedCardHeight : cardHeight) : 0; }), 0); const classTop = lastOrgY + 170; const classItems = classCards.filter((item) => !connectorPositions['__homeroom_hidden__:' + item.id]?.hidden).map((item, index) => { const row = Math.floor(index / columns); const col = index % columns; const countInRow = Math.min(columns, classCards.length - row * columns); const rowWidth = countInRow * classCardWidth + Math.max(0, countInRow - 1) * classGap; const saved = connectorPositions['__homeroom_position__:' + item.id]?.start; return { item, x: saved?.x ?? (canvasWidth - rowWidth) / 2 + col * (classCardWidth + classGap), y: saved?.y ?? classTop + row * classRowGap }; }); const classBottom = classCards.length ? classTop + (classRows - 1) * classRowGap + classCardHeight : lastOrgY; const defaultY = Math.max(900, classBottom + (classCards.length ? 100 : 150)); const studentX = Number.isFinite(studentPosition.x) ? Number(studentPosition.x) : 840; const studentY = Math.max(Number.isFinite(studentPosition.y) ? Number(studentPosition.y) : defaultY, classBottom + (classCards.length ? 100 : 0)); const sx = 950 + (studentX - 950) * (cardWidth / 220); return <>{classCards.length > 0 && <>{classItems.map(({ item, x, y }) => <div key={'homeroom-' + item.id} data-homeroom-card="true" onPointerDown={(event) => beginCardPress(event, { id: 'homeroom:' + item.id, title: 'Wali Kelas', category: 'Wali Kelas', sortOrder: 9998 })} className="absolute z-10 overflow-hidden rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-100 via-yellow-50 to-orange-100 text-center shadow-[0_8px_24px_-12px_rgba(180,83,9,0.45)] dark:from-amber-950 dark:via-yellow-950/70 dark:to-orange-950" style={{ left: x, top: y, width: cardWidth, height: cardHeight, boxSizing: 'border-box', touchAction: 'none', cursor: editing ? 'grab' : 'default' }}><div className="h-1.5 bg-gradient-to-r from-amber-600 via-yellow-500 to-orange-500"/><div className="flex min-w-0 items-center justify-center gap-3 p-2">{item.photoUrl ? <img src={item.photoUrl} alt={`Foto ${item.teacherName ?? 'wali kelas'}`} className="size-12 shrink-0 rounded-xl border-2 border-white object-cover shadow"/> : <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-amber-200 text-sm font-black text-amber-800 dark:bg-amber-900 dark:text-amber-100">{item.teacherName?.split(/\s+/).filter(Boolean).slice(0,2).map((part) => part[0]).join('').toUpperCase() || 'WK'}</div>}<div className="w-full min-w-0 text-center"><p className="text-[9px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-200">Wali Kelas</p><p className="truncate text-xs font-extrabold text-slate-900 dark:text-slate-100">{item.teacherName ?? 'Belum ditentukan'}</p><p className="truncate text-[10px] font-bold text-amber-800 dark:text-amber-200">{item.name}</p>{item.nip && <p className="truncate text-[9px] text-muted-foreground">NIP: {item.nip}</p>}</div></div></div>)}</>}<div data-org-card="true" onPointerDown={(event) => beginCardPress(event, { id: '__students__', title: 'Peserta Didik', category: 'Peserta Didik', sortOrder: 9999, locked: true })} style={{ position: 'absolute', left: sx, top: studentY, width: cardWidth, height: cardHeight, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className={`z-10 rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 via-card to-orange-50 px-3 text-center shadow-[0_8px_24px_-12px_rgba(180,83,9,0.45)] dark:from-amber-950/40 dark:to-orange-950/30 ${cardHeight <= 70 ? 'py-1' : 'py-3'} ${editing && selectedCardId === '__students__' ? 'ring-2 ring-blue-500' : ''}`}><Users size={cardHeight <= 70 ? 14 : 22} className="mx-auto mb-1 text-amber-600"/><p className="text-xs font-bold">PESERTA DIDIK</p><p className="mt-0.5 text-[10px] text-muted-foreground">Seluruh peserta didik</p>{editing && selectedCardId === '__students__' && <p className="mt-1 text-[9px] font-bold text-blue-700 dark:text-blue-300">Hubungkan dengan garis manual</p>}</div></>; })()}
+            {positions.map(renderCanvasCard)}{(() => { const columns = Math.min(4, Math.max(1, classCards.length)); const classRows = Math.ceil(classCards.length / columns); const classCardWidth = cardWidth; const classCardHeight = cardHeight; const classGap = 40; const classRowGap = rowGap; const lastOrgY = Math.max(...positions.map((item) => { const point = nodePositions.get(item.id); return point ? point.y + (editing && selectedCardId === item.id ? expandedCardHeight : cardHeight) : 0; }), 0); const classTop = lastOrgY + 170; const classItems = classCards.filter((item) => !connectorPositions['__homeroom_hidden__:' + item.id]?.hidden).map((item, index) => { const row = Math.floor(index / columns); const col = index % columns; const countInRow = Math.min(columns, classCards.length - row * columns); const rowWidth = countInRow * classCardWidth + Math.max(0, countInRow - 1) * classGap; const saved = connectorPositions['__homeroom_position__:' + item.id]?.start; return { item, x: saved?.x ?? (canvasWidth - rowWidth) / 2 + col * (classCardWidth + classGap), y: saved?.y ?? classTop + row * classRowGap }; }); const classBottom = classCards.length ? classTop + (classRows - 1) * classRowGap + classCardHeight : lastOrgY; const defaultY = Math.max(900, classBottom + (classCards.length ? 100 : 150)); const studentX = Number.isFinite(studentPosition.x) ? Number(studentPosition.x) : 840; const studentY = Math.max(Number.isFinite(studentPosition.y) ? Number(studentPosition.y) : defaultY, classBottom + (classCards.length ? 100 : 0)); const sx = 950 + (studentX - 950) * (cardWidth / 220); return <>{classCards.length > 0 && <>{classItems.map(({ item, x, y }) => <div key={'homeroom-' + item.id} data-homeroom-card="true" onPointerDown={(event) => beginCardPress(event, { id: 'homeroom:' + item.id, title: 'Wali Kelas', category: 'Wali Kelas', sortOrder: 9998 })} className="absolute z-10 overflow-hidden rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-100 via-yellow-50 to-orange-100 text-center shadow-[0_8px_24px_-12px_rgba(180,83,9,0.45)] dark:from-amber-950 dark:via-yellow-950/70 dark:to-orange-950" style={{ left: x, top: y, width: cardWidth, height: cardHeight, boxSizing: 'border-box', touchAction: 'none', cursor: editing ? 'grab' : 'default' }}><div className="h-1.5 bg-gradient-to-r from-amber-600 via-yellow-500 to-orange-500"/><div className="flex min-w-0 items-center justify-center gap-3 p-2">{item.photoUrl ? <img src={item.photoUrl} alt={`Foto ${item.teacherName ?? 'wali kelas'}`} className="size-12 shrink-0 rounded-xl border-2 border-white object-cover shadow"/> : <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-amber-200 text-sm font-black text-amber-800 dark:bg-amber-900 dark:text-amber-100">{item.teacherName?.split(/\s+/).filter(Boolean).slice(0,2).map((part) => part[0]).join('').toUpperCase() || 'WK'}</div>}<div className="w-full min-w-0 text-center"><p className="text-[9px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-200">Wali Kelas</p><p className="truncate text-xs font-extrabold text-slate-900 dark:text-slate-100">{item.teacherName ?? 'Belum ditentukan'}</p><p className="truncate text-[10px] font-bold text-amber-800 dark:text-amber-200">{item.name}</p>{item.nip && <p className="truncate text-[9px] text-muted-foreground">NIP: {item.nip}</p>}</div></div></div>)}</>}<div data-org-card="true" onPointerDown={(event) => beginCardPress(event, { id: '__students__', title: 'Peserta Didik', category: 'Peserta Didik', sortOrder: 9999, locked: true })} style={{ position: 'absolute', left: sx, top: studentY, width: cardWidth, height: cardHeight, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className={`z-10 rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 via-card to-orange-50 px-3 text-center shadow-[0_8px_24px_-12px_rgba(180,83,9,0.45)] dark:from-amber-950/40 dark:to-orange-950/30 ${cardHeight <= 70 ? 'py-1' : 'py-3'} ${editing && selectedCardId === '__students__' ? 'ring-2 ring-blue-500' : ''}`}><Users size={cardHeight <= 70 ? 14 : 22} className="mx-auto mb-1 text-amber-600"/><p className="text-xs font-bold">PESERTA DIDIK</p><p className="mt-0.5 text-[10px] text-muted-foreground">Seluruh peserta didik</p>{editing && selectedCardId === '__students__' && <p className="mt-1 text-[9px] font-bold text-blue-700 dark:text-blue-300">Hubungkan dengan garis manual</p>}</div></>; })()}
           </div></div>
         </div>
       </div>
