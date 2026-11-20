@@ -22,7 +22,7 @@ type ConnectorMap = Record<string, Connector>;
 function normalizeConnectors(input: Record<string, Connector>): ConnectorMap {
   return Object.fromEntries(
     Object.entries(input)
-      .filter(([key, value]) => key.startsWith('shape:') && ((value.start && value.end) || (value.points && value.points.length >= 2)))
+      .filter(([key, value]) => (key.startsWith('shape:') && ((value.start && value.end) || (value.points && value.points.length >= 2))) || (key.startsWith('node:') && value.start))
       .map(([key, value]) => {
         const cleanKey = key.replace(/^`|`$/g, '');
         const normalizedKey = cleanKey;
@@ -153,44 +153,53 @@ export function SchoolOrganization() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [editing, load]);
 
+  const previousGeometryRef = useRef({ rowGap, columnGap, cardWidth, cardHeight });
   useEffect(() => {
-    if (!editing || previousRowGapRef.current === rowGap) return;
+    const previous = previousGeometryRef.current;
+    if (!editing) { previousGeometryRef.current = { rowGap, columnGap, cardWidth, cardHeight }; return; }
+    if (previous.rowGap === rowGap && previous.columnGap === columnGap && previous.cardWidth === cardWidth && previous.cardHeight === cardHeight) return;
     const ordered = [...positions].sort((a, b) => a.sortOrder - b.sortOrder);
-    const rowById = new Map(ordered.map((item, index) => [item.id, index === 0 ? 0 : 1 + Math.floor((index - 1) / 4)]));
     const moves: CardMove[] = [];
-    const nextPositions = positions.map((item) => {
+    const nextPositions = positions.map((item, index) => {
       const oldPoint = nodePositions.get(item.id) ?? { x: item.x ?? 0, y: item.y ?? 0 };
-      const row = rowById.get(item.id) ?? 0;
-      const nextPoint = { x: oldPoint.x, y: 70 + row * rowGap };
-      if (oldPoint.y !== nextPoint.y) moves.push({ from: oldPoint, to: nextPoint });
+      const row = index === 0 ? 0 : 1 + Math.floor((index - 1) / 4);
+      const col = index === 0 ? 0 : (index - 1) % 4;
+      const count = index === 0 ? 1 : Math.min(4, ordered.length - 1 - Math.floor((index - 1) / 4) * 4);
+      const rowWidth = count * cardWidth + Math.max(0, count - 1) * columnGap;
+      const nextPoint = {
+        x: previous.columnGap !== columnGap ? (canvasWidth - rowWidth) / 2 + col * (cardWidth + columnGap) : oldPoint.x,
+        y: previous.rowGap !== rowGap ? 70 + row * rowGap : oldPoint.y,
+      };
+      if (oldPoint.x !== nextPoint.x || oldPoint.y !== nextPoint.y) moves.push({ from: { x: 950 + (oldPoint.x - 950) * (previous.cardWidth / 220), y: oldPoint.y }, to: { x: 950 + (nextPoint.x - 950) * (cardWidth / 220), y: nextPoint.y } });
       return { ...item, x: nextPoint.x, y: nextPoint.y };
     });
-    const deepestBottom = Math.max(0, ...nextPositions.map((item) => (item.y ?? 0) + cardHeight));
-    const visibleClasses = classCards.filter((item) => !connectorPositions['__homeroom_hidden__:' + item.id]?.hidden);
-    const columns = Math.min(4, Math.max(1, visibleClasses.length));
-    const classPositions = visibleClasses.map((item, index) => {
-      const oldSavedPoint = connectorPositions['__homeroom_position__:' + item.id]?.start;
-      const oldClassRow = Math.floor(index / columns), oldClassCol = index % columns;
-      const oldClassCount = Math.min(columns, visibleClasses.length - oldClassRow * columns);
-      const oldClassWidth = oldClassCount * cardWidth + Math.max(0, oldClassCount - 1) * columnGap;
-      const oldDeepestBottom = Math.max(0, ...positions.map((entry) => (nodePositions.get(entry.id)?.y ?? 0) + cardHeight));
-      const oldPoint = oldSavedPoint ?? { x: (canvasWidth - oldClassWidth) / 2 + oldClassCol * (cardWidth + 40), y: oldDeepestBottom + rowGap - cardHeight + oldClassRow * rowGap };
-      const row = Math.floor(index / columns), col = index % columns;
-      const count = Math.min(columns, visibleClasses.length - row * columns);
-      const rowWidth = count * cardWidth + Math.max(0, count - 1) * columnGap;
-      const nextPoint = { x: (canvasWidth - rowWidth) / 2 + col * (cardWidth + columnGap), y: deepestBottom + rowGap - cardHeight + row * rowGap };
-      if (oldPoint.x !== nextPoint.x || oldPoint.y !== nextPoint.y) moves.push({ from: oldPoint, to: nextPoint });
-      return { id: item.id, point: nextPoint };
-    });
+    const oldWidth = previous.cardWidth, oldHeight = previous.cardHeight;
+    const nextWidth = cardWidth, nextHeight = cardHeight;
     setConnectorPositions((items) => {
-      const shifted = shiftAttachedConnectors(items, moves, cardWidth, cardHeight);
-      const next = { ...shifted };
-      for (const entry of classPositions) next['__homeroom_position__:' + entry.id] = { ...next['__homeroom_position__:' + entry.id], start: entry.point };
+      let next = shiftAttachedConnectors(items, moves, oldWidth, oldHeight);
+      // Scale connector geometry around each card's visual centre when card dimensions change.
+      if (oldWidth !== nextWidth || oldHeight !== nextHeight) {
+        const oldAnchors = positions.map((item) => {
+          const p = nodePositions.get(item.id) ?? { x: item.x ?? 0, y: item.y ?? 0 };
+          const left = 950 + (p.x - 950) * (oldWidth / 220);
+          return { old: [{x:left+oldWidth/2,y:p.y},{x:left+oldWidth/2,y:p.y+oldHeight},{x:left,y:p.y+oldHeight/2},{x:left+oldWidth,y:p.y+oldHeight/2}], next: [{x:left+nextWidth/2,y:p.y},{x:left+nextWidth/2,y:p.y+nextHeight},{x:left,y:p.y+nextHeight/2},{x:left+nextWidth,y:p.y+nextHeight/2}] };
+        });
+        next = Object.fromEntries(Object.entries(next).map(([key, connector]) => {
+          if (!key.startsWith('shape:') || connector.type !== 'line') return [key, connector];
+          const points = (connector.points?.length ? connector.points : [connector.start, connector.end].filter((p): p is {x:number;y:number} => Boolean(p))).map((point) => {
+            let best: {old:{x:number;y:number};next:{x:number;y:number};distance:number}|null = null;
+            for (const card of oldAnchors) card.old.forEach((anchor,index) => { const distance=Math.hypot(anchor.x-point.x,anchor.y-point.y); if(distance<35 && (!best||distance<best.distance)) best={old:anchor,next:card.next[index],distance}; });
+            return best ? {x:point.x+best.next.x-best.old.x,y:point.y+best.next.y-best.old.y} : point;
+          });
+          return [key,{...connector,start:points[0],end:points[points.length-1],points}];
+        }));
+      }
       return next;
     });
-    setPositions(nextPositions);
-    previousRowGapRef.current = rowGap;
-  }, [editing, rowGap]);
+    if (moves.length) setPositions(nextPositions);
+    previousGeometryRef.current = { rowGap, columnGap, cardWidth, cardHeight };
+  }, [editing, rowGap, columnGap, cardWidth, cardHeight]);
+
 
   useEffect(() => {
     canvasRef.current?.style.setProperty('--org-card-width', `${cardWidth}px`);
@@ -337,9 +346,9 @@ export function SchoolOrganization() {
   const [cardEditorId, setCardEditorId] = useState<string | null>(null);
 
   const nodePositions = useMemo(() => {
-    const layout = getOrganizationCardLayout(positions, { canvasWidth, cardWidth, cardHeight, rowGap, editing });
+    const layout = getOrganizationCardLayout(positions, { canvasWidth, cardWidth, cardHeight, rowGap, columnGap, editing });
     return layout.positions;
-  }, [positions, editing, rowGap, cardWidth, cardHeight, canvasWidth]);
+  }, [positions, editing, rowGap, columnGap, cardWidth, cardHeight, canvasWidth]);
 
   const canvasHeight = useMemo(() => {
     const deepestOrgBottom = Math.max(0, ...positions.map((item) => {
@@ -386,7 +395,7 @@ export function SchoolOrganization() {
         const bounds = cardElement.getBoundingClientRect();
         cardBounds = { left: (bounds.left - rect.left - pan.x) / effectiveScale, top: (bounds.top - rect.top - pan.y) / effectiveScale, width: bounds.width / effectiveScale, height: bounds.height / effectiveScale };
       }
-      let lineSnap: { point: { x: number; y: number }; distance: number } | null = null;
+      let lineSnap: { point: { x: number; y: number }; distance: number; key: string; segment: number } | null = null;
       if (!cardBounds) {
         for (const [key, connector] of Object.entries(connectorPositions)) {
           if (!key.startsWith('shape:') || connector.type !== 'line') continue;
@@ -398,7 +407,7 @@ export function SchoolOrganization() {
             const ratio = lengthSquared ? Math.max(0, Math.min(1, ((point.x - a.x) * vx + (point.y - a.y) * vy) / lengthSquared)) : 0;
             const projected = { x: a.x + ratio * vx, y: a.y + ratio * vy };
             const distance = Math.hypot(projected.x - point.x, projected.y - point.y);
-            if (distance <= 16 && (!lineSnap || distance < lineSnap.distance)) lineSnap = { point: projected, distance };
+            if (distance <= 16 && (!lineSnap || distance < lineSnap.distance)) lineSnap = { point: projected, distance, key, segment: index };
           }
         }
       }
@@ -439,7 +448,21 @@ export function SchoolOrganization() {
           });
           rememberChange();
           const key = 'shape:' + crypto.randomUUID();
-          setConnectorPositions((items) => ({ ...items, [key]: { type: 'line', start: points[0], end: point, points } }));
+          setConnectorPositions((items) => {
+            const next = { ...items };
+            if (lineSnap) {
+              const existing = next[lineSnap.key];
+              if (existing) {
+                const vertices = existing.points?.length ? [...existing.points] : [existing.start, existing.end].filter((p): p is {x:number;y:number} => Boolean(p));
+                const junction = { x: lineSnap.point.x, y: lineSnap.point.y };
+                if (!vertices.some((p) => Math.hypot(p.x-junction.x,p.y-junction.y)<1)) vertices.splice(lineSnap.segment + 1, 0, junction);
+                next[lineSnap.key] = { ...existing, start: vertices[0], end: vertices[vertices.length-1], points: vertices };
+                next['node:' + Math.round(junction.x) + ':' + Math.round(junction.y)] = { type: 'line', start: junction, end: junction, points: [junction,junction] };
+              }
+            }
+            next[key] = { type: 'line', start: points[0], end: point, points };
+            return next;
+          });
           setSelectedShapeId(key); setSelectedCardId(null); linePointsRef.current = []; lineStartRef.current = null;
           setLinePreview(null); setDrawTool('select'); setNotice(lineSnap ? 'Garis berhasil menempel pada garis yang sudah ada.' : 'Garis berhasil terhubung dengan auto alignment.');
         }
@@ -662,7 +685,7 @@ export function SchoolOrganization() {
           {editing && drawTool === 'line' && <div className="absolute left-3 top-3 z-40 rounded-lg border border-blue-300 bg-blue-50/95 px-3 py-2 text-xs font-semibold text-blue-900 shadow dark:border-blue-800 dark:bg-blue-950/95 dark:text-blue-100">Gambar garis: klik sisi kartu asal, klik titik sudut bila perlu, lalu klik sisi kartu tujuan. Tekan Esc untuk membatalkan.</div>}{editing && <div className="absolute right-3 top-3 z-40 flex flex-col items-center gap-1 rounded-xl border bg-card/95 p-1.5 shadow-lg backdrop-blur" onPointerDown={(event) => event.stopPropagation()} aria-label="Alat bagan"><button type="button" onClick={() => { setDrawTool('pan'); lineStartRef.current = null; linePointsRef.current = []; setLinePreview(null); }} title="Geser bagan" aria-pressed={drawTool === 'pan'} className={`rounded-lg p-2 ${drawTool === 'pan' ? 'bg-blue-600 text-white' : 'hover:bg-muted'}`}><Hand size={18}/></button><button type="button" onClick={() => { setDrawTool('select'); lineStartRef.current = null; linePointsRef.current = []; setLinePreview(null); }} title="Pilih kartu" aria-pressed={drawTool === 'select'} className={`rounded-lg p-2 ${drawTool === 'select' ? 'bg-blue-600 text-white' : 'hover:bg-muted'}`}><MousePointer2 size={18}/></button><button type="button" onClick={() => { setDrawTool('line'); lineStartRef.current = null; linePointsRef.current = []; setLinePreview(null); setSelectedShapeId(null); setSelectedCardId(null); }} title="Gambar konektor" aria-pressed={drawTool === 'line'} className={`rounded-lg p-2 ${drawTool === 'line' ? 'bg-blue-600 text-white' : 'hover:bg-muted'}`}><Minus size={18}/></button><button type="button" onClick={() => { setDrawTool('rect'); lineStartRef.current = null; linePointsRef.current = []; setLinePreview(null); }} title="Tambah kartu jabatan" aria-pressed={drawTool === 'rect'} className={`rounded-lg p-2 ${drawTool === 'rect' ? 'bg-blue-600 text-white' : 'hover:bg-muted'}`}><Square size={18}/></button><span className="my-1 h-px w-7 bg-border"/><button type="button" disabled={!history.length} onClick={undoChange} title="Undo" className="rounded-lg p-2 hover:bg-muted disabled:opacity-30"><Undo2 size={18}/></button><button type="button" disabled={!future.length} onClick={redoChange} title="Redo" className="rounded-lg p-2 hover:bg-muted disabled:opacity-30"><Redo2 size={18}/></button><button type="button" disabled={!selectedShapeId && !selectedCardId} onClick={() => { if (selectedShapeId) { rememberChange(); setConnectorPositions((items) => { const next = {...items}; delete next[selectedShapeId]; return next; }); setSelectedShapeId(null); setNotice('Garis berhasil dihapus.'); } else if (selectedCardId?.startsWith('homeroom:')) { const id = selectedCardId.slice('homeroom:'.length); rememberChange(); setConnectorPositions((items) => ({ ...items, ['__homeroom_hidden__:' + id]: { ...items['__homeroom_hidden__:' + id], hidden: true } })); setSelectedCardId(null); } else if (selectedCardId) { const target = positions.find((item) => item.id === selectedCardId); if (target && !target.locked) { rememberChange(); setPositions((items) => items.filter((item) => item.id !== target.id)); setSelectedCardId(null); } } }} title="Hapus pilihan" className="rounded-lg p-2 text-red-600 hover:bg-red-50 disabled:opacity-30"><Trash2 size={18}/></button></div>}
           <div ref={printSourceRef} className="org-print-source" style={{ position: 'relative', width: canvasWidth, height: canvasHeight, transform: 'none' }}><div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${effectiveScale})`, width: canvasWidth, height: canvasHeight }}>
             <div className={`absolute inset-0 ${editing ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: 'radial-gradient(#94a3b8 0.8px, transparent 0.8px)', backgroundSize: '20px 20px' }}/>
-            <svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 z-30 overflow-visible" style={{ overflow: 'visible' }}>{Object.entries(connectorPositions).filter(([key, value]) => key.startsWith('shape:') && value.start && value.end).map(([key, value]) => { const start = value.start!; const end = value.end!; const points = value.points?.length ? value.points : [start, end]; const pathData = points.map((point, index) => (index ? 'L ' : 'M ') + point.x + ' ' + point.y).join(' '); const selected = selectedShapeId === key; return <g key={key} onPointerDown={(event) => { if (!editing || drawTool !== 'select') return; event.stopPropagation(); setSelectedShapeId(key); setSelectedCardId(null); }} style={{ pointerEvents: 'none', cursor: editing ? 'pointer' : 'default' }}>{value.type === 'rect' ? <><rect x={Math.min(start.x,end.x)} y={Math.min(start.y,end.y)} width={Math.max(1,Math.abs(end.x-start.x))} height={Math.max(1,Math.abs(end.y-start.y))} fill="none" stroke="transparent" strokeWidth="18" style={{ pointerEvents: editing && drawTool === 'select' ? 'stroke' : 'none' }} onPointerDown={(event) => { if (!editing || drawTool !== 'select') return; event.stopPropagation(); setSelectedShapeId(key); setSelectedCardId(null); }}/><rect x={Math.min(start.x,end.x)} y={Math.min(start.y,end.y)} width={Math.max(1,Math.abs(end.x-start.x))} height={Math.max(1,Math.abs(end.y-start.y))} fill="none" stroke="#000000" strokeWidth="1.7" strokeDasharray={editing ? '6 5' : undefined}/></> : <><path d={pathData} fill="none" stroke="transparent" strokeWidth="20" style={{ pointerEvents: editing && drawTool === 'select' ? 'stroke' : 'none' }} onPointerDown={(event) => { if (!editing || drawTool !== 'select') return; event.stopPropagation(); setSelectedShapeId(key); setSelectedCardId(null); }}/><path d={pathData} fill="none" stroke="#000000" strokeWidth="1.7" strokeDasharray={editing ? '6 5' : undefined}/></>}{editing && selected && <><circle cx={start.x} cy={start.y} r="6" fill="#2563eb" stroke="white" strokeWidth="1.8"/><circle cx={end.x} cy={end.y} r="6" fill="#2563eb" stroke="white" strokeWidth="1.8"/><circle cx={start.x} cy={start.y} r="18" fill="transparent" style={{ cursor:'grab', pointerEvents: 'all' }} onPointerDown={(event) => { event.stopPropagation(); rememberChange(); dragRef.current = { id:`connector:${key}:start`, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY, originX:0, originY:0, panX:pan.x, panY:pan.y }; canvasRef.current?.setPointerCapture(event.pointerId); }}/><circle cx={end.x} cy={end.y} r="18" fill="transparent" style={{ cursor:'grab', pointerEvents: 'all' }} onPointerDown={(event) => { event.stopPropagation(); rememberChange(); dragRef.current = { id:`connector:${key}:end`, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY, originX:0, originY:0, panX:pan.x, panY:pan.y }; canvasRef.current?.setPointerCapture(event.pointerId); }}/></>}</g>; })}{editing && drawTool === 'line' && linePointsRef.current.length > 0 && linePreview && <><polyline points={[...linePointsRef.current, linePreview].map((point) => point.x + ',' + point.y).join(' ')} fill="none" stroke="#2563eb" strokeWidth="3" strokeDasharray="7 5" pointerEvents="none"/><circle cx={linePointsRef.current[0].x} cy={linePointsRef.current[0].y} r="8" fill="#2563eb" stroke="white" strokeWidth="2" pointerEvents="none"/>{lineSnapActive && <circle cx={linePreview.x} cy={linePreview.y} r="15" fill="#60a5fa" opacity="0.25" pointerEvents="none"><animate attributeName="r" values="9;18;9" dur="0.8s" repeatCount="indefinite"/></circle>}<circle cx={linePreview.x} cy={linePreview.y} r={lineSnapActive ? 8 : 5} fill={lineSnapActive ? "#16a34a" : "#2563eb"} stroke="white" strokeWidth="2.5" pointerEvents="none"/></>}</svg>
+            <svg width={canvasWidth} height={canvasHeight} className="pointer-events-none absolute inset-0 z-30 overflow-visible" style={{ overflow: 'visible' }}>{Object.entries(connectorPositions).filter(([key]) => key.startsWith('node:')).map(([key,value]) => <circle key={key} cx={value.start!.x} cy={value.start!.y} r="7" fill="#16a34a" stroke="white" strokeWidth="2"/>)}{Object.entries(connectorPositions).filter(([key, value]) => key.startsWith('shape:') && value.start && value.end).map(([key, value]) => { const start = value.start!; const end = value.end!; const points = value.points?.length ? value.points : [start, end]; const pathData = points.map((point, index) => (index ? 'L ' : 'M ') + point.x + ' ' + point.y).join(' '); const selected = selectedShapeId === key; return <g key={key} onPointerDown={(event) => { if (!editing || drawTool !== 'select') return; event.stopPropagation(); setSelectedShapeId(key); setSelectedCardId(null); }} style={{ pointerEvents: 'none', cursor: editing ? 'pointer' : 'default' }}>{value.type === 'rect' ? <><rect x={Math.min(start.x,end.x)} y={Math.min(start.y,end.y)} width={Math.max(1,Math.abs(end.x-start.x))} height={Math.max(1,Math.abs(end.y-start.y))} fill="none" stroke="transparent" strokeWidth="18" style={{ pointerEvents: editing && drawTool === 'select' ? 'stroke' : 'none' }} onPointerDown={(event) => { if (!editing || drawTool !== 'select') return; event.stopPropagation(); setSelectedShapeId(key); setSelectedCardId(null); }}/><rect x={Math.min(start.x,end.x)} y={Math.min(start.y,end.y)} width={Math.max(1,Math.abs(end.x-start.x))} height={Math.max(1,Math.abs(end.y-start.y))} fill="none" stroke="#000000" strokeWidth="1.7" strokeDasharray={editing ? '6 5' : undefined}/></> : <><path d={pathData} fill="none" stroke="transparent" strokeWidth="20" style={{ pointerEvents: editing && drawTool === 'select' ? 'stroke' : 'none' }} onPointerDown={(event) => { if (!editing || drawTool !== 'select') return; event.stopPropagation(); setSelectedShapeId(key); setSelectedCardId(null); }}/><path d={pathData} fill="none" stroke="#000000" strokeWidth="1.7" strokeDasharray={editing ? '6 5' : undefined}/></>}{editing && selected && <><circle cx={start.x} cy={start.y} r="6" fill="#2563eb" stroke="white" strokeWidth="1.8"/><circle cx={end.x} cy={end.y} r="6" fill="#2563eb" stroke="white" strokeWidth="1.8"/><circle cx={start.x} cy={start.y} r="18" fill="transparent" style={{ cursor:'grab', pointerEvents: 'all' }} onPointerDown={(event) => { event.stopPropagation(); rememberChange(); dragRef.current = { id:`connector:${key}:start`, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY, originX:0, originY:0, panX:pan.x, panY:pan.y }; canvasRef.current?.setPointerCapture(event.pointerId); }}/><circle cx={end.x} cy={end.y} r="18" fill="transparent" style={{ cursor:'grab', pointerEvents: 'all' }} onPointerDown={(event) => { event.stopPropagation(); rememberChange(); dragRef.current = { id:`connector:${key}:end`, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY, originX:0, originY:0, panX:pan.x, panY:pan.y }; canvasRef.current?.setPointerCapture(event.pointerId); }}/></>}</g>; })}{editing && drawTool === 'line' && linePointsRef.current.length > 0 && linePreview && <><polyline points={[...linePointsRef.current, linePreview].map((point) => point.x + ',' + point.y).join(' ')} fill="none" stroke="#2563eb" strokeWidth="3" strokeDasharray="7 5" pointerEvents="none"/><circle cx={linePointsRef.current[0].x} cy={linePointsRef.current[0].y} r="8" fill="#2563eb" stroke="white" strokeWidth="2" pointerEvents="none"/>{lineSnapActive && <circle cx={linePreview.x} cy={linePreview.y} r="15" fill="#60a5fa" opacity="0.25" pointerEvents="none"><animate attributeName="r" values="9;18;9" dur="0.8s" repeatCount="indefinite"/></circle>}<circle cx={linePreview.x} cy={linePreview.y} r={lineSnapActive ? 8 : 5} fill={lineSnapActive ? "#16a34a" : "#2563eb"} stroke="white" strokeWidth="2.5" pointerEvents="none"/></>}</svg>
 
             {positions.map(renderCanvasCard)}{(() => { const columns = Math.min(4, Math.max(1, classCards.length)); const classRows = Math.ceil(classCards.length / columns); const classCardWidth = 220; const classCardHeight = cardHeight; const classGap = columnGap; const classRowGap = rowGap; const lastOrgY = Math.max(...positions.map((item) => { const point = nodePositions.get(item.id); return point ? point.y + (editing && selectedCardId === item.id ? expandedCardHeight : cardHeight) : 0; }), 0); const classTop = lastOrgY + rowGap - classCardHeight; const classItems = classCards.filter((item) => !connectorPositions['__homeroom_hidden__:' + item.id]?.hidden).map((item, index) => { const row = Math.floor(index / columns); const col = index % columns; const countInRow = Math.min(columns, classCards.length - row * columns); const rowWidth = countInRow * classCardWidth + Math.max(0, countInRow - 1) * classGap; const saved = connectorPositions['__homeroom_position__:' + item.id]?.start; const baseX = saved?.x ?? (canvasWidth - rowWidth) / 2 + col * (classCardWidth + classGap); return { item, x: 950 + (baseX - 950) * (cardWidth / 220), y: saved?.y ?? classTop + row * classRowGap }; }); const classBottom = classCards.length ? classTop + (classRows - 1) * classRowGap + classCardHeight : lastOrgY; const defaultY = Math.max(900, classBottom + (classCards.length ? 100 : 150)); const studentX = Number.isFinite(studentPosition.x) ? Number(studentPosition.x) : 840; const studentY = Math.max(Number.isFinite(studentPosition.y) ? Number(studentPosition.y) : defaultY, classBottom + (classCards.length ? 100 : 0)); const sx = 950 + (studentX - 950) * (cardWidth / 220); return <>{classCards.length > 0 && <>{classItems.map(({ item, x, y }) => <div key={'homeroom-' + item.id} data-homeroom-card="true" onPointerDown={(event) => beginCardPress(event, { id: 'homeroom:' + item.id, title: 'Wali Kelas', category: 'Wali Kelas', sortOrder: 9998 })} className={`absolute z-10 overflow-hidden rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-100 via-yellow-50 to-orange-100 text-center shadow-[0_8px_24px_-12px_rgba(180,83,9,0.45)] dark:from-amber-950 dark:via-yellow-950/70 dark:to-orange-950 ${editing && selectedCardIds.includes('homeroom:' + item.id) ? 'ring-[3px] ring-blue-500 shadow-xl z-20' : editing ? 'ring-1 ring-dashed ring-slate-300' : ''}`} style={{ left: x, top: y, width: cardWidth, height: cardHeight, boxSizing: 'border-box', touchAction: 'none', cursor: editing ? 'grab' : 'default' }}><div className="h-2 bg-gradient-to-r from-amber-600 via-yellow-500 to-orange-500"/>{editing && selectedCardIds.length > 1 && selectedCardIds.includes('homeroom:' + item.id) && <span className="absolute right-2 top-2 z-30 rounded-full bg-blue-600 px-2 py-0.5 text-[9px] font-bold text-white shadow">Grup</span>}<div className="flex h-[calc(100%-8px)] min-h-0 min-w-0 items-center justify-center" style={{ gap: contentGap, padding: contentPadding }}><div className="relative shrink-0 overflow-hidden rounded-lg border-2 border-white bg-amber-200 shadow" style={{ width: photoWidth, height: photoHeight, aspectRatio: "4 / 6" }}>{item.photoUrl ? <img src={item.photoUrl} alt={`Foto ${item.teacherName ?? "wali kelas"}`} className="h-full w-full object-cover"/> : <div className="grid h-full w-full place-items-center font-black text-amber-800 dark:bg-amber-900 dark:text-amber-100" style={{ fontSize: 13 * contentScale }}>WK</div>}</div><div className="w-full min-w-0 text-center" style={{ fontSize: 9 * contentScale }}><p className="font-black uppercase tracking-wider text-amber-800 dark:text-amber-200" style={{ fontSize: 9 * contentScale }}>Wali Kelas</p><p className="font-extrabold text-slate-900 dark:text-slate-100" style={{ fontSize: 12 * contentScale }}>{item.teacherName ?? "Belum ditentukan"}</p><p className="font-bold text-amber-800 dark:text-amber-200" style={{ fontSize: 10 * contentScale }}>{item.name}</p>{item.nip && <p className="text-muted-foreground" style={{ fontSize: 9 * contentScale }}>NIP: {item.nip}</p>}</div></div></div>)}</>}<div data-org-card="true" onPointerDown={(event) => beginCardPress(event, { id: '__students__', title: 'Peserta Didik', category: 'Peserta Didik', sortOrder: 9999, locked: true })} style={{ position: 'absolute', left: sx, top: studentY, width: cardWidth, height: cardHeight, touchAction: 'none', cursor: editing ? 'grab' : 'default' }} className={`z-10 rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 via-card to-orange-50 px-3 text-center shadow-[0_8px_24px_-12px_rgba(180,83,9,0.45)] dark:from-amber-950/40 dark:to-orange-950/30 ${cardHeight <= 70 ? 'py-1' : 'py-3'} ${editing && selectedCardId === '__students__' ? 'ring-2 ring-blue-500' : ''}`}><Users size={cardHeight <= 70 ? 14 : 22} className="mx-auto mb-1 text-amber-600"/><p className="text-xs font-bold">PESERTA DIDIK</p><p className="mt-0.5 text-[10px] text-muted-foreground">Seluruh peserta didik</p>{editing && selectedCardId === '__students__' && <p className="mt-1 text-[9px] font-bold text-blue-700 dark:text-blue-300">Hubungkan dengan garis manual</p>}</div></>; })()}
           </div></div>
