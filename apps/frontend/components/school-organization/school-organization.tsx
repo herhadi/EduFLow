@@ -71,7 +71,8 @@ export function SchoolOrganization() {
   const [cardHeight, setCardHeight] = useState(100);
   const [rowGap, setRowGap] = useState(420);
   const previousRowGapRef = useRef(rowGap);
-  const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);\n  const pressRef = useRef<{ id: string; pointerId: number; startX: number; startY: number; originX: number; originY: number; groupOrigins: Array<{ id: string; x: number; y: number }>; dragging: boolean } | null>(null);
+  const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
+  const pressRef = useRef<{ id: string; pointerId: number; startX: number; startY: number; originX: number; originY: number; groupOrigins: Array<{ id: string; x: number; y: number }>; dragging: boolean } | null>(null);
   const canvasWidth = 1900;
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 24 });
