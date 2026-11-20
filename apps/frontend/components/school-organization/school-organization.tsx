@@ -198,8 +198,12 @@ export function SchoolOrganization() {
         next = Object.fromEntries(Object.entries(next).map(([key, connector]) => {
           if (!key.startsWith('shape:') || connector.type !== 'line') return [key, connector];
           const points = (connector.points?.length ? connector.points : [connector.start, connector.end].filter((p): p is {x:number;y:number} => Boolean(p))).map((point) => {
-            let best: {old:{x:number;y:number};next:{x:number;y:number};distance:number}|null = null;
-            for (const card of oldAnchors) card.old.forEach((anchor,index) => { const distance=Math.hypot(anchor.x-point.x,anchor.y-point.y); if(distance<35 && (!best||distance<best.distance)) best={old:anchor,next:card.next[index],distance}; });
+            const candidates = oldAnchors.flatMap((card) => card.old.map((anchor,index) => ({
+              old: anchor,
+              next: card.next[index],
+              distance: Math.hypot(anchor.x-point.x,anchor.y-point.y),
+            })));
+            const best = candidates.filter((candidate) => candidate.distance < 35).sort((a,b) => a.distance-b.distance)[0];
             return best ? {x:point.x+best.next.x-best.old.x,y:point.y+best.next.y-best.old.y} : point;
           });
           return [key,{...connector,start:points[0],end:points[points.length-1],points}];
