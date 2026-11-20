@@ -1,12 +1,12 @@
 export type CardPoint = { x: number; y: number };
 
 export function getOrganizationCardLayout<T extends { id: string; sortOrder: number; x?: number; y?: number }>(
-  positions: T[], options: { canvasWidth: number; cardWidth: number; cardHeight: number; rowGap: number; columnGap?: number; editing: boolean },
+  positions: T[], options: { canvasWidth: number; cardWidth: number; cardHeight: number; rowGap: number; editing: boolean },
 ) {
   const { canvasWidth, cardWidth, cardHeight } = options;
   const ordered = [...positions].sort((a, b) => a.sortOrder - b.sortOrder);
   const baseCardWidth = cardWidth;
-  const gapX = options.columnGap ?? 40;
+  const gapX = 40;
   const stepX = baseCardWidth + gapX;
   const safeRowGap = Math.max(options.editing ? options.rowGap : cardHeight + 40, cardHeight + 40);
   const rows = ordered.length ? 1 + Math.ceil(Math.max(0, ordered.length - 1) / 4) : 0;

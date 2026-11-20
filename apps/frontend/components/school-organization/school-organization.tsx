@@ -158,19 +158,30 @@ export function SchoolOrganization() {
     const previous = previousGeometryRef.current;
     if (!editing) { previousGeometryRef.current = { rowGap, columnGap, cardWidth, cardHeight }; return; }
     if (previous.rowGap === rowGap && previous.columnGap === columnGap && previous.cardWidth === cardWidth && previous.cardHeight === cardHeight) return;
-    const ordered = [...positions].sort((a, b) => a.sortOrder - b.sortOrder);
+    // Reflow by current visual rows/columns, never by sortOrder.
+    const visual = positions.map((item) => ({ item, point: nodePositions.get(item.id) ?? { x: item.x ?? 0, y: item.y ?? 0 } }));
+    const rows: typeof visual[] = [];
+    for (const entry of [...visual].sort((a,b) => a.point.y-b.point.y)) {
+      let row = rows.find((items) => Math.abs(items[0].point.y-entry.point.y) <= Math.max(24, previous.cardHeight * 0.45));
+      if (!row) { row = []; rows.push(row); }
+      row.push(entry);
+    }
+    rows.sort((a,b) => Math.min(...a.map((v)=>v.point.y))-Math.min(...b.map((v)=>v.point.y)));
     const moves: CardMove[] = [];
-    const nextPositions = positions.map((item, index) => {
-      const oldPoint = nodePositions.get(item.id) ?? { x: item.x ?? 0, y: item.y ?? 0 };
-      const row = index === 0 ? 0 : 1 + Math.floor((index - 1) / 4);
-      const col = index === 0 ? 0 : (index - 1) % 4;
-      const count = index === 0 ? 1 : Math.min(4, ordered.length - 1 - Math.floor((index - 1) / 4) * 4);
-      const rowWidth = count * cardWidth + Math.max(0, count - 1) * columnGap;
+    const nextPositions = positions.map((item) => {
+      const entry = visual.find((value) => value.item.id === item.id)!;
+      const rowIndex = rows.findIndex((row) => row.some((value) => value.item.id === item.id));
+      const row = rows[rowIndex] ?? [entry];
+      const sortedRow = [...row].sort((a,b)=>a.point.x-b.point.x);
+      const columnIndex = sortedRow.findIndex((value)=>value.item.id===item.id);
+      const oldCenter = (sortedRow.length - 1) / 2;
       const nextPoint = {
-        x: previous.columnGap !== columnGap ? (canvasWidth - rowWidth) / 2 + col * (cardWidth + columnGap) : oldPoint.x,
-        y: previous.rowGap !== rowGap ? 70 + row * rowGap : oldPoint.y,
+        x: entry.point.x + (columnGap - previous.columnGap) * (columnIndex - oldCenter),
+        y: entry.point.y + (rowGap - previous.rowGap) * rowIndex,
       };
-      if (oldPoint.x !== nextPoint.x || oldPoint.y !== nextPoint.y) moves.push({ from: { x: 950 + (oldPoint.x - 950) * (previous.cardWidth / 220), y: oldPoint.y }, to: { x: 950 + (nextPoint.x - 950) * (cardWidth / 220), y: nextPoint.y } });
+      if (entry.point.x !== nextPoint.x || entry.point.y !== nextPoint.y) {
+        moves.push({ from: { x: 950 + (entry.point.x - 950) * (previous.cardWidth / 220), y: entry.point.y }, to: { x: 950 + (nextPoint.x - 950) * (cardWidth / 220), y: nextPoint.y } });
+      }
       return { ...item, x: nextPoint.x, y: nextPoint.y };
     });
     const oldWidth = previous.cardWidth, oldHeight = previous.cardHeight;
@@ -251,11 +262,11 @@ export function SchoolOrganization() {
     const id = `custom-${crypto.randomUUID()}`;
     const occupied = new Set(positions.map((item) => {
       const point = nodePositions.get(item.id) ?? { x: item.x ?? 0, y: item.y ?? 0 };
-      return `${Math.round((point.x - (canvasWidth - (4 * cardWidth + 120)) / 2) / (cardWidth + 40))}:${Math.round((point.y - 70) / rowGap)}`;
+      return `${Math.round((point.x - (canvasWidth - (4 * cardWidth + 3 * columnGap)) / 2) / (cardWidth + columnGap))}:${Math.round((point.y - 70) / rowGap)}`;
     }));
     let cell = 0;
     while (occupied.has(`${cell % 4}:${Math.floor(cell / 4)}`)) cell++;
-    const x = (canvasWidth - (4 * cardWidth + 120)) / 2 + (cell % 4) * (cardWidth + 40);
+    const x = (canvasWidth - (4 * cardWidth + 3 * columnGap)) / 2 + (cell % 4) * (cardWidth + columnGap);
     const y = 70 + Math.floor(cell / 4) * rowGap;
     setPositions((items) => [...items, { id, title: 'Jabatan Baru', category: 'Jabatan Lainnya', sortOrder: items.length + 1, x, y }]);
     setSelectedCardId(id); setSelectedCardIds([id]); setSelectedShapeId(null); setDrawTool('select');
