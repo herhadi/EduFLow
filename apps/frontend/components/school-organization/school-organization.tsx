@@ -357,8 +357,11 @@ export function SchoolOrganization() {
 
   function movePosition(id: string, x: number, y: number) {
     const next = { x: Math.max(0, x), y: Math.max(0, y) };
-    const previous = id.startsWith('homeroom:') ? connectorPositions['__homeroom_position__:' + id.slice('homeroom:'.length)]?.start : id === '__students__' ? { x: studentPosition.x ?? 840, y: studentPosition.y ?? 900 } : nodePositions.get(id);
-    if (previous) setConnectorPositions((items) => shiftAttachedConnectors(items, [{ from: previous, to: next }], cardWidth, cardHeight));
+    const previous = id.startsWith('homeroom:') ? cardPoint(id) : id === '__students__' ? { x: studentPosition.x ?? 840, y: studentPosition.y ?? 900 } : nodePositions.get(id);
+    if (previous) {
+      const toCanvas = (point: { x: number; y: number }) => ({ x: 950 + (point.x - 950) * (cardWidth / 220), y: point.y });
+      setConnectorPositions((items) => shiftAttachedConnectors(items, [{ from: toCanvas(previous), to: toCanvas(next) }], cardWidth, cardHeight));
+    }
     if (id.startsWith('homeroom:')) {
       const key = '__homeroom_position__:' + id.slice('homeroom:'.length);
       setConnectorPositions((items) => ({ ...items, [key]: { ...items[key], start: next } }));
