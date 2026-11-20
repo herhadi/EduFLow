@@ -41,18 +41,18 @@ type CardMove = { from: { x: number; y: number }; to: { x: number; y: number } }
 
 function shiftAttachedConnectors(connectors: ConnectorMap, moves: CardMove[], width: number, height: number): ConnectorMap {
   if (!moves.length) return connectors;
-  const nearestDelta = (point: { x: number; y: number }) => {
+  const endpointDelta = (point: { x: number; y: number }) => {
     let best: { dx: number; dy: number; distance: number } | null = null;
     for (const move of moves) {
       const sides = [
-        { x: move.from.x + width / 2, y: move.from.y },
-        { x: move.from.x + width / 2, y: move.from.y + height },
-        { x: move.from.x, y: move.from.y + height / 2 },
-        { x: move.from.x + width, y: move.from.y + height / 2 },
+        { old: { x: move.from.x + width / 2, y: move.from.y }, next: { x: move.to.x + width / 2, y: move.to.y } },
+        { old: { x: move.from.x + width / 2, y: move.from.y + height }, next: { x: move.to.x + width / 2, y: move.to.y + height } },
+        { old: { x: move.from.x, y: move.from.y + height / 2 }, next: { x: move.to.x, y: move.to.y + height / 2 } },
+        { old: { x: move.from.x + width, y: move.from.y + height / 2 }, next: { x: move.to.x + width, y: move.to.y + height / 2 } },
       ];
       for (const side of sides) {
-        const distance = Math.hypot(side.x - point.x, side.y - point.y);
-        if (distance <= 24 && (!best || distance < best.distance)) best = { dx: move.to.x - move.from.x, dy: move.to.y - move.from.y, distance };
+        const distance = Math.hypot(side.old.x - point.x, side.old.y - point.y);
+        if (distance <= 36 && (!best || distance < best.distance)) best = { dx: side.next.x - point.x, dy: side.next.y - point.y, distance };
       }
     }
     return best ? { dx: best.dx, dy: best.dy } : null;
@@ -61,8 +61,8 @@ function shiftAttachedConnectors(connectors: ConnectorMap, moves: CardMove[], wi
     if (!key.startsWith('shape:') || connector.type !== 'line') return [key, connector];
     const points = connector.points?.length ? [...connector.points] : [connector.start, connector.end].filter((point): point is { x: number; y: number } => Boolean(point));
     if (points.length < 2) return [key, connector];
-    const first = nearestDelta(points[0]);
-    const last = nearestDelta(points[points.length - 1]);
+    const first = endpointDelta(points[0]);
+    const last = endpointDelta(points[points.length - 1]);
     if (!first && !last) return [key, connector];
     const adjusted = points.map((point, index) => {
       const t = points.length <= 1 ? 0 : index / (points.length - 1);
@@ -529,9 +529,9 @@ export function SchoolOrganization() {
       const columns = Math.min(4, Math.max(1, visible.length));
       const row = Math.floor(index / columns), col = index % columns;
       const count = Math.min(columns, visible.length - row * columns);
-      const rowWidth = count * cardWidth + Math.max(0, count - 1) * 40;
+      const rowWidth = count * 220 + Math.max(0, count - 1) * 40;
       const deepestBottom = Math.max(0, ...positions.map((item) => (nodePositions.get(item.id)?.y ?? 0) + cardHeight));
-      return { x: (canvasWidth - rowWidth) / 2 + col * (cardWidth + 40), y: deepestBottom + rowGap - cardHeight + row * rowGap };
+      return { x: (canvasWidth - rowWidth) / 2 + col * 260, y: deepestBottom + rowGap - cardHeight + row * rowGap };
     }
     if (id === '__students__') return { x: studentPosition.x ?? 840, y: studentPosition.y ?? 900 };
     return nodePositions.get(id) ?? { x: 80, y: 80 };
@@ -539,14 +539,20 @@ export function SchoolOrganization() {
   function beginCardPress(event: ReactPointerEvent<HTMLElement>, item: Position) {
     if (!editing || drawTool === 'pan' || drawTool === 'line' || drawTool === 'rect' || (event.target as HTMLElement).closest('button,input,select')) return;
     event.stopPropagation();
+    event.preventDefault();
     let group = selectedCardIds.includes(item.id) ? selectedCardIds : [item.id];
     if (event.shiftKey) {
       group = selectedCardIds.includes(item.id) ? selectedCardIds.filter((id) => id !== item.id) : [...selectedCardIds, item.id];
-      setSelectedCardIds(group); setSelectedCardId(item.id); return;
+      setSelectedCardIds(group);
+      setSelectedCardId(group[group.length - 1] ?? null);
+      return;
     }
-    if (!selectedCardIds.includes(item.id)) setSelectedCardIds([item.id]);
-    const point = cardPoint(item.id);
+    if (!selectedCardIds.includes(item.id)) {
+      group = [item.id];
+      setSelectedCardIds(group);
+    }
     const groupOrigins = group.map((id) => ({ id, ...cardPoint(id) }));
+    const point = cardPoint(item.id);
     pressRef.current = { id: item.id, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: point.x, originY: point.y, groupOrigins, dragging: false };
     canvasRef.current?.setPointerCapture(event.pointerId);
   }
@@ -652,7 +658,7 @@ export function SchoolOrganization() {
       })()}
       {editing && selectedCardId?.startsWith('homeroom:') && (() => {
         const selectedClass = classCards.find((item) => item.id === selectedCardId.slice('homeroom:'.length));
-        return selectedClass ? <HomeroomCardEditor selectedClass={selectedClass} teachers={teachers} onChange={(classId, teacherId) => void updateHomeroomTeacher(classId, teacherId)} onClose={() => setSelectedCardId(null)} /> : null;
+        return selectedClass ? <HomeroomCardEditor selectedClass={selectedClass} classes={classCards.filter((item) => !connectorPositions['__homeroom_hidden__:' + item.id]?.hidden)} teachers={teachers} onChange={(classId, teacherId) => void updateHomeroomTeacher(classId, teacherId)} onClose={() => setSelectedCardId(null)} /> : null;
       })()}
       <style>{`.org-print-source svg[style*="display: none"] { display: none !important; } .org-print-source svg.z-20 { display: none !important; } .org-print-source svg.z-30 circle[r="4"] { fill: #2563eb !important; }`}</style>
       <p className="text-center text-xs text-muted-foreground">Foto dan identitas mengikuti data profil guru/pegawai. NIP ditampilkan jika tersedia. Penetapan jabatan tidak mengubah role akun EduFlow.</p>
