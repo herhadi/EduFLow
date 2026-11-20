@@ -41,39 +41,34 @@ type CardMove = { from: { x: number; y: number }; to: { x: number; y: number } }
 
 function shiftAttachedConnectors(connectors: ConnectorMap, moves: CardMove[], width: number, height: number): ConnectorMap {
   if (!moves.length) return connectors;
-  const endpointDelta = (point: { x: number; y: number }) => {
-    let best: { dx: number; dy: number; distance: number } | null = null;
-    for (const move of moves) {
-      const sides = [
-        { old: { x: move.from.x + width / 2, y: move.from.y }, next: { x: move.to.x + width / 2, y: move.to.y } },
-        { old: { x: move.from.x + width / 2, y: move.from.y + height }, next: { x: move.to.x + width / 2, y: move.to.y + height } },
-        { old: { x: move.from.x, y: move.from.y + height / 2 }, next: { x: move.to.x, y: move.to.y + height / 2 } },
-        { old: { x: move.from.x + width, y: move.from.y + height / 2 }, next: { x: move.to.x + width, y: move.to.y + height / 2 } },
+  const findDelta=(point:{x:number;y:number})=>{
+    let best:{dx:number;dy:number;distance:number}|null=null;
+    for(const move of moves){
+      const sides=[
+        {old:{x:move.from.x+width/2,y:move.from.y},next:{x:move.to.x+width/2,y:move.to.y}},
+        {old:{x:move.from.x+width/2,y:move.from.y+height},next:{x:move.to.x+width/2,y:move.to.y+height}},
+        {old:{x:move.from.x,y:move.from.y+height/2},next:{x:move.to.x,y:move.to.y+height/2}},
+        {old:{x:move.from.x+width,y:move.from.y+height/2},next:{x:move.to.x+width,y:move.to.y+height/2}}
       ];
-      for (const side of sides) {
-        const distance = Math.hypot(side.old.x - point.x, side.old.y - point.y);
-        if (distance <= 90 && (!best || distance < best.distance)) best = { dx: side.next.x - point.x, dy: side.next.y - point.y, distance };
-      }
+      for(const side of sides){const distance=Math.hypot(side.old.x-point.x,side.old.y-point.y);if(distance<=90&&(!best||distance<best.distance))best={dx:side.next.x-point.x,dy:side.next.y-point.y,distance};}
     }
-    return best ? { dx: best.dx, dy: best.dy } : null;
+    return best?{dx:best.dx,dy:best.dy}:null;
   };
-  return Object.fromEntries(Object.entries(connectors).map(([key, connector]) => {
-    if (!key.startsWith('shape:') || connector.type !== 'line') return [key, connector];
-    const points = connector.points?.length ? [...connector.points] : [connector.start, connector.end].filter((point): point is { x: number; y: number } => Boolean(point));
-    if (points.length < 2) return [key, connector];
-    const first = endpointDelta(points[0]);
-    const last = endpointDelta(points[points.length - 1]);
-    if (!first && !last) return [key, connector];
-    const adjusted = points.map((point, index) => {
-      const t = points.length <= 1 ? 0 : index / (points.length - 1);
-      const dx = first && last ? first.dx + (last.dx - first.dx) * t : (first ?? last)!.dx;
-      const dy = first && last ? first.dy + (last.dy - first.dy) * t : (first ?? last)!.dy;
-      return { x: point.x + dx, y: point.y + dy };
-    });
-    return [key, { ...connector, start: adjusted[0], end: adjusted[adjusted.length - 1], points: adjusted }];
+  return Object.fromEntries(Object.entries(connectors).map(([key,connector])=>{
+    if(!key.startsWith('shape:')||connector.type!=='line')return[key,connector];
+    let points=connector.points?.length?[...connector.points]:[connector.start,connector.end].filter((point):point is{x:number;y:number}=>Boolean(point));
+    if(points.length<2)return[key,connector];
+    const first=findDelta(points[0]),last=findDelta(points[points.length-1]);
+    if(!first&&!last)return[key,connector];
+    const oldFirst={...points[0]},oldLast={...points[points.length-1]};
+    if(first)points[0]={x:points[0].x+first.dx,y:points[0].y+first.dy};
+    if(last)points[points.length-1]={x:points[points.length-1].x+last.dx,y:points[points.length-1].y+last.dy};
+    if(points.length>2&&first){const next=points[1];if(Math.abs(next.x-oldFirst.x)>=Math.abs(next.y-oldFirst.y))next.y=points[0].y;else next.x=points[0].x;}
+    if(points.length>2&&last){const prev=points[points.length-2];if(Math.abs(oldLast.x-prev.x)>=Math.abs(oldLast.y-prev.y))prev.y=points[points.length-1].y;else prev.x=points[points.length-1].x;}
+    if(points.length===2&&Math.abs(points[0].x-points[1].x)>1&&Math.abs(points[0].y-points[1].y)>1)points=[points[0],{x:points[1].x,y:points[0].y},points[1]];
+    return[key,{...connector,start:points[0],end:points[points.length-1],points}];
   }));
 }
-
 export function SchoolOrganization() {
   const [roles, setRoles] = useState<string[]>([]);
   useEffect(() => { setRoles(getCurrentSessionUser()?.roles ?? []); }, []);
@@ -545,6 +540,8 @@ export function SchoolOrganization() {
     event.preventDefault();
     let group = selectedCardIds.includes(item.id) ? selectedCardIds : [item.id];
     if (event.shiftKey) {
+      pressRef.current = null;
+      setCardEditorId(null);
       group = selectedCardIds.includes(item.id) ? selectedCardIds.filter((id) => id !== item.id) : [...selectedCardIds, item.id];
       setSelectedCardIds(group);
       setSelectedCardId(group[group.length - 1] ?? null);
@@ -563,7 +560,20 @@ export function SchoolOrganization() {
     const press = pressRef.current; if (!press || press.pointerId !== event.pointerId) return;
     const dx = event.clientX - press.startX, dy = event.clientY - press.startY;
     if (!press.dragging && Math.hypot(dx, dy) > 5) { press.dragging = true; rememberChange(); setSelectedCardId(null); }
-    if (press.dragging) press.groupOrigins.forEach((origin) => movePosition(origin.id, origin.x + dx / (effectiveScale * (cardWidth / 220)), origin.y + dy / effectiveScale));
+    if (!press.dragging) return;
+    let targetX = press.originX + dx / (effectiveScale * (cardWidth / 220));
+    let targetY = press.originY + dy / effectiveScale;
+    const movingIds = new Set(press.groupOrigins.map((item) => item.id));
+    const candidates = [...positions.filter((item) => !movingIds.has(item.id)).map((item) => ({...cardPoint(item.id)})), ...classCards.filter((item) => !movingIds.has('homeroom:' + item.id)).map((item) => cardPoint('homeroom:' + item.id))];
+    const nearestDelta = (values: number[], anchors: number[]) => {
+      let best = 0, distance = 13;
+      for (const value of values) for (const anchor of anchors) { const delta=anchor-value; if(Math.abs(delta)<distance){best=delta;distance=Math.abs(delta);} }
+      return best;
+    };
+    targetX += nearestDelta([targetX,targetX+110,targetX+220],candidates.flatMap((item)=>[item.x,item.x+110,item.x+220]));
+    targetY += nearestDelta([targetY,targetY+cardHeight/2,targetY+cardHeight],candidates.flatMap((item)=>[item.y,item.y+cardHeight/2,item.y+cardHeight]));
+    const deltaX=targetX-press.originX,deltaY=targetY-press.originY;
+    press.groupOrigins.forEach((origin)=>movePosition(origin.id,origin.x+deltaX,origin.y+deltaY));
   }
   function endCardPress(event: ReactPointerEvent<HTMLDivElement>) {
     const press = pressRef.current; if (!press || press.pointerId !== event.pointerId) return;
