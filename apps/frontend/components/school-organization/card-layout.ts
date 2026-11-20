@@ -3,12 +3,12 @@ export type CardPoint = { x: number; y: number };
 export function getOrganizationCardLayout<T extends { id: string; sortOrder: number; x?: number; y?: number }>(
   positions: T[], options: { canvasWidth: number; cardWidth: number; cardHeight: number; rowGap: number; editing: boolean },
 ) {
-  const { canvasWidth, cardHeight } = options;
+  const { canvasWidth, cardWidth, cardHeight } = options;
   const ordered = [...positions].sort((a, b) => a.sortOrder - b.sortOrder);
-  const baseCardWidth = 220;
+  const baseCardWidth = cardWidth;
   const gapX = 40;
   const stepX = baseCardWidth + gapX;
-  const safeRowGap = Math.max(options.editing ? options.rowGap : 190, cardHeight + 40);
+  const safeRowGap = Math.max(options.editing ? options.rowGap : cardHeight + 40, cardHeight + 40);
   const rows = ordered.length ? 1 + Math.ceil(Math.max(0, ordered.length - 1) / 4) : 0;
   const result = new Map<string, CardPoint>();
 
