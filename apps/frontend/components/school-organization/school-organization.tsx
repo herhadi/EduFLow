@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { Check, ChevronDown, ImagePlus, Save, Trash2, Users, X, ZoomIn, ZoomOut, Maximize2, Printer, FileDown, Minus, Square, MousePointer2, Hand, Undo2, Redo2 } from 'lucide-react';
+import { Check, ChevronDown, ImagePlus, Save, Trash2, Users, X, ZoomIn, ZoomOut, Maximize2, Printer, FileDown, Minus, Square, MousePointer2, Hand, Undo2, Redo2, UserRound } from 'lucide-react';
 import { request, upload } from '../../lib/api-client';
 import { getCurrentSessionUser } from '../../lib/session';
 import { prepareProfilePhotoForUpload } from '../../lib/image-compression';
@@ -99,7 +99,7 @@ export function SchoolOrganization() {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ id: string | null; pointerId: number; startX: number; startY: number; originX: number; originY: number; panX: number; panY: number } | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
-  const [cardWidth, setCardWidth] = useState(220);
+  const [cardWidth, setCardWidth] = useState(320);
   const [cardHeight, setCardHeight] = useState(100);
   const [rowGap, setRowGap] = useState(210);
   const [columnGap, setColumnGap] = useState(56);
@@ -631,18 +631,18 @@ export function SchoolOrganization() {
     }[data.accent];
     const avatarSize = cardHeight;
     return <div className="relative h-full w-full overflow-visible">
-      <div className={`absolute inset-y-1 overflow-hidden rounded-2xl border shadow-[0_8px_22px_-12px_rgba(15,23,42,0.38)] ${palette.panel}`} style={{ left: avatarSize * 0.44, right: 0 }}>
+      <div className={`absolute inset-y-1 overflow-hidden rounded-2xl border shadow-[0_8px_22px_-12px_rgba(15,23,42,0.38)] ${palette.panel}`} style={{ left: avatarSize * 0.36, right: 0 }}>
         <div className={`h-1.5 w-full ${palette.bar}`}/>
-        <div className="flex h-[calc(100%-6px)] min-w-0 flex-col justify-center text-left" style={{ paddingLeft: avatarSize * 0.53, paddingRight: 12 }}>
+        <div className="flex h-[calc(100%-6px)] min-w-0 flex-col justify-center text-left" style={{ paddingLeft: avatarSize * 0.44, paddingRight: 14 }}>
           <p className={`mb-1 line-clamp-2 font-extrabold uppercase leading-tight tracking-[0.09em] ${palette.text}`} style={{ fontSize: 8.5 * contentScale }}>{data.title}</p>
-          <p className="break-words font-extrabold leading-tight text-slate-950 dark:text-white" style={{ fontSize: 12 * contentScale }}>{data.name}</p>
+          <p className="break-words [overflow-wrap:anywhere] font-extrabold leading-tight text-slate-950 dark:text-white" style={{ fontSize: 12 * contentScale }}>{data.name}</p>
           {data.detail && <p className="mt-0.5 truncate font-bold text-slate-600 dark:text-slate-300" style={{ fontSize: 9 * contentScale }}>{data.detail}</p>}
           <p className="mt-1 truncate font-medium text-slate-500 dark:text-slate-400" style={{ fontSize: 8.5 * contentScale }}>NIP: {data.nip || "—"}</p>
         </div>
       </div>
       <div className="absolute left-0 top-1/2 z-20 grid -translate-y-1/2 place-items-center rounded-full border-[5px] border-white bg-white p-1 shadow-[0_6px_18px_-4px_rgba(15,23,42,0.42)] ring-1 ring-slate-300 dark:border-slate-800 dark:bg-slate-800 dark:ring-slate-600" style={{ width: avatarSize, height: avatarSize, minWidth: avatarSize, minHeight: avatarSize }}>
         <div className="grid h-full w-full place-items-center overflow-hidden rounded-full bg-gradient-to-br from-slate-200 to-slate-400 text-slate-700 dark:from-slate-600 dark:to-slate-800 dark:text-white">
-          {data.photoUrl ? <img src={data.photoUrl} alt={`Foto ${data.name}`} className="h-full w-full object-cover"/> : <span className="font-extrabold" style={{fontSize:Math.max(13,18*contentScale)}}>{data.name.split(/\\s+/).filter(Boolean).slice(0,2).map((part)=>part[0]).join('').toUpperCase() || '—'}</span>}
+          {data.photoUrl ? <img src={data.photoUrl} alt={`Foto ${data.name}`} className="h-full w-full object-cover"/> : <UserRound size={avatarSize * 0.48} strokeWidth={1.6} className="text-slate-500 dark:text-slate-300"/>}
         </div>
       </div>
     </div>;
@@ -706,7 +706,7 @@ export function SchoolOrganization() {
       <div className="overflow-hidden rounded-2xl border bg-muted/20">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-card px-3 py-2">
           <p className="flex items-center gap-2 text-xs text-muted-foreground"><Hand size={14}/>{editing ? 'Mode tangan: geser kanvas · scroll untuk pan, Ctrl/⌘ + scroll untuk zoom · pilih kartu untuk mengedit · alat kotak untuk menambah jabatan · alat garis: klik kartu asal, klik titik sudut bila perlu, lalu klik kartu tujuan.' : 'Geser kanvas dan gunakan zoom untuk melihat bagan. Garis wali kelas menampilkan seluruh rombel tahun ajaran aktif.'}</p>
-          <div className="flex flex-wrap items-center gap-2">{editing && <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground"><label className="flex items-center gap-2">Lebar <input aria-label="Lebar kartu" type="range" min="160" max="280" step="10" value={cardWidth} onChange={(event) => setCardWidth(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{cardWidth}</span></label><label className="flex items-center gap-2">Tinggi <input aria-label="Tinggi kartu" type="range" min="90" max="180" step="5" value={cardHeight} onChange={(event) => setCardHeight(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{cardHeight}</span></label><label className="flex items-center gap-2">Jarak baris <input aria-label="Jarak vertikal antarbaris" type="range" min="140" max="500" step="10" value={rowGap} onChange={(event) => setRowGap(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{rowGap}</span></label><label className="flex items-center gap-2">Jarak kolom <input aria-label="Jarak horizontal antarkolom" type="range" min="20" max="160" step="4" value={columnGap} onChange={(event) => setColumnGap(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{columnGap}</span></label></div>}<div className="flex items-center gap-1"><button type="button" onClick={() => setZoom((v) => Math.min(1.5, v + 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perbesar"><ZoomIn size={16}/></button><span className="min-w-12 text-center text-xs tabular-nums">{Math.round(zoom * 100)}%</span><button type="button" onClick={() => setZoom((v) => Math.max(0.35, v - 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perkecil"><ZoomOut size={16}/></button><button type="button" onClick={() => { setZoom(1); setPan({ x: 0, y: 24 }); }} className="rounded-lg border p-2 hover:bg-muted" title="Atur ulang tampilan"><Maximize2 size={16}/></button></div></div>
+          <div className="flex flex-wrap items-center gap-2">{editing && <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground"><label className="flex items-center gap-2">Lebar <input aria-label="Lebar kartu" type="range" min="260" max="440" step="10" value={cardWidth} onChange={(event) => setCardWidth(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{cardWidth}</span></label><label className="flex items-center gap-2">Tinggi <input aria-label="Tinggi kartu" type="range" min="90" max="180" step="5" value={cardHeight} onChange={(event) => setCardHeight(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{cardHeight}</span></label><label className="flex items-center gap-2">Jarak baris <input aria-label="Jarak vertikal antarbaris" type="range" min="140" max="500" step="10" value={rowGap} onChange={(event) => setRowGap(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{rowGap}</span></label><label className="flex items-center gap-2">Jarak kolom <input aria-label="Jarak horizontal antarkolom" type="range" min="20" max="160" step="4" value={columnGap} onChange={(event) => setColumnGap(Number(event.target.value))} className="w-20"/><span className="w-7 tabular-nums">{columnGap}</span></label></div>}<div className="flex items-center gap-1"><button type="button" onClick={() => setZoom((v) => Math.min(1.5, v + 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perbesar"><ZoomIn size={16}/></button><span className="min-w-12 text-center text-xs tabular-nums">{Math.round(zoom * 100)}%</span><button type="button" onClick={() => setZoom((v) => Math.max(0.35, v - 0.1))} className="rounded-lg border p-2 hover:bg-muted" title="Perkecil"><ZoomOut size={16}/></button><button type="button" onClick={() => { setZoom(1); setPan({ x: 0, y: 24 }); }} className="rounded-lg border p-2 hover:bg-muted" title="Atur ulang tampilan"><Maximize2 size={16}/></button></div></div>
         </div>
         <div ref={canvasRef} className="org-print-canvas relative min-h-[680px] w-full overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-50/70 via-background to-slate-100/70 dark:from-blue-950/20 dark:via-background dark:to-slate-950/30" onPointerDown={onCanvasPointerDown} onPointerMove={(event) => { moveCardPress(event); onCanvasPointerMove(event); if (editing && drawTool === 'line' && lineStartRef.current) { const bounds = canvasRef.current?.getBoundingClientRect(); if (bounds) {
       const raw = { x: Math.max(0, (event.clientX - bounds.left - pan.x) / effectiveScale), y: Math.max(0, (event.clientY - bounds.top - pan.y) / effectiveScale) };
