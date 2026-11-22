@@ -633,7 +633,7 @@ export function SchoolOrganization() {
     return <div className="relative h-full w-full overflow-visible">
       <div className={`absolute inset-y-1 overflow-hidden rounded-2xl border shadow-[0_8px_22px_-12px_rgba(15,23,42,0.38)] ${palette.panel}`} style={{ left: avatarSize * 0.36, right: 0 }}>
         <div className={`h-1.5 w-full ${palette.bar}`}/>
-        <div className="flex h-[calc(100%-6px)] min-w-0 flex-col justify-center text-left" style={{ paddingLeft: avatarSize * 0.44, paddingRight: 14 }}>
+        <div className="flex h-[calc(100%-6px)] min-w-0 flex-col justify-center text-left" style={{ paddingLeft: avatarSize * 0.72 + 12, paddingRight: 14 }}>
           <p className={`mb-1 line-clamp-2 font-extrabold uppercase leading-tight tracking-[0.09em] ${palette.text}`} style={{ fontSize: 8.5 * contentScale }}>{data.title}</p>
           <p className="break-words [overflow-wrap:anywhere] font-extrabold leading-tight text-slate-950 dark:text-white" style={{ fontSize: 12 * contentScale }}>{data.name}</p>
           {data.detail && <p className="mt-0.5 truncate font-bold text-slate-600 dark:text-slate-300" style={{ fontSize: 9 * contentScale }}>{data.detail}</p>}
