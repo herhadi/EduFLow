@@ -386,19 +386,16 @@ async function ensureSemester(schoolYearId: string, date: Date) {
 }
 
 async function ensureSubjects() {
+  const ensureSubject = async (code: string, name: string) => {
+    const existing = await prisma.subject.findFirst({ where: { code, deletedAt: null } });
+    return existing
+      ? prisma.subject.update({ where: { id: existing.id }, data: { name, isActive: true } })
+      : prisma.subject.create({ data: { code, name, isActive: true } });
+  };
   const [math, science] = await Promise.all([
-    prisma.subject.upsert({
-      where: { code: 'UAT-MAT' },
-      update: { name: 'UAT Matematika', isActive: true, deletedAt: null },
-      create: { code: 'UAT-MAT', name: 'UAT Matematika', isActive: true },
-    }),
-    prisma.subject.upsert({
-      where: { code: 'UAT-IPA' },
-      update: { name: 'UAT IPA', isActive: true, deletedAt: null },
-      create: { code: 'UAT-IPA', name: 'UAT IPA', isActive: true },
-    }),
+    ensureSubject('UAT-MAT', 'UAT Matematika'),
+    ensureSubject('UAT-IPA', 'UAT IPA'),
   ]);
-
   return { math, science };
 }
 
@@ -410,36 +407,17 @@ async function ensureTimeSlots(schoolYearId: string) {
     [4, 'UAT Jam ke-4', '09:15', '09:55'],
   ] as const;
 
-  return Promise.all(slots.map(([periodNumber, name, startsAt, endsAt]) =>
-    prisma.academicTimeSlot.upsert({
-      where: {
-        schoolYearId_dayOfWeek_startsAt_endsAt: {
-          schoolYearId,
-          dayOfWeek,
-          startsAt,
-          endsAt,
-        },
-      },
-      update: {
-        periodNumber,
-        name,
-        type: 'LESSON',
-        isAssignable: true,
-        isActive: true,
-        deletedAt: null,
-      },
-      create: {
-        schoolYearId,
-        dayOfWeek,
-        periodNumber,
-        name,
-        type: 'LESSON',
-        startsAt,
-        endsAt,
-        isAssignable: true,
-      },
-    }),
-  ));
+  return Promise.all(slots.map(async ([periodNumber, name, startsAt, endsAt]) => {
+    const where = { schoolYearId, dayOfWeek, startsAt, endsAt, deletedAt: null };
+    const existing = await prisma.academicTimeSlot.findFirst({ where });
+    const data = {
+      schoolYearId, dayOfWeek, periodNumber, name, type: 'LESSON' as const,
+      startsAt, endsAt, isAssignable: true, isActive: true, deletedAt: null,
+    };
+    return existing
+      ? prisma.academicTimeSlot.update({ where: { id: existing.id }, data })
+      : prisma.academicTimeSlot.create({ data });
+  }));
 }
 
 async function ensureTeacher(input: {

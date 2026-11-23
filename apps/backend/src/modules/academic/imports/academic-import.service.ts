@@ -121,8 +121,8 @@ export class AcademicImportService {
     const isActive = this.parseActive(this.optional(row, ['status', 'is_active']));
 
     if (code) {
-      const existingByCode = await this.prisma.subject.findUnique({
-        where: { code },
+      const existingByCode = await this.prisma.subject.findFirst({
+        where: { code, deletedAt: null },
       });
 
       if (existingByCode) {
@@ -395,7 +395,7 @@ export class AcademicImportService {
     const code = this.optional(row, ['kode_mapel', 'kode', 'subject_code']);
     const name = this.optional(row, ['mapel', 'mata_pelajaran', 'subject']);
     const subject = code
-      ? await this.prisma.subject.findUnique({ where: { code } })
+      ? await this.prisma.subject.findFirst({ where: { code, deletedAt: null } })
       : await this.prisma.subject.findFirst({ where: { name, deletedAt: null } });
 
     if (!subject) {

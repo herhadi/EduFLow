@@ -249,23 +249,14 @@ async function main() {
     { code: 'MAT', name: 'Matematika' },
   ];
 
-  await Promise.all(
-    subjects.map((subject) =>
-      prisma.subject.upsert({
-        where: { code: subject.code },
-        update: {
-          name: subject.name,
-          isActive: true,
-          deletedAt: null,
-        },
-        create: {
-          code: subject.code,
-          name: subject.name,
-          isActive: true,
-        },
-      }),
-    ),
-  );
+  for (const subject of subjects) {
+    const existing = await prisma.subject.findFirst({ where: { code: subject.code, deletedAt: null } });
+    if (existing) {
+      await prisma.subject.update({ where: { id: existing.id }, data: { name: subject.name, isActive: true } });
+    } else {
+      await prisma.subject.create({ data: { code: subject.code, name: subject.name, isActive: true } });
+    }
+  }
 
   const schoolYears = await prisma.schoolYear.findMany({
     where: { name: '2025/2026', deletedAt: null },
@@ -320,60 +311,36 @@ async function main() {
             ? 'EXERCISE'
             : defaultType;
 
-        await prisma.academicTimeSlot.upsert({
-          where: {
-            schoolYearId_dayOfWeek_startsAt_endsAt: {
-              schoolYearId: schoolYear.id,
-              dayOfWeek,
-              startsAt,
-              endsAt,
-            },
-          },
-          update: {
-            periodNumber,
-            name,
-            type,
-            isAssignable: isMondayCeremony || isTuesdayExercise ? false : isAssignable,
-            isActive: true,
-            deletedAt: null,
-          },
-          create: {
-            schoolYearId: schoolYear.id,
-            dayOfWeek,
-            periodNumber,
-            name,
-            type,
-            startsAt,
-            endsAt,
-            isAssignable: isMondayCeremony || isTuesdayExercise ? false : isAssignable,
-          },
+        const slotData = {
+          schoolYearId: schoolYear.id, dayOfWeek, periodNumber, name, type: type as 'LESSON' | 'BREAK' | 'CEREMONY' | 'EXERCISE' | 'CO_CURRICULAR' | 'RELIGIOUS' | 'OTHER', startsAt, endsAt,
+          isAssignable: isMondayCeremony || isTuesdayExercise ? false : isAssignable,
+          isActive: true, deletedAt: null,
+        };
+        const existingSlot = await prisma.academicTimeSlot.findFirst({
+          where: { schoolYearId: schoolYear.id, dayOfWeek, startsAt, endsAt, deletedAt: null },
         });
+        if (existingSlot) {
+          await prisma.academicTimeSlot.update({ where: { id: existingSlot.id }, data: slotData });
+        } else {
+          await prisma.academicTimeSlot.create({ data: slotData });
+        }
       }
     }
 
     for (const [dayOfWeek, slots] of [[5, fridaySlots], [6, saturdaySlots]] as const) {
       for (const [periodNumber, name, type, startsAt, endsAt, isAssignable] of slots) {
-        await prisma.academicTimeSlot.upsert({
-          where: {
-            schoolYearId_dayOfWeek_startsAt_endsAt: {
-              schoolYearId: schoolYear.id,
-              dayOfWeek,
-              startsAt,
-              endsAt,
-            },
-          },
-          update: { periodNumber, name, type, isAssignable, isActive: true, deletedAt: null },
-          create: {
-            schoolYearId: schoolYear.id,
-            dayOfWeek,
-            periodNumber,
-            name,
-            type,
-            startsAt,
-            endsAt,
-            isAssignable,
-          },
+        const slotData = {
+          schoolYearId: schoolYear.id, dayOfWeek, periodNumber, name, type, startsAt, endsAt,
+          isAssignable, isActive: true, deletedAt: null,
+        };
+        const existingSlot = await prisma.academicTimeSlot.findFirst({
+          where: { schoolYearId: schoolYear.id, dayOfWeek, startsAt, endsAt, deletedAt: null },
         });
+        if (existingSlot) {
+          await prisma.academicTimeSlot.update({ where: { id: existingSlot.id }, data: slotData });
+        } else {
+          await prisma.academicTimeSlot.create({ data: slotData });
+        }
       }
     }
   }

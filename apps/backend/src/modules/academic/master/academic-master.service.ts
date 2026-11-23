@@ -172,35 +172,21 @@ export class AcademicMasterService {
 
       if (includeTimeSlots || includeClassActivities) {
         for (const sourceSlot of sourceTimeSlots) {
-          const targetSlot = await tx.academicTimeSlot.upsert({
+          const targetSlotData = {
+            schoolYearId: targetSchoolYear.id, dayOfWeek: sourceSlot.dayOfWeek,
+            periodNumber: sourceSlot.periodNumber, name: sourceSlot.name, type: sourceSlot.type,
+            startsAt: sourceSlot.startsAt, endsAt: sourceSlot.endsAt,
+            isAssignable: sourceSlot.isAssignable, isActive: sourceSlot.isActive, deletedAt: null,
+          };
+          const existingTargetSlot = await tx.academicTimeSlot.findFirst({
             where: {
-              schoolYearId_dayOfWeek_startsAt_endsAt: {
-                schoolYearId: targetSchoolYear.id,
-                dayOfWeek: sourceSlot.dayOfWeek,
-                startsAt: sourceSlot.startsAt,
-                endsAt: sourceSlot.endsAt,
-              },
-            },
-            update: {
-              periodNumber: sourceSlot.periodNumber,
-              name: sourceSlot.name,
-              type: sourceSlot.type,
-              isAssignable: sourceSlot.isAssignable,
-              isActive: sourceSlot.isActive,
-              deletedAt: null,
-            },
-            create: {
-              schoolYearId: targetSchoolYear.id,
-              dayOfWeek: sourceSlot.dayOfWeek,
-              periodNumber: sourceSlot.periodNumber,
-              name: sourceSlot.name,
-              type: sourceSlot.type,
-              startsAt: sourceSlot.startsAt,
-              endsAt: sourceSlot.endsAt,
-              isAssignable: sourceSlot.isAssignable,
-              isActive: sourceSlot.isActive,
+              schoolYearId: targetSchoolYear.id, dayOfWeek: sourceSlot.dayOfWeek,
+              startsAt: sourceSlot.startsAt, endsAt: sourceSlot.endsAt, deletedAt: null,
             },
           });
+          const targetSlot = existingTargetSlot
+            ? await tx.academicTimeSlot.update({ where: { id: existingTargetSlot.id }, data: targetSlotData })
+            : await tx.academicTimeSlot.create({ data: targetSlotData });
           timeSlotIdMap.set(sourceSlot.id, targetSlot.id);
           timeSlots += 1;
         }
