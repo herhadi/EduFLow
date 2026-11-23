@@ -20,21 +20,28 @@ type Connector = { start?: { x: number; y: number }; end?: { x: number; y: numbe
 type ConnectorMap = Record<string, Connector>;
 
 function normalizeConnectors(input: Record<string, Connector>): ConnectorMap {
-  return Object.fromEntries(
-    Object.entries(input)
-      .filter(([key, value]) => (key.startsWith('shape:') && ((value.start && value.end) || (value.points && value.points.length >= 2))) || (key.startsWith('node:') && value.start))
-      .map(([key, value]) => {
-        const cleanKey = key.replace(/^`|`$/g, '');
-        const normalizedKey = cleanKey;
-        const points = value.points && value.points.length >= 2 ? value.points : undefined;
-        return [normalizedKey, {
-          ...value,
-          start: value.start ?? points?.[0],
-          end: value.end ?? points?.[points.length - 1],
-          type: value.type === 'rect' ? 'rect' : 'line',
-        }];
-      }),
+  const entries = Object.entries(input).filter(([key, value]) =>
+    key.startsWith('shape:') && ((value.start && value.end) || (value.points && value.points.length >= 2)),
   );
+  const connectedPoints = entries.flatMap(([, value]) =>
+    value.points?.length ? value.points : [value.start, value.end].filter((point): point is { x: number; y: number } => Boolean(point)),
+  );
+  return Object.fromEntries([
+    ...entries,
+    ...Object.entries(input).filter(([key, value]) =>
+      key.startsWith('node:') && Boolean(value.start) &&
+      connectedPoints.some((point) => Math.hypot(point.x - value.start!.x, point.y - value.start!.y) < 1),
+    ),
+  ].map(([key, value]) => {
+    const cleanKey = key.replace(/^`|`$/g, '');
+    const points = value.points && value.points.length >= 2 ? value.points : undefined;
+    return [cleanKey, {
+      ...value,
+      start: value.start ?? points?.[0],
+      end: value.end ?? points?.[points.length - 1],
+      type: value.type === 'rect' ? 'rect' : 'line',
+    }];
+  }));
 }
 
 type CardMove = { from: { x: number; y: number }; to: { x: number; y: number } };
