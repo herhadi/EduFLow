@@ -47,7 +47,7 @@ export function AuditTrail() {
     try {
       const response = await api.getAuditCalendar(monthKey);
       setCalendarDays(response.data);
-      const currentSelection = selectedDate.slice(0, 7) === monthKey && response.data.some((day) => day.date === selectedDate);
+      const currentSelection = selectedDate.slice(0, 7) === monthKey;
       if (!currentSelection && response.data.length) {
         setSelectedDate(response.data[response.data.length - 1].date);
       } else if (!currentSelection) {
@@ -144,7 +144,7 @@ export function AuditTrail() {
             const today = key === dateKey(new Date());
             return (
               <button key={key} type="button" onClick={() => setSelectedDate(key)} aria-pressed={selected}
-                className={`relative flex h-12 w-12 justify-self-center flex-col items-center justify-center rounded-xl border text-sm transition-colors sm:h-14 sm:w-14 ${selected ? 'border-brand-600 bg-brand-600 text-white' : 'border-transparent text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'} ${today && !selected ? 'ring-1 ring-brand-500' : ''}`}>
+                className={`relative flex aspect-square w-full max-w-[4.25rem] flex-col items-center justify-center justify-self-center rounded-xl border text-base transition-colors sm:max-w-[4.75rem] sm:text-lg ${selected ? 'border-brand-600 bg-brand-600 text-white' : 'border-transparent text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'} ${today && !selected ? 'ring-1 ring-brand-500' : ''}`}>
                 <span className="font-semibold">{day}</span>
                 {count > 0 ? <span className={`mt-0.5 min-w-4 rounded-full px-1 text-[9px] font-bold leading-4 ${selected ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'}`}>{count > 99 ? '99+' : count}</span> : <span className="mt-0.5 h-4" />}
               </button>
@@ -170,12 +170,12 @@ export function AuditTrail() {
 
       <section className="mt-6" aria-labelledby="audit-log-heading">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <h3 id="audit-log-heading" className="text-base font-bold text-slate-900 dark:text-white">Audit Log</h3>
+          <h3 id="audit-log-heading" className="text-base font-bold text-slate-900 dark:text-white">Riwayat Aktivitas</h3>
           <Badge tone="muted">{auditLogs.length}</Badge>
         </div>
         <div className="max-h-[min(24rem,48vh)] space-y-3 overflow-y-auto pr-1">
           {auditLogs.map((activity) => <ActivityCard activity={activity} key={activity.id} />)}
-          {loadState === 'success' && auditLogs.length === 0 ? <EmptyState title="Belum ada audit log pada tanggal ini." /> : null}
+          {loadState === 'success' && auditLogs.length === 0 ? <EmptyState title="Belum ada aktivitas pada tanggal ini." /> : null}
         </div>
       </section>
 
@@ -183,12 +183,12 @@ export function AuditTrail() {
 
       <section className="mt-6 border-t border-slate-200 pt-6 dark:border-slate-700" aria-labelledby="notification-log-heading">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <h3 id="notification-log-heading" className="text-base font-bold text-slate-900 dark:text-white">Notification Log</h3>
+          <h3 id="notification-log-heading" className="text-base font-bold text-slate-900 dark:text-white">Riwayat Notifikasi</h3>
           <Badge tone="muted">{notificationLogs.length}</Badge>
         </div>
         <div className="max-h-[min(24rem,48vh)] space-y-3 overflow-y-auto pr-1">
           {notificationLogs.map((activity) => <ActivityCard activity={activity} key={activity.id} />)}
-          {loadState === 'success' && notificationLogs.length === 0 ? <EmptyState title="Belum ada notification log pada tanggal ini." /> : null}
+          {loadState === 'success' && notificationLogs.length === 0 ? <EmptyState title="Belum ada notifikasi pada tanggal ini." /> : null}
         </div>
       </section>
     </SurfaceCard>
@@ -222,7 +222,7 @@ function LoginAuditCard({ audit }: { audit: LoginAuditItem }) {
     <article className="rounded-xl border border-slate-200 bg-white/80 p-4 dark:bg-[var(--surface-soft)]">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0"><p className="font-bold text-slate-900 dark:text-white">{audit.user?.name ?? audit.email}</p><p className="break-all text-xs text-muted">Login dengan: {audit.email}</p><p className="text-xs text-muted">{audit.user?.username ? `@${audit.user.username} · ` : ''}{audit.user?.roles.join(', ') || 'User tidak ditemukan'}</p></div>
-        <Badge className={statusClass} tone="muted">{audit.status}</Badge>
+        <Badge className={statusClass} tone="muted">{audit.status === 'SUCCESS' ? 'Berhasil' : 'Gagal'}</Badge>
       </div>
       <div className="mt-3 grid gap-1 text-xs text-muted sm:grid-cols-2">
         <p>Waktu: {formatSchoolDateTime(audit.createdAt)}</p><p>IP: {audit.ipAddress ?? '-'}</p>
@@ -250,13 +250,10 @@ function ActivityCard({ activity }: { activity: ActivityTrailItem }) {
       <div className="flex gap-4">
         <div className="flex shrink-0 flex-col items-center"><div className="grid h-12 w-12 place-items-center rounded-xl bg-brand-600 text-sm font-bold text-white">{formatTime(activity.time)}</div><div className="mt-3 h-full w-px bg-blue-100 dark:bg-[var(--border-strong)]" /></div>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className={actionTone[activity.action] ?? 'border-slate-200 bg-white text-slate-700 dark:bg-[var(--surface-solid)]'} tone="muted">{activity.action}</Badge>
-            <Badge className="border-slate-200 bg-white text-slate-600 dark:bg-[var(--surface-solid)]" tone="muted">Aktivitas</Badge>
-          </div>
-          <h3 className="mt-3 text-base font-bold text-slate-900 dark:text-white">{activity.description}</h3>
-          <p className="mt-1 text-sm text-muted">{activity.entityType} · {activity.entityId}</p>
-          {activity.actor ? <p className="mt-2 text-xs text-slate-500">Actor: {activity.actor}</p> : null}
+          <div className="flex flex-wrap items-center gap-2"><Badge className={actionTone[activity.action] ?? 'border-slate-200 bg-white text-slate-700 dark:bg-[var(--surface-solid)]'} tone="muted">{friendlyAction(activity.action)}</Badge></div>
+          <h3 className="mt-3 text-base font-bold text-slate-900 dark:text-white">{activity.description || friendlyAction(activity.action)}</h3>
+          <p className="mt-1 text-sm text-muted">{friendlyEntity(activity.entityType)}</p>
+          {activity.actor ? <p className="mt-2 text-xs text-slate-500">Dilakukan oleh <span className="font-semibold text-slate-700 dark:text-slate-200">{activity.actor}</span></p> : null}
         </div>
       </div>
     </article>
@@ -297,6 +294,16 @@ function NotificationActivityCard({ activity }: { activity: ActivityTrailItem })
   );
 }
 
+
+function friendlyAction(action: string) {
+  const labels: Record<string, string> = {'attendance.submitted':'Presensi dikirim','attendance.opened':'Presensi dibuka','attendance.approved':'Presensi disetujui','notification.sent':'Notifikasi terkirim','notification.failed':'Notifikasi gagal','notification.retry':'Notifikasi dicoba ulang','schedule.updated':'Jadwal diperbarui','schedule.created':'Jadwal ditambahkan','schedule.deleted':'Jadwal dihapus','agenda.generated':'Agenda dibuat'};
+  if (labels[action]) return labels[action];
+  const words=action.replace(/[._-]+/g,' ').trim(); return words ? words.charAt(0).toUpperCase()+words.slice(1) : 'Perubahan data';
+}
+function friendlyEntity(entityType: string) {
+  const labels: Record<string,string>={attendance:'Data presensi',schedule:'Data jadwal',teacher:'Data guru',student:'Data peserta didik',class:'Data rombongan belajar',user:'Data akun',academic_calendar:'Kalender akademik',school_year:'Tahun ajaran',notification:'Pengiriman notifikasi'};
+  const key=entityType.toLowerCase().replace(/[ -]+/g,'_'); return labels[key] ?? (entityType ? 'Bagian: '+entityType.replace(/[._-]+/g,' ') : 'Perubahan data');
+}
 function formatTime(value: string) {
   return new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).format(new Date(value));
 }

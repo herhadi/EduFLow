@@ -7,8 +7,8 @@ export default function AuditPage() {
     <main className="py-10">
       <Container>
         <PageHeader
-          description="Lihat jejak aktivitas penting seperti submit presensi, approval, pengiriman summary, retry notifikasi, dan perubahan jadwal."
-          eyebrow="Audit & Activity Center"
+          description="Lihat aktivitas penting di sekolah, siapa yang melakukannya, dan kapan aktivitas berlangsung."
+          eyebrow="Riwayat Sekolah"
           title="Pusat Aktivitas"
         />
 

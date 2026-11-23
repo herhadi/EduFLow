@@ -72,7 +72,7 @@ function shiftAttachedConnectors(connectors: ConnectorMap, moves: CardMove[], wi
 export function SchoolOrganization() {
   const [roles, setRoles] = useState<string[]>([]);
   useEffect(() => { setRoles(getCurrentSessionUser()?.roles ?? []); }, []);
-  const canManage = roles.includes('operator_sekolah') && !roles.includes('root');
+  const canManage = (roles.includes('operator_sekolah') || roles.includes('super admin')) && !roles.includes('root');
   const [positions, setPositions] = useState<Position[]>([]);
   const [classCards, setClassCards] = useState<OrganizationClass[]>([]);
   const [schoolYearName, setSchoolYearName] = useState('');
@@ -669,10 +669,8 @@ export function SchoolOrganization() {
     clone.querySelectorAll('.org-print-node > div.border-t').forEach((node) => node.remove());
     clone.querySelectorAll('.org-print-node').forEach((node) => {
       const card = node as HTMLElement;
-      card.style.minHeight = '112px'; card.style.height = '112px'; card.style.width = '220px';
-      card.style.left = `${950 + ((Number.parseFloat(card.style.left) || 0) - 950) * (220 / cardWidth)}px`;
-      card.style.transform = 'none'; card.style.boxShadow = 'none'; card.style.backgroundColor = '#fff';
-      card.style.color = '#111'; card.style.borderColor = '#64748b';
+      card.style.transform = 'none'; card.style.boxShadow = 'none'; card.style.transition = 'none';
+      card.style.backgroundColor = '#fff'; card.style.color = '#111'; card.style.borderColor = '#64748b';
       card.querySelectorAll('img').forEach((img) => { (img as HTMLImageElement).style.objectFit = 'cover'; });
     });
     clone.style.cssText = `position:relative;width:1900px;height:${canvasHeight}px;transform:none;overflow:visible;`;
