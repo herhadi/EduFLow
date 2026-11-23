@@ -393,7 +393,6 @@ model AcademicTimeSlot {
   updatedAt         DateTime                @updatedAt @db.Timestamptz(3)
   deletedAt         DateTime? @db.Timestamptz(3)
 
-  @@unique([schoolYearId, dayOfWeek, startsAt, endsAt])
   @@index([schoolYearId, dayOfWeek, periodNumber])
   @@index([isActive])
 }
@@ -487,7 +486,7 @@ model AcademicCalendarEvent {
 model Subject {
   id                String                     @id @default(uuid()) @db.Uuid
   name              String
-  code              String?                    @unique
+  code              String?
   isActive          Boolean                    @default(true)
   schedules         Schedule[]
   scheduleRevisions ScheduleRevision[]

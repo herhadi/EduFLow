@@ -20,55 +20,59 @@ export function TeacherHomeroomPanel({
 }: TeacherHomeroomPanelProps) {
   return (
     <div>
-      <p className="text-sm font-black text-slate-800 dark:text-slate-100">Kelas Binaan Wali Kelas</p>
-      <p className="mt-1 text-xs font-semibold text-muted">
-        Klik kelas aktif untuk mengosongkan/default. Pilih kelas lain untuk mengganti sebelum simpan.
-      </p>
-      {selectedHomeroomClassIds.length ? (
-        <button
-          className="mt-3 rounded-full border border-red-700 bg-red-600 px-3 py-2 text-xs font-black text-white hover:bg-red-700 dark:border-red-500 dark:bg-red-600 dark:text-white dark:hover:bg-red-500"
-          onClick={onClearHomeroomClasses}
-          type="button"
-        >
-          Kosongkan wali kelas
-        </button>
-      ) : null}
-      <div className="mt-3 flex flex-wrap gap-2">
-        {classes.map((schoolClass) => {
-          const active = selectedHomeroomClassIds.includes(schoolClass.id);
-          const assignedToOtherTeacher =
-            schoolClass.homeroomTeacherId &&
-            schoolClass.homeroomTeacherId !== selectedTeacher.id;
-
-          return (
-            <button
-              className={[
-                'rounded-full border px-3 py-2 text-xs font-black transition',
-                active
-                  ? 'border-amber-500 bg-amber-500 text-white'
-                  : assignedToOtherTeacher
-                    ? 'border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500'
-                    : 'border-blue-100 bg-white text-slate-700 hover:bg-brand-50 dark:border-blue-400/20 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-blue-500/15',
-              ].join(' ')}
-              disabled={Boolean(assignedToOtherTeacher)}
-              key={schoolClass.id}
-              onClick={() => onToggleHomeroomClass(schoolClass.id)}
-              type="button"
-            >
-              {schoolClass.name}
-              {active ? ' · aktif, klik untuk kosongkan' : ''}
-              {assignedToOtherTeacher
-                ? ` · ${schoolClass.homeroomTeacher?.name ?? 'sudah ada wali'}`
-                : ''}
-            </button>
-          );
-        })}
-
-        {!classes.length ? (
-          <div className="w-full rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs font-semibold leading-5 text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100">
-            Data kelas belum tersedia atau belum berhasil dimuat. Cek halaman `/opsek/akademik` untuk memastikan kelas sudah ada, lalu refresh halaman ini.
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-black text-slate-800 dark:text-slate-100">Kelas Binaan Wali Kelas</p>
+          <p className="mt-1 text-xs font-semibold text-muted">
+            Pilih kelas untuk menetapkan atau mengganti wali kelas. Kelas yang sudah memiliki wali kelas lain tidak dapat dipilih.
+          </p>
+        </div>
+        {selectedHomeroomClassIds.length ? (
+          <button className="rounded-full border border-red-700 bg-red-600 px-3 py-1.5 text-xs font-black text-white hover:bg-red-700 dark:border-red-500 dark:bg-red-600 dark:text-white dark:hover:bg-red-500" onClick={onClearHomeroomClasses} type="button">
+            Kosongkan wali kelas
+          </button>
         ) : null}
+      </div>
+      <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+        <table className="w-full table-fixed text-left text-xs">
+          <thead className="bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:bg-slate-800/80 dark:text-slate-400">
+            <tr><th className="w-1/3 px-3 py-2">Kelas</th><th className="px-3 py-2">Wali Kelas</th></tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            {classes.map((schoolClass) => {
+              const active = selectedHomeroomClassIds.includes(schoolClass.id);
+              const assignedToOtherTeacher = schoolClass.homeroomTeacherId && schoolClass.homeroomTeacherId !== selectedTeacher.id;
+              const homeroomName = schoolClass.homeroomTeacher?.name ?? '-';
+              return (
+                <tr className={active ? 'bg-amber-50 dark:bg-amber-500/10' : 'bg-white dark:bg-slate-950'} key={schoolClass.id}>
+                  <td className="px-3 py-1.5">
+                    <button
+                      className={[
+                        'font-bold underline-offset-2 transition',
+                        active ? 'text-amber-700 underline dark:text-amber-300' :
+                          assignedToOtherTeacher ? 'cursor-not-allowed text-slate-400 dark:text-slate-500' :
+                            'text-slate-700 hover:text-brand-700 hover:underline dark:text-slate-200 dark:hover:text-blue-300',
+                      ].join(' ')}
+                      disabled={Boolean(assignedToOtherTeacher)}
+                      onClick={() => onToggleHomeroomClass(schoolClass.id)}
+                      type="button"
+                    >
+                      {schoolClass.name}{active ? ' · dipilih' : ''}
+                    </button>
+                  </td>
+                  <td className={homeroomName === "-" ? "px-3 py-1.5 text-slate-400 dark:text-slate-500" : "px-3 py-1.5 text-slate-700 dark:text-slate-200"}>
+                    {homeroomName}
+                  </td>
+                </tr>
+              );
+            })}
+            {!classes.length ? (
+              <tr><td className="px-3 py-3 text-center text-muted" colSpan={2}>
+                Data kelas belum tersedia atau belum berhasil dimuat. Cek halaman akademik, lalu refresh halaman ini.
+              </td></tr>
+            ) : null}
+          </tbody>
+        </table>
       </div>
     </div>
   );
