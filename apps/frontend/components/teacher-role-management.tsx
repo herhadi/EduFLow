@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 import { api, type SchoolClass, type SchoolYear, type Subject, type Teacher, type TeacherAssignmentStatus, type TeacherSchoolYearAssignment } from '../lib/api';
-import { getUpcomingSchoolYear } from '../lib/school-year';
+import { getPreferredSchoolYear, getUpcomingSchoolYear } from '../lib/school-year';
 import { TeacherAccountRolePanel } from './teacher-role-management/teacher-account-role-panel';
 import { TeacherAssignmentPanel } from './teacher-role-management/teacher-assignment-panel';
 import { TeacherDetailActions } from './teacher-role-management/teacher-detail-actions';
@@ -84,7 +84,12 @@ export function TeacherRoleManagement() {
 
         setTeachers(teacherResponse.data);
         setSubjects(subjectResponse.data);
-        setClasses(sortSchoolClasses(classResponse.data));
+        const preferredSchoolYear = getPreferredSchoolYear(schoolYearResponse.data);
+        setClasses(sortSchoolClasses(
+          preferredSchoolYear
+            ? classResponse.data.filter((schoolClass) => schoolClass.schoolYearId === preferredSchoolYear.id)
+            : classResponse.data,
+        ));
         setSchoolYears(schoolYearResponse.data);
         setAssignmentSchoolYearId(getUpcomingSchoolYear(schoolYearResponse.data)?.id ?? '');
         setSelectedTeacherId(teacherResponse.data[0]?.id ?? '');
@@ -223,14 +228,6 @@ export function TeacherRoleManagement() {
     });
   }
 
-  function clearHomeroomClasses() {
-    const confirmed = window.confirm('Kosongkan seluruh pilihan kelas wali untuk guru ini? Perubahan baru diterapkan setelah disimpan.');
-    if (!confirmed) return;
-    setSelectedHomeroomClassIds([]);
-    setSelectedRoles((currentRoles) =>
-      currentRoles.filter((currentRole) => currentRole !== 'wali_kelas'),
-    );
-  }
 
   async function handleSave() {
     if (!selectedTeacher) {
@@ -254,29 +251,34 @@ export function TeacherRoleManagement() {
         email: email || undefined,
         roles: normalizeTeacherRoles(selectedRoles.length ? selectedRoles : ['guru']),
       });
-      await Promise.all(
-        classes.map((schoolClass) => {
-          const shouldAssign = selectedHomeroomClassIds.includes(schoolClass.id);
-          const currentlyAssigned =
-            schoolClass.homeroomTeacherId === selectedTeacher.id;
+      // Apply homeroom changes sequentially to avoid overlapping writes and stale list state.
+      for (const schoolClass of classes) {
+        const shouldAssign = selectedHomeroomClassIds.includes(schoolClass.id);
+        const currentlyAssigned = schoolClass.homeroomTeacherId === selectedTeacher.id;
 
-          if (shouldAssign && !currentlyAssigned) {
-            return api.setClassHomeroomTeacher(schoolClass.id, selectedTeacher.id);
-          }
+        if (currentlyAssigned && !shouldAssign) {
+          await api.setClassHomeroomTeacher(schoolClass.id, null);
+        }
+      }
+      for (const schoolClass of classes) {
+        const shouldAssign = selectedHomeroomClassIds.includes(schoolClass.id);
+        const currentlyAssigned = schoolClass.homeroomTeacherId === selectedTeacher.id;
 
-          if (!shouldAssign && currentlyAssigned) {
-            return api.setClassHomeroomTeacher(schoolClass.id, null);
-          }
-
-          return Promise.resolve();
-        }),
-      );
+        if (shouldAssign && !currentlyAssigned) {
+          await api.setClassHomeroomTeacher(schoolClass.id, selectedTeacher.id);
+        }
+      }
       const [teacherResponse, classResponse] = await Promise.all([
         api.getTeachers(),
         api.getClasses(),
       ]);
       setTeachers(teacherResponse.data);
-      setClasses(sortSchoolClasses(classResponse.data));
+      const preferredSchoolYear = getPreferredSchoolYear(schoolYears);
+      setClasses(sortSchoolClasses(
+        preferredSchoolYear
+          ? classResponse.data.filter((schoolClass) => schoolClass.schoolYearId === preferredSchoolYear.id)
+          : classResponse.data,
+      ));
       setSaveState('success');
       setMessage('Pengaturan guru berhasil disimpan.');
       toast.success('Pengaturan guru berhasil disimpan.', 'Berhasil');
@@ -457,7 +459,6 @@ export function TeacherRoleManagement() {
 
               <TeacherHomeroomPanel
                 classes={classes}
-                onClearHomeroomClasses={clearHomeroomClasses}
                 onToggleHomeroomClass={toggleHomeroomClass}
                 selectedHomeroomClassIds={selectedHomeroomClassIds}
                 selectedTeacher={selectedTeacher}
