@@ -118,14 +118,30 @@ export function ClassManagementPanel({
         </div>
       </form>
 
-      <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
-        <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-3 py-3 dark:border-slate-700 dark:bg-slate-900"><h3 className="text-sm font-black text-slate-800 dark:text-slate-100">Daftar Rombongan Belajar</h3><Badge tone="brand">{groupedClasses.reduce((total, group) => total + group.classes.length, 0)} kelas</Badge></div>
-        <div className="overflow-x-auto"><table className="w-full min-w-[300px] text-left text-sm">
-          <thead className="bg-white text-xs font-bold text-muted dark:bg-slate-950"><tr><th className="px-3 py-2.5">Tingkat</th><th className="px-3 py-2.5">Rombel</th><th className="w-20 px-3 py-2.5 text-center">Aksi</th></tr></thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {groupedClasses.flatMap((group) => group.classes.map((schoolClass) => <tr key={schoolClass.id} className="bg-white hover:bg-slate-50 dark:bg-[var(--surface-solid)] dark:hover:bg-slate-900"><td className="whitespace-nowrap px-3 py-3 font-semibold text-slate-600 dark:text-slate-300">{group.grade}</td><td className="px-3 py-3 font-black text-slate-900 dark:text-white">{schoolClass.name}</td><td className="px-3 py-2 text-center"><Button aria-label={`Hapus kelas ${schoolClass.name}`} className="size-8 rounded-lg p-0" onClick={() => void onDeleteClass(schoolClass)} size="sm" variant="danger">×</Button></td></tr>))}
-            {!groupedClasses.some((group) => group.classes.length) ? <tr><td className="px-3 py-6 text-center text-sm text-muted" colSpan={3}>Belum ada rombongan belajar pada tahun ajaran ini.</td></tr> : null}
-          </tbody></table></div>
+      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+        <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-900">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Daftar Rombel</h3>
+          <span className="text-xs font-semibold text-muted">
+            {groupedClasses.reduce((total, group) => total + group.classes.length, 0)} kelas
+          </span>
+        </div>
+        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          {groupedClasses.map((group) => (
+            <div className="flex min-h-10 items-center gap-3 px-3 py-1.5" key={group.grade}>
+              <span className="w-10 shrink-0 text-xs font-bold text-muted">{group.grade}</span>
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+                {group.classes.map((schoolClass) => (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 py-0.5 pl-2 pr-1 text-xs font-semibold text-slate-800 dark:bg-slate-800 dark:text-slate-100" key={schoolClass.id}>
+                    {schoolClass.name}
+                    <Button aria-label={`Hapus kelas ${schoolClass.name}`} className="size-5 rounded p-0 text-xs" onClick={() => void onDeleteClass(schoolClass)} size="sm" variant="danger">×</Button>
+                  </span>
+                ))}
+                {!group.classes.length ? <span className="text-xs text-muted">Belum ada rombel</span> : null}
+              </div>
+            </div>
+          ))}
+          {!groupedClasses.length ? <p className="px-3 py-4 text-center text-xs text-muted">Belum ada rombongan belajar pada tahun ajaran ini.</p> : null}
+        </div>
       </div>
 
       <form className="mt-5 grid min-w-0 gap-3 rounded-2xl border border-blue-100 bg-blue-50/40 p-3 dark:border-blue-400/20 dark:bg-blue-500/10" onSubmit={onCloneSchoolYearMaster}>

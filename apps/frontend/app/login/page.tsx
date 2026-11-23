@@ -30,7 +30,32 @@ export default function LoginPage() {
 
     if (searchParams.get('reason') === 'session-expired') {
       setErrorMessage('Session berakhir atau token tidak valid. Silakan login ulang.');
+      return;
     }
+
+    const accessToken = localStorage.getItem('accessToken');
+    const expiresAt = localStorage.getItem('sessionExpiresAt');
+
+    if (!accessToken || !expiresAt || new Date(expiresAt).getTime() <= Date.now()) {
+      return;
+    }
+
+    let isActive = true;
+    setIsRedirecting(true);
+
+    void api.getMyProfile()
+      .then((response) => {
+        if (!isActive) return;
+        redirectToDashboard(response.data.roles ?? []);
+      })
+      .catch(() => {
+        if (!isActive) return;
+        setIsRedirecting(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   function redirectToDashboard(roles: string[] = []) {
