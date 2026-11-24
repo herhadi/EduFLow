@@ -263,7 +263,12 @@ export function AcademicCalendarManagement() {
                 const dayEvents = events.filter((item) => item.startsAt.slice(0, 10) <= date && item.endsAt.slice(0, 10) >= date);
                 const hasActivity = dayEvents.length > 0;
                 const selectedEventType = dayEvents[0] ? eventTypes.find((item) => item.value === dayEvents[0].type) : undefined;
-                return <span className={'flex h-4 items-center justify-center rounded text-[9px] leading-none ' + (date === selectedDate ? 'box-border aspect-square w-4 min-w-4 shrink-0 font-extrabold text-white ring-1 ring-white/80 dark:ring-slate-900 ' + (selectedEventType?.dot ?? 'bg-sky-600') : 'w-full ' + (hasActivity ? (selectedEventType?.dot ?? 'bg-sky-500') + ' font-bold text-white' : isToday ? 'bg-amber-200 font-extrabold text-amber-900 ring-1 ring-amber-400 dark:bg-amber-700 dark:text-amber-50 dark:ring-amber-500' : cellIndex % 7 === 0 ? 'text-rose-500 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300'))} key={date}>{day}</span>;
+                const isSelected = date === selectedDate;
+                const showMarker = isSelected || hasActivity || isToday;
+                const markerColor = hasActivity ? (selectedEventType?.dot ?? 'bg-sky-500') + ' font-bold text-white' : '';
+                const todayOutline = isToday ? 'ring-2 ring-sky-600 ring-offset-1 ring-offset-white dark:ring-sky-300 dark:ring-offset-slate-800' : '';
+                const selectedOutline = isSelected && !isToday ? 'ring-2 ring-slate-500 ring-offset-1 ring-offset-white dark:ring-slate-300 dark:ring-offset-slate-800' : '';
+                return <span className="flex h-4 w-full items-center justify-center" key={date}><span className={'flex h-4 w-4 shrink-0 items-center justify-center rounded text-[9px] leading-none ' + (hasActivity ? markerColor : cellIndex % 7 === 0 ? 'text-rose-500 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300') + ' ' + todayOutline + ' ' + selectedOutline}>{day}</span></span>;
               })}
             </span>
             <span className="mt-2 block text-[10px] text-slate-500 dark:text-slate-400">{monthEventCount} kegiatan</span>
