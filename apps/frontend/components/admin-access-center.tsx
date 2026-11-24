@@ -158,36 +158,6 @@ export function AdminAccessCenter({
     }
   }
 
-  async function handleDeleteUser(user: AppUser) {
-    const confirmed = window.confirm(
-      `Hapus permanen user ${user.username ?? user.email}? Gunakan hanya untuk user salah input/test. Aksi ini tidak bisa dibatalkan.`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    setUserActionState('loading');
-    setUserMessage('');
-
-    try {
-      const response = await api.deleteUser(user.id);
-      setUserActionState('success');
-      setUserMessage(response.message ?? 'User berhasil dihapus permanen.');
-      toast.success(
-        response.message ?? 'User berhasil dihapus permanen.',
-        'User Dihapus',
-      );
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? `Gagal hapus permanen user: ${error.message}`
-          : 'Gagal hapus permanen user.';
-      setUserActionState('error');
-      setUserMessage(errorMessage);
-      toast.error(errorMessage, 'Aksi Gagal');
-    }
-  }
 
   return (
     <section className="mt-4 space-y-3">
@@ -211,7 +181,6 @@ export function AdminAccessCenter({
           canAssignRootRole={canAssignRootRole}
           refreshKey={directoryRefreshKey}
           onDeactivateUser={handleDeactivateUser}
-          onDeleteUser={handleDeleteUser}
           onResetUserPassword={handleResetUserPassword}
           onUpdateUserRoles={handleUpdateUserRoles}
         />

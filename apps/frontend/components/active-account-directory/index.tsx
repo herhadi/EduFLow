@@ -23,7 +23,6 @@ type DirectoryProps = {
   onUpdateUserRoles?: (user: AppUser, roles: string[]) => Promise<void>;
   onResetUserPassword?: (user: AppUser) => Promise<void>;
   onDeactivateUser?: (user: AppUser) => Promise<void>;
-  onDeleteUser?: (user: AppUser) => Promise<void>;
 };
 
 function formatDate(value?: string | null) {
@@ -59,7 +58,7 @@ function getRoleLabels(roles: string[]) {
 
 export function ActiveAccountDirectory({
   audience, canManage = false, canAssignRootRole = false, refreshKey = 0,
-  onUpdateUserRoles, onResetUserPassword, onDeactivateUser, onDeleteUser,
+  onUpdateUserRoles, onResetUserPassword, onDeactivateUser,
 }: DirectoryProps) {
   const [accounts, setAccounts] = useState<AppUser[]>([]);
   const [query, setQuery] = useState('');
@@ -346,7 +345,6 @@ export function ActiveAccountDirectory({
             <div className="grid grid-cols-1 gap-3 border-t border-slate-200 pt-4 dark:border-[var(--border)] sm:grid-cols-2">
               <Button className="min-h-11 w-full px-4" onClick={async () => { await onResetUserPassword?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="md" variant="info">Reset Password</Button>
               <Button className="min-h-11 w-full px-4" onClick={async () => { await onDeactivateUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="md" variant="outline">Nonaktifkan</Button>
-              <Button className="min-h-11 w-full px-4 sm:col-span-2" onClick={async () => { await onDeleteUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="md" variant="danger">Hapus Permanen</Button>
             </div>
           </div>
         </Dialog>

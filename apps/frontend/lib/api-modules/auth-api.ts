@@ -54,6 +54,7 @@ export const authApi = {
     }),
   getUsers: () => request<ApiResponse<AppUser[]>>('/auth/users'),
   getActiveAccounts: () => request<ApiResponse<AppUser[]>>('/auth/active-accounts'),
+  getSystemAccounts: () => request<ApiResponse<AppUser[]>>('/auth/system-accounts'),
   createUser: (payload: {
     email?: string;
     username: string;

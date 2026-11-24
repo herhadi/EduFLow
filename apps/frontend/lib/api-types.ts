@@ -1009,4 +1009,6 @@ export interface AppUser {
   lastLoginAt?: string | null;
   lockedUntil?: string | null;
   createdAt?: string;
+  deletedAt?: string | null;
+
 }

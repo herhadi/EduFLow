@@ -614,6 +614,18 @@ export class AuthService {
     };
   }
 
+  async getSystemAccounts() {
+    const users = await this.prisma.user.findMany({
+      select: {
+        id: true, email: true, username: true, name: true,
+        lastLoginAt: true, lockedUntil: true, createdAt: true, deletedAt: true,
+        roles: { include: { role: { select: { name: true } } } },
+      },
+      orderBy: [{ deletedAt: 'asc' }, { name: 'asc' }],
+    });
+    return { data: users.map((user) => ({ ...user, roles: user.roles.map(({ role }) => role.name) })) };
+  }
+
   async getActiveAccounts() {
     const users = await this.prisma.user.findMany({
       where: { deletedAt: null },
@@ -832,6 +844,10 @@ export class AuthService {
   }
 
   async deleteUser(userId: string, actorUserId: string) {
+    const actor = await this.prisma.user.findUnique({ where: { id: actorUserId }, include: { roles: { include: { role: true } } } });
+    if (!actor?.roles.some(({ role }) => role.name === 'root')) {
+      throw new ForbiddenException('Hanya Root yang dapat menghapus akun secara permanen');
+    }
     if (userId === actorUserId) {
       throw new BadRequestException('Tidak bisa menghapus akun sendiri');
     }
@@ -856,7 +872,6 @@ export class AuthService {
         await tx.userRole.deleteMany({ where: { userId } });
         await tx.refreshToken.deleteMany({ where: { userId } });
         await tx.passwordResetToken.deleteMany({ where: { userId } });
-        await tx.loginAudit.deleteMany({ where: { userId } });
 
         return tx.user.delete({
           where: { id: userId },

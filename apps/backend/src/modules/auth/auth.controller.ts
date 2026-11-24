@@ -158,6 +158,12 @@ export class AuthController {
     return this.authService.getUsers();
   }
 
+  @Get('system-accounts')
+  getSystemAccounts(@Req() request: RequestWithUser) {
+    if (!(request.user.roles ?? []).includes('root')) throw new ForbiddenException('Hanya Root yang dapat mengakses pengelolaan akun sistem');
+    return this.authService.getSystemAccounts();
+  }
+
   @Get('active-accounts')
   getActiveAccounts(@Req() request: RequestWithUser) {
     const roles = (request.user.roles ?? []).map((role) => role.trim().toLowerCase());

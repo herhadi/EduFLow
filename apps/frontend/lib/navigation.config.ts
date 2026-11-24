@@ -26,6 +26,7 @@ const rootNavigation: NavigationItem[] = [
   { href: '/system/dashboard', label: 'Sistem', icon: 'home' },
   { href: '/operations', label: 'Ops', icon: 'activity' },
   { href: '/system/access', label: 'Akses', icon: 'access' },
+  { href: '/system/accounts', label: 'Kelola Akun', icon: 'users' },
   { href: '/system/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
   {
     href: '/system/profile',
@@ -177,6 +178,7 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'operations', href: '/system/dashboard', label: 'Sistem' },
   { section: 'operations', href: '/operations', label: 'Health' },
   { section: 'operations', href: '/system/access', label: 'Akses' },
+  { section: 'operations', href: '/system/accounts', label: 'Kelola Akun' },
   { section: 'operations', href: '/system/telegram', label: 'Telegram' },
   { section: 'operations', href: '/system/notifications', label: 'Notifikasi' },
   { section: 'operations', href: '/system/audit', label: 'Audit' },

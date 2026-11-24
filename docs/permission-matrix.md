@@ -154,3 +154,11 @@ Aturan otorisasi tetap ditegakkan di backend; pembatasan pada antarmuka hanya me
 Menu navigasi akun multi-role menggabungkan tujuan halaman dari seluruh role yang terpasang, bukan memilih satu role lalu mengabaikan role lainnya. Setiap tujuan halaman ditampilkan satu kali berdasarkan URL. Navigasi utama dibatasi agar tetap ringkas; menu dari role tambahan dan menu yang tidak muat ditempatkan di bagian **Lainnya**.
 
 Pemeriksaan akses namespace halaman juga harus memeriksa seluruh role akun, bukan hanya role prioritas untuk menentukan dashboard. Permission endpoint tetap menjadi otoritas akses backend. Contoh: akun TU + Super Admin memperoleh menu kerja TU dan menu teknis Super Admin tanpa duplikasi; akun Guru + Wali Kelas menggunakan workspace guru dengan fitur wali kelas.
+
+## Siklus Hidup Akun
+
+- Super Administrator mengelola akun operasional melalui `/admin/access`: tambah, edit role, reset password, dan nonaktifkan. UI tidak menyediakan hapus permanen.
+- Root memiliki halaman `/system/accounts` untuk melihat akun aktif maupun soft-deleted dan menjalankan penghapusan permanen.
+- API `DELETE /auth/users/:id` memeriksa role Root di backend; permission `user.manage` saja tidak cukup.
+- Penghapusan permanen tetap menjaga histori operasional dan audit: jika relasi historis masih mereferensikan akun, transaksi ditolak dan akun tetap dipertahankan.
+- Akun Developer dilindungi dari penonaktifan dan penghapusan permanen; penghapusan Root tetap tunduk pada aturan minimal satu Root aktif.
