@@ -98,6 +98,8 @@
 }
 
 @layer components {
+  .calendar-day-cell { width: min(100%, 4rem); aspect-ratio: 1 / 1; justify-self: center; }
+
   .app-backdrop {
     background:
       radial-gradient(circle at 10% -10%, rgba(59, 130, 246, 0.24), transparent 34%),
