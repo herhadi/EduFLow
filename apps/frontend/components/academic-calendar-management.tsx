@@ -214,6 +214,7 @@ export function AcademicCalendarManagement() {
               </button>;
             })}
           </div>
+          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">{eventTypes.map((item) => <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300" key={item.value}><span className={"h-2.5 w-2.5 rounded-full " + item.dot} />{item.label}</span>)}</div>
           <p className="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">Titik berwarna menandakan sudah ada kegiatan. Klik tanggal untuk menambahkan kegiatan baru.</p>
         </main>
         <aside className="space-y-4">
@@ -265,6 +266,7 @@ export function AcademicCalendarManagement() {
                 return <span className={'flex aspect-square w-full items-center justify-center rounded text-[9px] ' + (date === selectedDate ? 'bg-sky-600 font-extrabold text-white' : isToday ? 'bg-amber-100 font-extrabold text-amber-800 ring-1 ring-amber-300 dark:bg-amber-900/60 dark:text-amber-100 dark:ring-amber-700' : isHoliday ? 'bg-rose-100 font-bold text-rose-700 dark:bg-rose-900/50 dark:text-rose-200' : hasActivity ? 'bg-sky-100 font-bold text-sky-800 dark:bg-sky-900 dark:text-sky-100' : cellIndex % 7 === 0 ? 'text-rose-500 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300')} key={date}>{day}</span>;
               })}
             </span>
+            <span className="mt-2 block text-[10px] text-slate-500 dark:text-slate-400">{monthEventCount} kegiatan</span>
           </button>;
         })}
       </div>
