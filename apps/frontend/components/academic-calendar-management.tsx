@@ -189,25 +189,27 @@ export function AcademicCalendarManagement() {
       </header>
       <div className="grid gap-5 p-4 sm:p-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <main className="min-w-0">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4 dark:border-slate-700">
-            <div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-600">Bulan {monthIndex + 1} dari 12</p><h3 className="mt-1 text-xl font-black capitalize text-slate-900 dark:text-slate-100">{activeMonth ? formatMonth(activeMonth) : 'Kalender belum tersedia'}</h3></div>
-            <div className="flex items-center gap-2">
-              <button aria-label="Bulan sebelumnya" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 disabled:opacity-40 dark:border-slate-600 dark:text-slate-200" disabled={monthIndex === 0} onClick={() => setMonthIndex((value) => Math.max(0, value - 1))} type="button">‹</button>
-              <button className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200" onClick={todayAction} type="button">Hari ini</button>
-              <button aria-label="Bulan berikutnya" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 disabled:opacity-40 dark:border-slate-600 dark:text-slate-200" disabled={monthIndex === 11} onClick={() => setMonthIndex((value) => Math.min(11, value + 1))} type="button">›</button>
+          <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-blue-950 via-blue-900 to-sky-600 px-4 py-4 text-white shadow-sm sm:px-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-300">Kalender Akademik & Nasional</p><h3 className="mt-1 text-xl font-black capitalize sm:text-2xl">{activeMonth ? formatMonth(activeMonth) : 'Kalender belum tersedia'}</h3><p className="mt-1 text-[11px] font-medium text-blue-100">Bulan {monthIndex + 1} dari 12 · {selectedSchoolYear?.name ?? 'Tahun ajaran'}</p></div>
+              <div className="flex items-center gap-1.5">
+                <button aria-label="Bulan sebelumnya" className="grid size-9 place-items-center rounded-xl border border-white/10 bg-white/15 text-xl font-bold text-white transition hover:bg-white/25 disabled:opacity-35" disabled={monthIndex === 0} onClick={() => setMonthIndex((value) => Math.max(0, value - 1))} type="button">‹</button>
+                <button className="rounded-xl border border-white/10 bg-white/15 px-3 py-2 text-xs font-black text-white transition hover:bg-white/25" onClick={todayAction} type="button">Hari ini</button>
+                <button aria-label="Bulan berikutnya" className="grid size-9 place-items-center rounded-xl border border-white/10 bg-white/15 text-xl font-bold text-white transition hover:bg-white/25 disabled:opacity-35" disabled={monthIndex === 11} onClick={() => setMonthIndex((value) => Math.min(11, value + 1))} type="button">›</button>
+              </div>
             </div>
           </div>
           <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">{eventTypes.map((item) => <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300" key={item.value}><span className={'h-2.5 w-2.5 rounded-full ' + item.dot} />{item.label}</span>)}</div>
           <div className="mt-4 grid grid-cols-7 gap-1.5 sm:gap-2">
-            {weekdays.map((label) => <span className="py-2 text-center text-xs font-black text-slate-400 sm:text-sm" key={label}>{label}</span>)}
+            {weekdays.map((label, weekdayIndex) => <span className={'py-2 text-center text-[10px] font-black sm:text-xs ' + (weekdayIndex === 6 ? 'text-rose-500' : 'text-slate-500 dark:text-slate-400')} key={label}>{label}</span>)}
             {cells.map((day, index) => {
               if (!activeMonth || day < 1 || day > days) return <span aria-hidden="true" className="min-h-12 sm:min-h-20" key={'empty-' + index} />;
               const date = isoDate(new Date(Date.UTC(activeMonth.getUTCFullYear(), activeMonth.getUTCMonth(), day, 12)));
               const matches = events.filter((item) => item.startsAt.slice(0, 10) <= date && item.endsAt.slice(0, 10) >= date);
               const selected = date === selectedDate;
               const today = date === isoDate(new Date());
-              return <button aria-label={'Tambah kegiatan pada ' + formatDate(date)} aria-pressed={selected} className={'flex min-h-12 min-w-0 flex-col items-start rounded-xl border p-1.5 text-left transition sm:min-h-20 sm:p-2 ' + (selected ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-100 dark:bg-brand-950/40 dark:ring-brand-900' : 'border-slate-100 bg-white hover:border-brand-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800') + (today && !selected ? ' border-brand-300' : '')} key={date} onClick={() => openCreate(date)} title={matches.map((item) => item.title).join(' • ') || 'Tambah kegiatan ' + formatDate(date)} type="button">
-                <span className={'text-xs font-black sm:text-sm ' + (today ? 'text-brand-700 dark:text-sky-300' : 'text-slate-800 dark:text-slate-100')}>{day}</span>
+              return <button aria-label={'Tambah kegiatan pada ' + formatDate(date)} aria-pressed={selected} className={'flex min-h-12 min-w-0 flex-col items-start rounded-xl border p-1.5 text-left transition sm:min-h-20 sm:p-2 ' + (selected ? 'border-sky-400 bg-sky-50 ring-1 ring-sky-200 dark:border-sky-600 dark:bg-sky-950/45 dark:ring-sky-900' : index % 7 === 6 ? 'border-rose-100 bg-rose-50/70 hover:border-rose-300 dark:border-rose-900/60 dark:bg-rose-950/25 dark:hover:bg-rose-950/45' : 'border-slate-100 bg-white hover:border-sky-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800') + (today && !selected ? ' border-sky-400' : '')} key={date} onClick={() => openCreate(date)} title={matches.map((item) => item.title).join(' • ') || 'Tambah kegiatan ' + formatDate(date)} type="button">
+                <span className={'text-xs font-black sm:text-sm ' + (today ? 'text-sky-700 dark:text-sky-300' : index % 7 === 6 ? 'text-rose-600 dark:text-rose-300' : 'text-slate-800 dark:text-slate-100')}>{day}</span>
                 <span className="mt-1 flex flex-wrap gap-1">{matches.slice(0, 4).map((item) => <span className={'h-1.5 w-1.5 rounded-full ' + (eventTypes.find((type) => type.value === item.type)?.dot ?? 'bg-slate-400')} key={item.id} />)}</span>
                 {matches.length > 0 && <span className="mt-1 hidden w-full truncate text-[10px] font-semibold text-slate-600 dark:text-slate-300 sm:block">{matches[0].title}{matches.length > 1 ? ' +' + (matches.length - 1) : ''}</span>}
               </button>;
@@ -234,12 +236,14 @@ export function AcademicCalendarManagement() {
       </div>
     </section>
 
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6">
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-        <div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-600">Tinjauan Tahunan</p><h2 className="mt-1 text-xl font-black text-slate-900 dark:text-slate-100">Review Kaldik 1 Tahun</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Ringkasan 12 bulan tahun ajaran Juli–Juni. Pilih bulan untuk membuka kalender detail.</p></div>
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <div className="bg-gradient-to-r from-slate-50 via-white to-sky-50 px-4 py-4 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 sm:px-6">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-700 dark:text-sky-300">Tinjauan Tahunan</p><h2 className="mt-1 text-xl font-black text-slate-900 dark:text-slate-100">Kalender Pendidikan · 1 Tahun</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Ringkasan 12 bulan tahun ajaran Juli–Juni. Pilih bulan untuk membuka kalender detail.</p></div>
         <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">{selectedSchoolYear?.name ?? 'Tahun ajaran'}</span>
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+      </div>
+      <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 sm:p-5 xl:grid-cols-4">
         {months.map((month, index) => {
           const monthStart = isoDate(month);
           const monthEnd = isoDate(new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + 1, 0, 12)));
@@ -247,15 +251,15 @@ export function AcademicCalendarManagement() {
           const monthOffset = (new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), 1, 12)).getUTCDay() + 6) % 7;
           const monthCells = Array.from({ length: Math.ceil((monthOffset + monthDays) / 7) * 7 }, (_, cell) => cell - monthOffset + 1);
           const monthEventCount = events.filter((item) => item.startsAt.slice(0, 10) <= monthEnd && item.endsAt.slice(0, 10) >= monthStart).length;
-          return <button aria-label={'Buka kalender ' + formatMonth(month)} aria-pressed={index === monthIndex} className={'min-w-0 rounded-xl border p-3 text-left transition ' + (index === monthIndex ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-200 dark:border-brand-500 dark:bg-brand-950/40 dark:ring-brand-900' : 'border-slate-200 bg-white hover:border-brand-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-500')} key={monthStart} onClick={() => { setMonthIndex(index); setSelectedDate(monthStart); }} type="button">
+          return <button aria-label={'Buka kalender ' + formatMonth(month)} aria-pressed={index === monthIndex} className={'min-w-0 rounded-2xl border p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ' + (index === monthIndex ? 'border-sky-400 bg-sky-50 ring-1 ring-sky-200 dark:border-sky-600 dark:bg-sky-950/40 dark:ring-sky-900' : 'border-slate-200 bg-white hover:border-sky-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-500')} key={monthStart} onClick={() => { setMonthIndex(index); setSelectedDate(monthStart); }} type="button">
             <span className="flex items-start justify-between gap-1"><span className="truncate text-sm font-black capitalize text-slate-900 dark:text-slate-100">{formatMonth(month)}</span><span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200">{monthEventCount}</span></span>
             <span className="mt-2 grid grid-cols-7 gap-y-1 text-center">
-              {weekdays.map((day) => <span className="text-[9px] font-bold text-slate-400" key={day}>{day.slice(0, 1)}</span>)}
+              {weekdays.map((day, weekdayIndex) => <span className={'text-[9px] font-bold ' + (weekdayIndex === 6 ? 'text-rose-500' : 'text-slate-400 dark:text-slate-500')} key={day}>{day.slice(0, 1)}</span>)}
               {monthCells.map((day, cellIndex) => {
                 if (day < 1 || day > monthDays) return <span className="h-4" key={'blank-' + cellIndex} />;
                 const date = isoDate(new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), day, 12)));
                 const hasActivity = events.some((item) => item.startsAt.slice(0, 10) <= date && item.endsAt.slice(0, 10) >= date);
-                return <span className={'flex h-4 items-center justify-center rounded text-[9px] ' + (date === selectedDate ? 'bg-brand-600 font-black text-white' : hasActivity ? 'bg-sky-100 font-bold text-sky-800 dark:bg-sky-900 dark:text-sky-100' : 'text-slate-600 dark:text-slate-300')} key={date}>{day}</span>;
+                return <span className={'flex h-4 items-center justify-center rounded text-[9px] ' + (date === selectedDate ? 'bg-sky-600 font-black text-white' : hasActivity ? 'bg-sky-100 font-bold text-sky-800 dark:bg-sky-900 dark:text-sky-100' : cellIndex % 7 === 6 ? 'text-rose-500 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300')} key={date}>{day}</span>;
               })}
             </span>
             <span className="mt-2 block text-[10px] text-slate-500 dark:text-slate-400">{monthEventCount} kegiatan</span>
