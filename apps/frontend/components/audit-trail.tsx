@@ -136,7 +136,7 @@ export function AuditTrail() {
         </div>
 
         <div className="mt-4 grid grid-cols-7 gap-1">
-          {weekdays.map((day) => <div key={day} className="py-2 text-center text-[11px] font-semibold text-muted">{day}</div>)}
+          {weekdays.map((day, index) => <div key={day} className={`py-2 text-center text-[11px] font-semibold ${index === 0 ? 'text-rose-600 dark:text-rose-300' : 'text-muted'}`}>{day}</div>)}
           {Array.from({ length: leadingDays }, (_, index) => <div key={`empty-${index}`} />)}
           {Array.from({ length: daysInMonth }, (_, index) => {
             const day = index + 1;
@@ -146,7 +146,7 @@ export function AuditTrail() {
             const today = key === dateKey(new Date());
             return (
               <button key={key} type="button" onClick={() => setSelectedDate(key)} aria-pressed={selected}
-                className={`relative flex aspect-[1.18/1] w-full max-w-[4.75rem] flex-col items-center justify-center justify-self-center rounded-xl border text-base transition-colors sm:text-lg ${selected ? 'border-sky-500 bg-sky-600 text-white' : 'border-slate-100 bg-white text-slate-700 hover:border-sky-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'} ${today && !selected ? 'border-sky-500 ring-2 ring-sky-200 dark:ring-sky-900' : ''}`}>
+                className={`relative flex aspect-square w-full min-w-0 flex-col items-center justify-center rounded-xl border text-base transition-colors sm:text-lg ${selected ? 'border-sky-500 bg-sky-600 text-white' : 'border-slate-100 bg-white text-slate-700 hover:border-sky-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'} ${today && !selected ? 'border-sky-500 ring-2 ring-sky-200 dark:ring-sky-900' : ''} ${!selected && new Date(`${key}T12:00:00`).getDay() === 0 ? '!border-rose-100 !bg-rose-50/70 !text-rose-600 dark:!border-rose-900/60 dark:!bg-rose-950/25 dark:!text-rose-300' : ''}`}>
                 <span className={today ? 'font-extrabold' : 'font-semibold'}>{day}</span>
                 {count > 0 ? <span className={`mt-0.5 min-w-4 rounded-full px-1 text-[9px] font-bold leading-4 ${selected ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'}`}>{count > 99 ? '99+' : count}</span> : <span className="mt-0.5 h-4" />}
               </button>
