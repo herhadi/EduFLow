@@ -254,16 +254,16 @@ export function AcademicCalendarManagement() {
           const monthEventCount = events.filter((item) => item.startsAt.slice(0, 10) <= monthEnd && item.endsAt.slice(0, 10) >= monthStart).length;
           return <button aria-label={'Buka kalender ' + formatMonth(month)} aria-pressed={index === monthIndex} className={'min-w-0 rounded-2xl border p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ' + (index === monthIndex ? 'border-sky-400 bg-sky-50 ring-1 ring-sky-200 dark:border-sky-600 dark:bg-sky-950/40 dark:ring-sky-900' : 'border-slate-200 bg-white hover:border-sky-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-500')} key={monthStart} onClick={() => { setMonthIndex(index); setSelectedDate(''); }} type="button">
             <span className="flex items-start justify-between gap-1"><span className="truncate text-sm font-black capitalize text-slate-900 dark:text-slate-100">{formatMonth(month)}</span><span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200">{monthEventCount}</span></span>
-            <span className="mt-2 grid grid-cols-7 gap-y-1 text-center">
+            <span className="mt-2 grid grid-cols-7 gap-y-0.5 text-center">
               {weekdays.map((day, weekdayIndex) => <span className={'text-[9px] font-bold ' + (weekdayIndex === 0 ? 'text-rose-500' : 'text-slate-400 dark:text-slate-500')} key={day}>{day.slice(0, 1)}</span>)}
               {monthCells.map((day, cellIndex) => {
-                if (day < 1 || day > monthDays) return <span className="aspect-square w-full" key={'blank-' + cellIndex} />;
+                if (day < 1 || day > monthDays) return <span className="h-3 w-full" key={'blank-' + cellIndex} />;
                 const date = isoDate(new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), day, 12)));
                 const isToday = date === isoDate(new Date());
                 const dayEvents = events.filter((item) => item.startsAt.slice(0, 10) <= date && item.endsAt.slice(0, 10) >= date);
                 const hasActivity = dayEvents.length > 0;
                 const isHoliday = dayEvents.some((item) => item.type === 'HOLIDAY');
-                return <span className={'flex aspect-square w-full items-center justify-center rounded text-[9px] ' + (date === selectedDate ? 'bg-sky-600 font-extrabold text-white' : isToday ? 'bg-amber-100 font-extrabold text-amber-800 ring-1 ring-amber-300 dark:bg-amber-900/60 dark:text-amber-100 dark:ring-amber-700' : isHoliday ? 'bg-rose-100 font-bold text-rose-700 dark:bg-rose-900/50 dark:text-rose-200' : hasActivity ? 'bg-sky-100 font-bold text-sky-800 dark:bg-sky-900 dark:text-sky-100' : cellIndex % 7 === 0 ? 'text-rose-500 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300')} key={date}>{day}</span>;
+                return <span className={'flex h-3 w-full items-center justify-center rounded text-[9px] ' + (date === selectedDate ? 'bg-sky-600 font-extrabold text-white' : isToday ? 'bg-amber-100 font-extrabold text-amber-800 ring-1 ring-amber-300 dark:bg-amber-900/60 dark:text-amber-100 dark:ring-amber-700' : isHoliday ? 'bg-rose-100 font-bold text-rose-700 dark:bg-rose-900/50 dark:text-rose-200' : hasActivity ? 'bg-sky-100 font-bold text-sky-800 dark:bg-sky-900 dark:text-sky-100' : cellIndex % 7 === 0 ? 'text-rose-500 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300')} key={date}>{day}</span>;
               })}
             </span>
             <span className="mt-2 block text-[10px] text-slate-500 dark:text-slate-400">{monthEventCount} kegiatan</span>
