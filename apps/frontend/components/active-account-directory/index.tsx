@@ -86,14 +86,25 @@ export function ActiveAccountDirectory({
     return () => { ignore = true; };
   }, [refreshKey]);
 
+  const directoryAccounts = useMemo(() => {
+    if (audience !== 'operator') return accounts;
+    return accounts.filter((account) => {
+      const roles = account.roles.map((role) => role.trim().toLocaleLowerCase('id-ID'));
+      const isDeveloperAccount = account.name.trim().toLocaleLowerCase('id-ID') === 'developer'
+        || (account.username ?? '').trim().toLocaleLowerCase('id-ID') === 'developer'
+        || roles.includes('developer');
+      return !isDeveloperAccount && !roles.includes('root');
+    });
+  }, [accounts, audience]);
+
   const availableRoleNames = useMemo(() => {
-    const roles = [...new Set(accounts.flatMap((account) => account.roles))];
+    const roles = [...new Set(directoryAccounts.flatMap((account) => account.roles))];
     return roles.sort((a, b) => getRoleLabels([a]).localeCompare(getRoleLabels([b]), 'id'));
-  }, [accounts]);
+  }, [directoryAccounts]);
 
   const filteredAccounts = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase('id-ID');
-    return accounts.filter((account) => {
+    return directoryAccounts.filter((account) => {
       const matchesQuery = !normalizedQuery || [
         account.name,
         account.username ?? '',
@@ -105,7 +116,7 @@ export function ActiveAccountDirectory({
       const matchesStatus = statusFilter === 'all' || getAccountStatus(account) === statusFilter;
       return matchesQuery && matchesRole && matchesStatus;
     }).sort((a, b) => a.name.localeCompare(b.name, 'id', { sensitivity: 'base' }));
-  }, [accounts, query, roleFilter, statusFilter]);
+  }, [directoryAccounts, query, roleFilter, statusFilter]);
 
   const visibleAccounts = filteredAccounts.slice((page - 1) * DEFAULT_PAGE_SIZE, page * DEFAULT_PAGE_SIZE);
   const assignableRoles = roleCards.filter((role) => canAssignRootRole || role.role !== 'root');
@@ -212,7 +223,7 @@ export function ActiveAccountDirectory({
 
       <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-slate-50 px-3 py-2 text-xs dark:bg-[var(--surface-soft)]">
         <span><strong className="text-ink">{filteredAccounts.length}</strong> akun ditampilkan</span>
-        <span className="text-muted"><strong className="text-ink">{accounts.filter((account) => getAccountStatus(account) === 'Terkunci').length}</strong> akun terkunci</span>
+        <span className="text-muted"><strong className="text-ink">{directoryAccounts.filter((account) => getAccountStatus(account) === 'Terkunci').length}</strong> akun terkunci</span>
       </div>
 
       <div className="mb-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_200px_160px]">
