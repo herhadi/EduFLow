@@ -122,15 +122,17 @@ export function AuditTrail() {
       </div>
 
       <section className="mt-5 rounded-2xl border border-slate-200 p-3 dark:border-slate-700 sm:p-4" aria-label="Kalender aktivitas">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-1">
-            <button type="button" aria-label="Tahun sebelumnya" onClick={() => changeYear(-1)} className="rounded-lg border border-slate-200 px-2 py-2 text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">«</button>
-            <button type="button" aria-label="Bulan sebelumnya" onClick={() => changeMonth(-1)} className="rounded-lg border border-slate-200 px-2 py-2 text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">‹</button>
-            <h3 className="min-w-36 px-2 text-center text-sm font-bold capitalize text-slate-900 dark:text-white">{monthLabel(visibleMonth)}</h3>
-            <button type="button" aria-label="Bulan berikutnya" onClick={() => changeMonth(1)} className="rounded-lg border border-slate-200 px-2 py-2 text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">›</button>
-            <button type="button" aria-label="Tahun berikutnya" onClick={() => changeYear(1)} className="rounded-lg border border-slate-200 px-2 py-2 text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">»</button>
+        <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-blue-950 via-blue-900 to-sky-600 px-4 py-4 text-white shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-300">Riwayat Sekolah</p><h3 className="mt-1 text-lg font-black capitalize sm:text-xl">{monthLabel(visibleMonth)}</h3><p className="mt-1 text-[11px] font-medium text-blue-100">Pilih tanggal untuk melihat aktivitas</p></div>
+            <div className="flex items-center gap-1">
+              <button type="button" aria-label="Tahun sebelumnya" onClick={() => changeYear(-1)} className="grid size-8 place-items-center rounded-lg border border-white/10 bg-white/15 text-sm font-bold text-white hover:bg-white/25">«</button>
+              <button type="button" aria-label="Bulan sebelumnya" onClick={() => changeMonth(-1)} className="grid size-8 place-items-center rounded-lg border border-white/10 bg-white/15 text-lg font-bold text-white hover:bg-white/25">‹</button>
+              <button type="button" aria-label="Bulan berikutnya" onClick={() => changeMonth(1)} className="grid size-8 place-items-center rounded-lg border border-white/10 bg-white/15 text-lg font-bold text-white hover:bg-white/25">›</button>
+              <button type="button" aria-label="Tahun berikutnya" onClick={() => changeYear(1)} className="grid size-8 place-items-center rounded-lg border border-white/10 bg-white/15 text-sm font-bold text-white hover:bg-white/25">»</button>
+              <button type="button" onClick={goToday} className="ml-1 rounded-lg border border-white/10 bg-white/15 px-3 py-2 text-xs font-black text-white hover:bg-white/25">Hari ini</button>
+            </div>
           </div>
-          <Button size="sm" variant="outline" onClick={goToday}>Hari ini</Button>
         </div>
 
         <div className="mt-4 grid grid-cols-7 gap-1">
@@ -144,8 +146,8 @@ export function AuditTrail() {
             const today = key === dateKey(new Date());
             return (
               <button key={key} type="button" onClick={() => setSelectedDate(key)} aria-pressed={selected}
-                className={`relative flex aspect-square w-full max-w-[4.25rem] flex-col items-center justify-center justify-self-center rounded-xl border text-base transition-colors sm:max-w-[4.75rem] sm:text-lg ${selected ? 'border-brand-600 bg-brand-600 text-white' : 'border-transparent text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'} ${today && !selected ? 'ring-1 ring-brand-500' : ''}`}>
-                <span className="font-semibold">{day}</span>
+                className={`relative flex aspect-[1.18/1] w-full max-w-[4.75rem] flex-col items-center justify-center justify-self-center rounded-xl border text-base transition-colors sm:text-lg ${selected ? 'border-sky-500 bg-sky-600 text-white' : 'border-slate-100 bg-white text-slate-700 hover:border-sky-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'} ${today && !selected ? 'border-sky-500 ring-2 ring-sky-200 dark:ring-sky-900' : ''}`}>
+                <span className={today ? 'font-extrabold' : 'font-semibold'}>{day}</span>
                 {count > 0 ? <span className={`mt-0.5 min-w-4 rounded-full px-1 text-[9px] font-bold leading-4 ${selected ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'}`}>{count > 99 ? '99+' : count}</span> : <span className="mt-0.5 h-4" />}
               </button>
             );

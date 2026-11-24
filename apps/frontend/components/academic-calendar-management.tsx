@@ -15,7 +15,7 @@ const eventTypes: Array<{ value: AcademicCalendarEventType; label: string; block
   { value: 'OTHER', label: 'Lainnya', blocksAgenda: false, color: 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200', dot: 'bg-slate-500' },
 ];
 type DateMode = 'single' | 'range' | 'multiple';
-const weekdays = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+const weekdays = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 const inputClass = 'w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-900 outline-none focus:border-brand-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100';
 const labelClass = 'grid gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200';
 
@@ -82,11 +82,11 @@ export function AcademicCalendarManagement() {
       startsAt: selectedSchoolYear.morningAssemblyStartsAt ?? '06:50',
       endsAt: selectedSchoolYear.morningAssemblyEndsAt ?? '07:10',
     });
-    setMonthIndex(0);
     const allMonths = getCalendarMonths(selectedSchoolYear);
     const today = new Date();
     const todayMonth = getSchoolDateKey(today).slice(0, 7);
     const todayIndex = allMonths.findIndex((month) => getSchoolDateKey(month).slice(0, 7) === todayMonth);
+    setMonthIndex(todayIndex >= 0 ? todayIndex : 0);
     setSelectedDate(todayIndex >= 0 ? isoDate(today) : isoDate(allMonths[0] || today));
   }, [selectedSchoolYear]);
 
@@ -171,7 +171,7 @@ export function AcademicCalendarManagement() {
     setMonthIndex(index); setSelectedDate(isoDate(today));
   }
 
-  const offset = activeMonth ? (new Date(Date.UTC(activeMonth.getUTCFullYear(), activeMonth.getUTCMonth(), 1, 12)).getUTCDay() + 6) % 7 : 0;
+  const offset = activeMonth ? new Date(Date.UTC(activeMonth.getUTCFullYear(), activeMonth.getUTCMonth(), 1, 12)).getUTCDay() : 0;
   const days = activeMonth ? new Date(Date.UTC(activeMonth.getUTCFullYear(), activeMonth.getUTCMonth() + 1, 0, 12)).getUTCDate() : 0;
   const cells = Array.from({ length: Math.ceil((offset + days) / 7) * 7 }, (_, index) => index - offset + 1);
 
@@ -201,15 +201,15 @@ export function AcademicCalendarManagement() {
           </div>
           <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">{eventTypes.map((item) => <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300" key={item.value}><span className={'h-2.5 w-2.5 rounded-full ' + item.dot} />{item.label}</span>)}</div>
           <div className="mt-4 grid grid-cols-7 gap-1.5 sm:gap-2">
-            {weekdays.map((label, weekdayIndex) => <span className={'py-2 text-center text-[10px] font-black sm:text-xs ' + (weekdayIndex === 6 ? 'text-rose-500' : 'text-slate-500 dark:text-slate-400')} key={label}>{label}</span>)}
+            {weekdays.map((label, weekdayIndex) => <span className={'py-2 text-center text-[10px] font-black sm:text-xs ' + (weekdayIndex === 0 ? 'text-rose-500' : 'text-slate-500 dark:text-slate-400')} key={label}>{label}</span>)}
             {cells.map((day, index) => {
-              if (!activeMonth || day < 1 || day > days) return <span aria-hidden="true" className="min-h-12 sm:min-h-20" key={'empty-' + index} />;
+              if (!activeMonth || day < 1 || day > days) return <span aria-hidden="true" className="aspect-[1.18/1] min-h-0" key={'empty-' + index} />;
               const date = isoDate(new Date(Date.UTC(activeMonth.getUTCFullYear(), activeMonth.getUTCMonth(), day, 12)));
               const matches = events.filter((item) => item.startsAt.slice(0, 10) <= date && item.endsAt.slice(0, 10) >= date);
               const selected = date === selectedDate;
               const today = date === isoDate(new Date());
-              return <button aria-label={'Tambah kegiatan pada ' + formatDate(date)} aria-pressed={selected} className={'flex min-h-12 min-w-0 flex-col items-start rounded-xl border p-1.5 text-left transition sm:min-h-20 sm:p-2 ' + (selected ? 'border-sky-400 bg-sky-50 ring-1 ring-sky-200 dark:border-sky-600 dark:bg-sky-950/45 dark:ring-sky-900' : index % 7 === 6 ? 'border-rose-100 bg-rose-50/70 hover:border-rose-300 dark:border-rose-900/60 dark:bg-rose-950/25 dark:hover:bg-rose-950/45' : 'border-slate-100 bg-white hover:border-sky-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800') + (today && !selected ? ' border-sky-400' : '')} key={date} onClick={() => openCreate(date)} title={matches.map((item) => item.title).join(' • ') || 'Tambah kegiatan ' + formatDate(date)} type="button">
-                <span className={'text-xs font-black sm:text-sm ' + (today ? 'text-sky-700 dark:text-sky-300' : index % 7 === 6 ? 'text-rose-600 dark:text-rose-300' : 'text-slate-800 dark:text-slate-100')}>{day}</span>
+              return <button aria-label={'Tambah kegiatan pada ' + formatDate(date)} aria-pressed={selected} className={'flex aspect-[1.18/1] min-h-0 min-w-0 flex-col items-center rounded-xl border p-1.5 text-center transition sm:p-2 ' + (selected ? 'border-sky-400 bg-sky-50 ring-1 ring-sky-200 dark:border-sky-600 dark:bg-sky-950/45 dark:ring-sky-900' : index % 7 === 0 ? 'border-rose-100 bg-rose-50/70 hover:border-rose-300 dark:border-rose-900/60 dark:bg-rose-950/25 dark:hover:bg-rose-950/45' : 'border-slate-100 bg-white hover:border-sky-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800') + (today && !selected ? ' border-sky-500 ring-2 ring-sky-200 dark:border-sky-500 dark:ring-sky-900' : '')} key={date} onClick={() => openCreate(date)} title={matches.map((item) => item.title).join(' • ') || 'Tambah kegiatan ' + formatDate(date)} type="button">
+                <span className={'w-full text-center text-xs font-extrabold sm:text-sm ' + (today ? 'text-sky-700 dark:text-sky-300' : index % 7 === 0 ? 'text-rose-600 dark:text-rose-300' : 'text-slate-800 dark:text-slate-100')}>{day}</span>
                 <span className="mt-1 flex flex-wrap gap-1">{matches.slice(0, 4).map((item) => <span className={'h-1.5 w-1.5 rounded-full ' + (eventTypes.find((type) => type.value === item.type)?.dot ?? 'bg-slate-400')} key={item.id} />)}</span>
                 {matches.length > 0 && <span className="mt-1 hidden w-full truncate text-[10px] font-semibold text-slate-600 dark:text-slate-300 sm:block">{matches[0].title}{matches.length > 1 ? ' +' + (matches.length - 1) : ''}</span>}
               </button>;
@@ -248,18 +248,20 @@ export function AcademicCalendarManagement() {
           const monthStart = isoDate(month);
           const monthEnd = isoDate(new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + 1, 0, 12)));
           const monthDays = new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + 1, 0, 12)).getUTCDate();
-          const monthOffset = (new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), 1, 12)).getUTCDay() + 6) % 7;
-          const monthCells = Array.from({ length: Math.ceil((monthOffset + monthDays) / 7) * 7 }, (_, cell) => cell - monthOffset + 1);
+          const monthOffset = new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), 1, 12)).getUTCDay();
+          // Keep every annual mini-calendar at exactly six rows so all month cards align.
+          const monthCells = Array.from({ length: 42 }, (_, cell) => cell - monthOffset + 1);
           const monthEventCount = events.filter((item) => item.startsAt.slice(0, 10) <= monthEnd && item.endsAt.slice(0, 10) >= monthStart).length;
           return <button aria-label={'Buka kalender ' + formatMonth(month)} aria-pressed={index === monthIndex} className={'min-w-0 rounded-2xl border p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ' + (index === monthIndex ? 'border-sky-400 bg-sky-50 ring-1 ring-sky-200 dark:border-sky-600 dark:bg-sky-950/40 dark:ring-sky-900' : 'border-slate-200 bg-white hover:border-sky-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-500')} key={monthStart} onClick={() => { setMonthIndex(index); setSelectedDate(monthStart); }} type="button">
             <span className="flex items-start justify-between gap-1"><span className="truncate text-sm font-black capitalize text-slate-900 dark:text-slate-100">{formatMonth(month)}</span><span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200">{monthEventCount}</span></span>
             <span className="mt-2 grid grid-cols-7 gap-y-1 text-center">
-              {weekdays.map((day, weekdayIndex) => <span className={'text-[9px] font-bold ' + (weekdayIndex === 6 ? 'text-rose-500' : 'text-slate-400 dark:text-slate-500')} key={day}>{day.slice(0, 1)}</span>)}
+              {weekdays.map((day, weekdayIndex) => <span className={'text-[9px] font-bold ' + (weekdayIndex === 0 ? 'text-rose-500' : 'text-slate-400 dark:text-slate-500')} key={day}>{day.slice(0, 1)}</span>)}
               {monthCells.map((day, cellIndex) => {
                 if (day < 1 || day > monthDays) return <span className="h-4" key={'blank-' + cellIndex} />;
                 const date = isoDate(new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), day, 12)));
+                const isToday = date === isoDate(new Date());
                 const hasActivity = events.some((item) => item.startsAt.slice(0, 10) <= date && item.endsAt.slice(0, 10) >= date);
-                return <span className={'flex h-4 items-center justify-center rounded text-[9px] ' + (date === selectedDate ? 'bg-sky-600 font-black text-white' : hasActivity ? 'bg-sky-100 font-bold text-sky-800 dark:bg-sky-900 dark:text-sky-100' : cellIndex % 7 === 6 ? 'text-rose-500 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300')} key={date}>{day}</span>;
+                return <span className={'flex h-4 items-center justify-center rounded text-[9px] ' + (date === selectedDate ? 'bg-sky-600 font-extrabold text-white' : isToday ? 'bg-amber-100 font-extrabold text-amber-800 ring-1 ring-amber-300 dark:bg-amber-900/60 dark:text-amber-100 dark:ring-amber-700' : hasActivity ? 'bg-sky-100 font-bold text-sky-800 dark:bg-sky-900 dark:text-sky-100' : cellIndex % 7 === 0 ? 'text-rose-500 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300')} key={date}>{day}</span>;
               })}
             </span>
             <span className="mt-2 block text-[10px] text-slate-500 dark:text-slate-400">{monthEventCount} kegiatan</span>
@@ -277,7 +279,7 @@ export function AcademicCalendarManagement() {
     </section>
 
     {dialogOpen && <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setDialogOpen(false); }}>
-      <section aria-labelledby="kaldik-dialog-title" aria-modal="true" className="max-h-[92dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:rounded-3xl sm:p-7 lg:p-8" role="dialog">
+      <section aria-labelledby="kaldik-dialog-title" aria-modal="true" className="max-h-[92dvh] w-full max-w-xl overflow-y-auto rounded-t-3xl border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:rounded-3xl sm:p-7 lg:p-8" role="dialog">
         <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-600">Kaldik · {selectedSchoolYear?.name}</p><h2 className="mt-1 text-xl font-black text-slate-900 dark:text-slate-100" id="kaldik-dialog-title">{editingEvent ? 'Edit Kegiatan' : 'Tambah Kegiatan'}</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{editingEvent ? 'Perbarui detail kegiatan yang dipilih.' : 'Tanggal pilihan: ' + formatDate(form.startsAt)}</p></div><button aria-label="Tutup dialog" className="rounded-xl border border-slate-200 px-3 py-2 text-slate-600 dark:border-slate-700 dark:text-slate-200" onClick={() => setDialogOpen(false)} type="button">✕</button></div>
         <form className="mt-6 grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-2" onSubmit={submitActivity}>
           <label className={labelClass}>Jenis kegiatan<select className={inputClass} onChange={(event) => { const type = event.target.value as AcademicCalendarEventType; setForm((current) => ({ ...current, type, blocksAgenda: eventTypes.find((item) => item.value === type)?.blocksAgenda ?? current.blocksAgenda })); }} value={form.type}>{eventTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
