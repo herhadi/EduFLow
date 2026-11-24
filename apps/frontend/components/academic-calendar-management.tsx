@@ -266,7 +266,7 @@ export function AcademicCalendarManagement() {
                 const isSelected = date === selectedDate;
                 const showMarker = isSelected || hasActivity || isToday;
                 const markerColor = hasActivity ? (selectedEventType?.dot ?? 'bg-sky-500') + ' font-bold text-white' : '';
-                const todayOutline = isToday ? 'ring-2 ring-sky-600 ring-offset-1 ring-offset-white dark:ring-sky-300 dark:ring-offset-slate-800' : '';
+                const todayOutline = isToday ? 'shadow-[inset_0_0_0_1.5px_#111827] dark:shadow-[inset_0_0_0_1.5px_#f8fafc]' : '';
                 const selectedOutline = isSelected && !isToday ? 'ring-2 ring-slate-500 ring-offset-1 ring-offset-white dark:ring-slate-300 dark:ring-offset-slate-800' : '';
                 return <span className="flex h-4 w-full items-center justify-center" key={date}><span className={'flex h-4 w-4 shrink-0 items-center justify-center rounded text-[9px] leading-none ' + (hasActivity ? markerColor : cellIndex % 7 === 0 ? 'text-rose-500 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300') + ' ' + todayOutline + ' ' + selectedOutline}>{day}</span></span>;
               })}
