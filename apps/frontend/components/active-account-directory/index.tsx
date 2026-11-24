@@ -86,16 +86,13 @@ export function ActiveAccountDirectory({
     return () => { ignore = true; };
   }, [refreshKey]);
 
-  const directoryAccounts = useMemo(() => {
-    if (audience !== 'operator') return accounts;
-    return accounts.filter((account) => {
-      const roles = account.roles.map((role) => role.trim().toLocaleLowerCase('id-ID'));
-      const isDeveloperAccount = account.name.trim().toLocaleLowerCase('id-ID') === 'developer'
-        || (account.username ?? '').trim().toLocaleLowerCase('id-ID') === 'developer'
-        || roles.includes('developer');
-      return !isDeveloperAccount && !roles.includes('root');
-    });
-  }, [accounts, audience]);
+  const directoryAccounts = useMemo(() => accounts.filter((account) => {
+    const roles = account.roles.map((role) => role.trim().toLocaleLowerCase('id-ID'));
+    const isDeveloperAccount = account.name.trim().toLocaleLowerCase('id-ID') === 'developer'
+      || (account.username ?? '').trim().toLocaleLowerCase('id-ID') === 'developer'
+      || roles.includes('developer');
+    return !isDeveloperAccount && !roles.includes('root');
+  }), [accounts]);
 
   const availableRoleNames = useMemo(() => {
     const roles = [...new Set(directoryAccounts.flatMap((account) => account.roles))];
