@@ -341,10 +341,10 @@ export function ActiveAccountDirectory({
               </select>
               <Button className="min-h-11 w-full px-4 sm:w-auto" disabled={!roleToAdd} onClick={() => { setSelectedRoles((current) => [...current, roleToAdd]); setRoleToAdd(''); }} size="md" variant="outline">+ Tambah Role</Button>
             </div>
-            <Button className="min-h-11 w-full px-4" disabled={!selectedRoles.length || (selectedRoles.length === selectedAccount.roles.length && selectedRoles.every((role) => selectedAccount.roles.includes(role)))} onClick={async () => { await onUpdateUserRoles?.(selectedAccount, selectedRoles); await refreshAccounts(); setSelectedAccount(null); }} size="md">Simpan Perubahan Role</Button>
+            <Button className="min-h-11 w-full px-4" disabled={!selectedRoles.length || (selectedRoles.length === selectedAccount.roles.length && selectedRoles.every((role) => selectedAccount.roles.includes(role)))} onClick={async () => { await onUpdateUserRoles?.(selectedAccount, selectedRoles); await refreshAccounts(); setSelectedAccount(null); }} size="md" variant="success">Simpan Perubahan Role</Button>
             <div className="grid grid-cols-1 gap-3 border-t border-slate-200 pt-4 dark:border-[var(--border)] sm:grid-cols-2">
               <Button className="min-h-11 w-full px-4" onClick={async () => { await onResetUserPassword?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="md" variant="info">Reset Password</Button>
-              <Button className="min-h-11 w-full px-4" onClick={async () => { await onDeactivateUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="md" variant="outline">Nonaktifkan</Button>
+              <Button className="min-h-11 w-full px-4" onClick={async () => { await onDeactivateUser?.(selectedAccount); await refreshAccounts(); setSelectedAccount(null); }} size="md" variant="danger">Nonaktifkan</Button>
             </div>
           </div>
         </Dialog>

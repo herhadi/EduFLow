@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AdminAccessCenter } from '../../../components/admin-access-center';
+import { RootAccountManagement } from "../../../components/root-account-management";
 import { Container } from '../../../components/ui/container';
 import { PageHeader } from '../../../components/ui/page-header';
 import { getDashboardPathForRole, getPrimaryRole } from '../../../lib/navigation.config';
@@ -65,6 +66,10 @@ export default function AdminAccessPage() {
           title="User & Hak Akses"
         />
         <AdminAccessCenter canAssignRootRole bootstrapOnly />
+        <div className="mt-6 border-t border-slate-200 pt-6 dark:border-[var(--border)]">
+          <PageHeader description="Daftar akun aktif maupun nonaktif. Penghapusan permanen hanya tersedia untuk Root." eyebrow="Root · Administrasi Sistem" title="Kelola Akun" />
+          <RootAccountManagement />
+        </div>
       </Container>
     </main>
   );

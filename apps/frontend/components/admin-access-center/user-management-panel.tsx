@@ -85,7 +85,7 @@ export function UserManagementPanel({
           </label>
           <div className="grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 dark:border-[var(--border)] sm:flex sm:justify-end">
             <Button className="min-h-11 w-full px-5 sm:w-auto" onClick={() => setShowCreateDialog(false)} size="md" variant="outline">Batal</Button>
-            <Button className="min-h-11 w-full px-5 sm:w-auto" disabled={userActionState === 'loading' || !newUser.username.trim() || !newUser.name.trim()} size="md" type="submit">
+            <Button className="min-h-11 w-full px-5 sm:w-auto" disabled={userActionState === 'loading' || !newUser.username.trim() || !newUser.name.trim()} size="md" type="submit" variant="success">
               {userActionState === 'loading' ? 'Menyimpan...' : 'Simpan Akun'}
             </Button>
           </div>
