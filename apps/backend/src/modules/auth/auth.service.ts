@@ -696,6 +696,24 @@ export class AuthService {
     };
   }
 
+  async updateUserUsername(userId: string, rawUsername: string, actorUserId: string, actorIsRoot = false) {
+    const username = rawUsername.trim().toLowerCase();
+    if (!/^[a-z0-9._-]{3,50}$/.test(username)) throw new BadRequestException('Username must be 3-50 lowercase letters, numbers, dots, underscores or hyphens');
+    const user = await this.prisma.user.findFirst({ where: { id: userId, deletedAt: null }, include: { roles: { include: { role: true } } } });
+    if (!user) throw new NotFoundException('User not found');
+    if (!actorIsRoot && user.roles.some(({ role }) => role.name === 'root')) throw new ForbiddenException('Only Root can change a Root account username');
+    if (user.name.trim().toLowerCase() === 'developer' || (user.username ?? '').trim().toLowerCase() === 'developer') throw new ForbiddenException('Developer account username is protected');
+    const conflict = await this.prisma.user.findFirst({ where: { id: { not: userId }, OR: [{ username }, { email: username }] }, select: { id: true } });
+    if (conflict) throw new ConflictException('Username is already used by another account');
+    const previousUsername = user.username;
+    if (previousUsername === username) return { data: { userId, username }, message: 'Username is unchanged.' };
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({ where: { id: userId }, data: { username } });
+      await tx.auditLog.create({ data: { userId: actorUserId, action: 'user.username.updated', entityType: 'User', entityId: userId, before: { username: previousUsername }, after: { username } } });
+    });
+    return { data: { userId, username }, message: 'Username updated successfully.' };
+  }
+
   async updateUserRoles(userId: string, roleNames: string[], actorIsRoot = false) {
     const user = await this.prisma.user.findFirst({
       where: { id: userId, deletedAt: null },

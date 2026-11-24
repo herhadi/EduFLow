@@ -21,6 +21,7 @@ type DirectoryProps = {
   canAssignRootRole?: boolean;
   refreshKey?: number;
   onUpdateUserRoles?: (user: AppUser, roles: string[]) => Promise<void>;
+  onUpdateUsername?: (user: AppUser, username: string) => Promise<void>;
   onResetUserPassword?: (user: AppUser) => Promise<void>;
   onDeactivateUser?: (user: AppUser) => Promise<void>;
 };
@@ -58,7 +59,7 @@ function getRoleLabels(roles: string[]) {
 
 export function ActiveAccountDirectory({
   audience, canManage = false, canAssignRootRole = false, refreshKey = 0,
-  onUpdateUserRoles, onResetUserPassword, onDeactivateUser,
+  onUpdateUserRoles, onUpdateUsername, onResetUserPassword, onDeactivateUser,
 }: DirectoryProps) {
   const [accounts, setAccounts] = useState<AppUser[]>([]);
   const [query, setQuery] = useState('');
@@ -70,6 +71,7 @@ export function ActiveAccountDirectory({
   const [selectedAccount, setSelectedAccount] = useState<AppUser | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [roleToAdd, setRoleToAdd] = useState('');
+  const [usernameDraft, setUsernameDraft] = useState('');
 
   useEffect(() => {
     let ignore = false;
@@ -283,7 +285,7 @@ export function ActiveAccountDirectory({
                     <td className="px-3 py-3">{formatDate(account.createdAt)}</td>
                     {canManage ? (
                       <td className="sticky right-0 z-[1] bg-white px-2 py-2 text-center shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.5)] dark:bg-[var(--surface-solid)]">
-                        <Button aria-label={`Edit akun ${account.name}`} className="gap-1.5 whitespace-nowrap" onClick={() => { setSelectedAccount(account); setSelectedRoles(account.roles); setRoleToAdd(''); }} size="sm" variant="info">
+                        <Button aria-label={`Edit akun ${account.name}`} className="gap-1.5 whitespace-nowrap" onClick={() => { setSelectedAccount(account); setSelectedRoles(account.roles); setRoleToAdd(''); setUsernameDraft(account.username ?? ''); }} size="sm" variant="info">
                           <Pencil aria-hidden="true" size={14} strokeWidth={2.5} />
                           <span>Kelola</span>
                         </Button>
@@ -319,6 +321,14 @@ export function ActiveAccountDirectory({
             <div className="rounded-xl bg-slate-50 p-4 dark:bg-[var(--surface-soft)]">
               <p className="text-sm font-bold text-ink">{selectedAccount.name}</p>
               <p className="mt-0.5 break-all text-xs text-muted">@{selectedAccount.username || selectedAccount.email}</p>
+            </div>
+            <div className="grid gap-2">
+              <label className="text-sm font-bold text-muted" htmlFor="account-username">Username login</label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input id="account-username" autoComplete="off" className={fieldClass} maxLength={50} minLength={3} onChange={(event) => setUsernameDraft(event.target.value)} value={usernameDraft} />
+                <Button className="min-h-11 shrink-0" disabled={!usernameDraft.trim() || usernameDraft.trim().toLowerCase() === (selectedAccount.username ?? '').toLowerCase()} onClick={async () => { await onUpdateUsername?.(selectedAccount, usernameDraft.trim()); await refreshAccounts(); setSelectedAccount(null); }} size="md" variant="success">Simpan Username</Button>
+              </div>
+              <p className="text-xs text-muted">3-50 karakter: huruf, angka, titik, garis bawah, atau tanda hubung. Username langsung berlaku untuk login.</p>
             </div>
             <div className="grid gap-3">
               <p className="text-sm font-bold text-muted">Role akun</p>

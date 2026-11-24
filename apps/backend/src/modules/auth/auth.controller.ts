@@ -17,6 +17,7 @@ import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { RevokeSessionDto } from './dto/revoke-session.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
+import { UpdateUserUsernameDto } from './dto/update-user-username.dto';
 import { UpdateMyProfileDto } from './dto/update-my-profile.dto';
 
 @Controller('auth')
@@ -177,6 +178,15 @@ export class AuthController {
   @Post('users')
   createUser(@Body() dto: CreateUserDto, @Req() request: RequestWithUser) {
     return this.authService.createUser(dto, (request.user.roles ?? []).includes('root'));
+  }
+
+  @RequirePermissions(PERMISSIONS.USER_MANAGE)
+  @Patch('users/:id/username')
+  updateUserUsername(@Param('id') id: string, @Body() dto: UpdateUserUsernameDto, @Req() request: RequestWithUser) {
+    const actorRoles = request.user.roles ?? [];
+    const isRoot = actorRoles.includes('root');
+    if (!isRoot && !actorRoles.includes('super admin')) throw new ForbiddenException('Only Root or Super Administrator can change usernames');
+    return this.authService.updateUserUsername(id, dto.username, request.user.id, isRoot);
   }
 
   @RequirePermissions(PERMISSIONS.USER_MANAGE)

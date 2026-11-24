@@ -29,6 +29,22 @@ export function RootAccountManagement() {
     return accounts.filter((user) => [user.name, user.username ?? '', user.email, ...user.roles].join(' ').toLocaleLowerCase('id-ID').includes(term));
   }, [accounts, query]);
 
+  async function changeUsername(user: AppUser) {
+    const current = user.username ?? '';
+    const next = window.prompt(`Ubah username untuk ${user.name}:`, current);
+    if (next === null || !next.trim() || next.trim().toLowerCase() === current.toLowerCase()) return;
+    setBusyId(user.id);
+    try {
+      const result = await api.updateUserUsername(user.id, next.trim());
+      toast.success(result.message ?? 'Username berhasil diperbarui.', 'Username Diperbarui');
+      await load();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Gagal mengubah username.', 'Aksi Gagal');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function permanentlyDelete(user: AppUser) {
     const identity = user.username || user.email;
     if (!window.confirm(`HAPUS PERMANEN akun ${user.name} (${identity})? Penghapusan tidak dapat dibatalkan.`)) return;
@@ -52,7 +68,7 @@ export function RootAccountManagement() {
       <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 text-sm dark:border-[var(--border)]"><strong>{filtered.length} akun</strong><Button onClick={() => void load()} size="sm" variant="outline">Muat Ulang</Button></div>
       <div className="divide-y divide-slate-200 dark:divide-[var(--border)]">{filtered.map((user) => <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between" key={user.id}>
         <div className="min-w-0"><p className="font-semibold text-slate-900 dark:text-[var(--text)]">{user.name}</p><p className="break-all text-xs text-muted">{user.username || user.email} · {user.roles.join(', ') || 'Tanpa role'}</p><p className="mt-1 text-xs">{user.deletedAt ? <span className="font-semibold text-amber-700 dark:text-amber-300">Nonaktif / soft deleted</span> : <span className="font-semibold text-emerald-700 dark:text-emerald-300">Aktif</span>}</p></div>
-        <Button className="w-full sm:w-auto" disabled={busyId === user.id} onClick={() => void permanentlyDelete(user)} size="md" variant="danger">{busyId === user.id ? 'Menghapus...' : 'Hapus Permanen'}</Button>
+        <div className="flex flex-col gap-2 sm:flex-row"><Button className="w-full sm:w-auto" disabled={busyId === user.id || !!user.deletedAt} onClick={() => void changeUsername(user)} size="md" variant="outline">Ubah Username</Button><Button className="w-full sm:w-auto" disabled={busyId === user.id} onClick={() => void permanentlyDelete(user)} size="md" variant="danger">{busyId === user.id ? 'Memproses...' : 'Hapus Permanen'}</Button></div>
       </div>)}</div>
     </div>}
   </section>;

@@ -78,6 +78,18 @@ export function AdminAccessCenter({
     }
   }
 
+  async function handleUpdateUsername(user: AppUser, username: string) {
+    try {
+      const response = await api.updateUserUsername(user.id, username);
+      setDirectoryRefreshKey((current) => current + 1);
+      toast.success(response.message ?? 'Username berhasil diperbarui.', 'Username Diperbarui');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Gagal mengubah username.';
+      toast.error(message, 'Aksi Gagal');
+      throw error;
+    }
+  }
+
   async function handleUpdateUserRoles(user: AppUser, roles: string[]) {
     setUserActionState('loading');
     setUserMessage('');
@@ -183,6 +195,7 @@ export function AdminAccessCenter({
           onDeactivateUser={handleDeactivateUser}
           onResetUserPassword={handleResetUserPassword}
           onUpdateUserRoles={handleUpdateUserRoles}
+          onUpdateUsername={handleUpdateUsername}
         />
       ) : null}
     </section>

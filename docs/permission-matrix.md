@@ -157,8 +157,9 @@ Pemeriksaan akses namespace halaman juga harus memeriksa seluruh role akun, buka
 
 ## Siklus Hidup Akun
 
-- Super Administrator mengelola akun operasional melalui `/admin/access`: tambah, edit role, reset password, dan nonaktifkan. UI tidak menyediakan hapus permanen.
-- Root memiliki halaman `/system/accounts` untuk melihat akun aktif maupun soft-deleted dan menjalankan penghapusan permanen.
+- Super Administrator mengelola akun operasional melalui `/admin/access`: tambah, ubah username, edit role, reset password, dan nonaktifkan. UI tidak menyediakan hapus permanen.
+- Root mengelola akun sistem melalui bagian pengelolaan akun pada `/system/access`, termasuk mengubah username akun aktif dan melihat akun aktif maupun soft-deleted untuk penghapusan permanen.
 - API `DELETE /auth/users/:id` memeriksa role Root di backend; permission `user.manage` saja tidak cukup.
 - Penghapusan permanen tetap menjaga histori operasional dan audit: jika relasi historis masih mereferensikan akun, transaksi ditolak dan akun tetap dipertahankan.
-- Akun Developer dilindungi dari penonaktifan dan penghapusan permanen; penghapusan Root tetap tunduk pada aturan minimal satu Root aktif.
+- Username hanya dapat diubah oleh Root atau Super Administrator. Backend menormalisasi username menjadi huruf kecil, memvalidasi format 3-50 karakter, memeriksa benturan dengan username maupun email akun lain, dan mencatat perubahan sebelum/sesudah ke Audit Log. Super Administrator tidak dapat mengubah username akun Root.
+- Akun Developer dilindungi dari perubahan username, penonaktifan, dan penghapusan permanen; penghapusan Root tetap tunduk pada aturan minimal satu Root aktif.

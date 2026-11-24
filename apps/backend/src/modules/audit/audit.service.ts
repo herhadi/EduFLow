@@ -234,7 +234,7 @@ export class AuditService {
       'attendance.submitted': 'Guru submit presensi', 'attendance.opened': 'Guru membuka kelas',
       'attendance.approved': 'Operator approve presensi', 'schedule.created': 'Jadwal dibuat',
       'schedule.updated': 'Jadwal diubah', 'schedule.deleted': 'Jadwal dinonaktifkan',
-      'agenda.generated': 'Agenda harian digenerate', 'notification.retry': 'Notifikasi gagal dikirim ulang ke queue',
+      'agenda.generated': 'Agenda harian digenerate', 'user.username.updated': 'Username akun diperbarui', 'notification.retry': 'Notifikasi gagal dikirim ulang ke queue',
     };
     return descriptions[action] ?? `${entityType} mengalami aktivitas ${action}`;
   }
