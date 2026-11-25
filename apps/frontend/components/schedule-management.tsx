@@ -464,7 +464,7 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
   }
 
   return (
-    <section className="mt-6 grid w-full min-w-0 max-w-full gap-5 sm:mt-10 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+    <section className="mt-6 grid w-full min-w-0 max-w-full gap-5 sm:mt-10 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] lg:items-start">
       <ScheduleEditorForm
         availableGrades={availableGrades}
         scheduleTimeSlots={scheduleTimeSlots}

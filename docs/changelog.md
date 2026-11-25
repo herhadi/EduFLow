@@ -483,4 +483,5 @@ Changelog hanya memuat perubahan besar yang berdampak pada fitur, alur kerja, ke
 - Mengaktifkan snap grid dan auto-alignment horizontal/vertikal saat memindahkan kartu, termasuk kartu wali kelas dan peserta didik.
 
 ## 2026-11-25
+- **Setup Jadwal:** Mempertahankan form dan panel jadwal kelas berdampingan mulai breakpoint desktop `lg`, dengan lebar kolom form dibatasi agar panel kartu tidak terdorong ke bawah pada area konten desktop yang lebih sempit.
 - **Setup Jadwal:** Pengisian jadwal kini menggunakan matriks mingguan. Operator dapat memilih rombel langsung pada slot lintas hari tanpa berpindah melalui dropdown hari; slot nonpelajaran tetap tampil sebagai informasi read-only mengikuti Data Master. Mengganti guru pengampu mengosongkan pilihan slot sebelumnya agar penugasan tidak tercampur.
