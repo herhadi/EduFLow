@@ -1,35 +1,12 @@
-## 2026-11-24
+# Changelog
 
-- Menambahkan pengubahan username akun pada pengelolaan akun Super Administrator dan Root. Backend menormalisasi username menjadi huruf kecil, memvalidasi format dan keunikan terhadap username/email lain, melindungi akun Developer serta akun Root dari perubahan oleh Super Administrator, dan mencatat nilai sebelum/sesudah ke Audit Log.
-- Memusatkan pengelolaan akun sistem Root ke bagian **Akun & Akses** (/system/access), menghapus halaman/menu terpisah /system/accounts, dan mempertahankan aksi pengelolaan akun dalam satu konteks.
-- Memindahkan penghapusan permanen akun dari pengelolaan operasional Super Administrator ke pengelolaan khusus Root. Penghapusan permanen tetap tunduk pada pemeriksaan relasi historis, perlindungan akun Developer, dan aturan minimal satu Root aktif.
-- Mengecualikan akun Root dan Developer dari seluruh daftar akun aktif yang ditujukan untuk pemantauan operasional, termasuk daftar Operator Sekolah, tanpa mengubah data akun di database.
-- Menyegarkan kalender akademik dan kalender audit lintas modul: menyelaraskan grid tanggal, jarak baris, ukuran sel, legenda, ringkasan jumlah kegiatan, serta indikator tanggal hari ini agar konsisten pada tampilan bulanan dan tahunan.
-- Menyempurnakan indikator tanggal hari ini pada kalender tahunan menggunakan outline inset agar tidak mengganggu batas sel maupun layout.
+Changelog hanya memuat perubahan besar yang berdampak pada fitur, alur kerja, keamanan, atau pengalaman pengguna. Beberapa pekerjaan yang saling terkait dapat digabungkan dalam satu entri lintas hari. Rincian teknis dan perubahan kecil dapat ditelusuri melalui riwayat Git serta dokumentasi domain terkait.
 
-## 2026-11-23
+## 2026-11-19–24 — Pengelolaan akun, kalender, dan Bagan Organisasi
 
-- Memperbaiki alur penugasan Wali Kelas pada data guru dan relasi kelas, termasuk pencarian data aktif agar data yang sudah soft-delete tidak mengganggu proses maupun daftar penugasan.
-- Menangani keunikan data akademik yang memiliki soft-delete dengan memperbaiki pencarian record aktif dan aturan lookup, sehingga record nonaktif tidak menghalangi pembuatan atau pembaruan data aktif.
-- Merapikan tampilan Audit dan pengelolaan sekolah serta penyimpanan sesi Bagan Organisasi; membersihkan konektor/junction bagan yang tidak lagi memiliki pasangan valid agar tidak menghasilkan garis yatim.
-
-## 2026-11-22
-
-- Menyeragamkan tampilan kartu Bagan Organisasi dan Wali Kelas, termasuk ukuran/foto profil, fallback avatar, posisi avatar, serta jarak teks agar identitas tidak saling bertumpuk.
-- Memperbaiki tampilan foto profil Wali Kelas agar foto portrait dapat tampil lebih utuh dan konsisten dengan ukuran kartu.
-
-## 2026-11-20
-
-- Menyempurnakan editor Bagan Organisasi: dialog edit dibuat ringkas dengan latar solid, ukuran kartu dan jarak horizontal/vertikal diseragamkan, serta pengaturan kelompok kartu dan perpindahan kartu bebas diperbaiki.
-- Menambahkan perilaku snap/alignment saat kartu digeser, mempertahankan posisi kartu bebas ketika jarak bagan disesuaikan, serta menjaga titik ujung konektor tetap menempel di tengah kartu.
-- Memperbaiki interaksi pemilihan kartu dan penggambaran konektor ortogonal, termasuk indikator snap, pembaruan geometri, dan penanganan junction agar garis tetap mengikuti kartu saat dipindahkan.
-- Menyesuaikan skala foto portrait dan isi kartu secara proporsional terhadap dimensi kartu.
-
-## 2026-11-19
-
-- Mengembangkan editor kanvas Bagan Organisasi dengan alat gambar dan pengaturan objek, mendukung pemindahan kartu serta penyuntingan konektor secara manual.
-- Menyediakan konektor manual antar-kartu dengan snapping ke garis/kartu yang tersedia, normalisasi jalur konektor, dan penyelarasan agar garis terhubung rapi tanpa bergantung pada pembentukan hierarki otomatis.
-- Memperbaiki interaksi edit kartu dan garis serta menjaga fitur lengkap Bagan Organisasi tetap tersedia setelah refactor editor.
+- **Pengelolaan akun dan keamanan akses:** pengubahan username dengan validasi dan Audit Log; pengelolaan akun Root dipusatkan di `/system/access`; penghapusan permanen dibatasi untuk Root dengan perlindungan akun dan relasi historis; akun Root dan Developer dikecualikan dari daftar akun aktif operasional.
+- **Kalender akademik dan audit:** penyelarasan tampilan kalender bulanan/tahunan, termasuk ukuran sel, grid tanggal, legenda, ringkasan aktivitas, dan penanda tanggal hari ini.
+- **Bagan Organisasi dan penugasan Wali Kelas:** penyempurnaan editor kartu/konektor, pengaturan posisi dan alignment, tampilan foto profil, serta perbaikan pencarian dan pengelolaan data penugasan aktif.
 
 ## 2026-11-18
 
@@ -107,9 +84,6 @@
 - Mempertahankan penanda Upacara Hari Nasional, pengaturan Apel Pagi, aturan blokir agenda, dan konsistensi tampilan dark/light mode.
 - Melengkapi frontend API client untuk baca, tambah, ubah, dan hapus kegiatan Kaldik.
 
-# Changelog
-
-Changelog diringkas per tanggal agar mudah dibaca saat pilot. Detail teknis granular tetap dilacak melalui riwayat Git dan dokumen domain terkait.
 
 ## 2026-10-30
 
