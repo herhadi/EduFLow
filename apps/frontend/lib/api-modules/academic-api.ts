@@ -34,6 +34,8 @@ export const academicApi = {
     request<ApiResponse<Semester[]>>(
       `/academic/semesters${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,
     ),
+  updateSemesterDates: (id: string, payload: { startsAt: string; endsAt: string }) =>
+    request<ApiResponse<Semester>>(`/academic/semesters/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   getClasses: (schoolYearId?: string) =>
     request<ApiResponse<SchoolClass[]>>(
       `/academic/classes${schoolYearId ? `?schoolYearId=${schoolYearId}` : ''}`,

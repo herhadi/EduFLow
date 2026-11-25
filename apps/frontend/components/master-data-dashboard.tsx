@@ -5,6 +5,7 @@ import {
   api,
   type SchoolClass,
   type SchoolYear,
+  type Semester,
   type Student,
   type Subject,
   type Teacher,
@@ -33,6 +34,7 @@ export function MasterDataDashboard() {
   const [classes, setClasses] = useState<SchoolClass[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
+  const [semesters, setSemesters] = useState<Semester[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -47,12 +49,14 @@ export function MasterDataDashboard() {
           classResponse,
           subjectResponse,
           schoolYearResponse,
+          semesterResponse,
         ] = await Promise.all([
           api.getTeachers(),
           api.getStudents(),
           api.getClasses(),
           api.getSubjects(),
           api.getSchoolYears(),
+          api.getSemesters(),
         ]);
 
         if (!isMounted) {
@@ -64,6 +68,7 @@ export function MasterDataDashboard() {
         setClasses(classResponse.data);
         setSubjects(subjectResponse.data);
         setSchoolYears(schoolYearResponse.data);
+        setSemesters(semesterResponse.data);
         setLoadState('success');
       } catch {
         if (isMounted) {
@@ -134,7 +139,7 @@ export function MasterDataDashboard() {
           {activeTab === 'classes' ? <ClassList classes={classes} /> : null}
           {activeTab === 'subjects' ? <SubjectList subjects={subjects} /> : null}
           {activeTab === 'schoolYears' ? (
-            <SchoolYearList schoolYears={schoolYears} />
+            <SchoolYearList schoolYears={schoolYears} semesters={semesters} onSemesterSaved={(updated) => setSemesters((current) => current.map((item) => item.id === updated.id ? updated : item))} />
           ) : null}
         </div>
       </SurfaceCard>

@@ -26,6 +26,7 @@ import { SetClassHomeroomTeacherDto } from './dto/set-class-homeroom-teacher.dto
 import { SetTeacherSubjectsDto } from './dto/set-teacher-subjects.dto';
 import { SetTeacherSchoolYearAssignmentDto } from './dto/set-teacher-school-year-assignment.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
+import { UpdateSemesterDatesDto } from './dto/update-semester-dates.dto';
 
 @Controller('academic')
 export class AcademicController {
@@ -59,6 +60,12 @@ export class AcademicController {
   @Get('semesters')
   getSemesters(@Query('schoolYearId') schoolYearId?: string) {
     return this.academicService.getSemesters(schoolYearId);
+  }
+
+  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @Patch('semesters/:id')
+  updateSemesterDates(@Param('id') id: string, @Body() dto: UpdateSemesterDatesDto) {
+    return this.academicService.updateSemesterDates(id, dto);
   }
 
   @RequirePermissions(PERMISSIONS.ACADEMIC_CALENDAR_READ)

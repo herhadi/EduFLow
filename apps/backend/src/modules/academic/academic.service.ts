@@ -61,6 +61,10 @@ export class AcademicService {
     return this.academicMasterService.getSemesters(schoolYearId);
   }
 
+  async updateSemesterDates(id: string, dto: { startsAt: string; endsAt: string }) {
+    return this.academicMasterService.updateSemesterDates(id, dto);
+  }
+
   async getAcademicCalendarEvents(schoolYearId?: string) {
     return this.academicCalendarService.getAcademicCalendarEvents(schoolYearId);
   }

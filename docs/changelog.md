@@ -508,3 +508,9 @@ Changelog hanya memuat perubahan besar yang berdampak pada fitur, alur kerja, ke
 - **Ringkasan Pilihan:** Mengurangi tinggi, padding, ukuran teks, dan bayangan pada sticky agar tetap terbaca tanpa mendominasi form.
 - **Daftar Jadwal:** Menambahkan keterangan konteks, jumlah jadwal yang tampil, panduan penggunaan tanggal berlaku dan filter hari, serta penjelasan aksi Edit/Hapus dan penanda revisi.
 - **Daftar Jadwal:** Memastikan daftar dan ringkasan mingguan hanya menampilkan jadwal dari tahun ajaran, semester, dan rombel yang sedang dipilih.
+
+
+## 2026-11-25 — Pengaturan tanggal semester
+- Menambahkan pengaturan tanggal mulai dan selesai Semester Ganjil/Genap pada Data Master → Tahun Ajaran.
+- Perubahan tanggal semester divalidasi agar berada di dalam tahun ajaran dan tidak bertumpang tindih dengan semester lainnya.
+- Perubahan disimpan melalui backend dengan audit log; tampilan mendukung dark mode dan perangkat mobile.

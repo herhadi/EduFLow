@@ -242,6 +242,49 @@ export class AcademicMasterService {
     };
   }
 
+  async updateSemesterDates(id: string, dto: { startsAt: string; endsAt: string }) {
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (!datePattern.test(dto.startsAt) || !datePattern.test(dto.endsAt)) {
+      throw new BadRequestException('Tanggal semester tidak valid.');
+    }
+    const parseDate = (value: string, endOfDay = false) => {
+      const [year, month, day] = value.split('-').map(Number);
+      const date = this.createSchoolBoundaryDate(year, month - 1, day, ...(endOfDay ? [23, 59, 59, 999] : []));
+      const check = new Date(date.getTime() + Number(process.env.SCHOOL_TIMEZONE_OFFSET_MINUTES ?? 420) * 60000);
+      if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) {
+        throw new BadRequestException('Tanggal semester tidak valid.');
+      }
+      return date;
+    };
+    const startsAt = parseDate(dto.startsAt);
+    const endsAt = parseDate(dto.endsAt, true);
+    if (startsAt > endsAt) throw new BadRequestException('Tanggal mulai semester harus sebelum atau sama dengan tanggal selesai.');
+
+    const semester = await this.prisma.semester.findFirst({
+      where: { id, deletedAt: null }, include: { schoolYear: true },
+    });
+    if (!semester) throw new NotFoundException('Semester tidak ditemukan.');
+    if (startsAt < semester.schoolYear.startsAt || endsAt > semester.schoolYear.endsAt) {
+      throw new BadRequestException('Rentang semester harus berada di dalam rentang tahun ajaran.');
+    }
+    const other = await this.prisma.semester.findFirst({
+      where: { schoolYearId: semester.schoolYearId, id: { not: id }, deletedAt: null },
+    });
+    if (other && startsAt <= other.endsAt && endsAt >= other.startsAt) {
+      throw new BadRequestException('Rentang semester tidak boleh bertumpang tindih dengan semester lainnya.');
+    }
+    const updated = await this.prisma.semester.update({
+      where: { id }, data: { startsAt, endsAt }, include: { schoolYear: true },
+    });
+    await this.auditService.record({
+      action: 'semester.dates.updated', entityType: 'Semester', entityId: id,
+      before: { type: semester.type, startsAt: semester.startsAt, endsAt: semester.endsAt },
+      after: { type: updated.type, startsAt: updated.startsAt, endsAt: updated.endsAt },
+    });
+    return { data: updated, message: 'Tanggal semester berhasil diperbarui.' };
+  }
+
+
   async getClasses(schoolYearId?: string) {
     const classes = await this.prisma.class.findMany({
       where: { deletedAt: null, schoolYearId },
