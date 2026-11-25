@@ -1,3 +1,9 @@
+## 2026-11-25 — Penyegaran ringkasan Setup Jadwal dan Jadwal Kelas
+
+- Memperbesar dan mempertegas ringkasan pilihan guru, tahun ajaran, semester, dan kelas dengan highlight yang konsisten pada mode terang maupun gelap.
+- Menata ulang panel Jadwal Kelas agar pemilihan rombel, informasi wali kelas, ringkasan jadwal mingguan, filter, dan daftar jadwal lebih rapat serta mudah dipindai.
+- Mengurangi padding dan ruang kosong yang tidak perlu tanpa mengubah alur edit, hapus, filter tanggal/hari, maupun generate agenda.
+
 ## 2026-11-25 — Perapian navigasi dan filter Setup Jadwal
 
 - Tab Agenda Kelas dan Setup Jadwal tidak lagi menempel saat halaman digulir.

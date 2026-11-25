@@ -198,13 +198,14 @@ export function ScheduleEditorForm({
           </div>
         </div>
         </div>
-        <div className="sticky top-20 z-20 -mx-1 rounded-xl border border-blue-200 bg-white/95 px-3 py-2.5 shadow-md backdrop-blur dark:border-blue-400/30 dark:bg-[var(--surface-solid)]/95 sm:mx-0 sm:px-4">
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-            <div className="min-w-0">
-              <p className="truncate text-xs font-black text-slate-900 dark:text-[var(--text)]">{selectedTeacherSubject}</p>
-              <p className="text-[11px] font-semibold text-muted">{selectedSchoolYear} - Semester {selectedSemesterLabel} - Kelas {selectedGrade || '-'}</p>
+        <div className="sticky top-20 z-20 -mx-1 rounded-2xl border-2 border-blue-300 bg-gradient-to-r from-blue-50 via-white to-indigo-50 px-4 py-3 shadow-lg shadow-blue-900/10 backdrop-blur dark:border-blue-400/50 dark:from-blue-950/90 dark:via-[var(--surface-solid)] dark:to-indigo-950/80 dark:shadow-black/30 sm:mx-0 sm:px-5 sm:py-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-black tracking-[0.14em] text-blue-700 uppercase dark:text-blue-200">Ringkasan Pilihan</p>
+              <p className="mt-0.5 truncate text-base font-black leading-snug text-slate-950 dark:text-white sm:text-lg">{selectedTeacherSubject}</p>
+              <p className="mt-1 text-sm font-bold text-blue-900 dark:text-blue-100 sm:text-base">{selectedSchoolYear} <span className="px-1 text-blue-400">·</span> Semester {selectedSemesterLabel} <span className="px-1 text-blue-400">·</span> Kelas {selectedGrade || '-'}</p>
             </div>
-            <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-black text-brand-700 dark:bg-blue-400/10 dark:text-blue-100">{Object.values(slotClassIds).reduce((total, ids) => total + ids.length, 0)} pilihan</span>
+            <span className="shrink-0 rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs font-black text-blue-800 shadow-sm dark:border-blue-300/30 dark:bg-blue-400/15 dark:text-blue-100 sm:text-sm">{Object.values(slotClassIds).reduce((total, ids) => total + ids.length, 0)} pilihan</span>
           </div>
         </div>
 

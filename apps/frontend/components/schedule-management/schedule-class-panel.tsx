@@ -85,9 +85,9 @@ export function ScheduleClassPanel({
     .filter((group) => group.schedules.length > 0);
 
   return (
-    <div className="min-w-0 space-y-4">
-      <div className="min-w-0 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
+    <div className="min-w-0 space-y-3">
+      <div className="min-w-0 overflow-hidden rounded-2xl border border-blue-200 bg-white shadow-sm dark:border-blue-400/25 dark:bg-[var(--surface-solid)] dark:shadow-none">
+        <div className="grid gap-3 p-3 sm:p-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)]">
           <div className="min-w-0">
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
               Jadwal Kelas
@@ -95,25 +95,25 @@ export function ScheduleClassPanel({
             <h2 className="mt-1 text-2xl font-black text-slate-900 dark:text-[var(--text)]">
               {selectedScheduleClass?.name ?? 'Pilih Kelas'}
             </h2>
-            <p className="mt-1 text-sm leading-6 text-muted">
-              Tabel ini menampilkan jadwal kelas sesuai tanggal kondisi yang dipilih.
-            </p>
+            <p className="mt-1 text-xs font-medium leading-5 text-muted sm:text-sm">Jadwal pelajaran, guru pengampu, dan waktu belajar kelas.</p>
+            {selectedScheduleClass?.homeroomTeacher ? <p className="mt-2 inline-flex rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-800 dark:bg-blue-400/10 dark:text-blue-100">Wali kelas: {selectedScheduleClass.homeroomTeacher.name}</p> : null}
           </div>
 
-          <div className="mt-0 space-y-3 xl:col-span-2">
+          <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50/80 p-3 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] xl:col-span-2">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-black tracking-wide text-slate-700 dark:text-[var(--text)]">PILIH ROMBEL</p><span className="text-[11px] font-semibold text-muted">Pilih kelas untuk melihat jadwalnya</span></div>
             {Object.entries(classesByGrade).map(([grade, gradeClasses]) => (
-              <div className="grid gap-2 sm:grid-cols-[4rem_1fr]" key={grade}>
-                <p className="pt-2 text-xs font-black text-muted">Kelas {grade}</p>
+              <div className="grid gap-1.5 border-t border-slate-200/80 py-2 first:border-0 first:pt-0 dark:border-[var(--border)] sm:grid-cols-[4rem_1fr] sm:gap-2" key={grade}>
+                <p className="pt-1 text-[11px] font-black text-muted sm:pt-2 sm:text-xs">Kelas {grade}</p>
                 <div className="flex flex-wrap gap-2">
                   {gradeClasses.map((schoolClass) => {
                     const active = schoolClass.id === scheduleClassId;
                     return (
                       <button
                         className={[
-                          'rounded-xl border px-3 py-2 text-xs font-black transition',
+                          'rounded-lg border px-3 py-1.5 text-xs font-black transition sm:px-3 sm:py-2',
                           active
-                            ? 'border-brand-600 bg-brand-600 text-white shadow-md'
-                            : 'border-blue-100 bg-blue-50/60 text-brand-700 hover:bg-blue-100 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100',
+                            ? 'border-blue-700 bg-blue-700 text-white shadow-md ring-2 ring-blue-200 dark:border-blue-300 dark:bg-blue-500 dark:ring-blue-400/20'
+                            : 'border-slate-200 bg-white text-slate-700 hover:border-blue-400 hover:bg-blue-50 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text-soft)] dark:hover:border-blue-400/50 dark:hover:bg-blue-400/10',
                         ].join(' ')}
                         key={schoolClass.id}
                         onClick={() => setScheduleClassId(schoolClass.id)}
@@ -130,7 +130,7 @@ export function ScheduleClassPanel({
         </div>
 
         {canGenerateAgenda ? (
-          <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 dark:border-emerald-400/20 dark:bg-emerald-400/10">
+          <div className="mx-3 mb-3 mt-3 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 dark:border-emerald-400/25 dark:bg-emerald-400/10 sm:mx-4 sm:mb-4 sm:p-4">
             <div className="mb-4">
               <p className="text-xs font-black tracking-[0.12em] text-emerald-700 uppercase">
                 Generate Agenda
@@ -183,23 +183,17 @@ export function ScheduleClassPanel({
               </div>
             ) : null}
 
-        {selectedScheduleClass?.homeroomTeacher ? (
-          <div className="mt-4 rounded-2xl bg-blue-50 px-4 py-3 text-xs font-bold text-brand-700 dark:bg-blue-400/10 dark:text-blue-100">
-            Wali kelas: {selectedScheduleClass.homeroomTeacher.name}
-          </div>
-        ) : null}
-
-        <div className="mt-5 rounded-2xl border border-slate-200 p-4 dark:border-[var(--border)]">
-          <div className="mb-3 flex items-center justify-between gap-3"><h3 className="text-sm font-black text-slate-900 dark:text-[var(--text)]">Ringkasan Jadwal Mingguan</h3><span className="text-xs text-muted">{weeklySchedulesByClass.length} jadwal</span></div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
-            {dailySummary.map((day) => <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-[var(--surface-soft)]" key={day.value}><p className="text-xs font-bold text-muted">{day.label}</p><p className="mt-1 text-lg font-black text-slate-900 dark:text-[var(--text)]">{day.schedules.length}</p><p className="text-[10px] text-muted">jadwal</p></div>)}
+        <div className="mx-3 mt-3 rounded-xl border border-slate-200 p-3 dark:border-[var(--border)] sm:mx-4">
+          <div className="mb-2 flex items-center justify-between gap-3"><h3 className="text-sm font-black text-slate-900 dark:text-[var(--text)]">Ringkasan Jadwal Mingguan</h3><span className="text-xs text-muted">{weeklySchedulesByClass.length} jadwal</span></div>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+            {dailySummary.map((day) => <div className="rounded-lg border border-slate-100 bg-slate-50 px-2.5 py-2 dark:border-[var(--border)] dark:bg-[var(--surface-soft)]" key={day.value}><p className="text-xs font-bold text-muted">{day.label}</p><p className="mt-1 text-lg font-black text-slate-900 dark:text-[var(--text)]">{day.schedules.length}</p><p className="text-[10px] text-muted">jadwal</p></div>)}
           </div>
         </div>
 
-        <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-400/20 dark:bg-blue-400/10">
-          <div className="mb-3">
-            <h3 className="text-sm font-black text-slate-900 dark:text-[var(--text)]">Tampilan Jadwal</h3>
-            <p className="mt-1 text-xs text-muted">Atur tanggal kondisi dan hari untuk jadwal kelas di bawah ini.</p>
+        <div className="mx-3 mb-3 mt-3 rounded-xl border border-blue-100 bg-blue-50/40 p-3 dark:border-blue-400/20 dark:bg-blue-400/10 sm:mx-4 sm:mb-4">
+          <div className="mb-2">
+            <h3 className="text-sm font-black text-slate-900 dark:text-[var(--text)]">Daftar Jadwal</h3>
+            <p className="mt-0.5 text-[11px] text-muted">Atur tanggal berlaku dan filter hari.</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <DateControl
@@ -225,13 +219,13 @@ export function ScheduleClassPanel({
         </div>
 
         {scheduleDayFilter === 'all' && scheduleClassId && schedulesByClass.length ? (
-          <div className="mt-3 space-y-2">
+          <div className="mt-2 space-y-2">
             {scheduleDayGroups.map((group) => (
               <details
-                className="overflow-hidden rounded-2xl border border-slate-100 bg-white dark:border-[var(--border)] dark:bg-[var(--surface-solid)]"
+                className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-[var(--border)] dark:bg-[var(--surface-solid)]"
                 key={group.value}
               >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 bg-slate-50 px-4 py-3 text-sm font-black text-slate-900 dark:bg-[var(--surface-soft)] dark:text-[var(--text)]">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 bg-slate-50 px-3 py-2.5 text-sm font-black text-slate-900 dark:bg-[var(--surface-soft)] dark:text-[var(--text)]">
                   <span>{group.label}</span>
                   <span className="rounded-full bg-white px-2.5 py-1 text-xs font-black text-brand-700 dark:bg-slate-950 dark:text-blue-100">
                     {group.schedules.length} jadwal
@@ -247,7 +241,7 @@ export function ScheduleClassPanel({
           </div>
         ) : (
           <div className="mt-3 max-w-full overflow-x-auto rounded-2xl border border-slate-100 dark:border-[var(--border)]">
-            <table className="w-full min-w-[560px] border-collapse bg-white text-left text-sm dark:bg-[var(--surface-solid)] sm:min-w-[720px]">
+            <table className="w-full min-w-[520px] border-collapse bg-white text-left text-sm dark:bg-[var(--surface-solid)] sm:min-w-[680px]">
               <ScheduleTableHead />
               <tbody className="divide-y divide-slate-100 dark:divide-[var(--border)]">
                 <ScheduleRows
@@ -322,7 +316,7 @@ function ScheduleTable({
 }) {
   return (
     <div className="max-w-full overflow-x-auto">
-      <table className="w-full min-w-[560px] border-collapse bg-white text-left text-sm dark:bg-[var(--surface-solid)] sm:min-w-[720px]">
+      <table className="w-full min-w-[520px] border-collapse bg-white text-left text-sm dark:bg-[var(--surface-solid)] sm:min-w-[680px]">
         <ScheduleTableHead />
         <tbody className="divide-y divide-slate-100 dark:divide-[var(--border)]">
           <ScheduleRows handleDelete={handleDelete} schedules={schedules} startEdit={startEdit} />
@@ -336,11 +330,11 @@ function ScheduleTableHead() {
   return (
     <thead className="bg-slate-50 text-xs font-black tracking-[0.08em] text-slate-500 uppercase dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">
       <tr>
-        <th className="px-4 py-3">Hari</th>
-        <th className="px-4 py-3">Jam</th>
-        <th className="px-4 py-3">Mata Pelajaran</th>
-        <th className="px-4 py-3">Guru</th>
-        <th className="px-4 py-3">Aksi</th>
+        <th className="px-3 py-2.5">Hari</th>
+        <th className="px-3 py-2.5">Jam</th>
+        <th className="px-3 py-2.5">Mata Pelajaran</th>
+        <th className="px-3 py-2.5">Guru</th>
+        <th className="px-3 py-2.5">Aksi</th>
       </tr>
     </thead>
   );
@@ -359,20 +353,20 @@ function ScheduleRows({
     <>
       {schedules.map((schedule) => (
         <tr key={schedule.id}>
-          <td className="px-4 py-3 font-black text-slate-800 dark:text-[var(--text)]">
+          <td className="px-3 py-2.5 font-black text-slate-800 dark:text-[var(--text)]">
             {getDayLabel(schedule.dayOfWeek)}
           </td>
-          <td className="px-4 py-3 text-slate-600 dark:text-[var(--text-soft)]">
+          <td className="px-3 py-2.5 text-slate-600 dark:text-[var(--text-soft)]">
             {schedule.startsAt}-{schedule.endsAt}
           </td>
-          <td className="px-4 py-3 font-semibold text-slate-800 dark:text-[var(--text)]">
+          <td className="px-3 py-2.5 font-semibold text-slate-800 dark:text-[var(--text)]">
             {schedule.subject.name}
             {schedule.hasRevision ? <span className="ml-2 text-xs text-amber-700">Revisi</span> : null}
           </td>
-          <td className="px-4 py-3 text-slate-600 dark:text-[var(--text-soft)]">
+          <td className="px-3 py-2.5 text-slate-600 dark:text-[var(--text-soft)]">
             {schedule.teacher.name}
           </td>
-          <td className="px-4 py-3">
+          <td className="px-3 py-2.5">
             <div className="flex items-center gap-2">
               <Button onClick={() => startEdit(schedule)} size="sm" variant="outline">
                 Edit
