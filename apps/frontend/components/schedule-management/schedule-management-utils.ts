@@ -332,6 +332,7 @@ export function getEffectiveSchedulesByClass({
       (schedule) =>
         schedule.classId === classId &&
         schedule.schoolYearId === schoolYearId &&
+        schedule.semesterId === semesterId &&
         (dayFilter === 'all' || schedule.dayOfWeek === Number(dayFilter)),
     )
     .sort(

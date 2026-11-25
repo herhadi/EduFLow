@@ -502,3 +502,9 @@ Changelog hanya memuat perubahan besar yang berdampak pada fitur, alur kerja, ke
 - **Setup Jadwal:** Form Create Jadwal diringkas menjadi dua baris dua kolom pada desktop: Tahun Ajaran dan Semester, lalu Guru Pengampu dan Pilih Kelas. Ringkasan konteks guru, mapel, semester, dan tingkat dibuat sticky saat matriks digulir.
 - **Agenda Kelas:** Pisahkan navigasi Agenda Kelas dan Setup Jadwal dengan tab sticky; Agenda Kelas menjadi tampilan awal. Panel Generate Agenda dipindahkan ke bagian atas agar dapat dijangkau tanpa melewati tabel jadwal kelas.
 - **Jadwal Sekolah:** Jadwal Global Sekolah dipindahkan ke tab Agenda Kelas. Perbaiki konteks sticky navigasi dengan menghindari scroll container horizontal pada app frame dan menempatkan tab di bawah top bar. Jadwal tetap terikat pada semester masing-masing.
+
+
+## 2026-11-25 — Penyempurnaan ringkasan dan daftar jadwal
+- **Ringkasan Pilihan:** Mengurangi tinggi, padding, ukuran teks, dan bayangan pada sticky agar tetap terbaca tanpa mendominasi form.
+- **Daftar Jadwal:** Menambahkan keterangan konteks, jumlah jadwal yang tampil, panduan penggunaan tanggal berlaku dan filter hari, serta penjelasan aksi Edit/Hapus dan penanda revisi.
+- **Daftar Jadwal:** Memastikan daftar dan ringkasan mingguan hanya menampilkan jadwal dari tahun ajaran, semester, dan rombel yang sedang dipilih.

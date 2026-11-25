@@ -191,9 +191,12 @@ export function ScheduleClassPanel({
         </div>
 
         <div className="mx-3 mb-3 mt-3 rounded-xl border border-blue-100 bg-blue-50/40 p-3 dark:border-blue-400/20 dark:bg-blue-400/10 sm:mx-4 sm:mb-4">
-          <div className="mb-2">
-            <h3 className="text-sm font-black text-slate-900 dark:text-[var(--text)]">Daftar Jadwal</h3>
-            <p className="mt-0.5 text-[11px] text-muted">Atur tanggal berlaku dan filter hari.</p>
+          <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-black text-slate-900 dark:text-[var(--text)]">Daftar Jadwal</h3>
+              <p className="mt-0.5 text-xs leading-5 text-muted">Melihat jadwal kelas yang berlaku pada tanggal tertentu. Data mengikuti tahun ajaran, semester, dan rombel yang sedang dipilih.</p>
+            </div>
+            <span className="rounded-lg border border-blue-200 bg-white px-2.5 py-1 text-[11px] font-bold text-blue-800 dark:border-blue-400/25 dark:bg-[var(--surface-solid)] dark:text-blue-100">{schedulesByClass.length} jadwal tampil</span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <DateControl
@@ -216,6 +219,12 @@ export function ScheduleClassPanel({
               </select>
             </label>
           </div>
+          <div className="mt-3 grid gap-2 rounded-lg border border-slate-200 bg-white/80 px-3 py-2.5 text-[11px] leading-5 text-slate-600 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:text-[var(--text-soft)] sm:grid-cols-3">
+            <p><strong className="text-slate-800 dark:text-[var(--text)]">1. Tanggal berlaku:</strong> pilih tanggal untuk melihat susunan jadwal setelah revisi yang sudah efektif pada tanggal tersebut.</p>
+            <p><strong className="text-slate-800 dark:text-[var(--text)]">2. Filter hari:</strong> tampilkan semua hari atau satu hari tertentu.</p>
+            <p><strong className="text-slate-800 dark:text-[var(--text)]">3. Aksi:</strong> Edit untuk mengubah jadwal (dapat menjadi revisi bertanggal), Hapus untuk menghapus jadwal.</p>
+          </div>
+          <p className="mt-2 text-[11px] text-muted">Label <span className="font-bold text-amber-700 dark:text-amber-300">Revisi</span> menandakan jadwal sudah menggunakan perubahan yang berlaku pada tanggal pilihan.</p>
         </div>
 
         {scheduleDayFilter === 'all' && scheduleClassId && schedulesByClass.length ? (
