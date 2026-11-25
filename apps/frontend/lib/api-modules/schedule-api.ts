@@ -100,7 +100,7 @@ export const scheduleApi = {
       endsAt: payload.endsAt,
       ...(payload.classId ? { classId: payload.classId } : {}),
     });
-    return request<ApiResponse<{ expected: number; existing: number; missing: number; blockedDates: number; items: Array<{ date: string; scheduleId: string; classId: string; subjectId: string; teacherId: string; startsAt: string; endsAt: string }> }>>(`/academic/agendas/coverage?${params.toString()}`);
+    return request<ApiResponse<{ expected: number; existing: number; missing: number; blockedDates: number; outsideSemesterDates: number; items: Array<{ date: string; scheduleId: string; classId: string; subjectId: string; teacherId: string; startsAt: string; endsAt: string }> }>>(`/academic/agendas/coverage?${params.toString()}`);
   },
   assignSubstituteTeacher: (id: string, teacherId?: string | null) =>
     request<ApiResponse<DailyAgenda>>(`/academic/agendas/${id}/substitute-teacher`, {

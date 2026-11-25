@@ -514,3 +514,9 @@ Changelog hanya memuat perubahan besar yang berdampak pada fitur, alur kerja, ke
 - Menambahkan pengaturan tanggal mulai dan selesai Semester Ganjil/Genap pada Data Master → Tahun Ajaran.
 - Perubahan tanggal semester divalidasi agar berada di dalam tahun ajaran dan tidak bertumpang tindih dengan semester lainnya.
 - Perubahan disimpan melalui backend dengan audit log; tampilan mendukung dark mode dan perangkat mobile.
+
+
+## 2026-11-25 — Validasi periode Generate Agenda
+- Generate Agenda satuan menolak tanggal di luar periode semester yang dikonfigurasi.
+- Generate Agenda massal hanya membuat agenda pada tanggal yang termasuk periode semester dan melaporkan hari di luar periode.
+- Cek cakupan agenda menghitung kebutuhan hanya pada tanggal dalam periode semester serta menampilkan jumlah hari di luar periode.

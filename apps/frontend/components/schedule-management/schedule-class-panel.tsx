@@ -13,6 +13,7 @@ type AgendaCoverage = {
   existing: number;
   missing: number;
   blockedDates: number;
+  outsideSemesterDates: number;
 } | null;
 
 type ScheduleWithEffectiveRevision = Schedule & {
@@ -179,7 +180,7 @@ export function ScheduleClassPanel({
             </div>
             {agendaCoverage ? (
               <div className="mt-4 rounded-2xl border border-white/70 bg-white/80 p-3 text-sm font-bold text-slate-700 dark:border-emerald-400/20 dark:bg-emerald-950/40 dark:text-emerald-50">
-                Agenda tersedia: {agendaCoverage.existing}/{agendaCoverage.expected}. Belum dibuat: {agendaCoverage.missing}. Hari diblokir Kaldik: {agendaCoverage.blockedDates}.
+                Agenda tersedia: {agendaCoverage.existing}/{agendaCoverage.expected}. Belum dibuat: {agendaCoverage.missing}. Hari diblokir Kaldik: {agendaCoverage.blockedDates}. Di luar periode semester: {agendaCoverage.outsideSemesterDates} hari.
               </div>
             ) : null}
 

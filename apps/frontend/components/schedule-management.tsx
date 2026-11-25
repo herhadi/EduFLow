@@ -52,6 +52,7 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
     existing: number;
     missing: number;
     blockedDates: number;
+    outsideSemesterDates: number;
   } | null>(null);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);

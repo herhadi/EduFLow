@@ -66,7 +66,7 @@ export class AgendaGenerationService {
 
     const effectiveSchedule = await this.applyScheduleShift(schedule, agendaDate);
     if (effectiveSchedule.skipAgenda) throw new BadRequestException('Agenda jam pelajaran pertama dilewati karena pergeseran jadwal upacara.');
-    const semester = await this.prisma.semester.findFirstOrThrow({
+    const semester = await this.prisma.semester.findFirst({
       where: {
         schoolYearId: schedule.schoolYearId,
         startsAt: { lte: agendaDate },
@@ -74,6 +74,9 @@ export class AgendaGenerationService {
         deletedAt: null,
       },
     });
+    if (!semester) {
+      throw new BadRequestException('Tanggal agenda berada di luar periode semester yang telah diatur.');
+    }
     const agenda = await this.createAgendaFromEffectiveSchedule(effectiveSchedule, semester.id, agendaDate);
 
     await this.auditService.record({
@@ -138,6 +141,7 @@ export class AgendaGenerationService {
     const agendas = [];
     let skipped = 0;
     let calendarSkipped = 0;
+    let semesterSkipped = 0;
 
     for (const agendaDate of dates) {
       if (blockedDates.has(getAgendaDateKey(agendaDate))) {
@@ -147,7 +151,10 @@ export class AgendaGenerationService {
 
       const semester = findSemesterForDate(semesters, agendaDate);
 
-      if (!semester) continue;
+      if (!semester) {
+        semesterSkipped += 1;
+        continue;
+      }
 
       const effectiveSchedules = getEffectiveSchedulesForDate(schedules, agendaDate, classIds)
         .map((schedule) => applyScheduleShiftForDate(schedule, agendaDate, shiftContext.events, shiftContext.timeSlots, shiftContext.morningAssembly))
@@ -182,12 +189,13 @@ export class AgendaGenerationService {
         generated: agendas.length - skipped,
         skipped,
         calendarSkipped,
+        semesterSkipped,
       },
     });
 
     return {
       data: agendas,
-      message: `${agendas.length - skipped} agenda dibuat, ${skipped} sudah ada, ${calendarSkipped} hari dilewati oleh Kaldik.`,
+      message: `${agendas.length - skipped} agenda dibuat, ${skipped} sudah ada, ${calendarSkipped} hari dilewati oleh Kaldik, ${semesterSkipped} hari di luar periode semester.`,
     };
   }
 
@@ -206,7 +214,18 @@ export class AgendaGenerationService {
     if (endsAt < startsAt) throw new BadRequestException('Tanggal akhir tidak boleh lebih awal dari tanggal mulai');
 
     const dates = getDateRange(startsAt, endsAt);
-    const blockedDates = await this.getBlockedAgendaDates(input.schoolYearId, startsAt, endsAt);
+    const [semesters, blockedDates] = await Promise.all([
+      this.prisma.semester.findMany({
+        where: {
+          schoolYearId: input.schoolYearId,
+          startsAt: { lte: endsAt },
+          endsAt: { gte: startsAt },
+          deletedAt: null,
+        },
+        orderBy: { startsAt: 'asc' },
+      }),
+      this.getBlockedAgendaDates(input.schoolYearId, startsAt, endsAt),
+    ]);
     const schedules = await this.prisma.schedule.findMany({
       where: {
         schoolYearId: input.schoolYearId,
@@ -238,9 +257,14 @@ export class AgendaGenerationService {
     }> = [];
     let expected = 0;
     let blockedDateCount = 0;
+    let outsideSemesterDateCount = 0;
 
     for (const date of dates) {
       const dateKey = getAgendaDateKey(date);
+      if (!findSemesterForDate(semesters, date)) {
+        outsideSemesterDateCount += 1;
+        continue;
+      }
       if (blockedDates.has(dateKey)) {
         blockedDateCount += 1;
         continue;
@@ -270,6 +294,7 @@ export class AgendaGenerationService {
         existing: expected - missing.length,
         missing: missing.length,
         blockedDates: blockedDateCount,
+        outsideSemesterDates: outsideSemesterDateCount,
         items: missing.slice(0, 50),
       },
     };
