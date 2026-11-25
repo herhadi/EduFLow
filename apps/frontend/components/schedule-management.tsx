@@ -37,7 +37,7 @@ import {
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
-export function ScheduleManagement() {
+export function ScheduleManagement({ dashboardHref }: { dashboardHref?: string }) {
   const toast = useToast();
   const [, setLoadState] = useState<LoadState>('idle');
   const [submitState, setSubmitState] = useState<LoadState>('idle');
@@ -227,6 +227,19 @@ export function ScheduleManagement() {
         viewDate,
       }),
     [form.schoolYearId, form.semesterId, scheduleClassId, scheduleDayFilter, schedules, semesters, viewDate],
+  );
+
+  const weeklySchedulesByClass = useMemo(
+    () => getEffectiveSchedulesByClass({
+      schedules,
+      semesters,
+      semesterId: form.semesterId,
+      schoolYearId: form.schoolYearId,
+      classId: scheduleClassId,
+      dayFilter: "all",
+      viewDate,
+    }),
+    [form.schoolYearId, form.semesterId, scheduleClassId, schedules, semesters, viewDate],
   );
 
   const editingSchedule = useMemo(
@@ -559,6 +572,7 @@ export function ScheduleManagement() {
         scheduleClassId={scheduleClassId}
         scheduleDayFilter={scheduleDayFilter}
         schedulesByClass={schedulesByClass}
+        weeklySchedulesByClass={weeklySchedulesByClass}
         selectedScheduleClass={selectedScheduleClass}
         setGenerateEndsAt={setGenerateEndsAt}
         setGenerateStartsAt={setGenerateStartsAt}
@@ -569,6 +583,7 @@ export function ScheduleManagement() {
         submitState={submitState}
         teachers={teachers}
         viewDate={viewDate}
+        dashboardHref={dashboardHref}
       />
     </section>
   );

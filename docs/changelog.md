@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-25 — Penyempurnaan ringkasan data dan jadwal sekolah
+
+- Menyempurnakan ringkasan guru dengan menampilkan mata pelajaran berdasarkan penugasan tahun ajaran aktif, memperluas kolom informasi dengan menghilangkan kolom email, serta menempatkan kontrol kembali dan preview cetak pada bagian kanan atas card.
+- Menyeragamkan posisi navigasi kembali ke Dashboard pada halaman ringkasan agar berada di area kontrol kanan atas card.
+- Menambahkan ringkasan jumlah jadwal per hari dan preview cetak jadwal mingguan pada pengelolaan jadwal Operator Sekolah.
+
 Changelog hanya memuat perubahan besar yang berdampak pada fitur, alur kerja, keamanan, atau pengalaman pengguna. Beberapa pekerjaan yang saling terkait dapat digabungkan dalam satu entri lintas hari. Rincian teknis dan perubahan kecil dapat ditelusuri melalui riwayat Git serta dokumentasi domain terkait.
 
 ## 2026-11-19–24 — Pengelolaan akun, kalender, dan Bagan Organisasi
