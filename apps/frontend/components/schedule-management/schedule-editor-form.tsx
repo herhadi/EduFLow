@@ -75,9 +75,14 @@ export function ScheduleEditorForm({
   teacherSubjectOptions,
   toggleSlotClass,
 }: ScheduleEditorFormProps) {
+  const selectedTeacherSubject = teacherSubjectOptions.find((option) => option.value === `${form.teacherId}:${form.subjectId}`)?.label ?? 'Belum dipilih';
+  const selectedSchoolYear = schoolYears.find((year) => year.id === form.schoolYearId)?.name ?? 'Belum dipilih';
+  const selectedSemester = filteredSemesters.find((semester) => semester.id === form.semesterId);
+  const selectedSemesterLabel = selectedSemester ? (selectedSemester.type === 'ODD' ? 'Ganjil' : 'Genap') : 'Belum dipilih';
+
   return (
     <form
-      className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] sm:p-6"
+      className="w-full min-w-0 max-w-full rounded-2xl border border-slate-200 bg-white p-4 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] sm:p-6"
       onSubmit={onSubmit}
     >
       <div>
@@ -90,6 +95,7 @@ export function ScheduleEditorForm({
       </div>
 
       <div className="mt-5 grid min-w-0 gap-3 sm:mt-6 sm:gap-4">
+        <div className="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
         <SelectField
           label="Tahun Ajaran"
           onChange={onSchoolYearChange}
@@ -108,6 +114,7 @@ export function ScheduleEditorForm({
           }))}
           value={form.semesterId}
         />
+        </div>
         {editingId ? (
           <>
             <InputField
@@ -160,6 +167,8 @@ export function ScheduleEditorForm({
           </div>
         ) : null}
 
+        <div className="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4 lg:items-start">
+        <div className="min-w-0">
         <SelectField
           label="Guru Pengampu"
           onChange={onTeacherSubjectChange}
@@ -170,26 +179,35 @@ export function ScheduleEditorForm({
               : ''
           }
         />
-        <p className="-mt-1 rounded-2xl bg-blue-50 px-3 py-2.5 text-xs font-semibold leading-5 text-brand-700 dark:bg-blue-400/10 dark:text-blue-100 sm:-mt-2 sm:px-4 sm:py-3">
+        <p className="mt-2 rounded-2xl bg-blue-50 px-3 py-2.5 text-xs font-semibold leading-5 text-brand-700 dark:bg-blue-400/10 dark:text-blue-100 sm:px-4 sm:py-3">
           Mata pelajaran mengikuti pilihan guru pengampu. Guru dengan dua mapel tampil sebagai dua opsi terpisah.
         </p>
-
+        </div>
         <div className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 dark:border-blue-400/20 dark:bg-blue-400/10 sm:p-4">
           <p className="text-sm font-black text-slate-800 dark:text-[var(--text)]">Pilih Kelas</p>
-          <p className="mt-1 text-xs font-semibold text-muted">Pilih tingkat. Rombel A, B, C, dan seterusnya dipilih pada setiap jam.</p>
-          <div className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(4.25rem,1fr))] gap-2">
+          <p className="mt-1 text-xs font-semibold text-muted">Pilih tingkat untuk menentukan rombel pada matriks.</p>
+          <div className="mt-3 grid grid-cols-3 gap-2">
             {availableGrades.map((grade) => (
               <button
                 className={selectedGrade === grade ? 'min-w-0 rounded-xl bg-brand-600 px-2 py-2.5 text-sm font-black text-white sm:px-3 sm:py-3' : 'min-w-0 rounded-xl border border-blue-100 bg-white px-2 py-2.5 text-sm font-black text-brand-700 dark:border-blue-400/20 dark:bg-[var(--surface-solid)] dark:text-blue-100 sm:px-3 sm:py-3'}
                 key={grade}
                 onClick={() => onGradeChange(grade)}
                 type="button"
-              >
-                {grade}
-              </button>
+              >{grade}</button>
             ))}
           </div>
         </div>
+        </div>
+        <div className="sticky top-3 z-20 -mx-1 rounded-xl border border-blue-200 bg-white/95 px-3 py-2.5 shadow-md backdrop-blur dark:border-blue-400/30 dark:bg-[var(--surface-solid)]/95 sm:mx-0 sm:px-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+            <div className="min-w-0">
+              <p className="truncate text-xs font-black text-slate-900 dark:text-[var(--text)]">{selectedTeacherSubject}</p>
+              <p className="text-[11px] font-semibold text-muted">{selectedSchoolYear} - Semester {selectedSemesterLabel} - Kelas {selectedGrade || '-'}</p>
+            </div>
+            <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-black text-brand-700 dark:bg-blue-400/10 dark:text-blue-100">{Object.values(slotClassIds).reduce((total, ids) => total + ids.length, 0)} pilihan</span>
+          </div>
+        </div>
+
         <div className="min-w-0 rounded-2xl border border-blue-100 bg-blue-50/50 p-3 dark:border-blue-400/20 dark:bg-blue-400/10 sm:p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
