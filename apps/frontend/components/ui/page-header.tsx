@@ -19,9 +19,9 @@ export function PageHeader({
   return (
     <header className="page-hero relative w-full overflow-hidden rounded-2xl border border-blue-100/70 p-4 shadow-sm backdrop-blur-xl dark:border-slate-700 sm:p-5">
       {showBackLink ? (
-        <div className="relative mb-3 flex justify-end">
+        <div className="mb-3 flex justify-end">
           <Link
-            className="secondary-button inline-flex rounded-full px-3 py-1.5 text-xs font-bold"
+            className="secondary-button relative inline-flex rounded-full px-3 py-1.5 text-xs font-bold"
             href={backHref}
           >
             ← Kembali ke dashboard

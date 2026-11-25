@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-25 — Koreksi format cetak jadwal global
+
+- Mengubah ukuran awal preview jadwal global menjadi F4 Landscape.
+- Memastikan sel aktivitas yang sama digabung horizontal dan kontennya berada di tengah pada matriks serta preview cetak.
+- Mengurutkan kelompok tingkat VII, VIII, lalu IX; label rombel di bawah header tingkat hanya menampilkan huruf/identitas rombel.
+- Mengembalikan gaya tombol kembali ke dashboard ke bentuk semula dengan panah; hanya posisi yang dirapikan ke kanan.
+
 ## 2026-11-25 — Penyempurnaan matriks dan cetak jadwal global
 
 - Mengganti label tombol menjadi **Preview & Cetak**; matriks dan dokumen cetak menampilkan header tingkat dengan nama rombel pada baris terpisah.

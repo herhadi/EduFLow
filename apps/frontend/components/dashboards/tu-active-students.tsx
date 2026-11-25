@@ -236,7 +236,7 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
 
       <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] sm:p-5">
         <div className="mb-4 flex justify-end">
-          <Link className="inline-flex min-h-10 items-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:border-brand-300 hover:text-brand-700 dark:border-[var(--border)] dark:text-[var(--text)]" href={audience === "tu" ? "/tu/dashboard" : "/opsek/dashboard"}>Kembali ke Dashboard</Link>
+          <Link className="secondary-button relative inline-flex rounded-full px-3 py-1.5 text-xs font-bold" href={audience === "tu" ? "/tu/dashboard" : "/opsek/dashboard"}>← Kembali ke dashboard</Link>
         </div>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <input

@@ -90,7 +90,7 @@ export function ScheduleClassPanel({
   return (
     <div className="min-w-0 space-y-4">
       <div className="min-w-0 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
-        {dashboardHref ? <div className="mb-4 flex justify-end"><Link href={dashboardHref} className="inline-flex min-h-10 items-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:border-brand-300 hover:text-brand-700 dark:border-[var(--border)] dark:text-[var(--text)]">Kembali ke Dashboard</Link></div> : null}
+        {dashboardHref ? <div className="mb-4 flex justify-end"><Link href={dashboardHref} className="secondary-button relative inline-flex rounded-full px-3 py-1.5 text-xs font-bold">← Kembali ke dashboard</Link></div> : null}
         <div>
           <div className="min-w-0">
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">

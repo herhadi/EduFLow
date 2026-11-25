@@ -3,7 +3,7 @@
 import { type ReactNode, useState } from 'react';
 import { formatSchoolDate } from '../../lib/school-time';
 
-export type PrintPaperSize = 'F4' | 'A4' | 'A4_LANDSCAPE' | 'A3_LANDSCAPE';
+export type PrintPaperSize = 'F4' | 'F4_LANDSCAPE' | 'A4' | 'A4_LANDSCAPE' | 'A3_LANDSCAPE';
 
 type PrintPreviewProps = {
   title: string;
@@ -18,6 +18,7 @@ type PrintPreviewProps = {
 
 const PAPER_DIMENSIONS: Record<PrintPaperSize, { width: string; height: string; label: string }> = {
   F4: { width: '210mm', height: '330mm', label: 'F4 Portrait (210 × 330 mm)' },
+  F4_LANDSCAPE: { width: '330mm', height: '210mm', label: 'F4 Landscape (330 × 210 mm)' },
   A4: { width: '210mm', height: '297mm', label: 'A4 Portrait (210 × 297 mm)' },
   A4_LANDSCAPE: { width: '297mm', height: '210mm', label: 'A4 Landscape (297 × 210 mm)' },
   A3_LANDSCAPE: { width: '420mm', height: '297mm', label: 'A3 Landscape (420 × 297 mm)' },
