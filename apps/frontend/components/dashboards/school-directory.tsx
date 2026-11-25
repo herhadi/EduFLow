@@ -4,7 +4,7 @@ import {useEffect,useMemo,useState} from 'react';
 import {api} from '../../lib/api';
 import {getPreferredSchoolYear} from '../../lib/school-year';
 import type {Teacher,SchoolClass,Subject} from '../../lib/api-types';
-import {PrintPreview} from '../print/print-preview';
+import {PrintPreview, type PrintPaperSize} from '../print/print-preview';
 type Category='guru'|'rombel'|'mapel';
 type Row=string[];
 const labels:Record<Category,string>={guru:'Daftar Guru Aktif',rombel:'Daftar Rombongan Belajar',mapel:'Daftar Mata Pelajaran'};
@@ -13,7 +13,7 @@ export function SchoolDirectory({category,audience}:{category:Category;audience:
  const [rows,setRows]=useState<Row[]>([]),[year,setYear]=useState('Tahun ajaran berjalan'),[search,setSearch]=useState(''),[loading,setLoading]=useState(true),[error,setError]=useState(false),[preview,setPreview]=useState(false);
  const headers=category==='guru'?['Nama Guru','NIP','NUPTK','Telepon','Mata Pelajaran']:category==='rombel'?['Nama Rombel','Kode','Tingkat','Wali Kelas']:['Mata Pelajaran','Kode','Status'];
  useEffect(()=>{let stop=false;async function load(){try{const [tr,cr,sr,yr]=await Promise.all([api.getTeachers(),api.getClasses(),api.getSubjects(),api.getSchoolYears()]);if(stop)return;const y=getPreferredSchoolYear(yr.data);setYear(y?.name??'Tahun ajaran belum ditentukan');let data:Row[]=[];
- if(category==='guru')data=tr.data.filter((x:Teacher)=>x.isActive!==false).map(x=>{const assignment=x.yearAssignments?.find(a=>a.schoolYearId===y?.id);const subjects=assignment?(assignment.status==='ACTIVE'?assignment.subjects:[]):(x.subjects??[]);return [x.name,x.nip||'—',x.nuptk||'—',x.phone||'—',[...new Set(subjects.map(s=>s.subject.name))].join(', ')||'—'];}).sort((a,b)=>a[0].localeCompare(b[0],'id'));
+ if(category==='guru')data=tr.data.filter((x:Teacher)=>x.isActive!==false).map(x=>{const assignment=x.yearAssignments?.find(a=>a.schoolYearId===y?.id);const subjects=assignment?.status==='ACTIVE'?assignment.subjects:[];return [x.name,x.nip||'—',x.nuptk||'—',x.phone||'—',[...new Set(subjects.map(s=>s.subject.name))].join(', ')||'—'];}).sort((a,b)=>a[0].localeCompare(b[0],'id'));
  else if(category==='rombel')data=cr.data.filter((x:SchoolClass)=>!y?.id||x.schoolYearId===y.id).map(x=>[x.name,x.code||'—',x.grade||'—',x.homeroomTeacher?.name||'Belum ditentukan']).sort((a,b)=>a[0].localeCompare(b[0],'id',{numeric:true}));
  else data=sr.data.filter((x:Subject)=>x.isActive!==false).map(x=>[x.name,x.code||'—','Aktif']).sort((a,b)=>a[0].localeCompare(b[0],'id'));
  setRows(data);}catch{if(!stop)setError(true)}finally{if(!stop)setLoading(false)}}void load();return()=>{stop=true}},[category]);
@@ -42,8 +42,8 @@ export function SchoolDirectory({category,audience}:{category:Category;audience:
    </table>
   </div>
  ));
- const pagesForPaperSize = (paperSize: 'F4' | 'A4' | 'A4_LANDSCAPE') => buildPages(
-  paperSize === 'A4_LANDSCAPE' ? 22 : paperSize === 'A4' ? 30 : 34,
+ const pagesForPaperSize = (paperSize: PrintPaperSize) => buildPages(
+  paperSize === 'A4_LANDSCAPE' ? 22 : paperSize === 'A3_LANDSCAPE' ? 32 : paperSize === 'A4' ? 30 : 34,
  );
  const pages = pagesForPaperSize('A4_LANDSCAPE');
  function exportExcel(){const html='<table border="1"><tr>'+['No',...headers].map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr>'+filtered.map((r,i)=>'<tr><td>'+(i+1)+'</td>'+r.map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+'</table>';const blob=new Blob(['\uFEFF<html><head><meta charset="utf-8"></head><body><h3>'+esc(labels[category])+'</h3><p>'+esc(year)+'</p>'+html+'</body></html>'],{type:'application/vnd.ms-excel;charset=utf-8;'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='daftar-'+category+'.xls';a.click();URL.revokeObjectURL(url)}

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-25 — Jadwal global sekolah dan ringkasan akademik
+
+- Menambahkan tampilan matriks jadwal global lintas rombongan belajar, dengan kode guru dan legenda nama guru, serta preview cetak ukuran A3 landscape dan ekspor Excel.
+- Menetapkan penugasan mata pelajaran per tahun ajaran sebagai satu-satunya sumber ringkasan mapel guru; data relasi lama tidak lagi digunakan sebagai fallback.
+
 ## 2026-11-25 — Penyempurnaan ringkasan data dan jadwal sekolah
 
 - Menyempurnakan ringkasan guru dengan menampilkan mata pelajaran berdasarkan penugasan tahun ajaran aktif, memperluas kolom informasi dengan menghilangkan kolom email, serta menempatkan kontrol kembali dan preview cetak pada bagian kanan atas card.

@@ -3,6 +3,7 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { getCurrentSessionUser } from '../lib/session';
 import { ScheduleClassPanel } from './schedule-management/schedule-class-panel';
+import { ScheduleGlobalMatrix } from './schedule-management/schedule-global-matrix';
 import { ScheduleEditorForm } from './schedule-management/schedule-editor-form';
 import {
   emptyScheduleForm,
@@ -66,6 +67,7 @@ export function ScheduleManagement({ dashboardHref }: { dashboardHref?: string }
   const [slotClassIds, setSlotClassIds] = useState<Record<string, string[]>>({});
   const [expandedTimeSlotIds, setExpandedTimeSlotIds] = useState<string[]>([]);
   const [classTimeSlotActivities, setClassTimeSlotActivities] = useState<ClassTimeSlotActivity[]>([]);
+  const [globalClassActivities, setGlobalClassActivities] = useState<ClassTimeSlotActivity[]>([]);
   const [scheduleClassId, setScheduleClassId] = useState('');
   const [scheduleDayFilter, setScheduleDayFilter] = useState('all');
   const [canGenerateAgenda, setCanGenerateAgenda] = useState(false);
@@ -164,6 +166,22 @@ export function ScheduleManagement({ dashboardHref }: { dashboardHref?: string }
     () => getAvailableGrades(filteredClasses),
     [filteredClasses],
   );
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!filteredClasses.length) {
+      setGlobalClassActivities([]);
+      return;
+    }
+    Promise.all(filteredClasses.map((schoolClass) => api.getClassTimeSlotActivities(schoolClass.id)))
+      .then((responses) => {
+        if (!cancelled) setGlobalClassActivities(responses.flatMap((response) => response.data));
+      })
+      .catch(() => {
+        if (!cancelled) setGlobalClassActivities([]);
+      });
+    return () => { cancelled = true; };
+  }, [filteredClasses]);
 
   const gradeClasses = useMemo(
     () => filteredClasses.filter((schoolClass) => schoolClass.grade === selectedGrade),
@@ -584,6 +602,16 @@ export function ScheduleManagement({ dashboardHref }: { dashboardHref?: string }
         teachers={teachers}
         viewDate={viewDate}
         dashboardHref={dashboardHref}
+      />
+      <ScheduleGlobalMatrix
+        schedules={schedules}
+        classes={filteredClasses}
+        teachers={teachers}
+        timeSlots={timeSlots}
+        activities={globalClassActivities}
+        schoolYear={schoolYears.find((item) => item.id === form.schoolYearId)}
+        semester={semesters.find((item) => item.id === form.semesterId)}
+        viewDate={viewDate}
       />
     </section>
   );
