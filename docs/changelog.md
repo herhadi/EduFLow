@@ -511,7 +511,7 @@ Changelog hanya memuat perubahan besar yang berdampak pada fitur, alur kerja, ke
 
 
 ## 2026-11-25 — Pengaturan tanggal semester
-- Menambahkan pengaturan tanggal mulai dan selesai Semester Ganjil/Genap pada Data Master → Tahun Ajaran.
+- Memindahkan pengaturan tanggal mulai dan selesai Semester Ganjil/Genap ke Master Administrasi → Kelas & Mata Pelajaran, berdampingan dengan pengelolaan tahun ajaran.
 - Perubahan tanggal semester divalidasi agar berada di dalam tahun ajaran dan tidak bertumpang tindih dengan semester lainnya.
 - Perubahan disimpan melalui backend dengan audit log; tampilan mendukung dark mode dan perangkat mobile.
 

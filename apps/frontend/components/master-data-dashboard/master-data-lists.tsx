@@ -59,7 +59,17 @@ export function SubjectList({ subjects }: { subjects: Subject[] }) {
   );
 }
 
-export function SchoolYearList({ schoolYears, semesters, onSemesterSaved }: {
+export function SchoolYearList({ schoolYears }: { schoolYears: SchoolYear[]; semesters?: Semester[]; onSemesterSaved?: (semester: Semester) => void }) {
+  return (
+    <ResponsiveList
+      emptyLabel="Belum ada tahun ajaran."
+      headers={['Tahun Ajaran', 'Mulai', 'Selesai']}
+      rows={getSchoolYearRows(schoolYears)}
+    />
+  );
+}
+
+export function SemesterPeriodSettings({ schoolYears, semesters, onSemesterSaved }: {
   schoolYears: SchoolYear[];
   semesters: Semester[];
   onSemesterSaved: (semester: Semester) => void;
@@ -84,12 +94,7 @@ export function SchoolYearList({ schoolYears, semesters, onSemesterSaved }: {
   }
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h3 className="text-base font-black text-slate-900 dark:text-slate-100">Daftar Tahun Ajaran</h3>
-        <div className="mt-3"><ResponsiveList emptyLabel="Belum ada tahun ajaran." headers={['Tahun Ajaran', 'Mulai', 'Selesai']} rows={getSchoolYearRows(schoolYears)} /></div>
-      </div>
-      <section className="rounded-2xl border border-[var(--border)] p-4 sm:p-5">
+    <section className="rounded-2xl border border-[var(--border)] p-4 sm:p-5">
         <div>
           <h3 className="text-base font-black text-slate-900 dark:text-slate-100">Pengaturan Periode Semester</h3>
           <p className="mt-1 text-sm text-muted">Atur tanggal mulai dan selesai setiap semester. Tanggal harus berada dalam tahun ajaran dan tidak boleh bertumpang tindih.</p>
@@ -126,7 +131,6 @@ export function SchoolYearList({ schoolYears, semesters, onSemesterSaved }: {
           ))}
         </div>
       </section>
-    </div>
   );
 }
 

@@ -7,6 +7,7 @@ import {
   type AcademicTimeSlot,
   type SchoolClass,
   type SchoolYear,
+  type Semester,
   type Subject,
 } from '../lib/api';
 import { getPreferredSchoolYear } from '../lib/school-year';
@@ -30,6 +31,7 @@ import { ClassManagementPanel } from './academic-master/class-management-panel';
 import { SubjectManagementPanel } from './academic-master/subject-management-panel';
 import { TimeSlotManagementPanel } from './academic-master/time-slot-management-panel';
 import { useToast } from './ui/toast';
+import { SemesterPeriodSettings } from './master-data-dashboard/master-data-lists';
 
 type LoadState = 'loading' | 'success' | 'error';
 
@@ -38,6 +40,7 @@ export function AcademicMasterManagement({ showTimeSlots = true }: { showTimeSlo
   const [classes, setClasses] = useState<SchoolClass[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
+  const [semesters, setSemesters] = useState<Semester[]>([]);
   const [timeSlots, setTimeSlots] = useState<AcademicTimeSlot[]>([]);
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [isSaving, setIsSaving] = useState(false);
@@ -69,15 +72,17 @@ export function AcademicMasterManagement({ showTimeSlots = true }: { showTimeSlo
     setLoadState('loading');
 
     try {
-      const [classResponse, subjectResponse, yearResponse, timeSlotResponse] = await Promise.all([
+      const [classResponse, subjectResponse, yearResponse, semesterResponse, timeSlotResponse] = await Promise.all([
         api.getClasses(),
         api.getSubjects(),
         api.getSchoolYears(),
+        api.getSemesters(),
         showTimeSlots ? api.getAcademicTimeSlots() : Promise.resolve({ data: [] as AcademicTimeSlot[] }),
       ]);
       setClasses(sortSchoolClasses(classResponse.data));
       setSubjects(subjectResponse.data);
       setSchoolYears(yearResponse.data);
+      setSemesters(semesterResponse.data);
       setTimeSlots(timeSlotResponse.data);
       setCloneForm((current) => {
         const selection = getInitialCloneSelection(yearResponse.data);
@@ -400,6 +405,12 @@ export function AcademicMasterManagement({ showTimeSlots = true }: { showTimeSlo
         setCloneForm={setCloneForm}
         setSchoolYearName={setSchoolYearName}
         showTimeSlotOptions={showTimeSlots}
+      />
+
+      <SemesterPeriodSettings
+        schoolYears={schoolYears}
+        semesters={semesters}
+        onSemesterSaved={(updated) => setSemesters((current) => current.map((item) => item.id === updated.id ? updated : item))}
       />
 
       <SubjectManagementPanel
