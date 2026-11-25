@@ -1,3 +1,9 @@
+## 2026-11-25 — Slot non-pelajaran mengikuti Data Master
+
+- Pada Setup Jadwal, slot non-pelajaran (istirahat, jeda keagamaan, upacara, dan senam) kini hanya ditampilkan sebagai informasi dan tidak dapat diedit atau ditetapkan per rombel.
+- Penentuan label kegiatan pada matriks jadwal global mengikuti definisi slot waktu di Data Master, bukan aktivitas per rombel.
+- Pemilihan rombel tetap tersedia hanya untuk slot yang dapat diisi jadwal pelajaran.
+
 ## 2026-11-25 — Penyempurnaan halaman jadwal global
 
 - Menampilkan keterangan kode guru pada matriks Jadwal Global Sekolah, tidak hanya pada preview cetak.

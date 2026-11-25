@@ -60,7 +60,7 @@ export function ScheduleGlobalMatrix({ schedules, classes, teachers, timeSlots, 
   const cellValue = (schoolClass: SchoolClass, day: number, row: MatrixRow) => {
     const classActivity = activities.find((item) => item.classId === schoolClass.id && item.timeSlotId === row.slotId);
     if (row.slotType === 'BREAK') return 'ISTIRAHAT';
-    if (row.slotType === 'RELIGIOUS') return classActivity?.type === 'RELIGIOUS' ? 'ISTIRAHAT/SHOLAT' : 'ISTIRAHAT';
+    if (row.slotType === 'RELIGIOUS') return row.name.trim().toLocaleUpperCase('id-ID') || 'ISTIRAHAT/SHOLAT';
     if (row.slotType === 'CEREMONY' || row.slotType === 'EXERCISE') {
       const label = row.name.trim() || (row.slotType === 'CEREMONY' ? 'UPACARA' : 'SENAM BERSAMA');
       return label.toLocaleUpperCase('id-ID');

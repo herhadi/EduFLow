@@ -3,7 +3,6 @@ import {
 } from 'react';
 import {
   type AcademicTimeSlot,
-  type ClassTimeSlotActivity,
   type Schedule,
   type SchedulePayload,
   type SchoolClass,
@@ -23,7 +22,6 @@ type TeacherSubjectOption = {
 
 type ScheduleEditorFormProps = {
   availableGrades: string[];
-  classTimeSlotActivities: ClassTimeSlotActivity[];
   dayTimeSlots: AcademicTimeSlot[];
   editingId: string | null;
   editingSchedule?: Schedule;
@@ -43,10 +41,6 @@ type ScheduleEditorFormProps = {
   revisionReason: string;
   schoolYears: SchoolYear[];
   selectedGrade: string;
-  setBreakActivity: (
-    slot: AcademicTimeSlot,
-    type: ClassTimeSlotActivity['type'],
-  ) => void;
   setEffectiveFrom: (value: string) => void;
   setRevisionReason: (value: string) => void;
   slotClassIds: Record<string, string[]>;
@@ -59,7 +53,6 @@ type ScheduleEditorFormProps = {
 
 export function ScheduleEditorForm({
   availableGrades,
-  classTimeSlotActivities,
   dayTimeSlots,
   editingId,
   editingSchedule,
@@ -79,7 +72,6 @@ export function ScheduleEditorForm({
   revisionReason,
   schoolYears,
   selectedGrade,
-  setBreakActivity,
   setEffectiveFrom,
   setRevisionReason,
   slotClassIds,
@@ -218,78 +210,53 @@ export function ScheduleEditorForm({
             Susunan Hari Ini
           </p>
           <div className="mt-3 space-y-2">
-            {dayTimeSlots.map((slot) => slot.type === 'BREAK' || slot.type === 'RELIGIOUS' ? (
-              <div className="rounded-xl bg-amber-50 p-3 dark:bg-amber-400/10" key={slot.id}>
-                <div className="flex min-w-0 items-center justify-between gap-3 text-xs font-bold text-amber-900 dark:text-amber-100">
-                  <span className="shrink-0">{slot.startsAt}-{slot.endsAt}</span>
-                  <span className="min-w-0 text-right">{slot.type === 'RELIGIOUS' ? 'Jeda kedua' : 'Istirahat'}</span>
-                </div>
-                {slot.type === 'RELIGIOUS' ? <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                  {(['BREAK', 'RELIGIOUS'] as const).map((type) => {
-                    const currentType = classTimeSlotActivities.find(
-                      (activity) => activity.timeSlotId === slot.id,
-                    )?.type ?? 'BREAK';
-                    return (
-                      <button
-                        className={`min-w-0 rounded-lg px-2 py-2 text-[11px] font-bold leading-4 ${currentType === type ? 'bg-brand-600 text-white' : 'bg-white text-slate-700 dark:bg-[var(--surface-solid)] dark:text-[var(--text)]'}`}
-                        key={type}
-                        onClick={() => void setBreakActivity(slot, type)}
-                        type="button"
-                      >
-                        {type === 'BREAK' ? 'Istirahat' : 'Istirahat/Sholat Berjamaah'}
-                      </button>
-                    );
-                  })}
-                </div> : (
-                  <p className="mt-2 rounded-lg bg-white px-3 py-2 text-[11px] font-bold text-slate-700 dark:bg-[var(--surface-solid)] dark:text-[var(--text)]">
-                    Istirahat
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="min-w-0 rounded-xl bg-white p-3 dark:bg-[var(--surface-solid)]" key={slot.id}>
-                <button
-                  className="grid w-full min-w-0 grid-cols-1 items-center gap-1 text-left text-xs font-bold text-slate-700 dark:text-[var(--text)] sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-2"
-                  disabled={!slot.isAssignable}
-                  onClick={() => toggleTimeSlotPanel(slot.id)}
-                  type="button"
-                >
-                  <span className="min-w-0 truncate">{slot.name}</span>
-                  <span className="flex min-w-0 items-center gap-2 text-xs text-slate-500 dark:text-[var(--text-soft)] sm:shrink-0 sm:whitespace-nowrap">
-                    {slot.startsAt}-{slot.endsAt}
-                    <span className="text-brand-700">{expandedTimeSlotIds.includes(slot.id) ? '−' : '+'}</span>
-                  </span>
-                </button>
-                {slot.isAssignable && expandedTimeSlotIds.includes(slot.id) ? (
-                  <div className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(3rem,1fr))] gap-2 sm:flex sm:flex-wrap">
-                    {gradeClasses.map((schoolClass) => {
-                      const active = (slotClassIds[slot.id] ?? []).includes(schoolClass.id);
-                      const rombel = schoolClass.name
-                        .replace(new RegExp(`^${schoolClass.grade ?? ''}`), '')
-                        .replace(/^[\s-]+/, '') || schoolClass.name;
-                      return (
-                        <button
-                          className={active ? 'min-w-0 rounded-lg bg-emerald-600 px-2 py-2 text-xs font-black text-white sm:min-w-11 sm:px-3' : 'min-w-0 rounded-lg border border-blue-100 bg-blue-50/50 px-2 py-2 text-xs font-black text-slate-700 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100 sm:min-w-11 sm:px-3'}
-                          key={schoolClass.id}
-                          onClick={() => toggleSlotClass(slot, schoolClass.id)}
-                          type="button"
-                        >
-                          <span className="block truncate">{active ? '✓ ' : ''}{rombel}</span>
-                        </button>
-                      );
-                    })}
-                    {!gradeClasses.length ? (
-                      <p className="w-full rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600 dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">
-                        Belum ada rombel untuk tingkat {selectedGrade} pada tahun ajaran ini.
-                      </p>
+            {dayTimeSlots.map((slot) => (
+              <div className={`min-w-0 rounded-xl p-3 ${slot.isAssignable ? 'bg-white dark:bg-[var(--surface-solid)]' : 'bg-amber-50 dark:bg-amber-400/10'}`} key={slot.id}>
+                {slot.isAssignable ? (
+                  <>
+                    <button
+                      className="grid w-full min-w-0 grid-cols-1 items-center gap-1 text-left text-xs font-bold text-slate-700 dark:text-[var(--text)] sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-2"
+                      onClick={() => toggleTimeSlotPanel(slot.id)}
+                      type="button"
+                    >
+                      <span className="min-w-0 truncate">{slot.name}</span>
+                      <span className="flex min-w-0 items-center gap-2 text-xs text-slate-500 dark:text-[var(--text-soft)] sm:shrink-0 sm:whitespace-nowrap">
+                        {slot.startsAt}-{slot.endsAt}
+                        <span className="text-brand-700">{expandedTimeSlotIds.includes(slot.id) ? '−' : '+'}</span>
+                      </span>
+                    </button>
+                    {expandedTimeSlotIds.includes(slot.id) ? (
+                      <div className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(3rem,1fr))] gap-2 sm:flex sm:flex-wrap">
+                        {gradeClasses.map((schoolClass) => {
+                          const active = (slotClassIds[slot.id] ?? []).includes(schoolClass.id);
+                          const rombel = schoolClass.name.replace(new RegExp(`^${schoolClass.grade ?? ''}`), '').replace(/^[\s-]+/, '') || schoolClass.name;
+                          return (
+                            <button
+                              className={active ? 'min-w-0 rounded-lg bg-emerald-600 px-2 py-2 text-xs font-black text-white sm:min-w-11 sm:px-3' : 'min-w-0 rounded-lg border border-blue-100 bg-blue-50/50 px-2 py-2 text-xs font-black text-slate-700 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100 sm:min-w-11 sm:px-3'}
+                              key={schoolClass.id}
+                              onClick={() => toggleSlotClass(slot, schoolClass.id)}
+                              type="button"
+                            >
+                              <span className="block truncate">{active ? '✓ ' : ''}{rombel}</span>
+                            </button>
+                          );
+                        })}
+                        {!gradeClasses.length ? <p className="w-full rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600 dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]">Belum ada rombel untuk tingkat {selectedGrade} pada tahun ajaran ini.</p> : null}
+                      </div>
                     ) : null}
+                  </>
+                ) : (
+                  <div className="flex min-w-0 items-center justify-between gap-3 text-xs font-bold text-amber-900 dark:text-amber-100">
+                    <span className="min-w-0">{slot.name}</span>
+                    <span className="shrink-0 tabular-nums">{slot.startsAt}-{slot.endsAt}</span>
+                    <span className="shrink-0 text-[10px] font-semibold">Mengikuti slot waktu</span>
                   </div>
-                ) : null}
+                )}
               </div>
             ))}
           </div>
           <p className="mt-3 text-xs font-semibold text-brand-700">
-            Klik jam yang digunakan, lalu pilih rombel kelasnya.
+            Pilih jam pelajaran yang digunakan, lalu tentukan rombel. Slot non-pelajaran mengikuti aturan pada Data Master dan tidak dapat diubah di sini.
           </p>
         </div>
       </div>

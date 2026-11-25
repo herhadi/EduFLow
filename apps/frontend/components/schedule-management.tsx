@@ -25,7 +25,6 @@ import { useToast } from './ui/toast';
 import {
   api,
   type AcademicTimeSlot,
-  type ClassTimeSlotActivity,
   type BulkSchedulePayload,
   type DailyAgenda,
   type Schedule,
@@ -66,8 +65,6 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
   const [selectedGrade, setSelectedGrade] = useState('VII');
   const [slotClassIds, setSlotClassIds] = useState<Record<string, string[]>>({});
   const [expandedTimeSlotIds, setExpandedTimeSlotIds] = useState<string[]>([]);
-  const [classTimeSlotActivities, setClassTimeSlotActivities] = useState<ClassTimeSlotActivity[]>([]);
-  const [globalClassActivities, setGlobalClassActivities] = useState<ClassTimeSlotActivity[]>([]);
   const [scheduleClassId, setScheduleClassId] = useState('');
   const [scheduleDayFilter, setScheduleDayFilter] = useState('all');
   const [canGenerateAgenda, setCanGenerateAgenda] = useState(false);
@@ -141,16 +138,7 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
     );
   }, []);
 
-  useEffect(() => {
-    if (!form.classId) {
-      setClassTimeSlotActivities([]);
-      return;
-    }
 
-    void api.getClassTimeSlotActivities(form.classId).then((response) => {
-      setClassTimeSlotActivities(response.data);
-    });
-  }, [form.classId]);
 
   const filteredSemesters = useMemo(
     () => semesters.filter((semester) => semester.schoolYearId === form.schoolYearId),
@@ -167,21 +155,7 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
     [filteredClasses],
   );
 
-  useEffect(() => {
-    let cancelled = false;
-    if (!filteredClasses.length) {
-      setGlobalClassActivities([]);
-      return;
-    }
-    Promise.all(filteredClasses.map((schoolClass) => api.getClassTimeSlotActivities(schoolClass.id)))
-      .then((responses) => {
-        if (!cancelled) setGlobalClassActivities(responses.flatMap((response) => response.data));
-      })
-      .catch(() => {
-        if (!cancelled) setGlobalClassActivities([]);
-      });
-    return () => { cancelled = true; };
-  }, [filteredClasses]);
+
 
   const gradeClasses = useMemo(
     () => filteredClasses.filter((schoolClass) => schoolClass.grade === selectedGrade),
@@ -426,23 +400,7 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
     setMessage(null);
   }
 
-  async function setBreakActivity(
-    slot: AcademicTimeSlot,
-    type: ClassTimeSlotActivity['type'],
-  ) {
-    if (!form.classId) return;
 
-    try {
-      const response = await api.updateClassTimeSlotActivity(form.classId, slot.id, type);
-      setClassTimeSlotActivities((activities) => [
-        ...activities.filter((activity) => activity.timeSlotId !== slot.id),
-        response.data,
-      ]);
-      setMessage(response.message ?? 'Kegiatan jeda berhasil disimpan.');
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Kegiatan jeda gagal disimpan.');
-    }
-  }
 
   function toggleSlotClass(slot: AcademicTimeSlot, classId: string) {
     setSlotClassIds((current) => {
@@ -540,7 +498,6 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
     <section className="mt-6 grid w-full min-w-0 max-w-full gap-5 sm:mt-10 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
       <ScheduleEditorForm
         availableGrades={availableGrades}
-        classTimeSlotActivities={classTimeSlotActivities}
         dayTimeSlots={dayTimeSlots}
         editingId={editingId}
         editingSchedule={editingSchedule}
@@ -564,7 +521,6 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
         revisionReason={revisionReason}
         schoolYears={schoolYears}
         selectedGrade={selectedGrade}
-        setBreakActivity={setBreakActivity}
         setEffectiveFrom={setEffectiveFrom}
         setRevisionReason={setRevisionReason}
         slotClassIds={slotClassIds}
@@ -607,7 +563,7 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
         classes={filteredClasses}
         teachers={teachers}
         timeSlots={timeSlots}
-        activities={globalClassActivities}
+        activities={[]}
         schoolYear={schoolYears.find((item) => item.id === form.schoolYearId)}
         semester={semesters.find((item) => item.id === form.semesterId)}
         viewDate={viewDate}
