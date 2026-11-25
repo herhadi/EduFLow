@@ -104,8 +104,8 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
   const roles = currentUser?.roles ?? [];
 
   return (
-    <div className="app-backdrop min-h-dvh overflow-x-hidden">
-      <div className="app-frame mx-auto min-h-dvh max-w-[456px] overflow-x-hidden md:my-3 md:min-h-[calc(100dvh-1.5rem)] md:w-[calc(100%-1.5rem)] md:max-w-none md:rounded-[2rem] xl:w-[calc(100%-2rem)]">
+    <div className="app-backdrop min-h-dvh overflow-x-clip">
+      <div className="app-frame mx-auto min-h-dvh max-w-[456px] overflow-x-clip md:my-3 md:min-h-[calc(100dvh-1.5rem)] md:w-[calc(100%-1.5rem)] md:max-w-none md:rounded-[2rem] xl:w-[calc(100%-2rem)]">
         <AppTopBar currentUser={currentUser} />
 
         <div className="px-2 pt-0 pb-28 sm:px-4 md:px-5">
