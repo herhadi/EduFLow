@@ -1,3 +1,9 @@
+## 2026-11-25 — Konsistensi nomor jam dan lebar matriks jadwal
+
+- Mengubah judul kolom menjadi “Jam ke” dan menghilangkan nomor fallback berbasis urutan baris yang menyebabkan nomor jam istirahat bertabrakan dengan jam pelajaran.
+- Mengambil nomor jam dari `periodNumber` atau nama slot (misalnya Kokurikuler ke-3) sehingga slot kegiatan tanpa nomor tidak menggeser urutan.
+- Menetapkan layout tabel fixed dan lebar kolom Jam ke/Waktu agar lebar kolom rombel konsisten pada setiap hari, termasuk Jumat.
+
 # Changelog
 
 ## 2026-11-25 — Koreksi format cetak jadwal global
