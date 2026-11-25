@@ -67,6 +67,7 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
   const [scheduleClassId, setScheduleClassId] = useState('');
   const [scheduleDayFilter, setScheduleDayFilter] = useState('all');
   const [canGenerateAgenda, setCanGenerateAgenda] = useState(false);
+  const [activeSection, setActiveSection] = useState<'agenda' | 'setup'>('agenda');
 
   async function loadData() {
     setLoadState('loading');
@@ -465,6 +466,53 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
 
   return (
     <section className="mt-6 flex w-full min-w-0 max-w-full flex-col gap-5 sm:mt-10">
+      <div className="sticky top-2 z-30 -mx-1 rounded-2xl border border-blue-100 bg-white/95 p-2 shadow-lg backdrop-blur dark:border-[var(--border)] dark:bg-[var(--surface-solid)]/95 sm:mx-0">
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            aria-current={activeSection === 'agenda' ? 'page' : undefined}
+            className={activeSection === 'agenda' ? 'rounded-xl bg-brand-600 px-4 py-3 text-sm font-black text-white shadow-sm' : 'rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-600 hover:bg-slate-200 dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]'}
+            onClick={() => setActiveSection('agenda')}
+            type="button"
+          >Agenda Kelas</button>
+          <button
+            aria-current={activeSection === 'setup' ? 'page' : undefined}
+            className={activeSection === 'setup' ? 'rounded-xl bg-brand-600 px-4 py-3 text-sm font-black text-white shadow-sm' : 'rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-600 hover:bg-slate-200 dark:bg-[var(--surface-soft)] dark:text-[var(--text-soft)]'}
+            onClick={() => setActiveSection('setup')}
+            type="button"
+          >Setup Jadwal</button>
+        </div>
+      </div>
+      {activeSection === 'agenda' ? (
+      <ScheduleClassPanel
+        agendaClassIds={agendaClassIds}
+        agendaCoverage={agendaCoverage}
+        assignSubstitute={assignSubstitute}
+        canGenerateAgenda={canGenerateAgenda}
+        checkAgendaCoverage={checkAgendaCoverage}
+        classesByGrade={classesByGrade}
+        formSchoolYearId={form.schoolYearId}
+        generateEndsAt={generateEndsAt}
+        generateStartsAt={generateStartsAt}
+        generatedAgendas={generatedAgendas}
+        handleDelete={handleDelete}
+        handleGenerateAgendas={handleGenerateAgendas}
+        scheduleClassId={scheduleClassId}
+        scheduleDayFilter={scheduleDayFilter}
+        schedulesByClass={schedulesByClass}
+        weeklySchedulesByClass={weeklySchedulesByClass}
+        selectedScheduleClass={selectedScheduleClass}
+        setGenerateEndsAt={setGenerateEndsAt}
+        setGenerateStartsAt={setGenerateStartsAt}
+        setScheduleClassId={setScheduleClassId}
+        setScheduleDayFilter={setScheduleDayFilter}
+        setViewDate={setViewDate}
+        startEdit={startEdit}
+        submitState={submitState}
+        teachers={teachers}
+        viewDate={viewDate}
+      />
+      ) : (
+        <>
       <ScheduleEditorForm
         availableGrades={availableGrades}
         scheduleTimeSlots={scheduleTimeSlots}
@@ -496,34 +544,6 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
         toggleSlotClass={toggleSlotClass}
       />
 
-      <ScheduleClassPanel
-        agendaClassIds={agendaClassIds}
-        agendaCoverage={agendaCoverage}
-        assignSubstitute={assignSubstitute}
-        canGenerateAgenda={canGenerateAgenda}
-        checkAgendaCoverage={checkAgendaCoverage}
-        classesByGrade={classesByGrade}
-        formSchoolYearId={form.schoolYearId}
-        generateEndsAt={generateEndsAt}
-        generateStartsAt={generateStartsAt}
-        generatedAgendas={generatedAgendas}
-        handleDelete={handleDelete}
-        handleGenerateAgendas={handleGenerateAgendas}
-        scheduleClassId={scheduleClassId}
-        scheduleDayFilter={scheduleDayFilter}
-        schedulesByClass={schedulesByClass}
-        weeklySchedulesByClass={weeklySchedulesByClass}
-        selectedScheduleClass={selectedScheduleClass}
-        setGenerateEndsAt={setGenerateEndsAt}
-        setGenerateStartsAt={setGenerateStartsAt}
-        setScheduleClassId={setScheduleClassId}
-        setScheduleDayFilter={setScheduleDayFilter}
-        setViewDate={setViewDate}
-        startEdit={startEdit}
-        submitState={submitState}
-        teachers={teachers}
-        viewDate={viewDate}
-      />
       <ScheduleGlobalMatrix
         schedules={schedules}
         classes={filteredClasses}
@@ -533,7 +553,9 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
         schoolYear={schoolYears.find((item) => item.id === form.schoolYearId)}
         semester={semesters.find((item) => item.id === form.semesterId)}
         viewDate={viewDate}
-      />
+      />        </>
+      )}
+
     </section>
   );
 }

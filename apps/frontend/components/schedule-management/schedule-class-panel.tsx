@@ -140,6 +140,60 @@ export function ScheduleClassPanel({
           </div>
         </div>
 
+        {canGenerateAgenda ? (
+          <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 dark:border-emerald-400/20 dark:bg-emerald-400/10">
+            <div className="mb-4">
+              <p className="text-xs font-black tracking-[0.12em] text-emerald-700 uppercase">
+                Generate Agenda
+              </p>
+              <p className="mt-1 text-sm font-semibold leading-6 text-slate-700 dark:text-emerald-50/80">
+                Buat agenda harian berdasarkan jadwal efektif pada setiap tanggal.
+              </p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <DateControl
+                description="Tanggal pertama agenda yang akan dibuat."
+                label="Generate mulai"
+                onChange={setGenerateStartsAt}
+                value={generateStartsAt}
+              />
+              <DateControl
+                description="Tanggal terakhir agenda yang akan dibuat."
+                label="Generate sampai"
+                onChange={setGenerateEndsAt}
+                value={generateEndsAt}
+              />
+            </div>
+            <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
+              <Button
+                className="border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
+                onClick={() => void checkAgendaCoverage(scheduleClassId || undefined)}
+                variant="outline"
+              >
+                Cek Agenda Kelas
+              </Button>
+              <Button
+                disabled={!scheduleClassId || !formSchoolYearId || submitState === 'loading'}
+                onClick={() => void handleGenerateAgendas({ classId: scheduleClassId })}
+                variant="success"
+              >
+                Generate Agenda Kelas
+              </Button>
+              <Button
+                className="border-emerald-600 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800"
+                disabled={!agendaClassIds.length || !formSchoolYearId || submitState === 'loading'}
+                onClick={() => void handleGenerateAgendas({ classIds: agendaClassIds })}
+                variant="outline"
+              >
+                Generate Semua Kelas VII-IX
+              </Button>
+            </div>
+            {agendaCoverage ? (
+              <div className="mt-4 rounded-2xl border border-white/70 bg-white/80 p-3 text-sm font-bold text-slate-700 dark:border-emerald-400/20 dark:bg-emerald-950/40 dark:text-emerald-50">
+                Agenda tersedia: {agendaCoverage.existing}/{agendaCoverage.expected}. Belum dibuat: {agendaCoverage.missing}. Hari diblokir Kaldik: {agendaCoverage.blockedDates}.
+              </div>
+            ) : null}
+
         {selectedScheduleClass?.homeroomTeacher ? (
           <div className="mt-4 rounded-2xl bg-blue-50 px-4 py-3 text-xs font-bold text-brand-700 dark:bg-blue-400/10 dark:text-blue-100">
             Wali kelas: {selectedScheduleClass.homeroomTeacher.name}
@@ -221,59 +275,7 @@ export function ScheduleClassPanel({
           </div>
         )}
 
-        {canGenerateAgenda ? (
-          <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 dark:border-emerald-400/20 dark:bg-emerald-400/10">
-            <div className="mb-4">
-              <p className="text-xs font-black tracking-[0.12em] text-emerald-700 uppercase">
-                Generate Agenda
-              </p>
-              <p className="mt-1 text-sm font-semibold leading-6 text-slate-700 dark:text-emerald-50/80">
-                Buat agenda harian berdasarkan jadwal efektif pada setiap tanggal.
-              </p>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              <DateControl
-                description="Tanggal pertama agenda yang akan dibuat."
-                label="Generate mulai"
-                onChange={setGenerateStartsAt}
-                value={generateStartsAt}
-              />
-              <DateControl
-                description="Tanggal terakhir agenda yang akan dibuat."
-                label="Generate sampai"
-                onChange={setGenerateEndsAt}
-                value={generateEndsAt}
-              />
-            </div>
-            <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
-              <Button
-                className="border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
-                onClick={() => void checkAgendaCoverage(scheduleClassId || undefined)}
-                variant="outline"
-              >
-                Cek Agenda Kelas
-              </Button>
-              <Button
-                disabled={!scheduleClassId || !formSchoolYearId || submitState === 'loading'}
-                onClick={() => void handleGenerateAgendas({ classId: scheduleClassId })}
-                variant="success"
-              >
-                Generate Agenda Kelas
-              </Button>
-              <Button
-                className="border-emerald-600 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800"
-                disabled={!agendaClassIds.length || !formSchoolYearId || submitState === 'loading'}
-                onClick={() => void handleGenerateAgendas({ classIds: agendaClassIds })}
-                variant="outline"
-              >
-                Generate Semua Kelas VII-IX
-              </Button>
-            </div>
-            {agendaCoverage ? (
-              <div className="mt-4 rounded-2xl border border-white/70 bg-white/80 p-3 text-sm font-bold text-slate-700 dark:border-emerald-400/20 dark:bg-emerald-950/40 dark:text-emerald-50">
-                Agenda tersedia: {agendaCoverage.existing}/{agendaCoverage.expected}. Belum dibuat: {agendaCoverage.missing}. Hari diblokir Kaldik: {agendaCoverage.blockedDates}.
-              </div>
-            ) : null}
+
           </div>
         ) : null}
       </div>

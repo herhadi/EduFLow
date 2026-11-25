@@ -488,3 +488,4 @@ Changelog hanya memuat perubahan besar yang berdampak pada fitur, alur kerja, ke
 - 2026-11-25: Tata letak Setup Jadwal diubah menjadi satu kolom vertikal; panel kelas ditempatkan di bawah editor agar tidak berdampingan.
 - **Setup Jadwal:** Matriks mingguan ditata dua kolom pada layar lebar; panel Jadwal Kelas dirapikan dengan area judul dan tanggal berdampingan, pemilihan rombel selebar panel, serta ringkasan harian yang lebih ringkas.
 - **Setup Jadwal:** Form Create Jadwal diringkas menjadi dua baris dua kolom pada desktop: Tahun Ajaran dan Semester, lalu Guru Pengampu dan Pilih Kelas. Ringkasan konteks guru, mapel, semester, dan tingkat dibuat sticky saat matriks digulir.
+- **Agenda Kelas:** Pisahkan navigasi Agenda Kelas dan Setup Jadwal dengan tab sticky; Agenda Kelas menjadi tampilan awal. Panel Generate Agenda dipindahkan ke bagian atas agar dapat dijangkau tanpa melewati tabel jadwal kelas.
