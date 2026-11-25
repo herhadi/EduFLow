@@ -4,9 +4,6 @@ import {
   type SchoolClass,
   type Teacher,
 } from '../../lib/api';
-import Link from 'next/link';
-import { useState } from 'react';
-import { PrintPreview } from '../print/print-preview';
 import { Button } from '../ui/button';
 import { DateControl } from './schedule-form-controls';
 import { dayOptions, formatDateDisplay, getDayLabel } from './schedule-management-utils';
@@ -49,7 +46,6 @@ type ScheduleClassPanelProps = {
   submitState: 'idle' | 'loading' | 'success' | 'error';
   teachers: Teacher[];
   viewDate: string;
-  dashboardHref?: string;
 };
 
 export function ScheduleClassPanel({
@@ -79,23 +75,8 @@ export function ScheduleClassPanel({
   submitState,
   teachers,
   viewDate,
-  dashboardHref,
 }: ScheduleClassPanelProps) {
-  const [showDailyPreview, setShowDailyPreview] = useState(false);
   const dailySummary = dayOptions.map((day) => ({ ...day, schedules: weeklySchedulesByClass.filter((schedule) => schedule.dayOfWeek === day.value) }));
-  const dailyPreviewPages = [
-    <div key="daily-schedule-summary">
-      <header className="mb-4 border-b-2 border-slate-900 pb-3 text-center">
-        <p className="text-[9px] uppercase tracking-widest">Ringkasan Jadwal Kelas</p>
-        <h2 className="mt-1 text-base font-black">{selectedScheduleClass?.name ?? 'Semua Kelas'}</h2>
-        <p className="text-[9px]">{weeklySchedulesByClass.length} jadwal · Kondisi {formatDateDisplay(viewDate)}</p>
-      </header>
-      {dailySummary.map((day) => <section className="mb-3" key={day.value}>
-        <h3 className="mb-1 text-[10px] font-black">{day.label} · {day.schedules.length} jadwal</h3>
-        <table className="w-full border-collapse text-[9px]"><thead><tr><th className="border border-slate-400 p-1 text-left">Waktu</th><th className="border border-slate-400 p-1 text-left">Mata Pelajaran</th><th className="border border-slate-400 p-1 text-left">Guru</th></tr></thead><tbody>{day.schedules.length ? day.schedules.map((schedule) => <tr key={schedule.id}><td className="border border-slate-300 p-1">{schedule.startsAt}–{schedule.endsAt}</td><td className="border border-slate-300 p-1">{schedule.subject.name}</td><td className="border border-slate-300 p-1">{schedule.teacher.name}</td></tr>) : <tr><td className="border border-slate-300 p-1 text-center" colSpan={3}>—</td></tr>}</tbody></table>
-      </section>)}
-    </div>,
-  ];
   const scheduleDayGroups = dayOptions
     .map((day) => ({
       ...day,
@@ -106,10 +87,6 @@ export function ScheduleClassPanel({
   return (
     <div className="min-w-0 space-y-4">
       <div className="min-w-0 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
-        <div className="mb-4 flex flex-wrap justify-end gap-2">
-          {dashboardHref ? <Link href={dashboardHref} className="inline-flex min-h-10 items-center rounded-xl border px-4 py-2 text-sm font-bold dark:border-[var(--border)]">Kembali ke Dashboard</Link> : null}
-          <Button disabled={!scheduleClassId || !weeklySchedulesByClass.length} onClick={() => setShowDailyPreview(true)} size="sm" variant="primary">Preview Cetak</Button>
-        </div>
         <div>
           <div className="min-w-0">
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">

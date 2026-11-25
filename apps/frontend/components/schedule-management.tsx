@@ -38,7 +38,7 @@ import {
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
-export function ScheduleManagement({ dashboardHref }: { dashboardHref?: string }) {
+export function ScheduleManagement() {
   const toast = useToast();
   const [, setLoadState] = useState<LoadState>('idle');
   const [submitState, setSubmitState] = useState<LoadState>('idle');
@@ -601,7 +601,6 @@ export function ScheduleManagement({ dashboardHref }: { dashboardHref?: string }
         submitState={submitState}
         teachers={teachers}
         viewDate={viewDate}
-        dashboardHref={dashboardHref}
       />
       <ScheduleGlobalMatrix
         schedules={schedules}

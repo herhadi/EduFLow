@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-25 — Perapian halaman jadwal dan header halaman global
+
+- Menghilangkan tombol kembali ke Dashboard yang berulang di card Jadwal Kelas; navigasi kembali tetap tersedia pada header halaman.
+- Menghapus Preview Cetak khusus Jadwal Kelas beserta state dan komponen pendukungnya; Preview Cetak Global tetap tersedia.
+- Membentangkan card Jadwal Global Sekolah selebar area konten agar matriks menggunakan satu baris penuh.
+- Memperbarui style global `page-hero` yang dipakai komponen `PageHeader`, dengan latar gradasi biru-sian yang lebih menarik dan tetap disesuaikan untuk dark mode.
+
 ## 2026-11-25 — Jadwal global sekolah dan ringkasan akademik
 
 - Menambahkan tampilan matriks jadwal global lintas rombongan belajar, dengan kode guru dan legenda nama guru, serta preview cetak ukuran A3 landscape dan ekspor Excel.
