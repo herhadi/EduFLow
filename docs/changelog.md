@@ -481,3 +481,6 @@ Changelog hanya memuat perubahan besar yang berdampak pada fitur, alur kerja, ke
 - Menyamakan ukuran kartu jabatan, wali kelas, dan peserta didik mengikuti pengaturan lebar/tinggi kartu.
 - Menjaga jarak vertikal minimum antarbaris agar tidak tumpang tindih; baris terakhir yang jumlah kartunya tidak penuh diratakan di tengah.
 - Mengaktifkan snap grid dan auto-alignment horizontal/vertikal saat memindahkan kartu, termasuk kartu wali kelas dan peserta didik.
+
+## 2026-11-25
+- **Setup Jadwal:** Pengisian jadwal kini menggunakan matriks mingguan. Operator dapat memilih rombel langsung pada slot lintas hari tanpa berpindah melalui dropdown hari; slot nonpelajaran tetap tampil sebagai informasi read-only mengikuti Data Master. Mengganti guru pengampu mengosongkan pilihan slot sebelumnya agar penugasan tidak tercampur.

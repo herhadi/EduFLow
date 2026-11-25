@@ -64,7 +64,6 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
   const [revisionReason, setRevisionReason] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('VII');
   const [slotClassIds, setSlotClassIds] = useState<Record<string, string[]>>({});
-  const [expandedTimeSlotIds, setExpandedTimeSlotIds] = useState<string[]>([]);
   const [scheduleClassId, setScheduleClassId] = useState('');
   const [scheduleDayFilter, setScheduleDayFilter] = useState('all');
   const [canGenerateAgenda, setCanGenerateAgenda] = useState(false);
@@ -167,14 +166,9 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
     [form.schoolYearId, schoolYears, teachers],
   );
 
-  const dayTimeSlots = useMemo(
-    () =>
-      timeSlots.filter(
-        (slot) =>
-          slot.schoolYearId === form.schoolYearId &&
-          slot.dayOfWeek === form.dayOfWeek,
-      ),
-    [form.dayOfWeek, form.schoolYearId, timeSlots],
+  const scheduleTimeSlots = useMemo(
+    () => timeSlots.filter((slot) => slot.schoolYearId === form.schoolYearId),
+    [form.schoolYearId, timeSlots],
   );
 
   useEffect(() => {
@@ -266,7 +260,6 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
         endsAt: '08:30',
       }));
       setSlotClassIds({});
-      setExpandedTimeSlotIds([]);
       await loadData();
       setSubmitState('success');
     } catch (error) {
@@ -294,8 +287,7 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
       if (editingId === schedule.id) {
         setEditingId(null);
         setSlotClassIds({});
-        setExpandedTimeSlotIds([]);
-      }
+        }
       await loadData();
     } catch {
       setMessage('Jadwal gagal dinonaktifkan.');
@@ -419,21 +411,6 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
     });
   }
 
-  function toggleTimeSlotPanel(timeSlotId: string) {
-    setExpandedTimeSlotIds((currentIds) => {
-      if (currentIds.includes(timeSlotId)) {
-        setSlotClassIds((current) => {
-          const next = { ...current };
-          delete next[timeSlotId];
-          return next;
-        });
-        return currentIds.filter((id) => id !== timeSlotId);
-      }
-
-      return [...currentIds, timeSlotId];
-    });
-  }
-
   function handleSchoolYearChange(value: string) {
     const selection = getSchoolYearScheduleSelection({
       classes,
@@ -454,7 +431,6 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
     setGenerateStartsAt(selection.viewDate);
     setGenerateEndsAt(selection.viewDate);
     setSlotClassIds({});
-    setExpandedTimeSlotIds([]);
   }
 
   function handleSemesterChange(value: string) {
@@ -478,31 +454,23 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
   function handleTeacherSubjectChange(value: string) {
     const [teacherId, subjectId] = value.split(':');
     setForm({ ...form, teacherId, subjectId });
+    setSlotClassIds({});
   }
 
   function handleGradeChange(grade: string) {
     setSelectedGrade(grade);
     setSlotClassIds({});
-    setExpandedTimeSlotIds([]);
     setForm((current) => ({ ...current, classId: '' }));
-  }
-
-  function handleDayChange(value: string) {
-    const dayOfWeek = Number(value);
-    setForm({ ...form, dayOfWeek });
-    setSlotClassIds({});
-    setExpandedTimeSlotIds([]);
   }
 
   return (
     <section className="mt-6 grid w-full min-w-0 max-w-full gap-5 sm:mt-10 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
       <ScheduleEditorForm
         availableGrades={availableGrades}
-        dayTimeSlots={dayTimeSlots}
+        scheduleTimeSlots={scheduleTimeSlots}
         editingId={editingId}
         editingSchedule={editingSchedule}
         effectiveFrom={effectiveFrom}
-        expandedTimeSlotIds={expandedTimeSlotIds}
         filteredSemesters={filteredSemesters}
         form={form}
         gradeClasses={gradeClasses}
@@ -512,7 +480,6 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
           setEditingId(null);
           setForm(emptyScheduleForm);
         }}
-        onDayChange={handleDayChange}
         onGradeChange={handleGradeChange}
         onSchoolYearChange={handleSchoolYearChange}
         onSemesterChange={handleSemesterChange}
@@ -527,7 +494,6 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
         submitState={submitState}
         teacherSubjectOptions={teacherSubjectOptions}
         toggleSlotClass={toggleSlotClass}
-        toggleTimeSlotPanel={toggleTimeSlotPanel}
       />
 
       <ScheduleClassPanel
