@@ -198,7 +198,7 @@ export function ScheduleEditorForm({
           </div>
         </div>
         </div>
-        <div className="sticky top-3 z-20 -mx-1 rounded-xl border border-blue-200 bg-white/95 px-3 py-2.5 shadow-md backdrop-blur dark:border-blue-400/30 dark:bg-[var(--surface-solid)]/95 sm:mx-0 sm:px-4">
+        <div className="sticky top-20 z-20 -mx-1 rounded-xl border border-blue-200 bg-white/95 px-3 py-2.5 shadow-md backdrop-blur dark:border-blue-400/30 dark:bg-[var(--surface-solid)]/95 sm:mx-0 sm:px-4">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
             <div className="min-w-0">
               <p className="truncate text-xs font-black text-slate-900 dark:text-[var(--text)]">{selectedTeacherSubject}</p>

@@ -466,7 +466,7 @@ export function ScheduleManagement(_props: { dashboardHref?: string } = {}) {
 
   return (
     <section className="mt-6 flex w-full min-w-0 max-w-full flex-col gap-5 sm:mt-10">
-      <div className="sticky top-20 z-30 -mx-1 rounded-2xl border border-blue-100 bg-white/95 p-2 shadow-lg backdrop-blur dark:border-[var(--border)] dark:bg-[var(--surface-solid)]/95 sm:mx-0">
+      <div className="-mx-1 rounded-2xl border border-blue-100 bg-white p-2 dark:border-[var(--border)] dark:bg-[var(--surface-solid)] sm:mx-0">
         <div className="grid grid-cols-2 gap-2">
           <button
             aria-current={activeSection === 'agenda' ? 'page' : undefined}

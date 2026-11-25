@@ -1,3 +1,9 @@
+## 2026-11-25 — Perapian navigasi dan filter Setup Jadwal
+
+- Tab Agenda Kelas dan Setup Jadwal tidak lagi menempel saat halaman digulir.
+- Ringkasan Guru Terpilih tetap sticky di bawah header saat mengatur jadwal.
+- Filter tanggal kondisi dan Filter hari digabung dalam panel tepat di atas tabel jadwal kelas, dengan tata letak responsif dan dukungan dark mode.
+
 ## 2026-11-25 — Slot non-pelajaran mengikuti Data Master
 
 - Pada Setup Jadwal, slot non-pelajaran (istirahat, jeda keagamaan, upacara, dan senam) kini hanya ditampilkan sebagai informasi dan tidak dapat diedit atau ditetapkan per rombel.

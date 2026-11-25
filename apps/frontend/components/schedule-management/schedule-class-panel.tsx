@@ -100,17 +100,6 @@ export function ScheduleClassPanel({
             </p>
           </div>
 
-          <div className="mt-0 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-400/20 dark:bg-blue-400/10">
-            <div className="max-w-sm">
-              <DateControl
-                description="Melihat jadwal yang berlaku pada tanggal ini."
-                label="Lihat kondisi jadwal"
-                onChange={setViewDate}
-                value={viewDate}
-              />
-            </div>
-          </div>
-
           <div className="mt-0 space-y-3 xl:col-span-2">
             {Object.entries(classesByGrade).map(([grade, gradeClasses]) => (
               <div className="grid gap-2 sm:grid-cols-[4rem_1fr]" key={grade}>
@@ -207,20 +196,32 @@ export function ScheduleClassPanel({
           </div>
         </div>
 
-        <div className="mt-5 flex justify-end">
-          <label className="grid w-full gap-1 text-sm font-semibold text-slate-700 dark:text-[var(--text-soft)] sm:w-56">
-            Filter hari
-            <select
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]"
-              onChange={(event) => setScheduleDayFilter(event.target.value)}
-              value={scheduleDayFilter}
-            >
-              <option value="all">Semua hari</option>
-              {dayOptions.map((day) => (
-                <option key={day.value} value={day.value}>{day.label}</option>
-              ))}
-            </select>
-          </label>
+        <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-400/20 dark:bg-blue-400/10">
+          <div className="mb-3">
+            <h3 className="text-sm font-black text-slate-900 dark:text-[var(--text)]">Tampilan Jadwal</h3>
+            <p className="mt-1 text-xs text-muted">Atur tanggal kondisi dan hari untuk jadwal kelas di bawah ini.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <DateControl
+              description="Pilih tanggal untuk melihat jadwal yang berlaku."
+              label="Jadwal berlaku per tanggal"
+              onChange={setViewDate}
+              value={viewDate}
+            />
+            <label className="grid content-start gap-1 text-sm font-semibold text-slate-700 dark:text-[var(--text-soft)]">
+              Filter hari
+              <select
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal outline-none focus:border-brand-600 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]"
+                onChange={(event) => setScheduleDayFilter(event.target.value)}
+                value={scheduleDayFilter}
+              >
+                <option value="all">Semua hari</option>
+                {dayOptions.map((day) => (
+                  <option key={day.value} value={day.value}>{day.label}</option>
+                ))}
+              </select>
+            </label>
+          </div>
         </div>
 
         {scheduleDayFilter === 'all' && scheduleClassId && schedulesByClass.length ? (
