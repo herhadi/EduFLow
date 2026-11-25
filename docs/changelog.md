@@ -3,7 +3,7 @@
 ## 2026-11-25 — Koreksi format cetak jadwal global
 
 - Mengubah ukuran awal preview jadwal global menjadi F4 Landscape.
-- Memastikan sel aktivitas yang sama digabung horizontal dan kontennya berada di tengah pada matriks serta preview cetak.
+- Menentukan label kegiatan dari tipe slot waktu untuk seluruh hari: istirahat, upacara, dan senam bersama; pilihan istirahat/sholat tetap mengikuti pengaturan rombel. Sel kegiatan dengan label sama digabung horizontal dan dipusatkan pada matriks serta preview cetak.
 - Mengurutkan kelompok tingkat VII, VIII, lalu IX; label rombel di bawah header tingkat hanya menampilkan huruf/identitas rombel.
 - Mengembalikan gaya tombol kembali ke dashboard ke bentuk semula dengan panah; hanya posisi yang dirapikan ke kanan.
 

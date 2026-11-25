@@ -18,7 +18,7 @@ type Props = {
 };
 
 type EffectiveSchedule = Schedule & { hasRevision?: boolean };
-type MatrixRow = { id: string; name: string; startsAt: string; endsAt: string; periodNumber?: number | null; slotId?: string };
+type MatrixRow = { id: string; name: string; startsAt: string; endsAt: string; periodNumber?: number | null; slotId?: string; slotType?: AcademicTimeSlot['type'] };
 type MatrixCell = { value: string; colSpan: number; grade: string; activity: boolean };
 
 const formatTime = (value: string) => value?.slice(0, 5) ?? '';
@@ -45,10 +45,11 @@ export function ScheduleGlobalMatrix({ schedules, classes, teachers, timeSlots, 
   const rowsByDay = days.map((day) => {
     const slots = timeSlots.filter((slot) => slot.schoolYearId === schoolYear?.id && slot.dayOfWeek === day.value && slot.isActive).sort((a, b) => (a.periodNumber ?? 999) - (b.periodNumber ?? 999) || a.startsAt.localeCompare(b.startsAt));
     const times = new Map<string, MatrixRow>();
-    slots.forEach((slot) => times.set(`${slot.startsAt}-${slot.endsAt}`, { id: slot.id, name: slot.name, startsAt: slot.startsAt, endsAt: slot.endsAt, periodNumber: slot.periodNumber, slotId: slot.id }));
+    slots.forEach((slot) => times.set(`${slot.startsAt}-${slot.endsAt}`, { id: slot.id, name: slot.name, startsAt: slot.startsAt, endsAt: slot.endsAt, periodNumber: slot.periodNumber, slotId: slot.id, slotType: slot.type }));
     activeSchedules.filter((schedule) => schedule.dayOfWeek === day.value).forEach((schedule) => {
       const key = `${schedule.startsAt}-${schedule.endsAt}`;
-      if (!times.has(key)) times.set(key, { id: key, name: '', startsAt: schedule.startsAt, endsAt: schedule.endsAt, periodNumber: null, slotId: schedule.timeSlotId ?? undefined });
+      const linkedSlot = timeSlots.find((slot) => slot.id === schedule.timeSlotId);
+      if (!times.has(key)) times.set(key, { id: key, name: linkedSlot?.name ?? schedule.timeSlot?.name ?? '', startsAt: schedule.startsAt, endsAt: schedule.endsAt, periodNumber: null, slotId: schedule.timeSlotId ?? undefined, slotType: linkedSlot?.type });
     });
     const rows = [...times.values()].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
     return { ...day, rows };
@@ -56,8 +57,13 @@ export function ScheduleGlobalMatrix({ schedules, classes, teachers, timeSlots, 
   const gradeGroups = [...new Set(activeClasses.map((item) => item.grade ?? 'Lainnya'))].map((grade) => ({ grade, classes: activeClasses.filter((item) => (item.grade ?? 'Lainnya') === grade) }));
 
   const cellValue = (schoolClass: SchoolClass, day: number, row: MatrixRow) => {
-    const activity = activities.find((item) => item.timeSlotId === row.slotId);
-    if (activity) return activity.type === 'RELIGIOUS' ? 'SHOLAT' : 'ISTIRAHAT';
+    const classActivity = activities.find((item) => item.classId === schoolClass.id && item.timeSlotId === row.slotId);
+    if (row.slotType === 'BREAK') return 'ISTIRAHAT';
+    if (row.slotType === 'RELIGIOUS') return classActivity?.type === 'RELIGIOUS' ? 'ISTIRAHAT/SHOLAT' : 'ISTIRAHAT';
+    if (row.slotType === 'CEREMONY' || row.slotType === 'EXERCISE') {
+      const label = row.name.trim() || (row.slotType === 'CEREMONY' ? 'UPACARA' : 'SENAM BERSAMA');
+      return label.toLocaleUpperCase('id-ID');
+    }
     return activeSchedules.filter((item) => item.classId === schoolClass.id && item.dayOfWeek === day && (item.timeSlotId && row.slotId ? item.timeSlotId === row.slotId : item.startsAt === row.startsAt && item.endsAt === row.endsAt)).map((item) => String(teacherCodes.get(item.teacherId) ?? '—')).join(' / ');
   };
   const rowCells = (day: number, row: MatrixRow): MatrixCell[] => {
@@ -65,10 +71,10 @@ export function ScheduleGlobalMatrix({ schedules, classes, teachers, timeSlots, 
     const result: MatrixCell[] = [];
     for (let index = 0; index < values.length;) {
       const current = values[index];
-      const isActivity = current.value === 'SHOLAT' || current.value === 'ISTIRAHAT';
+      const mergeable = row.slotType === 'BREAK' || row.slotType === 'RELIGIOUS' || row.slotType === 'CEREMONY' || row.slotType === 'EXERCISE';
       let end = index + 1;
-      if (isActivity) while (end < values.length && values[end].value === current.value) end += 1;
-      result.push({ value: current.value, grade: current.grade, activity: isActivity, colSpan: end - index });
+      if (mergeable) while (end < values.length && values[end].value === current.value) end += 1;
+      result.push({ value: current.value, grade: current.grade, activity: mergeable, colSpan: end - index });
       index = end;
     }
     return result;
@@ -95,7 +101,7 @@ export function ScheduleGlobalMatrix({ schedules, classes, teachers, timeSlots, 
       <section className="mt-2 border-t border-slate-700 pt-2">
         <h3 className="mb-1 text-[8px] font-black">KETERANGAN KODE GURU</h3>
         {legendMarkup('grid grid-flow-col grid-cols-5 gap-x-2 gap-y-[2px]', { gridTemplateRows: `repeat(${legendRows}, minmax(0, auto))` })}
-        <p className="mt-1">SHOLAT = Kegiatan keagamaan · ISTIRAHAT = Waktu istirahat · Sel kosong = Tidak ada jadwal</p>
+        <p className="mt-1">ISTIRAHAT = Waktu istirahat · ISTIRAHAT/SHOLAT = Istirahat dan sholat berjamaah · UPACARA/SENAM BERSAMA = Kegiatan sekolah</p>
       </section>
     </div>,
   ];
