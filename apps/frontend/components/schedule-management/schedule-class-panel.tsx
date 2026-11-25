@@ -87,7 +87,7 @@ export function ScheduleClassPanel({
   return (
     <div className="min-w-0 space-y-4">
       <div className="min-w-0 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
-        <div>
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
           <div className="min-w-0">
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
               Jadwal Kelas
@@ -100,7 +100,7 @@ export function ScheduleClassPanel({
             </p>
           </div>
 
-          <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-400/20 dark:bg-blue-400/10">
+          <div className="mt-0 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-400/20 dark:bg-blue-400/10">
             <div className="max-w-sm">
               <DateControl
                 description="Melihat jadwal yang berlaku pada tanggal ini."
@@ -111,7 +111,7 @@ export function ScheduleClassPanel({
             </div>
           </div>
 
-          <div className="mt-5 space-y-3">
+          <div className="mt-0 space-y-3 xl:col-span-2">
             {Object.entries(classesByGrade).map(([grade, gradeClasses]) => (
               <div className="grid gap-2 sm:grid-cols-[4rem_1fr]" key={grade}>
                 <p className="pt-2 text-xs font-black text-muted">Kelas {grade}</p>
@@ -148,7 +148,7 @@ export function ScheduleClassPanel({
 
         <div className="mt-5 rounded-2xl border border-slate-200 p-4 dark:border-[var(--border)]">
           <div className="mb-3 flex items-center justify-between gap-3"><h3 className="text-sm font-black text-slate-900 dark:text-[var(--text)]">Ringkasan Jadwal Mingguan</h3><span className="text-xs text-muted">{weeklySchedulesByClass.length} jadwal</span></div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
             {dailySummary.map((day) => <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-[var(--surface-soft)]" key={day.value}><p className="text-xs font-bold text-muted">{day.label}</p><p className="mt-1 text-lg font-black text-slate-900 dark:text-[var(--text)]">{day.schedules.length}</p><p className="text-[10px] text-muted">jadwal</p></div>)}
           </div>
         </div>

@@ -198,7 +198,7 @@ export function ScheduleEditorForm({
             </div>
             <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-brand-700 dark:bg-[var(--surface-solid)] dark:text-blue-100">{Object.values(slotClassIds).reduce((total, ids) => total + ids.length, 0)} pilihan</span>
           </div>
-          <div className="mt-4 space-y-4">
+          <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
             {dayOptions.map((day) => {
               const daySlots = scheduleTimeSlots.filter((slot) => slot.dayOfWeek === day.value);
               if (!daySlots.length) return null;
@@ -209,7 +209,7 @@ export function ScheduleEditorForm({
                     {daySlots.map((slot) => {
                       const selectedIds = slotClassIds[slot.id] ?? [];
                       return (
-                        <div className="grid min-w-0 gap-2 p-3 sm:grid-cols-[minmax(9rem,0.8fr)_minmax(0,2fr)] sm:items-center" key={slot.id}>
+                        <div className="grid min-w-0 gap-2 p-3 sm:grid-cols-[minmax(7rem,0.75fr)_minmax(0,1.5fr)] sm:items-start" key={slot.id}>
                           <div className="min-w-0">
                             <p className="truncate text-xs font-black text-slate-800 dark:text-[var(--text)]">{slot.name}</p>
                             <p className="mt-0.5 text-[11px] font-semibold tabular-nums text-muted">{slot.startsAt}–{slot.endsAt}</p>
