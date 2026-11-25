@@ -235,10 +235,10 @@ export function TuActiveStudents({ audience = 'tu' }: { audience?: 'tu' | 'opera
       </div>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] sm:p-5">
+        <div className="mb-4 flex justify-end">
+          <Link className="inline-flex min-h-10 items-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:border-brand-300 hover:text-brand-700 dark:border-[var(--border)] dark:text-[var(--text)]" href={audience === "tu" ? "/tu/dashboard" : "/opsek/dashboard"}>Kembali ke Dashboard</Link>
+        </div>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="ml-auto flex flex-wrap justify-end gap-2">
-            <Link className="inline-flex min-h-10 items-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:border-brand-300 hover:text-brand-700 dark:border-[var(--border)] dark:text-[var(--text)]" href={audience === "tu" ? "/tu/dashboard" : "/opsek/dashboard"}>Kembali ke Dashboard</Link>
-          </div>
           <input
             className="w-full max-w-md rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-brand-500 dark:border-[var(--border)] dark:bg-[var(--surface-soft)] dark:text-[var(--text)]"
             onChange={(event) => setSearch(event.target.value)}

@@ -7,12 +7,13 @@ export default function SchedulesPage() {
     <main className="py-10">
       <Container>
         <PageHeader
+          showBackLink={false}
           description="Area admin untuk membuat template jadwal keseluruhan, mengubah jadwal aktif, dan generate agenda harian sebagai dasar presensi."
           eyebrow="Admin Schedule Setup"
           title="Setup Jadwal Kelas"
         />
 
-        <ScheduleManagement />
+        <ScheduleManagement dashboardHref="/dashboard" />
       </Container>
     </main>
   );

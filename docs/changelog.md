@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-25 — Penyempurnaan matriks dan cetak jadwal global
+
+- Mengganti label tombol menjadi **Preview & Cetak**; matriks dan dokumen cetak menampilkan header tingkat dengan nama rombel pada baris terpisah.
+- Menggabungkan sel kegiatan yang sama (istirahat dan kegiatan keagamaan) secara horizontal, serta memberi warna berbeda pada kolom tingkat VII, VIII, dan IX.
+- Menyusun legenda kode guru secara vertikal dalam lima kolom.
+- Menyeragamkan posisi tombol kembali ke Dashboard ke kanan atas area header halaman dan card daftar utama.
+
 ## 2026-11-25 — Perapian halaman jadwal dan header halaman global
 
 - Menghilangkan tombol kembali ke Dashboard yang berulang di card Jadwal Kelas; navigasi kembali tetap tersedia pada header halaman.
