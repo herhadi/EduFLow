@@ -96,7 +96,7 @@ export function ScheduleGlobalMatrix({ schedules, classes, teachers, timeSlots, 
             <tr><th className="w-7 border border-slate-600 p-[2px]" rowSpan={2}>Jam ke</th><th className="w-14 border border-slate-600 p-[2px]" rowSpan={2}>Waktu</th>{gradeGroups.map((group) => <th className="border border-slate-600 p-[2px]" colSpan={group.classes.length} key={group.grade}>Kelas {group.grade}</th>)}</tr>
             <tr>{activeClasses.map((schoolClass) => <th className="border border-slate-600 p-[2px] text-center align-middle" key={schoolClass.id}>{classLabel(schoolClass.name)}</th>)}</tr>
           </thead>
-          <tbody>{day.rows.map((row, index) => <tr key={row.id}><td className="border border-slate-500 p-[2px] text-center">{getPeriodLabel(row)}</td><td className="border border-slate-500 p-[2px] text-center">{formatTime(row.startsAt)}–{formatTime(row.endsAt)}</td>{rowCells(day.value, row).map((cell, cellIndex) => <td className={`border border-slate-500 p-[2px] text-center align-middle font-bold ${cell.activity ? 'bg-slate-100 dark:bg-slate-800' : gradeTone(cell.grade).cell}`} colSpan={cell.colSpan} key={`${row.id}-${cellIndex}`}>{cell.value}</td>)}</tr>)}</tbody>
+          <tbody>{day.rows.map((row, index) => <tr key={row.id}><td className="border border-slate-500 p-[2px] text-center">{getPeriodLabel(row)}</td><td className="w-14 border border-slate-500 p-[2px] text-center align-middle whitespace-nowrap tabular-nums">{formatTime(row.startsAt)}–{formatTime(row.endsAt)}</td>{rowCells(day.value, row).map((cell, cellIndex) => <td className={`border border-slate-500 p-[2px] text-center align-middle font-bold ${cell.activity ? 'bg-slate-100 dark:bg-slate-800' : gradeTone(cell.grade).cell}`} colSpan={cell.colSpan} key={`${row.id}-${cellIndex}`}>{cell.value}</td>)}</tr>)}</tbody>
         </table>
       </section>)}
       <section className="mt-2 border-t border-slate-700 pt-2">
@@ -116,7 +116,46 @@ export function ScheduleGlobalMatrix({ schedules, classes, teachers, timeSlots, 
 
   return <section className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] xl:col-span-2 sm:p-5">
     <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-black text-slate-900 dark:text-[var(--text)]">Jadwal Global Sekolah</h2><p className="text-xs text-muted">Seluruh rombel dalam satu matriks, kode angka menunjukkan guru pengampu.</p></div><Button disabled={!activeClasses.length || !activeSchedules.length} onClick={() => setPreview(true)} size="sm">Preview &amp; Cetak</Button></div>
-    {!activeClasses.length || !activeSchedules.length ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-muted dark:bg-[var(--surface-soft)]">Belum ada jadwal untuk tahun ajaran dan semester yang dipilih.</p> : <div className="mt-4 overflow-x-auto"><p className="mb-2 text-xs text-muted">{activeClasses.length} rombel · {activeSchedules.length} jadwal · {days.length} hari</p><div className="min-w-[900px] space-y-4">{rowsByDay.map((day) => <div key={day.value}><h3 className="mb-1 text-sm font-black">{day.label}</h3><table className="w-full table-fixed border-collapse text-[10px]"><thead><tr><th className="w-12 border p-1" rowSpan={2}>Jam ke</th><th className="w-28 border p-1" rowSpan={2}>Waktu</th>{gradeGroups.map((group) => <th className={`border p-1 ${gradeTone(group.grade).head}`} colSpan={group.classes.length} key={group.grade}>Kelas {group.grade}</th>)}</tr><tr>{activeClasses.map((item) => <th className={`border p-1 text-center ${gradeTone(item.grade ?? 'Lainnya').head}`} key={item.id}>{classLabel(item.name)}</th>)}</tr></thead><tbody>{day.rows.map((row, index) => <tr key={row.id}><td className="border p-1 text-center">{getPeriodLabel(row)}</td><td className="border p-1 text-center">{formatTime(row.startsAt)}–{formatTime(row.endsAt)}</td>{rowCells(day.value, row).map((cell, cellIndex) => <td className={`border p-1 text-center align-middle ${cell.activity ? 'bg-slate-100 font-semibold dark:bg-slate-800' : gradeTone(cell.grade).cell}`} colSpan={cell.colSpan} key={`${row.id}-${cellIndex}`}>{cell.value}</td>)}</tr>)}</tbody></table></div>)}</div></div>}
+    {!activeClasses.length || !activeSchedules.length ? (
+      <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-muted dark:bg-[var(--surface-soft)]">
+        Belum ada jadwal untuk tahun ajaran dan semester yang dipilih.
+      </p>
+    ) : (
+      <div className="mt-4 overflow-x-auto">
+        <p className="mb-2 text-xs text-muted">{activeClasses.length} rombel · {activeSchedules.length} jadwal · {days.length} hari</p>
+        <div className="min-w-[900px] space-y-4">
+          {rowsByDay.map((day) => (
+            <div key={day.value}>
+              <h3 className="mb-1 text-sm font-black">{day.label}</h3>
+              <table className="w-full table-fixed border-collapse text-[10px]">
+                <thead>
+                  <tr>
+                    <th className="w-12 border p-1" rowSpan={2}>Jam ke</th>
+                    <th className="w-28 border p-1" rowSpan={2}>Waktu</th>
+                    {gradeGroups.map((group) => <th className={`border p-1 ${gradeTone(group.grade).head}`} colSpan={group.classes.length} key={group.grade}>Kelas {group.grade}</th>)}
+                  </tr>
+                  <tr>{activeClasses.map((item) => <th className={`border p-1 text-center ${gradeTone(item.grade ?? 'Lainnya').head}`} key={item.id}>{classLabel(item.name)}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {day.rows.map((row) => (
+                    <tr key={row.id}>
+                      <td className="border p-1 text-center align-middle">{getPeriodLabel(row)}</td>
+                      <td className="w-28 border p-1 text-center align-middle whitespace-nowrap tabular-nums">{formatTime(row.startsAt)}–{formatTime(row.endsAt)}</td>
+                      {rowCells(day.value, row).map((cell, cellIndex) => <td className={`border p-1 text-center align-middle ${cell.activity ? 'bg-slate-100 font-semibold dark:bg-slate-800' : gradeTone(cell.grade).cell}`} colSpan={cell.colSpan} key={`${row.id}-${cellIndex}`}>{cell.value}</td>)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+          <section className="border-t border-slate-200 pt-3 dark:border-[var(--border)]">
+            <h3 className="mb-2 text-xs font-black tracking-wide text-slate-700 dark:text-[var(--text)]">KETERANGAN KODE GURU</h3>
+            {legendMarkup('grid grid-flow-col grid-cols-5 gap-x-3 gap-y-1 text-xs', { gridTemplateRows: `repeat(${legendRows}, minmax(0, auto))` })}
+            <p className="mt-2 text-[11px] text-muted">ISTIRAHAT = Waktu istirahat · ISTIRAHAT/SHOLAT = Istirahat dan sholat berjamaah · UPACARA/SENAM BERSAMA = Kegiatan sekolah</p>
+          </section>
+        </div>
+      </div>
+    )}
     {preview ? <PrintPreview title="Jadwal Global Sekolah" pages={pages} paperSize="F4_LANDSCAPE" paperId="opsek-global-schedule" footerText="Jadwal global sekolah" onClose={() => setPreview(false)} onDownloadExcel={excelDownload} /> : null}
   </section>;
 }

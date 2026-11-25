@@ -6,8 +6,8 @@ export default function OperatorSchedulesPage() {
   return (
     <main className="py-10">
       <Container>
-        <PageHeader showBackLink={false} description="Kelola jadwal kelas dan tinjau ringkasan jadwal mingguan setiap kelas." eyebrow="Operator Sekolah" title="Jadwal Kelas" />
-        <ScheduleManagement dashboardHref="/opsek/dashboard" />
+        <PageHeader backHref="/opsek/dashboard" description="Kelola jadwal kelas dan tinjau ringkasan jadwal mingguan setiap kelas." eyebrow="Operator Sekolah" title="Jadwal Kelas" />
+        <ScheduleManagement />
       </Container>
     </main>
   );

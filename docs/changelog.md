@@ -1,3 +1,9 @@
+## 2026-11-25 — Penyempurnaan halaman jadwal global
+
+- Menampilkan keterangan kode guru pada matriks Jadwal Global Sekolah, tidak hanya pada preview cetak.
+- Mengembalikan tombol “Kembali ke dashboard” ke header utama halaman dan menghapus tombol duplikat dari card jadwal kelas.
+- Merapikan kolom waktu dengan perataan tengah vertikal/horizontal, lebar tetap, dan angka tabular agar rentang waktu mudah dibaca.
+
 ## 2026-11-25 — Konsistensi nomor jam dan lebar matriks jadwal
 
 - Mengubah judul kolom menjadi “Jam ke” dan menghilangkan nomor fallback berbasis urutan baris yang menyebabkan nomor jam istirahat bertabrakan dengan jam pelajaran.

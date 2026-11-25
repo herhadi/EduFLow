@@ -4,7 +4,6 @@ import {
   type SchoolClass,
   type Teacher,
 } from '../../lib/api';
-import Link from 'next/link';
 import { Button } from '../ui/button';
 import { DateControl } from './schedule-form-controls';
 import { dayOptions, formatDateDisplay, getDayLabel } from './schedule-management-utils';
@@ -47,7 +46,6 @@ type ScheduleClassPanelProps = {
   submitState: 'idle' | 'loading' | 'success' | 'error';
   teachers: Teacher[];
   viewDate: string;
-  dashboardHref?: string;
 };
 
 export function ScheduleClassPanel({
@@ -77,7 +75,6 @@ export function ScheduleClassPanel({
   submitState,
   teachers,
   viewDate,
-  dashboardHref,
 }: ScheduleClassPanelProps) {
   const dailySummary = dayOptions.map((day) => ({ ...day, schedules: weeklySchedulesByClass.filter((schedule) => schedule.dayOfWeek === day.value) }));
   const scheduleDayGroups = dayOptions
@@ -90,7 +87,6 @@ export function ScheduleClassPanel({
   return (
     <div className="min-w-0 space-y-4">
       <div className="min-w-0 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm dark:border-[var(--border)] dark:bg-[var(--surface-solid)] dark:shadow-none sm:p-6">
-        {dashboardHref ? <div className="mb-4 flex justify-end"><Link href={dashboardHref} className="secondary-button relative inline-flex rounded-full px-3 py-1.5 text-xs font-bold">← Kembali ke dashboard</Link></div> : null}
         <div>
           <div className="min-w-0">
             <p className="text-xs font-black tracking-[0.12em] text-brand-600 uppercase">
