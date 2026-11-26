@@ -153,6 +153,20 @@ export class AuthController {
     return this.authService.handleTelegramWebhook(update, secretToken);
   }
 
+  @Get('role-permissions')
+  getRolePermissionMatrix(@Req() request: RequestWithUser) {
+    if (!(request.user.roles ?? []).includes('root')) throw new ForbiddenException('Hanya Root yang dapat mengatur hak akses role');
+    return this.authService.getRolePermissionMatrix();
+  }
+
+  @Patch('role-permissions')
+  updateRolePermissionMatrix(@Body() dto: { roleId: string; moduleKey: string; view: boolean; write: boolean }, @Req() request: RequestWithUser) {
+    if (!(request.user.roles ?? []).includes('root')) throw new ForbiddenException('Hanya Root yang dapat mengatur hak akses role');
+    if (!dto.roleId || !dto.moduleKey || typeof dto.view !== 'boolean' || typeof dto.write !== 'boolean') throw new BadRequestException('Data hak akses tidak lengkap');
+    if (!dto.view && dto.write) throw new BadRequestException('Write tidak dapat aktif tanpa View');
+    return this.authService.updateRolePermissionMatrix(dto);
+  }
+
   @RequirePermissions(PERMISSIONS.USER_MANAGE)
   @Get('users')
   getUsers() {

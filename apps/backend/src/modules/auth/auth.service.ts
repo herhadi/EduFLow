@@ -24,6 +24,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateMyProfileDto } from './dto/update-my-profile.dto';
+import { ROLE_PERMISSION_MODULES } from './role-permission-matrix';
 
 const LOGIN_SESSION_LIFETIME_HOURS = 24;
 const PASSWORD_RESET_LIFETIME_MINUTES = 30;
@@ -73,6 +74,62 @@ export class AuthService {
     private readonly telegramBotService: TelegramBotService,
     private readonly reportingService: ReportingService,
   ) {}
+
+
+  async getRolePermissionMatrix() {
+    const [roles, permissions] = await Promise.all([
+      this.prisma.role.findMany({ orderBy: { name: 'asc' }, include: { permissions: { include: { permission: true } } } }),
+      this.prisma.permission.findMany({ orderBy: { key: 'asc' } }),
+    ]);
+    const knownKeys = new Set<string>(ROLE_PERMISSION_MODULES.flatMap((module) => [...module.view, ...module.write]));
+    const ungrouped = permissions.filter((permission) => !knownKeys.has(permission.key));
+    const modules = [
+      ...ROLE_PERMISSION_MODULES.map((module) => ({ ...module, view: [...module.view], write: [...module.write] })),
+      ...ungrouped.map((permission) => ({
+        key: 'other-' + permission.key, label: permission.key,
+        view: permission.key.endsWith('.read') ? [permission.key] : [],
+        write: permission.key.endsWith('.read') ? [] : [permission.key],
+      })),
+    ];
+    return ok({
+      roles: roles.map((role) => ({ id: role.id, name: role.name, permissions: role.permissions.map((item) => item.permission.key) })),
+      modules, rootRoleId: roles.find((role) => role.name === 'root')?.id ?? null,
+    });
+  }
+
+  async updateRolePermissionMatrix(input: { roleId: string; moduleKey: string; view: boolean; write: boolean }) {
+    const configuredModule = ROLE_PERMISSION_MODULES.find((item) => item.key === input.moduleKey);
+    const fallbackPermissionKey = input.moduleKey.startsWith('other-') ? input.moduleKey.slice(6) : null;
+    const module = configuredModule ?? (fallbackPermissionKey ? {
+      view: fallbackPermissionKey.endsWith('.read') ? [fallbackPermissionKey] : [],
+      write: fallbackPermissionKey.endsWith('.read') ? [] : [fallbackPermissionKey],
+    } : null);
+    if (!module) throw new BadRequestException('Modul permission tidak dikenal');
+    if (input.write && !input.view && module.view.length) throw new BadRequestException('Hak Write harus disertai View');
+    const role = await this.prisma.role.findUnique({ where: { id: input.roleId } });
+    if (!role) throw new NotFoundException('Role tidak ditemukan');
+    if (role.name === 'root') throw new ForbiddenException('Hak akses Root tidak dapat diubah');
+    const keys = [...module.view, ...module.write];
+    await this.prisma.$transaction(async (tx) => {
+      const permissions = await tx.permission.findMany({ where: { key: { in: keys } } });
+      if (permissions.length !== keys.length) throw new BadRequestException('Sebagian permission modul belum tersedia di database');
+      const permissionByKey = new Map(permissions.map((permission) => [permission.key, permission]));
+      const enabledKeys = [...(input.view ? module.view : []), ...(input.write ? module.write : [])];
+      for (const key of keys) {
+        const permission = permissionByKey.get(key);
+        if (!permission) continue;
+        if (enabledKeys.includes(key)) {
+          await tx.rolePermission.upsert({
+            where: { roleId_permissionId: { roleId: role.id, permissionId: permission.id } },
+            update: {}, create: { roleId: role.id, permissionId: permission.id },
+          });
+        } else {
+          await tx.rolePermission.deleteMany({ where: { roleId: role.id, permissionId: permission.id } });
+        }
+      }
+    });
+    return ok({ roleId: role.id, moduleKey: input.moduleKey, view: input.view, write: input.write }, 'Hak akses role berhasil diperbarui.');
+  }
 
   async register(dto: RegisterDto) {
     const email = dto.email.toLowerCase();

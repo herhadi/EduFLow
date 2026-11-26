@@ -52,6 +52,15 @@ export const authApi = {
     request<ApiResponse<TelegramLinkToken>>('/auth/me/telegram/link-token', {
       method: 'POST',
     }),
+  getRolePermissionMatrix: () => request<ApiResponse<{
+    roles: Array<{ id: string; name: string; permissions: string[] }>;
+    modules: Array<{ key: string; label: string; view: string[]; write: string[] }>;
+    rootRoleId: string | null;
+  }>>('/auth/role-permissions'),
+  updateRolePermissionMatrix: (payload: { roleId: string; moduleKey: string; view: boolean; write: boolean }) =>
+    request<ApiResponse<{ roleId: string; moduleKey: string; view: boolean; write: boolean }>>('/auth/role-permissions', {
+      method: 'PATCH', body: JSON.stringify(payload),
+    }),
   getUsers: () => request<ApiResponse<AppUser[]>>('/auth/users'),
   getActiveAccounts: () => request<ApiResponse<AppUser[]>>('/auth/active-accounts'),
   getSystemAccounts: () => request<ApiResponse<AppUser[]>>('/auth/system-accounts'),

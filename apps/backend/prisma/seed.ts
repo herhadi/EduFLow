@@ -145,7 +145,7 @@ async function main() {
     Object.entries(rolePermissions)
       .filter(([roleName]) => roleName !== 'root')
       .flatMap(([, permissionKeys]) => permissionKeys),
-  )].filter((key) => key !== 'correspondence.letterhead.manage');
+  )];
 
   const permissions = await Promise.all(
     [...new Set(Object.values(rolePermissions).flat())].map((key) =>
@@ -200,14 +200,7 @@ async function main() {
       }),
     );
 
-    await prisma.rolePermission.deleteMany({
-      where: {
-        roleId: role.id,
-        permission: {
-          key: { notIn: permissionKeys },
-        },
-      },
-    });
+    // Keep runtime permission changes made by Root; seed only adds missing baseline grants.
   }
 
   const rootUser = await prisma.user.upsert({
