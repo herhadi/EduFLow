@@ -60,7 +60,7 @@ export function CorrespondenceWorkspace({ mode }: Props) {
             <p><b>Paragraf baru:</b> tekan Enter dua kali sehingga ada satu baris kosong di antara paragraf.</p>
             <p><b>Baris berikutnya dalam paragraf yang sama:</b> tekan Enter satu kali.</p>
             <p><b>Surat panjang:</b> isi surat akan berlanjut ke halaman berikutnya saat dicetak. Periksa hasilnya melalui tombol Pratinjau Cetak.</p>
-            <p><b>Jarak penutup dan tanda tangan:</b> atur jumlah baris kosong serta posisi tanggal dan tanda tangan melalui Opsek → Pengaturan Kop Surat → Format Surat dan Penandatangan.</p>
+            <p><b>Jarak penutup dan tanda tangan:</b> atur jumlah baris kosong serta posisi tanggal dan tanda tangan melalui menu Kop Surat → Format Surat dan Penandatangan.</p>
           </div>
         </details>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">

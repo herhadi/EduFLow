@@ -111,6 +111,7 @@ async function main() {
     ],
     tu: [
       'correspondence.letterhead.read',
+      'correspondence.letterhead.manage',
       'correspondence.read',
       'correspondence.manage',
       'auth.session.manage',
