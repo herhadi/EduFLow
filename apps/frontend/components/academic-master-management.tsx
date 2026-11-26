@@ -35,7 +35,7 @@ import { SemesterPeriodSettings } from './master-data-dashboard/master-data-list
 
 type LoadState = 'loading' | 'success' | 'error';
 
-export function AcademicMasterManagement({ showTimeSlots = true }: { showTimeSlots?: boolean } = {}) {
+export function AcademicMasterManagement({ showTimeSlots = true, showSemesterSettings = false }: { showTimeSlots?: boolean; showSemesterSettings?: boolean } = {}) {
   const toast = useToast();
   const [classes, setClasses] = useState<SchoolClass[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -76,7 +76,7 @@ export function AcademicMasterManagement({ showTimeSlots = true }: { showTimeSlo
         api.getClasses(),
         api.getSubjects(),
         api.getSchoolYears(),
-        api.getSemesters(),
+        showSemesterSettings ? api.getSemesters() : Promise.resolve({ data: [] as Semester[] }),
         showTimeSlots ? api.getAcademicTimeSlots() : Promise.resolve({ data: [] as AcademicTimeSlot[] }),
       ]);
       setClasses(sortSchoolClasses(classResponse.data));
@@ -407,11 +407,13 @@ export function AcademicMasterManagement({ showTimeSlots = true }: { showTimeSlo
         showTimeSlotOptions={showTimeSlots}
       />
 
-      <SemesterPeriodSettings
-        schoolYears={schoolYears}
-        semesters={semesters}
-        onSemesterSaved={(updated) => setSemesters((current) => current.map((item) => item.id === updated.id ? updated : item))}
-      />
+      {showSemesterSettings ? (
+        <SemesterPeriodSettings
+          schoolYears={schoolYears}
+          semesters={semesters}
+          onSemesterSaved={(updated) => setSemesters((current) => current.map((item) => item.id === updated.id ? updated : item))}
+        />
+      ) : null}
 
       <SubjectManagementPanel
         isSaving={isSaving}

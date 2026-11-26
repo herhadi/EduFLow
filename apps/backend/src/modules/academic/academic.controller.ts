@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { Public } from '../../common/decorators/public.decorator';
@@ -64,7 +64,15 @@ export class AcademicController {
 
   @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
   @Patch('semesters/:id')
-  updateSemesterDates(@Param('id') id: string, @Body() dto: UpdateSemesterDatesDto) {
+  updateSemesterDates(
+    @Param('id') id: string,
+    @Body() dto: UpdateSemesterDatesDto,
+    @Req() request: RequestWithUser,
+  ) {
+    if (!(request.user.roles ?? []).includes('operator_sekolah')) {
+      throw new ForbiddenException('Hanya Operator Sekolah yang dapat mengubah periode semester.');
+    }
+
     return this.academicService.updateSemesterDates(id, dto);
   }
 

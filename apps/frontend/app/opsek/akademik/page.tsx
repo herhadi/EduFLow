@@ -13,7 +13,7 @@ export default function AdminAcademicPage() {
           action={<Link className="secondary-button rounded-xl px-4 py-2 text-sm font-bold" href="/opsek/akademik/kalender">Kalender Pendidikan</Link>}
           title="Master Akademik"
         />
-        <AcademicMasterManagement />
+        <AcademicMasterManagement showSemesterSettings />
       </Container>
     </main>
   );
