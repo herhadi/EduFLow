@@ -56,8 +56,10 @@ export function RolePermissionMatrix() {
           <th rowSpan={2} className="sticky left-0 z-20 min-w-52 border-b border-r border-[var(--border)] bg-slate-50 px-3 py-3 text-left font-semibold dark:bg-slate-900">Modul</th>
           {roleColumns.map((role) => <th key={role.id} colSpan={2} className="min-w-32 border-b border-r border-[var(--border)] px-2 py-3 text-center font-semibold">{displayRole(role.name)}</th>)}
         </tr><tr>{roleColumns.map((role) => <th key={role.id + '-labels'} colSpan={2} className="border-b border-r border-[var(--border)] px-1 py-1"><div className="flex justify-around text-[11px] font-medium text-muted"><span>View</span><span>Write</span></div></th>)}</tr></thead>
-        <tbody>{matrix.modules.map((module) => <tr key={module.key} className="border-b border-[var(--border)] last:border-b-0 hover:bg-slate-50/70 dark:hover:bg-slate-800/30">
-          <th className="sticky left-0 z-10 border-r border-[var(--border)] bg-white px-3 py-2.5 text-left font-medium dark:bg-[var(--surface)]">{module.label}</th>
+        <tbody>{matrix.modules.map((module, index) => {
+          const zebraClass = index % 2 === 0 ? 'bg-white dark:bg-[var(--surface)]' : 'bg-slate-50/80 dark:bg-slate-800/45';
+          return <tr key={module.key} className={`group border-b border-[var(--border)] last:border-b-0 ${zebraClass} hover:bg-blue-50 dark:hover:bg-slate-700/50`}>
+          <th className="sticky left-0 z-10 border-r border-[var(--border)] px-3 py-2.5 text-left font-medium group-hover:bg-blue-50 dark:group-hover:bg-slate-700/50">{module.label}</th>
           {roleColumns.map((role) => {
             const hasView = module.view.some((permission) => role.permissions.includes(permission));
             const hasWrite = module.write.some((permission) => role.permissions.includes(permission));
@@ -68,7 +70,8 @@ export function RolePermissionMatrix() {
               <input aria-label={module.label + ' Write ' + displayRole(role.name)} type="checkbox" checked={hasWrite} disabled={isRootRole || isSaving || module.write.length === 0} onChange={(event) => void update(role.id, module.key, module.view.length ? (hasView || event.target.checked) : hasView, event.target.checked)} className="h-4 w-4 accent-blue-600 disabled:opacity-30" />
             </div></td>;
           })}
-        </tr>)}</tbody>
+        </tr>;
+        })}</tbody>
       </table>
     </div>
     <p className="mt-3 text-xs leading-5 text-muted">Pada modul yang memiliki View, mengaktifkan Write juga mengaktifkan View. Mematikan View turut mematikan Write. Akses Root ditampilkan sebagai acuan dan tidak dapat diubah. Perubahan permission berlaku setelah token akses pengguna diperbarui (maksimal sekitar 15 menit).</p>
