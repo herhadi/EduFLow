@@ -46,7 +46,6 @@ const operatorNavigation: NavigationItem[] = [
   { href: '/opsek/schedules', label: 'Jadwal', icon: 'schedule' },
   { href: '/opsek/extracurricular', label: 'Ekskul', icon: 'students' },
   { href: '/opsek/active-accounts', label: 'Akun & Akses', icon: 'access' },
-  { href: '/opsek/letterhead-settings', label: 'Kop Surat', icon: 'document' },
   { href: '/opsek/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
   { href: '/opsek/profile', label: 'Profil', icon: 'profile' },
 ];
@@ -166,7 +165,6 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'opsek', href: '/opsek/guru', label: 'Guru' },
   { section: 'opsek', href: '/opsek/siswa-aktif', label: 'Siswa Aktif' },
   { section: 'opsek', href: '/opsek/active-accounts', label: 'Akun & Akses' },
-  { section: 'opsek', href: '/opsek/letterhead-settings', label: 'Kop Surat' },
   { section: 'tu', href: '/tu/letterhead-settings', label: 'Kop Surat' },
   { section: 'opsek', href: '/opsek/akademik', label: 'Akademik' },
   { section: 'opsek', href: '/opsek/schedules', label: 'Jadwal' },

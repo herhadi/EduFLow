@@ -29,8 +29,6 @@ async function main() {
       'correspondence.letterhead.manage',
     ],
     operator_sekolah: [
-      'correspondence.letterhead.read',
-      'correspondence.letterhead.manage',
       'auth.session.manage',
       'academic.read',
       'academic.manage',
