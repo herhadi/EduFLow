@@ -1186,3 +1186,19 @@ Seluruh tindakan penting dapat dicatat dalam audit trail sesuai konfigurasi sist
 5. Catatan wali kelas tidak mengubah jurnal guru mapel.
 
 Operator memantau kelengkapan lintas kelas; kepala sekolah membaca rekap untuk monitoring. Tidak semua jurnal harus menunggu approval kepala sekolah. Ini rancangan UX sampai implementasi dan UAT selesai.
+
+
+## Mengatur Matriks Hak Akses (Root)
+
+Fitur ini hanya tersedia untuk akun Root. Buka **Akses** (`/system/access`), lalu cari bagian **Matriks Hak Akses** di bawah pengelolaan akun.
+
+1. Periksa nama modul pada kolom paling kiri.
+2. Pilih kolom role yang akan diatur.
+3. Gunakan **View** untuk memberi hak melihat modul dan **Write** untuk memberi hak mengubah atau menjalankan tindakan.
+4. Write otomatis mencakup View. Jika View dimatikan, Write ikut dimatikan.
+5. Perubahan disimpan otomatis ketika kontrol diubah. Tunggu notifikasi berhasil/gagal sebelum melanjutkan.
+6. Kolom Root bersifat tetap dan tidak dapat diubah dari matriks.
+
+Gunakan prinsip akses minimum: berikan hanya permission yang dibutuhkan oleh tugas role. Hak khusus seperti persetujuan, monitoring jurnal seluruh sekolah, serta jurnal milik sendiri/kelas binaan memiliki permission dan batas scope tersendiri. Mengaktifkan Write pada suatu modul tidak boleh dianggap memperluas scope data di luar penugasan pengguna.
+
+Perubahan hak akses disimpan di database. Sesi yang sedang aktif mungkin masih menggunakan klaim permission dari token lama; jika menu atau akses belum berubah, perbarui sesi dengan login kembali. Jika penyimpanan gagal, periksa notifikasi dan ulangi setelah koneksi pulih.

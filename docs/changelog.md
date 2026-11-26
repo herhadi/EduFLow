@@ -520,3 +520,13 @@ Changelog hanya memuat perubahan besar yang berdampak pada fitur, alur kerja, ke
 - Generate Agenda satuan menolak tanggal di luar periode semester yang dikonfigurasi.
 - Generate Agenda massal hanya membuat agenda pada tanggal yang termasuk periode semester dan melaporkan hari di luar periode.
 - Cek cakupan agenda menghitung kebutuhan hanya pada tanggal dalam periode semester serta menampilkan jumlah hari di luar periode.
+
+
+## 2026-11-26 — Matriks hak akses Root
+
+- Menambahkan matriks permission berbasis role dan modul pada halaman Akses Root, dengan kontrol View dan Write berdampingan.
+- Write mencakup View; menonaktifkan View sekaligus menonaktifkan Write. Role Root ditampilkan sebagai referensi tetap dan tidak dapat diubah dari matriks.
+- Menambahkan endpoint Root-only `GET/PATCH /api/auth/role-permissions` untuk membaca dan memperbarui assignment permission secara tervalidasi dan transaksional.
+- Menambahkan pemetaan permission per modul serta baris dinamis untuk permission yang belum dikelompokkan.
+- Seeder mempertahankan assignment RolePermission hasil pengaturan Root agar tidak terhapus pada seeding berikutnya; migrasi memberikan seluruh permission yang sudah ada kepada role Root.
+- Mendokumentasikan batas scope data dan permission khusus seperti approval serta monitoring jurnal lintas sekolah.

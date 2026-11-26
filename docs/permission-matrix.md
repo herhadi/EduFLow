@@ -163,3 +163,24 @@ Pemeriksaan akses namespace halaman juga harus memeriksa seluruh role akun, buka
 - Penghapusan permanen tetap menjaga histori operasional dan audit: jika relasi historis masih mereferensikan akun, transaksi ditolak dan akun tetap dipertahankan.
 - Username hanya dapat diubah oleh Root atau Super Administrator. Backend menormalisasi username menjadi huruf kecil, memvalidasi format 3-50 karakter, memeriksa benturan dengan username maupun email akun lain, dan mencatat perubahan sebelum/sesudah ke Audit Log. Super Administrator tidak dapat mengubah username akun Root.
 - Akun Developer dilindungi dari perubahan username, penonaktifan, dan penghapusan permanen; penghapusan Root tetap tunduk pada aturan minimal satu Root aktif.
+
+
+## Matriks Hak Akses Root (View/Write)
+
+Root mengelola matriks permission melalui halaman **Akses** (`/system/access`), pada bagian **Matriks Hak Akses**. Matriks mengambil role, permission, dan modul aktual dari database; nama role tidak dibuat ulang oleh antarmuka.
+
+- Baris mewakili modul, kolom mewakili role yang tersedia di database.
+- Setiap role memiliki dua kontrol berdampingan: **View** untuk membaca/membuka fitur dan **Write** untuk mengubah data atau menjalankan tindakan.
+- Write menyiratkan View. Mengaktifkan Write otomatis mengaktifkan View; menonaktifkan View juga menonaktifkan Write.
+- Jika suatu modul tidak memiliki permission baca terpisah, kontrol View dapat tidak tersedia; hak tindakan tetap ditampilkan pada Write.
+- Perubahan disimpan saat kontrol diubah. Jika penyimpanan gagal, antarmuka mengembalikan nilai sebelumnya dan menampilkan pemberitahuan.
+- Kolom Root merupakan referensi tetap dan tidak dapat diubah melalui matriks. Root memperoleh seluruh permission yang terdaftar saat migrasi grant penuh dijalankan.
+- Permission yang belum masuk kelompok modul standar tetap ditampilkan sebagai baris terpisah (`other-<permission-key>`), sehingga katalog permission tambahan tidak hilang dari pengelolaan.
+
+Pemetaan modul saat ini meliputi Akun & Sesi, Data Akademik, Kalender Akademik, Jadwal, Perencanaan Pembelajaran, Nilai Siswa, Izin Siswa, Agenda, Jurnal Mengajar, Jurnal Kelas, Monitoring Jurnal Sekolah, Presensi, Status Kelas, Persuratan, Kop Surat, Notifikasi, Pelaporan, Audit, Persetujuan, dan Pemulihan Sistem. Permission khusus seperti persetujuan, monitoring jurnal lintas sekolah, serta scope jurnal milik sendiri/kelas binaan tetap dipetakan tersendiri; jangan menganggap Write generik menggantikan aturan scope tersebut.
+
+API matriks hanya untuk Root: `GET /api/auth/role-permissions` membaca konfigurasi, sedangkan `PATCH /api/auth/role-permissions` memperbarui assignment permission. Pemeriksaan Root tetap dilakukan di backend. Perubahan assignment tersimpan di database; token yang sudah diterbitkan dapat membawa klaim lama sampai token diperbarui atau pengguna login kembali.
+
+### Persistensi Seeder
+
+Seeder tidak lagi menghapus assignment RolePermission hanya karena assignment tersebut tidak ada pada baseline seed. Dengan demikian, pilihan matriks yang disimpan Root tidak terhapus saat proses seeding berikutnya. Seeder tetap dapat menambahkan permission baseline yang memang didefinisikan. Permission baru perlu dimasukkan ke katalog dan baseline seed yang sesuai; migrasi grant penuh hanya mengisi permission yang sudah ada saat migrasi dijalankan.

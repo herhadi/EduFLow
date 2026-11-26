@@ -1025,3 +1025,27 @@ Endpoint berikut adalah kontrak rancangan dan belum dianggap aktif sebelum contr
 - `PATCH /api/class-journals/:classId/notes/:noteId` — ubah catatan sesuai kewenangan.
 
 Semua endpoint memakai envelope response standar, memvalidasi scope kelas/agenda di backend, dan tidak mengandalkan filter frontend sebagai kontrol akses. Submit memvalidasi `material`; koreksi pasca-lock memerlukan jalur administratif dan audit.
+
+
+## Matriks Hak Akses Role (Root)
+
+Kedua endpoint berikut memerlukan autentikasi dan role `root`; pemeriksaan Root dilakukan langsung di controller, bukan hanya mengandalkan tampilan frontend.
+
+### Membaca matriks
+
+```http
+GET /api/auth/role-permissions
+```
+
+Mengembalikan daftar role aktual, katalog permission, dan pengelompokan permission per modul untuk membangun matriks View/Write.
+
+### Memperbarui matriks
+
+```http
+PATCH /api/auth/role-permissions
+Content-Type: application/json
+```
+
+Payload memperbarui permission untuk satu role dan satu modul. Bentuk field mengikuti DTO `UpdateRolePermissionMatrixDto` pada backend; frontend mengirim daftar permission yang dipilih untuk pasangan role/modul. Backend memvalidasi role, modul, dan seluruh permission sebelum menyimpan perubahan secara transaksional. Role Root dilindungi dan tidak dapat diubah melalui endpoint ini.
+
+Perubahan tersimpan pada tabel `RolePermission`. Token akses yang sudah diterbitkan dapat tetap membawa klaim permission sebelumnya sampai token diperbarui atau sesi login dibuat ulang.
