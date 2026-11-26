@@ -7,6 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum SignatureMode {
+  MANUAL
+  TTE
+}
+
+enum OutgoingLetterStatus {
+  DRAFT
+  PENDING_APPROVAL
+  REVISION_REQUESTED
+  APPROVED
+}
+
 enum SemesterType {
   ODD
   EVEN
@@ -255,6 +267,9 @@ model User {
   requestedLeaves       StudentLeaveRequest[] @relation("StudentLeaveRequestedBy")
   reviewedLeaves        StudentLeaveRequest[] @relation("StudentLeaveReviewedBy")
   notifications         NotificationLog[]
+  createdOutgoingLetters OutgoingLetter[] @relation("OutgoingLetterCreator")
+  approvedOutgoingLetters OutgoingLetter[] @relation("OutgoingLetterApprover")
+  receivedIncomingLetters IncomingLetter[] @relation("IncomingLetterReceiver")
 
   @@index([lockedUntil])
 }
@@ -1245,4 +1260,51 @@ model Payment {
   @@index([paymentMethodId])
   @@index([receivedById])
   @@index([referenceNo])
+}
+
+
+model OutgoingLetter {
+  id             String                @id @default(uuid()) @db.Uuid
+  subject        String
+  recipient      String
+  letterDate     DateTime              @db.Date
+  body           String                @db.Text
+  status         OutgoingLetterStatus  @default(DRAFT)
+  signatureMode  SignatureMode         @default(MANUAL)
+  letterNumber   String?               @unique
+  createdById    String                @db.Uuid
+  approvedById   String?               @db.Uuid
+  submittedAt    DateTime?             @db.Timestamptz(3)
+  approvedAt     DateTime?             @db.Timestamptz(3)
+  revisionNote   String?
+  approvalCode   String?               @unique
+  contentHash    String?
+  letterheadSnapshot Json?
+  createdAt      DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime              @updatedAt @db.Timestamptz(3)
+  creator        User                  @relation("OutgoingLetterCreator", fields: [createdById], references: [id])
+  approver       User?                 @relation("OutgoingLetterApprover", fields: [approvedById], references: [id])
+  @@index([status, createdAt])
+  @@index([createdById, createdAt])
+  @@index([approvedById, approvedAt])
+}
+
+model IncomingLetter {
+  id              String   @id @default(uuid()) @db.Uuid
+  referenceNumber String?
+  sender          String
+  subject         String
+  letterDate      DateTime? @db.Date
+  receivedAt      DateTime @default(now()) @db.Timestamptz(3)
+  notes           String?  @db.Text
+  archiveKey      String?
+  archiveName     String?
+  archiveMimeType String?
+  archiveSize     Int?
+  receivedById    String   @db.Uuid
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(3)
+  receiver        User     @relation("IncomingLetterReceiver", fields: [receivedById], references: [id])
+  @@index([receivedAt])
+  @@index([referenceNumber])
 }

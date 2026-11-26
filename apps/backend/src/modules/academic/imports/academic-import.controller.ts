@@ -19,7 +19,7 @@ const allowedTypes = ['teachers', 'students'];
 export class AcademicImportController {
   constructor(private readonly academicImportService: AcademicImportService) {}
 
-  @RequirePermissions(PERMISSIONS.ACADEMIC_MANAGE)
+  @RequirePermissions(PERMISSIONS.ACADEMIC_IMPORT_MANAGE)
   @Post(':type')
   @UseInterceptors(FileInterceptor('file'))
   import(

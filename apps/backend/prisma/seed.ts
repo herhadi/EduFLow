@@ -15,7 +15,7 @@ async function main() {
   const rootPassword = process.env.ROOT_PASSWORD ?? defaultUserPassword;
   const rolePermissions: Record<string, string[]> = {
     root: [],
-    'super admin': [
+    super_admin: [
       'auth.session.manage',
       'notification.read',
       'notification.manage',
@@ -24,8 +24,13 @@ async function main() {
       'audit.read',
       'user.manage',
       'system.recovery.manage',
+      'correspondence.config.manage',
+      'correspondence.letterhead.read',
+      'correspondence.letterhead.manage',
     ],
     operator_sekolah: [
+      'correspondence.letterhead.read',
+      'correspondence.letterhead.manage',
       'auth.session.manage',
       'academic.read',
       'academic.manage',
@@ -84,6 +89,9 @@ async function main() {
       'reporting.read',
     ],
     kepala_sekolah: [
+      'correspondence.letterhead.read',
+      'correspondence.read',
+      'correspondence.approve',
       'auth.session.manage',
       'academic.read',
       'academic-calendar.read',
@@ -102,9 +110,12 @@ async function main() {
       'audit.read',
     ],
     tu: [
+      'correspondence.letterhead.read',
+      'correspondence.read',
+      'correspondence.manage',
       'auth.session.manage',
       'academic.read',
-      'academic.manage',
+      'academic.import.manage',
       'teaching_journal.read_school',
       'class_journal.read_school',
       'notification.read',
@@ -135,7 +146,7 @@ async function main() {
     Object.entries(rolePermissions)
       .filter(([roleName]) => roleName !== 'root')
       .flatMap(([, permissionKeys]) => permissionKeys),
-  )];
+  )].filter((key) => key !== 'correspondence.letterhead.manage');
 
   const permissions = await Promise.all(
     [...new Set(Object.values(rolePermissions).flat())].map((key) =>

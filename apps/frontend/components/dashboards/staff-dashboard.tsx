@@ -15,8 +15,11 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
       />
       <SchoolOverview audience="tu" />
       <RoleSection description="Pilih pekerjaan administrasi yang ingin dilanjutkan." title="Pekerjaan Administrasi">
-        <RoleActionCard href="/tu/data" label="Master Data" description="Periksa dan kelola data kelas serta mata pelajaran sesuai kewenangan TU." />
-        <RoleActionCard href="/tu/import-data" label="Import Guru & Siswa" description="Perbarui data massal melalui template Excel dan periksa hasil validasinya." />
+        <RoleActionCard href="/tu/data" label="Direktori Data" description="Lihat ringkasan data guru, rombongan belajar, dan mata pelajaran tanpa mengubah master akademik." />
+        <RoleActionCard href="/tu/siswa-aktif" label="Siswa Aktif" description="Periksa daftar siswa aktif per tingkat dan rombongan belajar, termasuk data wali." />
+        <RoleActionCard href="/tu/journals" label="Monitoring Jurnal" description="Pantau pengisian jurnal harian guru, catatan wali kelas, agenda, dan status presensi tanpa mengubah data." />
+        <RoleActionCard href="/tu/import-data" label="Import Guru & Siswa" description="Perbarui data administrasi melalui template Excel dan periksa hasil validasinya." />
+        <RoleActionCard href="/tu/ringkasan/guru" label="Direktori Guru" description="Lihat dan cetak ringkasan data guru serta penugasan mata pelajaran." />
         <RoleActionCard href="/tu/reports" label="Laporan" description="Unduh rekap administrasi sekolah dalam format yang tersedia." />
       </RoleSection>
       <section className="mt-7 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
@@ -26,7 +29,8 @@ export function StaffHome({ currentUser }: { currentUser: CurrentUser | null }) 
           <ul className="mt-4 space-y-3 text-sm text-slate-700 dark:text-[var(--text-soft)]">
             <li className="flex gap-3"><span className="mt-0.5 text-brand-600">01</span><span>Pastikan data guru dan siswa hasil import sudah sesuai dokumen sumber.</span></li>
             <li className="flex gap-3"><span className="mt-0.5 text-brand-600">02</span><span>Periksa kelas dan mata pelajaran yang digunakan pada administrasi sekolah.</span></li>
-            <li className="flex gap-3"><span className="mt-0.5 text-brand-600">03</span><span>Unduh laporan sesuai kebutuhan dan periode yang diminta.</span></li>
+            <li className="flex gap-3"><span className="mt-0.5 text-brand-600">03</span><span>Periksa kelengkapan jurnal harian dan catatan wali kelas sebagai bahan rekap administrasi.</span></li>
+            <li className="flex gap-3"><span className="mt-0.5 text-brand-600">04</span><span>Unduh laporan sesuai kebutuhan dan periode yang diminta.</span></li>
           </ul>
         </div>
         <div className="rounded-[2rem] border border-amber-200 bg-amber-50/70 p-5 dark:border-amber-400/20 dark:bg-amber-400/10">

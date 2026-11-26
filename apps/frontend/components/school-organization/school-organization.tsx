@@ -79,7 +79,7 @@ function shiftAttachedConnectors(connectors: ConnectorMap, moves: CardMove[], wi
 export function SchoolOrganization() {
   const [roles, setRoles] = useState<string[]>([]);
   useEffect(() => { setRoles(getCurrentSessionUser()?.roles ?? []); }, []);
-  const canManage = (roles.includes('operator_sekolah') || roles.includes('super admin')) && !roles.includes('root');
+  const canManage = (roles.includes('operator_sekolah') || roles.includes('super_admin')) && !roles.includes('root');
   const [positions, setPositions] = useState<Position[]>([]);
   const [classCards, setClassCards] = useState<OrganizationClass[]>([]);
   const [schoolYearName, setSchoolYearName] = useState('');

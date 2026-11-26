@@ -168,7 +168,7 @@ export class AuthController {
   @Get('active-accounts')
   getActiveAccounts(@Req() request: RequestWithUser) {
     const roles = (request.user.roles ?? []).map((role) => role.trim().toLowerCase());
-    if (!roles.includes('super admin') && !roles.includes('operator_sekolah')) {
+    if (!roles.includes('super_admin') && !roles.includes('operator_sekolah')) {
       throw new ForbiddenException('Hanya Super Administrator atau Operator Sekolah yang dapat melihat daftar akun aktif');
     }
     return this.authService.getActiveAccounts();
@@ -185,7 +185,7 @@ export class AuthController {
   updateUserUsername(@Param('id') id: string, @Body() dto: UpdateUserUsernameDto, @Req() request: RequestWithUser) {
     const actorRoles = request.user.roles ?? [];
     const isRoot = actorRoles.includes('root');
-    if (!isRoot && !actorRoles.includes('super admin')) throw new ForbiddenException('Only Root or Super Administrator can change usernames');
+    if (!isRoot && !actorRoles.includes('super_admin')) throw new ForbiddenException('Only Root or Super Administrator can change usernames');
     return this.authService.updateUserUsername(id, dto.username, request.user.id, isRoot);
   }
 
@@ -198,7 +198,7 @@ export class AuthController {
   ) {
     const actorRoles = request.user.roles ?? [];
     const isRoot = actorRoles.includes('root');
-    const canManageRoles = isRoot || actorRoles.includes('super admin');
+    const canManageRoles = isRoot || actorRoles.includes('super_admin');
 
     if (!canManageRoles) {
       throw new ForbiddenException('Hanya Root atau Super Administrator yang dapat mengubah role user');

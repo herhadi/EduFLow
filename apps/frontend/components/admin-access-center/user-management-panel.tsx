@@ -23,7 +23,7 @@ export function UserManagementPanel({
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const assignableRoles = roleCards.filter((role) => canAssignRootRole || role.role !== 'root');
   const creationRoles = bootstrapOnly
-    ? roleCards.filter((role) => ['super admin', 'operator_sekolah'].includes(role.role))
+    ? roleCards.filter((role) => ['super_admin', 'operator_sekolah'].includes(role.role))
     : assignableRoles;
 
   function submitCreateUser(event: FormEvent<HTMLFormElement>) {

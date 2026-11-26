@@ -26,6 +26,7 @@ const rootNavigation: NavigationItem[] = [
   { href: '/system/dashboard', label: 'Sistem', icon: 'home' },
   { href: '/operations', label: 'Ops', icon: 'activity' },
   { href: '/system/access', label: 'Akses', icon: 'access' },
+  { href: '/system/correspondence-settings', label: 'Tanda Tangan Surat', icon: 'document' },
   { href: '/system/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
   {
     href: '/system/profile',
@@ -45,6 +46,7 @@ const operatorNavigation: NavigationItem[] = [
   { href: '/opsek/schedules', label: 'Jadwal', icon: 'schedule' },
   { href: '/opsek/extracurricular', label: 'Ekskul', icon: 'students' },
   { href: '/opsek/active-accounts', label: 'Akun & Akses', icon: 'access' },
+  { href: '/opsek/letterhead-settings', label: 'Kop Surat', icon: 'document' },
   { href: '/opsek/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
   { href: '/opsek/profile', label: 'Profil', icon: 'profile' },
 ];
@@ -52,6 +54,8 @@ const operatorNavigation: NavigationItem[] = [
 const adminNavigation: NavigationItem[] = [
   { href: '/admin/dashboard', label: 'Beranda', icon: 'home' },
   { href: '/admin/access', label: 'Akun & Akses', icon: 'access' },
+  { href: '/admin/correspondence-settings', label: 'Tanda Tangan Surat', icon: 'document' },
+  { href: '/admin/letterhead-settings', label: 'Kop Surat', icon: 'document' },
   { href: '/admin/operations', label: 'Monitoring Sistem', icon: 'activity' },
   { href: '/admin/audit', label: 'Audit', icon: 'audit' },
   { href: '/admin/notifications', label: 'Helpdesk', icon: 'message', badge: 'notifications' },
@@ -62,6 +66,7 @@ const principalNavigation: NavigationItem[] = [
   { href: '/principal/dashboard', label: 'Beranda', icon: 'home' },
   { href: '/principal/kbm', label: 'KBM', icon: 'kbm' },
   { href: '/principal/teacher-performance', label: 'Guru', icon: 'teacher' },
+  { href: '/principal/persuratan', label: 'Persetujuan Surat', icon: 'document' },
   { href: '/principal/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
   {
     href: '/principal/profile',
@@ -135,9 +140,11 @@ const roleNavigation: Record<UserRole, NavigationItem[]> = {
   wali_kelas: homeroomNavigation,
   tu: [
     { href: '/tu/dashboard', label: 'Home', icon: 'home' },
-    { href: '/tu/data', label: 'Master Data', icon: 'database' },
+    { href: '/tu/data', label: 'Direktori Data', icon: 'database' },
+    { href: '/tu/siswa-aktif', label: 'Siswa Aktif', icon: 'students' },
     { href: '/tu/import-data', label: 'Import Data', icon: 'upload' },
     { href: '/tu/journals', label: 'Monitoring Jurnal', icon: 'document' },
+    { href: '/tu/persuratan', label: 'Persuratan', icon: 'document' },
     { href: '/tu/reports', label: 'Laporan', icon: 'report' },
     { href: '/tu/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
     { href: '/tu/profile', label: 'Profil', icon: 'profile' },
@@ -158,6 +165,7 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'opsek', href: '/opsek/guru', label: 'Guru' },
   { section: 'opsek', href: '/opsek/siswa-aktif', label: 'Siswa Aktif' },
   { section: 'opsek', href: '/opsek/active-accounts', label: 'Akun & Akses' },
+  { section: 'opsek', href: '/opsek/letterhead-settings', label: 'Kop Surat' },
   { section: 'opsek', href: '/opsek/akademik', label: 'Akademik' },
   { section: 'opsek', href: '/opsek/schedules', label: 'Jadwal' },
   { section: 'opsek', href: '/opsek/extracurricular', label: 'Ekstrakurikuler' },
@@ -212,9 +220,11 @@ export const sectionSubNavigation: Array<NavigationItem & { section: string }> =
   { section: 'parent', href: '/parent/permits', label: 'Izin' },
   { section: 'parent', href: '/parent/notifications', label: 'Notifikasi' },
   { section: 'tu', href: '/tu/dashboard', label: 'Home' },
-  { section: 'tu', href: '/tu/data', label: 'Master Data' },
+  { section: 'tu', href: '/tu/data', label: 'Direktori Data' },
+  { section: 'tu', href: '/tu/siswa-aktif', label: 'Siswa Aktif' },
   { section: 'tu', href: '/tu/import-data', label: 'Import Data' },
   { section: 'tu', href: '/tu/journals', label: 'Monitoring Jurnal' },
+  { section: 'tu', href: '/tu/persuratan', label: 'Persuratan' },
   { section: 'tu', href: '/tu/reports', label: 'Laporan' },
   { section: 'tu', href: '/tu/notifications', label: 'Notifikasi' },
   { section: 'bk', href: '/bk/dashboard', label: 'Home' },
@@ -236,8 +246,8 @@ const rolePriority: UserRole[] = [
 ];
 
 function getNavigationRole(role: string): UserRole | null {
-  // `super admin` is the current database name for the former internal `admin` role.
-  if (role.trim().toLowerCase() === 'super admin') return 'admin';
+  // `super_admin` is the current database name for the former internal `admin` role.
+  if (role.trim().toLowerCase() === 'super_admin') return 'admin';
   return rolePriority.includes(role as UserRole) ? (role as UserRole) : null;
 }
 

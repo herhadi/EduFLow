@@ -28,7 +28,13 @@ export function ClassJournalView({canWriteNotes=false,schoolWide=false}:{canWrit
  },[classId,date]);
  async function saveNote(){if(!journal||!note.trim())return;setError('');setMessage('');try{await api.createClassJournalNote(classId,{date,content:note.trim()});setNote('');setJournal((await api.getClassJournal(classId,{date})).data);setMessage('Catatan wali kelas disimpan.');}catch(e){setError(e instanceof Error?e.message:'Catatan gagal disimpan.');}}
  return <section className="mx-auto w-full max-w-7xl px-4 sm:px-6">
-  <PageHeader eyebrow={schoolWide?'Monitoring Akademik':'Wali Kelas'} title={schoolWide?'Monitoring Jurnal Kelas':'Jurnal Kelas'} description="Pantau agenda mengajar, jurnal pembelajaran, status presensi, dan catatan wali kelas. Status jurnal dan presensi ditampilkan terpisah."/>
+  <PageHeader
+    eyebrow={schoolWide ? 'Monitoring Akademik' : 'Wali Kelas'}
+    title={schoolWide ? 'Monitoring Jurnal Harian & Kelas' : 'Jurnal Kelas'}
+    description={schoolWide
+      ? 'Pantau pengisian jurnal harian guru dan catatan wali kelas berdasarkan agenda setiap rombel. Materi, status jurnal, dan presensi ditampilkan terpisah; TU hanya memiliki akses baca.'
+      : 'Pantau agenda mengajar, jurnal pembelajaran, status presensi, dan catatan wali kelas. Status jurnal dan presensi ditampilkan terpisah.'}
+  />
   <div className="surface-card mt-5 rounded-3xl p-4 sm:p-6"><div className="grid gap-3 sm:grid-cols-3">
    <label className="grid gap-1 text-sm font-bold text-ink">Tingkat<select className="form-input" value={grade} onChange={e=>{setGrade(e.target.value);setClassId('');setJournal(null);}} disabled={canWriteNotes||loading}><option value="">Pilih tingkat</option>{gradeOptions.map(g=><option key={g} value={g}>{g}</option>)}</select></label>
    <label className="grid gap-1 text-sm font-bold text-ink">Rombel<select className="form-input" value={classId} onChange={e=>setClassId(e.target.value)} disabled={canWriteNotes||!grade||loading}><option value="">{grade?'Pilih rombel':'Pilih tingkat terlebih dahulu'}</option>{rombelOptions.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>

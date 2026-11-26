@@ -11,7 +11,7 @@ export type CurrentUser = {
 
 export function getRoleDisplayLabels(roles?: string[] | null) {
   const roleDisplayPriority: Record<string, number> = {
-    'super admin': 0,
+    super_admin: 0,
     operator_sekolah: 1,
     tu: 2,
   };
@@ -20,7 +20,7 @@ export function getRoleDisplayLabels(roles?: string[] | null) {
     .filter(Boolean)
     .map((role) => {
       const normalizedRole = role.trim().toLowerCase();
-      const label = normalizedRole === 'super admin'
+      const label = normalizedRole === 'super_admin'
         ? 'Super Administrator'
         : role
             .replace(/_/g, ' ')

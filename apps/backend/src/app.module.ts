@@ -14,6 +14,7 @@ import { ErrorTrackingFilter } from './infrastructure/observability/error-tracki
 import { ObservabilityModule } from './infrastructure/observability/observability.module';
 import { RequestLoggingInterceptor } from './infrastructure/observability/request-logging.interceptor';
 import { AcademicModule } from './modules/academic/academic.module';
+import { CorrespondenceModule } from './modules/correspondence/correspondence.module';
 import { AcademicPlanningModule } from './modules/academic-planning/academic-planning.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { JournalsModule } from './modules/journals/journals.module';
@@ -46,6 +47,7 @@ import { WorkersModule } from './workers/workers.module';
     QueueModule,
     AuthModule,
     AcademicModule,
+    CorrespondenceModule,
     AcademicPlanningModule,
     AttendanceModule,
     JournalsModule,

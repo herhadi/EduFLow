@@ -39,8 +39,8 @@ export function hasRoleNamespaceAccess(
 
   // Namespace access is granted by any assigned role, not only the primary one.
   if (assignedRoles.includes(requiredRole)) return true;
-  // The database role `super admin` maps to the internal admin namespace.
-  if (requiredRole === 'admin' && assignedRoles.some((role) => role.trim().toLowerCase() === 'super admin')) return true;
+  // The database role `super_admin` maps to the internal admin namespace.
+  if (requiredRole === 'admin' && assignedRoles.some((role) => role.trim().toLowerCase() === 'super_admin')) return true;
 
   // Wali kelas uses the teacher workspace and receives its additional pages.
   if (requiredRole === 'guru' && assignedRoles.includes('wali_kelas')) return true;

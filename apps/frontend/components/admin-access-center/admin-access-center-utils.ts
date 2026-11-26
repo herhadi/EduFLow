@@ -6,22 +6,22 @@ export const roleCards = [
     permissions: ['teaching-plan.review', 'student-grade.approve', 'reporting.read', 'audit.read'],
   },
   {
-    role: 'super admin',
+    role: 'super_admin',
     label: 'Super Administrator',
     description: 'Admin teknis tingkat sekolah untuk akun, monitoring sistem, helpdesk, audit, dan tindak lanjut operasional. Tidak memiliki kewenangan KBM.',
-    permissions: ['user.manage', 'notification.manage', 'reporting.manage', 'audit.read', 'system.recovery.manage'],
+    permissions: ['user.manage', 'notification.manage', 'reporting.manage', 'audit.read', 'system.recovery.manage', 'correspondence.config.manage', 'correspondence.letterhead.manage'],
   },
   {
     role: 'operator_sekolah',
     label: 'Operator Sekolah',
     description: 'Actor utama untuk kalender pendidikan, jadwal, master akademik, import, dan generate agenda.',
-    permissions: ['academic.manage', 'academic-calendar.manage', 'schedule.manage', 'agenda.generate'],
+    permissions: ['academic.manage', 'academic-calendar.manage', 'schedule.manage', 'agenda.generate', 'correspondence.letterhead.manage'],
   },
   {
     role: 'tu',
     label: 'TU',
-    description: 'Administrasi master data sekolah dan import data guru/siswa; tidak mengelola kalender, jadwal, atau KBM.',
-    permissions: ['academic.read', 'academic.manage', 'reporting.read'],
+    description: 'Administrasi data guru dan siswa melalui import, direktori sekolah, monitoring jurnal, dan laporan. Tidak mengubah master akademik atau mengelola KBM.',
+    permissions: ['academic.read', 'academic.import.manage', 'teaching_journal.read_school', 'class_journal.read_school', 'reporting.read'],
   },
   {
     role: 'guru',

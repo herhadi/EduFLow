@@ -50,7 +50,7 @@ export class SchoolOrganizationController {
   private assertOperator(req: RequestWithUser) {
     this.assertSchoolProfileAccess(req);
     const roles = req.user.roles ?? [];
-    if (!roles.includes('operator_sekolah') && !roles.includes('super admin')) {
+    if (!roles.includes('operator_sekolah') && !roles.includes('super_admin')) {
       throw new ForbiddenException('Hanya Operator Sekolah atau Super Admin yang dapat mengelola struktur organisasi.');
     }
   }
