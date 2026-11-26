@@ -45,8 +45,16 @@ export function getRoleDisplayLabels(roles?: string[] | null) {
     .map(({ label }) => label);
 }
 
+export function getRoleGreetingLabels(roles?: string[] | null) {
+  return getRoleDisplayLabels(roles).map((label) => {
+    if (label === 'Super Administrator') return 'Super Admin';
+    if (label === 'Operator Sekolah') return 'Opsek';
+    return label;
+  });
+}
+
 export function getRoleGreeting(roles?: string[] | null) {
-  const labels = getRoleDisplayLabels(roles);
+  const labels = getRoleGreetingLabels(roles);
   return labels.length ? ' (' + labels.join(', ') + ')' : '';
 }
 

@@ -25,7 +25,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 import { api } from '../../lib/api';
-import { getRoleDisplayLabels } from '../dashboards/dashboard-types';
+import { getRoleGreetingLabels } from '../dashboards/dashboard-types';
 import { cn } from '../../lib/cn';
 import {
   getPrimaryNavigation,
@@ -47,7 +47,7 @@ export function MobileGreeting({
 }) {
   const displayName =
     currentUser?.name ?? currentUser?.username ?? 'Pengguna EduFlow';
-  const displayRole = getRoleDisplayLabels(currentUser?.roles ?? []).join(', ');
+  const displayRole = getRoleGreetingLabels(currentUser?.roles ?? []).join(', ');
 
   return (
     <div className="surface-card mb-3 rounded-[1.5rem] px-4 py-3 min-[390px]:hidden">
@@ -96,7 +96,7 @@ export function AppTopBar({
 
   const displayName =
     currentUser?.name ?? currentUser?.username ?? 'Pengguna EduFlow';
-  const displayRole = getRoleDisplayLabels(currentUser?.roles ?? []).join(', ');
+  const displayRole = getRoleGreetingLabels(currentUser?.roles ?? []).join(', ');
 
   return (
     <header className="app-topbar px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur-xl sm:px-6">
