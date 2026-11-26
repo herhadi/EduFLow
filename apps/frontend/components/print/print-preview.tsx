@@ -1,7 +1,6 @@
 'use client';
 
 import { type ReactNode, useState } from 'react';
-import { formatSchoolDate } from '../../lib/school-time';
 
 export type PrintPaperSize = 'F4' | 'F4_LANDSCAPE' | 'A4' | 'A4_LANDSCAPE' | 'A3_LANDSCAPE';
 
@@ -14,6 +13,7 @@ type PrintPreviewProps = {
   footerText?: string;
   onClose: () => void;
   onDownloadExcel?: () => void;
+  contentFlows?: boolean;
 };
 
 const PAPER_DIMENSIONS: Record<PrintPaperSize, { width: string; height: string; label: string }> = {
@@ -47,9 +47,9 @@ export function PrintPreview({
   pagesForPaperSize,
   paperSize = 'F4',
   paperId = 'jimpitan-print-paper',
-  footerText = 'Dokumen administrasi sekolah',
   onClose,
   onDownloadExcel,
+  contentFlows = false,
 }: PrintPreviewProps) {
   const [selectedPaperSize, setSelectedPaperSize] = useState<PrintPaperSize>(paperSize);
   const activePages = pagesForPaperSize?.(selectedPaperSize) ?? pages;
@@ -104,9 +104,14 @@ export function PrintPreview({
         width: ${dimensions.width} !important; min-width: ${dimensions.width} !important;
         min-height: ${dimensions.height} !important; height: auto !important; margin: 0 !important;
         padding: 12mm 13mm !important; zoom: 1 !important; transform: none !important;
-        display: flex !important; flex-direction: column !important; overflow: visible !important; break-after: page; page-break-after: always;
+        display: block !important; flex-direction: column !important; overflow: visible !important; break-after: page; page-break-after: always;
       }
       #${paperId} .print-preview-page:last-child { break-after: auto; page-break-after: auto; }
+      .print-preview-page, .print-preview-page * { color: #111827 !important; color-scheme: light !important; }
+      .print-preview-page * { background-color: transparent !important; }
+      .print-preview-page--flow { break-after: auto !important; page-break-after: auto !important; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+      .print-preview-page--flow > div, .print-preview-page--flow .letter-document { break-inside: auto !important; }
+      .print-preview-page--flow p, .print-preview-page--flow header, .print-preview-page--flow .letter-signature { break-inside: avoid; orphans: 3; widows: 3; }
       #${paperId} .print-preview-page, #${paperId} .print-preview-page * { visibility: visible !important; }
       #${paperId} .print-preview-page > * { break-inside: avoid; }
       #${paperId} .print-preview-footer { display: flex !important; justify-content: space-between; align-items: flex-end; gap: 8mm; margin-top: auto !important; padding-top: 3mm; border-top: 0.2mm solid #cbd5e1; color: #475569; font: 9pt Arial, sans-serif; }
@@ -124,14 +129,12 @@ export function PrintPreview({
     window.setTimeout(cleanup, 120000);
   }
 
-  const printDate = formatSchoolDate(new Date(), { dateStyle: 'long' });
-
   return (
     <section aria-label={`Pratinjau cetak ${title}`} aria-modal="true" className="fixed inset-0 z-[9999] flex flex-col bg-slate-200 text-slate-900" role="dialog">
       <header className="z-10 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-300 bg-white px-4 py-3 shadow-sm sm:px-6">
         <div className="min-w-0">
           <h2 className="truncate text-base font-black">{title}</h2>
-          <p className="text-xs text-slate-500">{dimensions.label} · {pageCount} halaman</p>
+          <p className="text-xs text-slate-500">{dimensions.label} · {contentFlows ? 'Jumlah halaman mengikuti panjang isi' : 'Halaman ' + pageCount}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <label className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700">
@@ -156,27 +159,27 @@ export function PrintPreview({
 
       <div className="print-preview-scroll min-h-0 flex-1 overflow-auto px-2 py-5 sm:px-6 sm:py-8">
         <div
-          className="print-preview-paper mx-auto flex w-fit flex-col gap-5 bg-transparent text-black"
+          className="print-preview-paper mx-auto flex w-fit flex-col gap-5 bg-white text-slate-900"
           id={paperId}
-          style={{ width: dimensions.width, colorScheme: 'light' }}
+          style={{ width: dimensions.width, colorScheme: 'light', backgroundColor: '#fff', color: '#111827' }}
         >
           {activePages.map((page, index) => (
             <article
-              className="print-preview-page relative box-border flex flex-col bg-white px-[13mm] py-[12mm] text-black shadow-xl"
+              className={"print-preview-page relative box-border flex flex-col bg-white px-[13mm] py-[12mm] text-slate-900 shadow-xl " + (contentFlows ? "print-preview-page--flow" : "")}
               key={index}
               style={{ width: dimensions.width, minHeight: dimensions.height, backgroundColor: '#fff', color: '#111827', colorScheme: 'light' }}
             >
               <div className="min-h-0 flex-1">{page}</div>
-              <footer className="print-preview-footer mt-auto flex items-end justify-between gap-4 border-t border-slate-300 pt-2 text-[10px] text-slate-600">
-                <span className="flex flex-col"><span>Tanggal cetak: {printDate}</span><span className="text-[9px]">{footerText}</span></span>
-                <span className="shrink-0 font-semibold">Halaman {index + 1}/{pageCount}</span>
-              </footer>
             </article>
           ))}
         </div>
       </div>
 
       <style jsx global>{`
+        .print-preview-page, .print-preview-page * { color: #111827 !important; color-scheme: light !important; }
+        .print-preview-page * { background-color: transparent !important; }
+        .print-preview-page--flow { display: block; }
+        .print-preview-page--flow > div { min-height: 0; }
         .print-preview-paper { zoom: 1; }
         @media (max-width: 480px) { .print-preview-paper { zoom: .46; } }
         @media (min-width: 481px) and (max-width: 600px) { .print-preview-paper { zoom: .56; } }

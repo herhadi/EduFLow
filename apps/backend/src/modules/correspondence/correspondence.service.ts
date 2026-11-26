@@ -19,10 +19,14 @@ export class CorrespondenceService {
         select: { name: true, nip: true },
       }),
     ]);
-    const fallback = { logoLeft: null, logoRight: null, rows: [{ text: 'PEMERINTAH KABUPATEN BATANG', fontSize: 12, bold: true, align: 'center', enabled: true }, { text: 'DINAS PENDIDIKAN DAN KEBUDAYAAN', fontSize: 12, bold: true, align: 'center', enabled: true }, { text: 'NAMA SEKOLAH', fontSize: 18, bold: true, align: 'center', enabled: true }, { text: 'Alamat sekolah · Telepon · Email', fontSize: 10, bold: false, align: 'center', enabled: true }], textAlign: 'center', borderStyle: 'double', logoSize: 88 };
+    const fallback = { logoLeft: null, logoRight: null, rows: [{ text: 'PEMERINTAH KABUPATEN BATANG', fontSize: 12, bold: true, align: 'center', enabled: true }, { text: 'DINAS PENDIDIKAN DAN KEBUDAYAAN', fontSize: 12, bold: true, align: 'center', enabled: true }, { text: 'NAMA SEKOLAH', fontSize: 18, bold: true, align: 'center', enabled: true }, { text: 'Alamat sekolah · Telepon · Email', fontSize: 10, bold: false, align: 'center', enabled: true }], textAlign: 'center', borderStyle: 'double', logoSize: 88, documentTitle: 'SURAT', numberLabel: 'Nomor', openingText: 'Dengan hormat,', closingText: 'Demikian surat ini kami sampaikan. Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.', signatureCity: 'Batang', signatureTitle: 'Kepala Sekolah', signatureName: '', signatureNip: '', signatureAlign: 'center' };
     let config = fallback;
     if (setting?.value) { try { config = { ...fallback, ...JSON.parse(setting.value) }; } catch { /* safe defaults */ } }
-    return { data: { ...config, principalName: principal?.name ?? null, principalNip: principal?.nip ?? null } };
+    return { data: {
+      ...config,
+      principalName: (typeof config.signatureName === 'string' && config.signatureName.trim()) || principal?.name || null,
+      principalNip: (typeof config.signatureNip === 'string' && config.signatureNip.trim()) || principal?.nip || null,
+    } };
   }
   async updateLetterheadSettings(userId: string, input: unknown) {
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw new BadRequestException('Pengaturan kop tidak valid');
@@ -37,6 +41,15 @@ export class CorrespondenceService {
       textAlign: ['left','center','right'].includes(String(value.textAlign)) ? value.textAlign : 'center',
       borderStyle: ['single','double','none'].includes(String(value.borderStyle)) ? value.borderStyle : 'double',
       logoSize: Math.min(140, Math.max(48, Number(value.logoSize) || 88)),
+      documentTitle: typeof value.documentTitle === 'string' ? value.documentTitle.trim().slice(0, 80) : 'SURAT',
+      numberLabel: typeof value.numberLabel === 'string' ? value.numberLabel.trim().slice(0, 50) : 'Nomor',
+      openingText: typeof value.openingText === 'string' ? value.openingText.slice(0, 1000) : 'Dengan hormat,',
+      closingText: typeof value.closingText === 'string' ? value.closingText.slice(0, 2000) : 'Demikian surat ini kami sampaikan. Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.',
+      signatureCity: typeof value.signatureCity === 'string' ? value.signatureCity.trim().slice(0, 80) : 'Batang',
+      signatureTitle: typeof value.signatureTitle === 'string' ? value.signatureTitle.trim().slice(0, 120) : 'Kepala Sekolah',
+      signatureName: typeof value.signatureName === 'string' ? value.signatureName.trim().slice(0, 120) : '',
+      signatureNip: typeof value.signatureNip === 'string' ? value.signatureNip.trim().slice(0, 40) : '',
+      signatureAlign: ['left','center','right'].includes(String(value.signatureAlign)) ? value.signatureAlign : 'center',
     };
     await this.prisma.systemSetting.upsert({ where: { key: 'correspondence.letterhead' }, create: { key: 'correspondence.letterhead', value: JSON.stringify(config) }, update: { value: JSON.stringify(config) } });
     await this.audit.record({ action: 'correspondence.letterhead.updated', entityType: 'SystemSetting', entityId: 'correspondence.letterhead', after: { ...config, logoLeft: Boolean(config.logoLeft), logoRight: Boolean(config.logoRight) }, userId });
