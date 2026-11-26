@@ -18,22 +18,22 @@ export function PageHeader({
 }) {
   return (
     <header className="page-hero relative w-full overflow-hidden rounded-2xl border border-blue-100/70 p-4 shadow-sm backdrop-blur-xl dark:border-slate-700 sm:p-5">
-      {showBackLink ? (
-        <div className="mb-3 flex justify-end">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-extrabold tracking-[0.12em] text-blue-800 uppercase dark:text-sky-300">
+          {eyebrow}
+        </p>
+        {showBackLink ? (
           <Link
-            className="secondary-button relative inline-flex rounded-full px-3 py-1.5 text-xs font-bold"
+            className="secondary-button relative inline-flex min-h-8 rounded-full px-3 py-1.5 text-xs font-bold"
             href={backHref}
           >
             ← Kembali ke dashboard
           </Link>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
 
       <div>
-        <p className="text-xs font-bold tracking-[0.12em] text-brand-600 uppercase">
-          {eyebrow}
-        </p>
-        <h1 className="relative my-1.5 text-xl font-black sm:text-3xl">
+        <h1 className="relative my-1.5 text-xl font-black text-slate-950 sm:text-3xl dark:text-white">
           {title}
         </h1>
         <p className="text-sm leading-5 text-slate-600 dark:text-slate-300 sm:text-[0.95rem]">
