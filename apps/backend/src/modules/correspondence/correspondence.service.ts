@@ -19,7 +19,7 @@ export class CorrespondenceService {
         select: { name: true, nip: true },
       }),
     ]);
-    const fallback = { logoLeft: null, logoRight: null, rows: [{ text: 'PEMERINTAH KABUPATEN BATANG', fontSize: 12, bold: true, align: 'center', enabled: true }, { text: 'DINAS PENDIDIKAN DAN KEBUDAYAAN', fontSize: 12, bold: true, align: 'center', enabled: true }, { text: 'NAMA SEKOLAH', fontSize: 18, bold: true, align: 'center', enabled: true }, { text: 'Alamat sekolah · Telepon · Email', fontSize: 10, bold: false, align: 'center', enabled: true }], textAlign: 'center', borderStyle: 'double', logoSize: 88, documentTitle: 'SURAT', numberLabel: 'Nomor', openingText: 'Dengan hormat,', closingText: 'Demikian surat ini kami sampaikan. Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.', signatureCity: 'Batang', signatureTitle: 'Kepala Sekolah', signatureName: '', signatureNip: '', signatureAlign: 'center' };
+    const fallback = { logoLeft: null, logoRight: null, rows: [{ text: 'PEMERINTAH KABUPATEN BATANG', fontSize: 12, bold: true, align: 'center', enabled: true }, { text: 'DINAS PENDIDIKAN DAN KEBUDAYAAN', fontSize: 12, bold: true, align: 'center', enabled: true }, { text: 'NAMA SEKOLAH', fontSize: 18, bold: true, align: 'center', enabled: true }, { text: 'Alamat sekolah · Telepon · Email', fontSize: 10, bold: false, align: 'center', enabled: true }], textAlign: 'center', borderStyle: 'double', logoSize: 88, documentTitle: 'SURAT', numberLabel: 'Nomor', openingText: 'Dengan hormat,', closingText: 'Demikian surat ini kami sampaikan. Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.', signatureCity: 'Batang', signatureTitle: 'Kepala Sekolah', signatureName: '', signatureNip: '', signatureAlign: 'center', signatureSpacingLines: 2 };
     let config = fallback;
     if (setting?.value) { try { config = { ...fallback, ...JSON.parse(setting.value) }; } catch { /* safe defaults */ } }
     return { data: {
@@ -50,6 +50,7 @@ export class CorrespondenceService {
       signatureName: typeof value.signatureName === 'string' ? value.signatureName.trim().slice(0, 120) : '',
       signatureNip: typeof value.signatureNip === 'string' ? value.signatureNip.trim().slice(0, 40) : '',
       signatureAlign: ['left','center','right'].includes(String(value.signatureAlign)) ? value.signatureAlign : 'center',
+      signatureSpacingLines: Math.min(5, Math.max(0, Number.isFinite(Number(value.signatureSpacingLines)) ? Math.round(Number(value.signatureSpacingLines)) : 2)),
     };
     await this.prisma.systemSetting.upsert({ where: { key: 'correspondence.letterhead' }, create: { key: 'correspondence.letterhead', value: JSON.stringify(config) }, update: { value: JSON.stringify(config) } });
     await this.audit.record({ action: 'correspondence.letterhead.updated', entityType: 'SystemSetting', entityId: 'correspondence.letterhead', after: { ...config, logoLeft: Boolean(config.logoLeft), logoRight: Boolean(config.logoRight) }, userId });
