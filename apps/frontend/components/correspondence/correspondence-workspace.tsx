@@ -51,11 +51,23 @@ export function CorrespondenceWorkspace({ mode }: Props) {
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">{editingId?'Edit Draft Surat':'Buat Surat Keluar'}</h2>
         <p className="mt-1 text-sm text-muted">Surat harus disetujui Kepala Sekolah sebelum nomor surat diterbitkan.</p>
+        <details className="mt-4 rounded-xl border border-sky-200 bg-sky-50/70 dark:border-sky-900 dark:bg-sky-950/30">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-sky-900 marker:hidden dark:text-sky-200">
+            <span className="flex items-center gap-2"><span aria-hidden="true">ⓘ</span> Petunjuk penulisan surat</span>
+            <span className="shrink-0 text-xs font-medium text-sky-700 dark:text-sky-300">Klik untuk melihat ▾</span>
+          </summary>
+          <div className="space-y-2 border-t border-sky-200 px-4 py-3 text-sm leading-6 text-sky-950 dark:border-sky-900 dark:text-sky-100">
+            <p><b>Paragraf baru:</b> tekan Enter dua kali sehingga ada satu baris kosong di antara paragraf.</p>
+            <p><b>Baris berikutnya dalam paragraf yang sama:</b> tekan Enter satu kali.</p>
+            <p><b>Surat panjang:</b> isi surat akan berlanjut ke halaman berikutnya saat dicetak. Periksa hasilnya melalui tombol Pratinjau Cetak.</p>
+            <p><b>Jarak penutup dan tanda tangan:</b> atur jumlah baris kosong serta posisi tanggal dan tanda tangan melalui Opsek → Pengaturan Kop Surat → Format Surat dan Penandatangan.</p>
+          </div>
+        </details>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <input className={fieldClass} placeholder="Perihal surat" value={subject} onChange={e=>setSubject(e.target.value)}/>
           <input className={fieldClass} placeholder="Tujuan / penerima" value={recipient} onChange={e=>setRecipient(e.target.value)}/>
           <input className={fieldClass} type="date" value={letterDate} onChange={e=>setLetterDate(e.target.value)}/>
-          <label className="sm:col-span-2"><textarea className={fieldClass+' min-h-40'} placeholder="Isi surat. Pisahkan setiap paragraf dengan satu baris kosong." value={body} onChange={e=>setBody(e.target.value)}/><span className="mt-1 block text-xs text-muted">Gunakan satu baris kosong untuk memulai paragraf baru. Surat panjang akan mengalir ke halaman berikutnya saat dicetak.</span></label>
+          <label className="sm:col-span-2"><textarea className={fieldClass+' min-h-40'} placeholder="Isi surat. Pisahkan setiap paragraf dengan satu baris kosong." value={body} onChange={e=>setBody(e.target.value)}/><span className="mt-1 block text-xs text-muted">Gunakan petunjuk penulisan di atas jika memerlukan bantuan.</span></label>
         </div>
         <div className="mt-3 flex flex-wrap gap-2"><button type="button" className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800" disabled={!subject.trim()||!recipient.trim()||!body.trim()} onClick={()=>setPreviewLetter({id:'draft-preview',subject,recipient,letterDate,body,status:'DRAFT'})}>Pratinjau Cetak</button><button className={buttonClass} disabled={busy||!subject.trim()||!recipient.trim()||!body.trim()} onClick={()=>void createOutgoing()}>{editingId?'Simpan Perubahan':'Simpan Draft'}</button></div>{editingId&&<button className="ml-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold dark:border-slate-700" onClick={()=>{setEditingId(null);setSubject('');setRecipient('');setBody('');}}>Batal</button>}
       </section>
