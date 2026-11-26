@@ -12,11 +12,17 @@ import { DecideOutgoingLetterDto } from './dto/decide-outgoing-letter.dto';
 export class CorrespondenceService {
   constructor(private readonly prisma: PrismaService, private readonly audit: AuditService) {}
   async getLetterheadSettings() {
-    const setting = await this.prisma.systemSetting.findUnique({ where: { key: 'correspondence.letterhead' } });
+    const [setting, principal] = await Promise.all([
+      this.prisma.systemSetting.findUnique({ where: { key: 'correspondence.letterhead' } }),
+      this.prisma.teacher.findFirst({
+        where: { isActive: true, deletedAt: null, user: { is: { roles: { some: { role: { name: 'kepala_sekolah' } } } } } },
+        select: { name: true, nip: true },
+      }),
+    ]);
     const fallback = { logoLeft: null, logoRight: null, rows: [{ text: 'PEMERINTAH KABUPATEN BATANG', fontSize: 12, bold: true, align: 'center', enabled: true }, { text: 'DINAS PENDIDIKAN DAN KEBUDAYAAN', fontSize: 12, bold: true, align: 'center', enabled: true }, { text: 'NAMA SEKOLAH', fontSize: 18, bold: true, align: 'center', enabled: true }, { text: 'Alamat sekolah · Telepon · Email', fontSize: 10, bold: false, align: 'center', enabled: true }], textAlign: 'center', borderStyle: 'double', logoSize: 88 };
     let config = fallback;
     if (setting?.value) { try { config = { ...fallback, ...JSON.parse(setting.value) }; } catch { /* safe defaults */ } }
-    return { data: config };
+    return { data: { ...config, principalName: principal?.name ?? null, principalNip: principal?.nip ?? null } };
   }
   async updateLetterheadSettings(userId: string, input: unknown) {
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw new BadRequestException('Pengaturan kop tidak valid');
@@ -34,7 +40,7 @@ export class CorrespondenceService {
     };
     await this.prisma.systemSetting.upsert({ where: { key: 'correspondence.letterhead' }, create: { key: 'correspondence.letterhead', value: JSON.stringify(config) }, update: { value: JSON.stringify(config) } });
     await this.audit.record({ action: 'correspondence.letterhead.updated', entityType: 'SystemSetting', entityId: 'correspondence.letterhead', after: { ...config, logoLeft: Boolean(config.logoLeft), logoRight: Boolean(config.logoRight) }, userId });
-    return { data: config, message: 'Pengaturan kop surat berhasil disimpan.' };
+    return { data: (await this.getLetterheadSettings()).data, message: 'Pengaturan kop surat berhasil disimpan.' };
   }
   async getSignatureSettings() {
     const setting = await this.prisma.systemSetting.findUnique({ where: { key: 'correspondence.signature_mode' } });

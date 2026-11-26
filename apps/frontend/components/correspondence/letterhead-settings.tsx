@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { request } from '../../lib/api-client';
 
 type HeaderRow = { text: string; fontSize: number; bold: boolean; align: 'left'|'center'|'right'; enabled: boolean };
-export type LetterheadConfig = { logoLeft: string|null; logoRight: string|null; rows: HeaderRow[]; textAlign: 'left'|'center'|'right'; borderStyle: 'single'|'double'|'none'; logoSize: number };
+export type LetterheadConfig = { logoLeft: string|null; logoRight: string|null; rows: HeaderRow[]; textAlign: 'left'|'center'|'right'; borderStyle: 'single'|'double'|'none'; logoSize: number; principalName?: string|null; principalNip?: string|null };
 const initial: LetterheadConfig = { logoLeft: null, logoRight: null, rows: [{text:'PEMERINTAH KABUPATEN BATANG',fontSize:12,bold:true,align:'center',enabled:true},{text:'DINAS PENDIDIKAN DAN KEBUDAYAAN',fontSize:12,bold:true,align:'center',enabled:true},{text:'NAMA SEKOLAH',fontSize:18,bold:true,align:'center',enabled:true},{text:'Alamat sekolah · Telepon · Email',fontSize:10,bold:false,align:'center',enabled:true}], textAlign:'center', borderStyle:'double', logoSize:88 };
 const field = 'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 const panel = 'rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900';

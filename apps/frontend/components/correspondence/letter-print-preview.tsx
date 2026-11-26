@@ -33,7 +33,7 @@ export function LetterPrintPreview({ letter, signatureMode, letterhead, onClose 
       </div>
       <div className="mt-8 ml-auto w-[72mm] text-center text-[10.5pt]"><p>{dateText(letter.letterDate)}</p><p className="font-bold">Kepala Sekolah,</p>
         {effectiveMode === 'MANUAL' ? <div className="h-[28mm]" aria-label="Ruang tanda tangan basah" /> : <div className="my-2 flex h-[28mm] flex-col items-center justify-center border-y border-dashed border-gray-400 px-2 text-[8pt] text-gray-600"><span className="font-bold">AREA TANDA TANGAN ELEKTRONIK</span><span>TTE belum terhubung ke PSrE</span></div>}
-        <p className="font-bold underline underline-offset-2">{approved ? letter.approver?.name ?? 'Kepala Sekolah' : '........................................'}</p><p>NIP. ........................................</p>
+        <p className="font-bold underline underline-offset-2">{head?.principalName || (approved ? letter.approver?.name : null) || '........................................'}</p><p>NIP. {head?.principalNip || letterhead?.principalNip || '........................................'}</p>
       </div>
       {approved && effectiveMode === 'MANUAL' && <p className="mt-5 border-t border-dashed border-gray-400 pt-2 text-center font-sans text-[8pt] text-gray-600">Dokumen ini telah memperoleh persetujuan internal melalui EduFlow. Tanda tangan basah dibubuhkan pada dokumen cetak.</p>}
       {approved && effectiveMode === 'TTE' && <p className="mt-5 border-t border-dashed border-gray-400 pt-2 text-center font-sans text-[8pt] text-gray-600">Status persetujuan internal. Dokumen ini belum memiliki tanda tangan elektronik tersertifikasi.</p>}
