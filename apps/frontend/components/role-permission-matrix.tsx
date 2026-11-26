@@ -57,9 +57,10 @@ export function RolePermissionMatrix() {
           {roleColumns.map((role) => <th key={role.id} colSpan={2} className="min-w-32 border-b border-r border-[var(--border)] px-2 py-3 text-center font-semibold">{displayRole(role.name)}</th>)}
         </tr><tr>{roleColumns.map((role) => <th key={role.id + '-labels'} colSpan={2} className="border-b border-r border-[var(--border)] px-1 py-1"><div className="flex justify-around text-[11px] font-medium text-muted"><span>View</span><span>Write</span></div></th>)}</tr></thead>
         <tbody>{matrix.modules.map((module, index) => {
-          const zebraClass = index % 2 === 0 ? 'bg-white dark:bg-[var(--surface)]' : 'bg-slate-50/80 dark:bg-slate-800/45';
-          return <tr key={module.key} className={`group border-b border-[var(--border)] last:border-b-0 ${zebraClass} hover:bg-blue-50 dark:hover:bg-slate-700/50`}>
-          <th className="sticky left-0 z-10 border-r border-[var(--border)] px-3 py-2.5 text-left font-medium group-hover:bg-blue-50 dark:group-hover:bg-slate-700/50">{module.label}</th>
+          const zebraClass = index % 2 === 0 ? 'bg-white dark:bg-slate-900/70' : 'bg-slate-100 dark:bg-slate-800/90';
+          const stickyZebraClass = index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-100 dark:bg-slate-800';
+          return <tr key={module.key} className={`group border-b border-slate-300 dark:border-slate-600 last:border-b-0 ${zebraClass} hover:!bg-blue-100 dark:hover:!bg-slate-700`}>
+          <th className={`sticky left-0 z-10 border-r border-slate-300 dark:border-slate-600 px-3 py-2.5 text-left font-medium ${stickyZebraClass} group-hover:!bg-blue-100 dark:group-hover:!bg-slate-700`}>{module.label}</th>
           {roleColumns.map((role) => {
             const hasView = module.view.some((permission) => role.permissions.includes(permission));
             const hasWrite = module.write.some((permission) => role.permissions.includes(permission));
