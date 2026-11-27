@@ -197,6 +197,10 @@ export function BottomNavigation({
   const section = getSectionFromPath(pathname);
 
   useEffect(() => {
+    // The shell can mount before the session user and role list are hydrated.
+    // Rebuild the baseline menu whenever roles change, even when no custom
+    // preference has been saved for this account.
+    setLayout({ primary: defaultPrimary, more: defaultMore });
     let active = true;
     api.getMyNavigation().then(({ data }) => {
       if (!active || !data) return;

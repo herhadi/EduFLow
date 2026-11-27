@@ -307,12 +307,11 @@ function getNavigationDestinationKey(item: NavigationItem) {
 }
 
 function uniqueNavigationItems(items: NavigationItem[]) {
-  // Keep role-specific entries even when they resolve to the same shared page.
-  // Only remove exact duplicate routes contributed by overlapping roles.
   const seen = new Set<string>();
   return items.filter((item) => {
-    if (seen.has(item.href)) return false;
-    seen.add(item.href);
+    const key = getNavigationDestinationKey(item);
+    if (seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
 }
