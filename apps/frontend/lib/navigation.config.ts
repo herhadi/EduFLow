@@ -26,13 +26,11 @@ const rootNavigation: NavigationItem[] = [
   { href: '/system/dashboard', label: 'Sistem', icon: 'home' },
   { href: '/operations', label: 'Ops', icon: 'activity' },
   { href: '/system/access', label: 'Akses', icon: 'access' },
-  { href: '/system/correspondence-settings', label: 'Tanda Tangan Surat', icon: 'document' },
   { href: '/system/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
   {
-    href: '/system/profile',
-    label: 'Setting',
-    icon: 'more',
+    href: '/system/profile', label: 'Lainnya', icon: 'more',
     children: [
+      { href: '/system/correspondence-settings', label: 'Tanda Tangan Surat', icon: 'document' },
       { href: '/system/telegram', label: 'Telegram', icon: 'telegram' },
       { href: '/system/audit', label: 'Audit', icon: 'audit' },
       { href: '/system/profile', label: 'Profil', icon: 'profile' },
@@ -45,20 +43,30 @@ const operatorNavigation: NavigationItem[] = [
   { href: '/opsek/data', label: 'Master', icon: 'database' },
   { href: '/opsek/schedules', label: 'Jadwal', icon: 'schedule' },
   { href: '/opsek/extracurricular', label: 'Ekskul', icon: 'students' },
-  { href: '/opsek/active-accounts', label: 'Akun & Akses', icon: 'access' },
-  { href: '/opsek/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
-  { href: '/opsek/profile', label: 'Profil', icon: 'profile' },
+  {
+    href: '/opsek/profile', label: 'Lainnya', icon: 'more',
+    children: [
+      { href: '/opsek/active-accounts', label: 'Akun & Akses', icon: 'access' },
+      { href: '/opsek/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
+      { href: '/opsek/profile', label: 'Profil', icon: 'profile' },
+    ],
+  },
 ];
 
 const adminNavigation: NavigationItem[] = [
   { href: '/admin/dashboard', label: 'Beranda', icon: 'home' },
   { href: '/admin/access', label: 'Akun & Akses', icon: 'access' },
-  { href: '/admin/correspondence-settings', label: 'Tanda Tangan Surat', icon: 'document' },
-  { href: '/admin/letterhead-settings', label: 'Kop Surat', icon: 'document' },
   { href: '/admin/operations', label: 'Monitoring Sistem', icon: 'activity' },
-  { href: '/admin/audit', label: 'Audit', icon: 'audit' },
   { href: '/admin/notifications', label: 'Helpdesk', icon: 'message', badge: 'notifications' },
-  { href: '/admin/profile', label: 'Profil', icon: 'profile' },
+  {
+    href: '/admin/profile', label: 'Lainnya', icon: 'more',
+    children: [
+      { href: '/admin/correspondence-settings', label: 'Tanda Tangan Surat', icon: 'document' },
+      { href: '/admin/letterhead-settings', label: 'Kop Surat', icon: 'document' },
+      { href: '/admin/audit', label: 'Audit', icon: 'audit' },
+      { href: '/admin/profile', label: 'Profil', icon: 'profile' },
+    ],
+  },
 ];
 
 const principalNavigation: NavigationItem[] = [
@@ -66,12 +74,10 @@ const principalNavigation: NavigationItem[] = [
   { href: '/principal/kbm', label: 'KBM', icon: 'kbm' },
   { href: '/principal/teacher-performance', label: 'Guru', icon: 'teacher' },
   { href: '/principal/persuratan', label: 'Persetujuan Surat', icon: 'document' },
-  { href: '/principal/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
   {
-    href: '/principal/profile',
-    label: 'Lainnya',
-    icon: 'more',
+    href: '/principal/profile', label: 'Lainnya', icon: 'more',
     children: [
+      { href: '/principal/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
       { href: '/principal/student-reports', label: 'Siswa', icon: 'students' },
       { href: '/principal/review', label: 'Review', icon: 'review' },
       { href: '/principal/exports', label: 'Export', icon: 'download' },
@@ -138,16 +144,21 @@ const roleNavigation: Record<UserRole, NavigationItem[]> = {
   guru: teacherNavigation,
   wali_kelas: homeroomNavigation,
   tu: [
-    { href: '/tu/dashboard', label: 'Home', icon: 'home' },
+    { href: '/tu/dashboard', label: 'Beranda', icon: 'home' },
     { href: '/tu/data', label: 'Direktori Data', icon: 'database' },
     { href: '/tu/siswa-aktif', label: 'Siswa Aktif', icon: 'students' },
-    { href: '/tu/import-data', label: 'Import Data', icon: 'upload' },
     { href: '/tu/journals', label: 'Monitoring Jurnal', icon: 'document' },
-    { href: '/tu/persuratan', label: 'Persuratan', icon: 'document' },
-    { href: '/tu/letterhead-settings', label: 'Kop Surat', icon: 'document' },
-    { href: '/tu/reports', label: 'Laporan', icon: 'report' },
-    { href: '/tu/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
-    { href: '/tu/profile', label: 'Profil', icon: 'profile' },
+    {
+      href: '/tu/profile', label: 'Lainnya', icon: 'more',
+      children: [
+        { href: '/tu/import-data', label: 'Import Data', icon: 'upload' },
+        { href: '/tu/persuratan', label: 'Persuratan', icon: 'document' },
+        { href: '/tu/letterhead-settings', label: 'Kop Surat', icon: 'document' },
+        { href: '/tu/reports', label: 'Laporan', icon: 'report' },
+        { href: '/tu/notifications', label: 'Pesan', icon: 'message', badge: 'notifications' },
+        { href: '/tu/profile', label: 'Profil', icon: 'profile' },
+      ],
+    },
   ],
   bk: [
     { href: '/bk/dashboard', label: 'Home', icon: 'home' },
