@@ -104,6 +104,22 @@ export class AuthController {
     return ok(request.user);
   }
 
+  @Get('me/navigation')
+  getMyNavigation(@Req() request: RequestWithUser) {
+    return this.authService.getMyNavigation(request.user.id);
+  }
+
+  @Patch('me/navigation')
+  updateMyNavigation(@Body() dto: { primary: string[]; more: string[] }, @Req() request: RequestWithUser) {
+    if (!Array.isArray(dto.primary) || !Array.isArray(dto.more)
+      || dto.primary.length > 4 || dto.more.length > 100
+      || [...dto.primary, ...dto.more].some((href) => typeof href !== 'string' || href.length > 200)
+      || new Set([...dto.primary, ...dto.more]).size !== dto.primary.length + dto.more.length) {
+      throw new BadRequestException('Susunan navigasi tidak valid');
+    }
+    return this.authService.updateMyNavigation(request.user.id, dto);
+  }
+
   @Get('me/profile')
   getMyProfile(@Req() request: RequestWithUser) {
     return this.authService.getMyProfile(request.user.id);

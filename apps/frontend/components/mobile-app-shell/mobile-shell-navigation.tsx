@@ -14,6 +14,7 @@ import {
   FileText,
   History,
   Home,
+  GripVertical,
   Mail,
   MoreHorizontal,
   Presentation,
@@ -179,10 +180,40 @@ export function BottomNavigation({
   pathname: string;
   roles: string[];
 }) {
-  const primaryNavItems = getPrimaryNavigation(roles);
-  const section = getSectionFromPath(pathname);
+  const defaults = getPrimaryNavigation(roles);
+  const defaultPrimary = defaults.filter((item) => !item.children?.length);
+  const defaultMore = defaults.flatMap((item) => item.children ?? []);
+  const allAllowed = [...defaultPrimary, ...defaultMore];
+  const [layout, setLayout] = useState<{ primary: NavigationItem[]; more: NavigationItem[] }>({
+    primary: defaultPrimary,
+    more: defaultMore,
+  });
   const [openMoreHref, setOpenMoreHref] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [draggedHref, setDraggedHref] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const navRef = useRef<HTMLDivElement>(null);
+  const section = getSectionFromPath(pathname);
+
+  useEffect(() => {
+    let active = true;
+    api.getMyNavigation().then(({ data }) => {
+      if (!active || !data) return;
+      const byHref = new Map(allAllowed.map((item) => [item.href, item]));
+      const savedPrimary = data.primary.map((href) => byHref.get(href)).filter((item): item is NavigationItem => Boolean(item));
+      const pinnedHome = defaultPrimary[0];
+      const primary = (pinnedHome
+        ? [pinnedHome, ...savedPrimary.filter((item) => item.href !== pinnedHome.href)]
+        : savedPrimary).slice(0, 4);
+      const primaryHrefs = new Set(primary.map((item) => item.href));
+      const savedMore = data.more.map((href) => byHref.get(href)).filter((item): item is NavigationItem => item !== undefined && !primaryHrefs.has(item.href));
+      const used = new Set([...primaryHrefs, ...savedMore.map((item) => item.href)]);
+      const more = [...savedMore, ...allAllowed.filter((item) => !used.has(item.href) && !primaryHrefs.has(item.href))];
+      if (primary.length) setLayout({ primary, more });
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, [roles.join('|')]);
 
   useEffect(() => {
     setOpenMoreHref(null);
@@ -190,83 +221,131 @@ export function BottomNavigation({
 
   useEffect(() => {
     function closeMenu(event: MouseEvent) {
-      if (!navRef.current?.contains(event.target as Node)) {
-        setOpenMoreHref(null);
-      }
+      if (!navRef.current?.contains(event.target as Node)) setOpenMoreHref(null);
     }
-
     document.addEventListener('mousedown', closeMenu);
     return () => document.removeEventListener('mousedown', closeMenu);
   }, []);
 
+  const visibleItems: NavigationItem[] = [
+    ...layout.primary,
+    ...(layout.more.length ? [{ href: '/more', label: 'Lainnya', icon: 'more', children: layout.more }] : []),
+  ];
+
+  function moveItem(href: string, destination: 'primary' | 'more', targetHref?: string) {
+    setLayout((current) => {
+      const item = [...current.primary, ...current.more].find((entry) => entry.href === href);
+      if (!item || current.primary[0]?.href === href || (targetHref && targetHref === current.primary[0]?.href)) return current;
+      let primary = current.primary.filter((entry) => entry.href !== href);
+      let more = current.more.filter((entry) => entry.href !== href);
+      if (destination === 'primary') {
+        if (current.primary.length >= 4 && !current.primary.some((entry) => entry.href === href)) return current;
+        const targetIndex = targetHref ? primary.findIndex((entry) => entry.href === targetHref) : -1;
+        primary.splice(targetIndex >= 0 ? targetIndex : primary.length, 0, item);
+      } else {
+        const targetIndex = targetHref ? more.findIndex((entry) => entry.href === targetHref) : -1;
+        more.splice(targetIndex >= 0 ? targetIndex : more.length, 0, item);
+      }
+      return { primary, more };
+    });
+  }
+
+  function reorderItem(href: string, direction: -1 | 1, zone: 'primary' | 'more') {
+    setLayout((current) => {
+      const list = [...current[zone]];
+      const index = list.findIndex((entry) => entry.href === href);
+      const nextIndex = index + direction;
+      if (index < 0 || nextIndex < 0 || nextIndex >= list.length || (zone === 'primary' && (index === 0 || nextIndex === 0))) return current;
+      [list[index], list[nextIndex]] = [list[nextIndex], list[index]];
+      return { ...current, [zone]: list };
+    });
+  }
+
+  async function saveLayout() {
+    setSaving(true);
+    setSaveError('');
+    try {
+      await api.updateMyNavigation({
+        primary: layout.primary.map((item) => item.href),
+        more: layout.more.map((item) => item.href),
+      });
+      setEditing(false);
+      setOpenMoreHref(null);
+    } catch {
+      setSaveError('Susunan belum tersimpan. Periksa koneksi lalu coba lagi.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
-    <nav
-      aria-label="Navigasi utama"
-      className="mobile-bottom-nav md:w-1/2"
-    >
-      <div
-        ref={navRef}
-        className="mobile-bottom-nav-inner"
-        style={{ gridTemplateColumns: `repeat(${primaryNavItems.length}, minmax(0, 1fr))` }}
-      >
-        {primaryNavItems.map((item, index) => {
-          const active = isBottomNavItemActive({
-            href: item.href,
-            pathname,
-            section,
-            children: item.children,
-          });
+    <nav aria-label="Navigasi utama" className="mobile-bottom-nav md:w-1/2">
+      <div ref={navRef} className="mobile-bottom-nav-inner" style={{ gridTemplateColumns: `repeat(${visibleItems.length}, minmax(0, 1fr))` }}>
+        {visibleItems.map((item, index) => {
+          const active = isBottomNavItemActive({ href: item.href, pathname, section, children: item.children });
           const open = openMoreHref === item.href;
           const toneClass = getBottomNavToneClass(index);
-
           return (
             <div className="relative" key={item.href}>
               {item.children?.length ? (
                 <>
-                  <button
-                    aria-expanded={open}
-                    className={cn(
-                      'mobile-bottom-nav-item',
-                      toneClass,
-                      (active || open) && 'mobile-bottom-nav-item-active',
-                    )}
-                    onClick={() => setOpenMoreHref((current) => current === item.href ? null : item.href)}
-                    type="button"
-                  >
-                    <BottomNavContent
-                      item={item}
-                      notificationBadgeCount={notificationBadgeCount}
-                    />
+                  <button aria-expanded={open} className={cn('mobile-bottom-nav-item', toneClass, (active || open) && 'mobile-bottom-nav-item-active')}
+                    onClick={() => setOpenMoreHref((current) => current === item.href ? null : item.href)} type="button">
+                    <BottomNavContent item={item} notificationBadgeCount={notificationBadgeCount} />
                   </button>
-                  {open ? (
-                    <MoreNavigationMenu
-                      items={item.children}
-                      notificationBadgeCount={notificationBadgeCount}
-                      pathname={pathname}
-                      section={section}
-                      toneClass={toneClass}
-                    />
-                  ) : null}
+                  {open ? <MoreNavigationMenu items={item.children} notificationBadgeCount={notificationBadgeCount} pathname={pathname} section={section} toneClass={toneClass} onCustomize={() => { setEditing(true); setOpenMoreHref(null); }} /> : null}
                 </>
               ) : (
-                <Link
-                  className={cn(
-                    'mobile-bottom-nav-item',
-                    toneClass,
-                    active && 'mobile-bottom-nav-item-active',
-                  )}
-                  href={item.href}
-                >
-                  <BottomNavContent
-                    item={item}
-                    notificationBadgeCount={notificationBadgeCount}
-                  />
+                <Link className={cn('mobile-bottom-nav-item', toneClass, active && 'mobile-bottom-nav-item-active')} href={item.href}>
+                  <BottomNavContent item={item} notificationBadgeCount={notificationBadgeCount} />
                 </Link>
               )}
             </div>
           );
         })}
       </div>
+      {editing ? (
+        <div className="fixed inset-0 z-[500] flex items-end justify-center bg-black/50 p-3 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="mobile-nav-editor-title">
+          <section className="surface-card max-h-[85dvh] w-full max-w-xl overflow-y-auto rounded-2xl p-4 shadow-2xl">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div><h2 id="mobile-nav-editor-title" className="text-base font-black text-ink">Atur Navigasi</h2><p className="text-xs text-muted">Seret menu untuk memindahkan atau mengubah urutan.</p></div>
+              <button className="secondary-button rounded-lg px-3 py-2 text-sm" onClick={() => setEditing(false)} type="button">Tutup</button>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {(['primary', 'more'] as const).map((zone) => (
+                <div key={zone} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); if (draggedHref) moveItem(draggedHref, zone); setDraggedHref(null); }}
+                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
+                  <div className="mb-2 flex items-center justify-between"><h3 className="text-sm font-bold text-ink">{zone === 'primary' ? 'Menu Utama' : 'Lainnya'}</h3><span className="text-xs text-muted">{zone === 'primary' ? `${layout.primary.length}/4` : layout.more.length}</span></div>
+                  <div className="grid gap-2">
+                    {(zone === 'primary' ? layout.primary : layout.more).map((entry, index) => (
+                      <div key={entry.href} draggable={!(zone === 'primary' && index === 0)} onDragStart={(event) => { event.dataTransfer.setData('text/plain', entry.href); event.dataTransfer.effectAllowed = 'move'; setDraggedHref(entry.href); }}
+                        onDragEnd={() => setDraggedHref(null)} onDragOver={(event) => event.preventDefault()}
+                        onDrop={(event) => { event.preventDefault(); event.stopPropagation(); if (draggedHref) moveItem(draggedHref, zone, entry.href); setDraggedHref(null); }}
+                        className={cn('flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-2 text-sm text-ink', draggedHref === entry.href && 'opacity-40')}>
+                        <span className="cursor-grab text-muted" aria-hidden="true"><GripVertical className="size-4" /></span><span className="min-w-0 flex-1 truncate font-semibold">{entry.label}</span>
+                        {!(zone === 'primary' && index === 0) ? (
+                          <div className="flex items-center gap-1">
+                            <button aria-label={`Pindahkan ${entry.label} ke atas`} className="secondary-button rounded-md px-1.5 py-1 text-[10px]" disabled={index === 0} onClick={() => reorderItem(entry.href, -1, zone)} type="button">Naik</button>
+                            <button aria-label={`Pindahkan ${entry.label} ke bawah`} className="secondary-button rounded-md px-1.5 py-1 text-[10px]" disabled={index === (zone === 'primary' ? layout.primary.length : layout.more.length) - 1} onClick={() => reorderItem(entry.href, 1, zone)} type="button">Turun</button>
+                            <button className="secondary-button rounded-md px-2 py-1 text-xs" onClick={() => moveItem(entry.href, zone === 'primary' ? 'more' : 'primary')} type="button">
+                              {zone === 'primary' ? 'Lainnya' : 'Utama'}
+                            </button>
+                          </div>
+                        ) : <span className="text-[10px] text-muted">Tetap</span>}
+                      </div>
+                    ))}
+                    {zone === 'primary' && layout.primary.length === 0 ? <p className="text-xs text-muted">Tarik menu ke sini.</p> : null}
+                    {zone === 'more' && layout.more.length === 0 ? <p className="text-xs text-muted">Tarik menu ke sini.</p> : null}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-muted">Menu pertama dikunci sebagai Beranda atau halaman utama role. Maksimal empat menu utama; akses menu lainnya tetap tersedia melalui Lainnya.</p>
+            {saveError ? <p className="mt-2 text-sm font-semibold text-red-600">{saveError}</p> : null}
+            <div className="mt-4 flex justify-end gap-2"><button className="secondary-button rounded-lg px-4 py-2 text-sm" onClick={() => setEditing(false)} type="button">Batal</button><button className="primary-button rounded-lg px-4 py-2 text-sm" disabled={saving || layout.primary.length === 0} onClick={() => void saveLayout()} type="button">{saving ? 'Menyimpan...' : 'Simpan'}</button></div>
+          </section>
+        </div>
+      ) : null}
     </nav>
   );
 }
@@ -295,12 +374,14 @@ function MoreNavigationMenu({
   pathname,
   section,
   toneClass,
+  onCustomize,
 }: {
   items: NavigationItem[];
   notificationBadgeCount: number;
   pathname: string;
   section: string | null;
   toneClass: string;
+  onCustomize: () => void;
 }) {
   return (
     <div className="mobile-bottom-nav-menu">
@@ -333,6 +414,7 @@ function MoreNavigationMenu({
           );
         })}
       </div>
+      <button className="mt-2 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-left text-xs font-bold text-ink hover:bg-[var(--surface-soft)]" onClick={onCustomize} type="button">Atur Navigasi</button>
     </div>
   );
 }

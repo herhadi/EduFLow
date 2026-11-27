@@ -42,3 +42,13 @@ apps/frontend/components/ui/
 - Tombol batal/tutup tetap netral. Menghapus pilihan lokal yang belum disimpan dapat menggunakan konfirmasi singkat bila kontrolnya secara eksplisit berlabel Hapus/Kosongkan.
 - Gunakan `Button` dengan `variant="danger"` untuk aksi destruktif. Tombol refresh/status yang bersifat informatif dan bukan aksi utama sebaiknya memakai gaya netral (`variant="outline"` atau `ghost`), bukan warna biru solid. Hindari menggabungkan `variant="outline"` dengan kelas latar danger/info karena gaya outline dapat mengalahkan warna yang dimaksud, khususnya pada dark mode.
 - Role pada sapaan akun menampilkan nama role dari backend dengan format Title Case; khusus `tu` ditampilkan sebagai `TU` dan `bk` sebagai `BK`. Nama database `super admin` adalah penggantian nama role lama `admin`; pemetaan ke kode navigasi internal `admin` hanya untuk kompatibilitas kode, bukan membuat role baru. Pemeriksaan pengelolaan role menggunakan nama database `super admin`.
+
+
+## Navigasi bawah yang dapat diatur pengguna
+
+- Susunan bottom navigation disimpan per akun pada kolom `User.mobileNavigationPreference`, sehingga preferensi mengikuti pengguna saat berpindah perangkat.
+- Pengguna membuka menu **Lainnya > Atur Navigasi** untuk memindahkan menu antara Menu Utama dan Lainnya.
+- Menu utama dibatasi maksimal empat item. Item pertama dipertahankan sebagai halaman awal role agar akses Beranda/Sistem tidak hilang.
+- Urutan dapat diubah dengan drag-and-drop atau tombol Naik/Turun yang ramah layar sentuh.
+- Daftar yang dapat dipilih selalu dibatasi pada menu yang tersedia untuk role aktif. Item yang tidak lagi tersedia tidak ditampilkan; menu baru ditambahkan ke Lainnya.
+- Pengaturan disimpan ke backend, bukan hanya local storage, sehingga konsisten lintas perangkat dan sesi.

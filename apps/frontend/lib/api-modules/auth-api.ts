@@ -40,6 +40,9 @@ export const authApi = {
       method: 'POST',
       body: JSON.stringify({ refreshToken }),
     }),
+  getMyNavigation: () => request<ApiResponse<{ primary: string[]; more: string[] } | null>>('/auth/me/navigation'),
+  updateMyNavigation: (payload: { primary: string[]; more: string[] }) =>
+    request<ApiResponse<{ primary: string[]; more: string[] }>>('/auth/me/navigation', { method: 'PATCH', body: JSON.stringify(payload) }),
   getMyProfile: () => request<ApiResponse<MyProfile>>('/auth/me/profile'),
   updateMyProfile: (payload: { name?: string }) =>
     request<ApiResponse<MyProfile>>('/auth/me/profile', {

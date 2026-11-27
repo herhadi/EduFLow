@@ -530,3 +530,11 @@ Changelog hanya memuat perubahan besar yang berdampak pada fitur, alur kerja, ke
 - Menambahkan pemetaan permission per modul serta baris dinamis untuk permission yang belum dikelompokkan.
 - Seeder mempertahankan assignment RolePermission hasil pengaturan Root agar tidak terhapus pada seeding berikutnya; migrasi memberikan seluruh permission yang sudah ada kepada role Root.
 - Mendokumentasikan batas scope data dan permission khusus seperti approval serta monitoring jurnal lintas sekolah.
+
+
+## 2026-11-27 - Navigasi bawah personal
+
+- Menambahkan pengaturan susunan bottom navigation per pengguna, tersimpan di database dan berlaku lintas perangkat.
+- Pengguna dapat memindahkan menu antara Menu Utama dan Lainnya serta mengubah urutan dengan drag-and-drop atau kontrol Naik/Turun.
+- Menu utama dibatasi maksimal empat item dan halaman awal role tetap dikunci pada posisi pertama.
+- Menu yang tampil tetap mengikuti daftar navigasi yang diizinkan untuk role aktif; menu baru yang tersedia otomatis masuk ke Lainnya.

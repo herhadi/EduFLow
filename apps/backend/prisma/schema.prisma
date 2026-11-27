@@ -249,6 +249,7 @@ model User {
   photoName             String?
   photoMimeType         String?
   photoSize             Int?
+  mobileNavigationPreference Json?
   telegramId            String?               @unique
   telegramLinkedAt      DateTime? @db.Timestamptz(3)
   roles                 UserRole[]

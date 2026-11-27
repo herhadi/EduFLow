@@ -76,6 +76,16 @@ export class AuthService {
   ) {}
 
 
+  async getMyNavigation(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { mobileNavigationPreference: true } });
+    return ok(user?.mobileNavigationPreference ?? null);
+  }
+
+  async updateMyNavigation(userId: string, preference: { primary: string[]; more: string[] }) {
+    const saved = await this.prisma.user.update({ where: { id: userId }, data: { mobileNavigationPreference: preference }, select: { mobileNavigationPreference: true } });
+    return ok(saved.mobileNavigationPreference);
+  }
+
   async getRolePermissionMatrix() {
     const [roles, permissions] = await Promise.all([
       this.prisma.role.findMany({ orderBy: { name: 'asc' }, include: { permissions: { include: { permission: true } } } }),
