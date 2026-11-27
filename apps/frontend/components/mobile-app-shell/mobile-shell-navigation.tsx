@@ -14,7 +14,6 @@ import {
   FileText,
   History,
   Home,
-  GripVertical,
   Mail,
   MoreHorizontal,
   Presentation,
@@ -30,6 +29,7 @@ import { getRoleGreetingLabels } from '../dashboards/dashboard-types';
 import { cn } from '../../lib/cn';
 import {
   getPrimaryNavigation,
+  getNavigationRoleGroups,
   getSectionFromPath,
   type NavigationItem,
 } from '../../lib/navigation.config';
@@ -184,13 +184,13 @@ export function BottomNavigation({
   const defaultPrimary = defaults.filter((item) => !item.children?.length);
   const defaultMore = defaults.flatMap((item) => item.children ?? []);
   const allAllowed = [...defaultPrimary, ...defaultMore];
+  const roleGroups = getNavigationRoleGroups(roles);
   const [layout, setLayout] = useState<{ primary: NavigationItem[]; more: NavigationItem[] }>({
     primary: defaultPrimary,
     more: defaultMore,
   });
   const [openMoreHref, setOpenMoreHref] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
-  const [draggedHref, setDraggedHref] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const navRef = useRef<HTMLDivElement>(null);
@@ -316,39 +316,53 @@ export function BottomNavigation({
         <div className="pointer-events-auto fixed inset-0 z-[500] flex items-end justify-center bg-black/50 p-3 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="mobile-nav-editor-title">
           <section className="surface-card max-h-[85dvh] w-full max-w-xl overflow-y-auto rounded-2xl p-4 shadow-2xl">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <div><h2 id="mobile-nav-editor-title" className="text-base font-black text-ink">Atur Navigasi</h2><p className="text-xs text-muted">Gunakan tombol untuk mengubah urutan dan memindahkan menu.</p></div>
+              <div><h2 id="mobile-nav-editor-title" className="text-base font-black text-ink">Atur Navigasi</h2><p className="text-xs text-muted">Untuk akun multi-role, menu dipisahkan per kategori role. Atur posisi menu dari kategori masing-masing.</p></div>
               <button className="secondary-button rounded-lg px-3 py-2 text-sm" onClick={() => setEditing(false)} type="button">Tutup</button>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {(['primary', 'more'] as const).map((zone) => (
-                <div key={zone} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); if (draggedHref) moveItem(draggedHref, zone); setDraggedHref(null); }}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
-                  <div className="mb-2 flex items-center justify-between"><h3 className="text-sm font-bold text-ink">{zone === 'primary' ? 'Menu Utama' : 'Lainnya'}</h3><span className="text-xs text-muted">{zone === 'primary' ? `${layout.primary.length}/4` : layout.more.length}</span></div>
-                  <div className="grid gap-2">
-                    {(zone === 'primary' ? layout.primary : layout.more).map((entry, index) => (
-                      <div key={entry.href} draggable={!(zone === 'primary' && index === 0)} onDragStart={(event) => { event.dataTransfer.setData('text/plain', entry.href); event.dataTransfer.effectAllowed = 'move'; setDraggedHref(entry.href); }}
-                        onDragEnd={() => setDraggedHref(null)} onDragOver={(event) => event.preventDefault()}
-                        onDrop={(event) => { event.preventDefault(); event.stopPropagation(); if (draggedHref) moveItem(draggedHref, zone, entry.href); setDraggedHref(null); }}
-                        className={cn('flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-2 text-sm text-ink', draggedHref === entry.href && 'opacity-40')}>
-                        <span className="cursor-grab text-muted" aria-hidden="true"><GripVertical className="size-4" /></span><span className="min-w-0 flex-1 truncate font-semibold">{entry.label}</span>
-                        {!(zone === 'primary' && index === 0) ? (
-                          <div className="flex items-center gap-1">
-                            <button aria-label={`Pindahkan ${entry.label} ke atas`} className="secondary-button rounded-md px-1.5 py-1 text-[10px]" disabled={index === 0} onClick={() => reorderItem(entry.href, -1, zone)} type="button">Naik</button>
-                            <button aria-label={`Pindahkan ${entry.label} ke bawah`} className="secondary-button rounded-md px-1.5 py-1 text-[10px]" disabled={index === (zone === 'primary' ? layout.primary.length : layout.more.length) - 1} onClick={() => reorderItem(entry.href, 1, zone)} type="button">Turun</button>
-                            <button className="secondary-button rounded-md px-2 py-1 text-xs" onClick={() => moveItem(entry.href, zone === 'primary' ? 'more' : 'primary')} type="button">
-                              {zone === 'primary' ? 'Lainnya' : 'Utama'}
-                            </button>
-                          </div>
-                        ) : <span className="text-[10px] text-muted">Tetap</span>}
-                      </div>
-                    ))}
-                    {zone === 'primary' && layout.primary.length === 0 ? <p className="text-xs text-muted">Tarik menu ke sini.</p> : null}
-                    {zone === 'more' && layout.more.length === 0 ? <p className="text-xs text-muted">Tarik menu ke sini.</p> : null}
-                  </div>
+            <div className="grid gap-3">
+              <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
+                <div className="mb-2 flex items-center justify-between gap-2"><h3 className="text-sm font-bold text-ink">Menu Utama</h3><span className="text-xs text-muted">{layout.primary.length}/4</span></div>
+                <p className="mb-2 text-xs text-muted">Menu yang tampil langsung di navbar. Beranda/halaman utama role tetap dikunci.</p>
+                <div className="grid gap-2">
+                  {layout.primary.map((entry, index) => (
+                    <div key={entry.href} className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-2 text-sm text-ink">
+                      <span className="min-w-0 flex-1 truncate font-semibold">{entry.label}</span>
+                      {index === 0 ? <span className="text-[10px] text-muted">Tetap</span> : <div className="flex items-center gap-1">
+                        <button aria-label={`Pindahkan ${entry.label} ke atas`} className="secondary-button rounded-md px-1.5 py-1 text-[10px]" disabled={index === 1} onClick={() => reorderItem(entry.href, -1, 'primary')} type="button">Naik</button>
+                        <button aria-label={`Pindahkan ${entry.label} ke bawah`} className="secondary-button rounded-md px-1.5 py-1 text-[10px]" disabled={index === layout.primary.length - 1} onClick={() => reorderItem(entry.href, 1, 'primary')} type="button">Turun</button>
+                        <button className="secondary-button rounded-md px-2 py-1 text-xs" onClick={() => moveItem(entry.href, 'more')} type="button">Lainnya</button>
+                      </div>}
+                    </div>
+                  ))}
                 </div>
+              </section>
+              <div className="flex items-center justify-between gap-2"><h3 className="text-sm font-black text-ink">Menu berdasarkan Role</h3><span className="text-xs text-muted">{roleGroups.length} kategori</span></div>
+              <p className="-mt-2 text-xs text-muted">Setiap kategori menunjukkan menu dari role akun. Status Utama/Lainnya menunjukkan posisi menu pada navbar gabungan.</p>
+              {roleGroups.map((group) => (
+                <section key={group.role} className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
+                  <div className="mb-2 flex items-center justify-between gap-2"><h4 className="text-sm font-bold text-ink">{group.label}</h4><span className="text-xs text-muted">{group.items.length} menu</span></div>
+                  <div className="grid gap-2">
+                    {group.items.map((entry) => {
+                      const inPrimary = layout.primary.some((item) => item.href === entry.href);
+                      const zone = inPrimary ? 'primary' : 'more';
+                      const currentList = layout[zone];
+                      const index = currentList.findIndex((item) => item.href === entry.href);
+                      const pinned = inPrimary && index === 0;
+                      return <div key={entry.href} className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-2 text-sm text-ink">
+                        <span className="min-w-0 flex-1 truncate font-semibold">{entry.label}</span>
+                        <span className="shrink-0 rounded-full bg-[var(--surface-soft)] px-2 py-1 text-[10px] font-bold text-muted">{inPrimary ? 'Utama' : 'Lainnya'}</span>
+                        {!pinned ? <div className="flex shrink-0 items-center gap-1">
+                          <button aria-label={`Pindahkan ${entry.label} ke atas`} className="secondary-button rounded-md px-1.5 py-1 text-[10px]" disabled={index <= (inPrimary ? 1 : 0)} onClick={() => reorderItem(entry.href, -1, zone)} type="button">Naik</button>
+                          <button aria-label={`Pindahkan ${entry.label} ke bawah`} className="secondary-button rounded-md px-1.5 py-1 text-[10px]" disabled={index < 0 || index === currentList.length - 1} onClick={() => reorderItem(entry.href, 1, zone)} type="button">Turun</button>
+                          <button className="secondary-button rounded-md px-2 py-1 text-xs" onClick={() => moveItem(entry.href, inPrimary ? 'more' : 'primary')} type="button">{inPrimary ? 'Lainnya' : 'Utama'}</button>
+                        </div> : <span className="text-[10px] text-muted">Tetap</span>}
+                      </div>;
+                    })}
+                  </div>
+                </section>
               ))}
             </div>
-            <p className="mt-3 text-xs text-muted">Menu pertama dikunci sebagai Beranda atau halaman utama role. Maksimal empat menu utama. Jika slot penuh, menu terakhir otomatis dipindah ke Lainnya saat Anda memilih menu pengganti.</p>
+            <p className="mt-3 text-xs text-muted">Navigasi tetap digabung menjadi satu navbar. Setiap menu dikelompokkan berdasarkan role asal; maksimal empat menu tampil sebagai Menu Utama. Jika penuh, menu terakhir otomatis dipindah ke Lainnya saat Anda memilih menu pengganti.</p>
             {saveError ? <p className="mt-2 text-sm font-semibold text-red-600">{saveError}</p> : null}
             <div className="mt-4 flex justify-end gap-2"><button className="secondary-button rounded-lg px-4 py-2 text-sm" onClick={() => setEditing(false)} type="button">Batal</button><button className="primary-button rounded-lg px-4 py-2 text-sm" disabled={saving || layout.primary.length === 0} onClick={() => void saveLayout()} type="button">{saving ? 'Menyimpan...' : 'Simpan'}</button></div>
           </section>

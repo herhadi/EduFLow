@@ -321,6 +321,37 @@ function uniqueNavigationItems(items: NavigationItem[]) {
  * The highest-priority role supplies the main destinations; destinations
  * from additional roles are collected under a single "Lainnya" entry.
  */
+export interface NavigationRoleGroup {
+  role: UserRole | 'shared';
+  label: string;
+  items: NavigationItem[];
+}
+const navigationRoleLabels: Record<UserRole, string> = {
+  root: 'Root', admin: 'Super Administrator', operator_sekolah: 'Operator Sekolah',
+  kepala_sekolah: 'Kepala Sekolah', guru: 'Guru', wali_kelas: 'Wali Kelas',
+  tu: 'Tata Usaha (TU)', bk: 'Bimbingan Konseling (BK)', orang_tua: 'Orang Tua',
+};
+export function getNavigationRoleGroups(roles: string[] = []): NavigationRoleGroup[] {
+  const navigationRoles = getNavigationRoles(roles);
+  const assignedRoles = rolePriority.filter((role) => navigationRoles.has(role));
+  const seenDestinations = new Set<string>();
+  const groups: NavigationRoleGroup[] = assignedRoles.map((role) => {
+    const source = role === 'guru' && assignedRoles.includes('wali_kelas') ? homeroomNavigation : roleNavigation[role];
+    const items = source.flatMap((item) => item.children?.length ? item.children : [item]);
+    const uniqueItems = uniqueNavigationItems(items).filter((item) => {
+      const key = getNavigationDestinationKey(item);
+      if (seenDestinations.has(key)) return false;
+      seenDestinations.add(key);
+      return true;
+    });
+    return { role, label: navigationRoleLabels[role], items: uniqueItems };
+  }).filter((group) => group.items.length > 0);
+  if (assignedRoles.length > 0 && !assignedRoles.includes('root')) {
+    groups.push({ role: 'shared', label: 'Fitur Sekolah', items: [{ href: '/school-profile/organization-structure', label: 'Bagan Organisasi', icon: 'school' }] });
+  }
+  return groups;
+}
+
 export function getPrimaryNavigation(roles: string[] = []) {
   const navigationRoles = getNavigationRoles(roles);
   const assignedRoles = rolePriority.filter((role) => navigationRoles.has(role));
