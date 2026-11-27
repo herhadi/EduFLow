@@ -315,9 +315,12 @@ export function BottomNavigation({
       {editing ? (
         <div className="pointer-events-auto fixed inset-0 z-[500] flex items-end justify-center bg-black/50 p-3 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="mobile-nav-editor-title">
           <section className="surface-card max-h-[85dvh] w-full max-w-xl overflow-y-auto rounded-2xl p-4 shadow-2xl">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div><h2 id="mobile-nav-editor-title" className="text-base font-black text-ink">Atur Navigasi</h2><p className="text-xs text-muted">Untuk akun multi-role, menu dipisahkan per kategori role. Atur posisi menu dari kategori masing-masing.</p></div>
-              <button className="secondary-button rounded-lg px-3 py-2 text-sm" onClick={() => setEditing(false)} type="button">Tutup</button>
+            <div className="mb-3 grid gap-2">
+              <h2 id="mobile-nav-editor-title" className="w-full rounded-xl bg-blue-700 px-3 py-2.5 text-center text-base font-black text-white dark:bg-blue-800">Atur Navigasi</h2>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs text-muted">Untuk akun multi-role, menu dipisahkan per kategori role. Atur posisi menu dari kategori masing-masing.</p>
+                <button className="secondary-button shrink-0 rounded-lg px-3 py-2 text-sm" onClick={() => setEditing(false)} type="button">Tutup</button>
+              </div>
             </div>
             <div className="grid gap-3">
               <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
