@@ -1083,6 +1083,7 @@
 
   .mobile-bottom-nav-menu {
     position: absolute;
+    pointer-events: auto;
     right: 0;
     bottom: calc(100% + 0.75rem);
     z-index: 130;

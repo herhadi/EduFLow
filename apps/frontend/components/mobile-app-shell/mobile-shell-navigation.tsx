@@ -309,7 +309,7 @@ export function BottomNavigation({
         })}
       </div>
       {editing ? (
-        <div className="fixed inset-0 z-[500] flex items-end justify-center bg-black/50 p-3 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="mobile-nav-editor-title">
+        <div className="pointer-events-auto fixed inset-0 z-[500] flex items-end justify-center bg-black/50 p-3 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="mobile-nav-editor-title">
           <section className="surface-card max-h-[85dvh] w-full max-w-xl overflow-y-auto rounded-2xl p-4 shadow-2xl">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div><h2 id="mobile-nav-editor-title" className="text-base font-black text-ink">Atur Navigasi</h2><p className="text-xs text-muted">Gunakan tombol untuk mengubah urutan dan memindahkan menu.</p></div>
