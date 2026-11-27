@@ -315,12 +315,9 @@ export function BottomNavigation({
       {editing ? (
         <div className="pointer-events-auto fixed inset-0 z-[500] flex items-end justify-center bg-black/50 p-3 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="mobile-nav-editor-title">
           <section className="surface-card max-h-[85dvh] w-full max-w-xl overflow-y-auto rounded-2xl p-4 shadow-2xl">
-            <div className="mb-3 grid gap-2">
-              <h2 id="mobile-nav-editor-title" className="w-full rounded-xl bg-blue-700 px-3 py-2.5 text-center text-base font-black text-white dark:bg-blue-800">Atur Navigasi</h2>
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-xs text-muted">Untuk akun multi-role, menu dipisahkan per kategori role. Atur posisi menu dari kategori masing-masing.</p>
-                <button className="secondary-button shrink-0 rounded-lg px-3 py-2 text-sm" onClick={() => setEditing(false)} type="button">Tutup</button>
-              </div>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div><h2 id="mobile-nav-editor-title" className="text-base font-black text-ink">Atur Navigasi</h2><p className="text-xs text-muted">Untuk akun multi-role, menu dipisahkan per kategori role. Atur posisi menu dari kategori masing-masing.</p></div>
+              <button className="secondary-button rounded-lg px-3 py-2 text-sm" onClick={() => setEditing(false)} type="button">Tutup</button>
             </div>
             <div className="grid gap-3">
               <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
@@ -367,7 +364,7 @@ export function BottomNavigation({
             </div>
             <p className="mt-3 text-xs text-muted">Navigasi tetap digabung menjadi satu navbar. Setiap menu dikelompokkan berdasarkan role asal; maksimal empat menu tampil sebagai Menu Utama. Jika penuh, menu terakhir otomatis dipindah ke Lainnya saat Anda memilih menu pengganti.</p>
             {saveError ? <p className="mt-2 text-sm font-semibold text-red-600">{saveError}</p> : null}
-            <div className="mt-4 flex justify-end gap-2"><button className="secondary-button rounded-lg px-4 py-2 text-sm" onClick={() => setEditing(false)} type="button">Batal</button><button className="primary-button rounded-lg px-4 py-2 text-sm" disabled={saving || layout.primary.length === 0} onClick={() => void saveLayout()} type="button">{saving ? 'Menyimpan...' : 'Simpan'}</button></div>
+            <div className="mt-4 flex justify-end gap-2"><button className="secondary-button rounded-lg px-4 py-2 text-sm" onClick={() => setEditing(false)} type="button">Batal</button><button className="primary-button rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-800 dark:hover:bg-blue-700" disabled={saving || layout.primary.length === 0} onClick={() => void saveLayout()} type="button">{saving ? 'Menyimpan...' : 'Simpan'}</button></div>
           </section>
         </div>
       ) : null}
@@ -410,7 +407,7 @@ function MoreNavigationMenu({
 }) {
   return (
     <div className="mobile-bottom-nav-menu">
-      <button className="mb-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-left text-xs font-bold text-ink hover:bg-[var(--surface)]" onClick={onCustomize} type="button">Atur Navigasi</button>
+      <button className="mb-2 w-full rounded-lg border border-blue-700 bg-blue-700 px-3 py-2 text-center text-xs font-bold text-white transition-colors hover:bg-blue-800 dark:border-blue-600 dark:bg-blue-800 dark:hover:bg-blue-700" onClick={onCustomize} type="button">Atur Navigasi</button>
       <div className="grid gap-1">
         {items.map((child, index) => {
           const active = isBottomNavItemActive({
