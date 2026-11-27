@@ -52,3 +52,11 @@ apps/frontend/components/ui/
 - Urutan dapat diubah dengan drag-and-drop atau tombol Naik/Turun yang ramah layar sentuh.
 - Daftar yang dapat dipilih selalu dibatasi pada menu yang tersedia untuk role aktif. Item yang tidak lagi tersedia tidak ditampilkan; menu baru ditambahkan ke Lainnya.
 - Pengaturan disimpan ke backend, bukan hanya local storage, sehingga konsisten lintas perangkat dan sesi.
+
+
+### Perbaikan navigasi personal (27 November 2026)
+
+- Dropdown Lainnya dibatasi tinggi dan dapat digulir agar seluruh menu multi-role tetap dapat dijangkau di layar kecil.
+- Aksi Atur Navigasi dipindahkan ke bagian atas dropdown agar mudah ditemukan.
+- Memindahkan menu ke Menu Utama saat empat slot penuh otomatis menggantikan menu terakhir dan mengembalikannya ke Lainnya.
+- Pengurutan tetap menyediakan tombol Naik/Turun sebagai cara utama yang kompatibel dengan layar sentuh; drag-and-drop menjadi opsi tambahan.

@@ -239,7 +239,11 @@ export function BottomNavigation({
       let primary = current.primary.filter((entry) => entry.href !== href);
       let more = current.more.filter((entry) => entry.href !== href);
       if (destination === 'primary') {
-        if (current.primary.length >= 4 && !current.primary.some((entry) => entry.href === href)) return current;
+        const movingFromMore = !current.primary.some((entry) => entry.href === href);
+        if (movingFromMore && primary.length >= 4) {
+          const displaced = primary.pop();
+          if (displaced) more.unshift(displaced);
+        }
         const targetIndex = targetHref ? primary.findIndex((entry) => entry.href === targetHref) : -1;
         primary.splice(targetIndex >= 0 ? targetIndex : primary.length, 0, item);
       } else {
@@ -308,7 +312,7 @@ export function BottomNavigation({
         <div className="fixed inset-0 z-[500] flex items-end justify-center bg-black/50 p-3 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="mobile-nav-editor-title">
           <section className="surface-card max-h-[85dvh] w-full max-w-xl overflow-y-auto rounded-2xl p-4 shadow-2xl">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <div><h2 id="mobile-nav-editor-title" className="text-base font-black text-ink">Atur Navigasi</h2><p className="text-xs text-muted">Seret menu untuk memindahkan atau mengubah urutan.</p></div>
+              <div><h2 id="mobile-nav-editor-title" className="text-base font-black text-ink">Atur Navigasi</h2><p className="text-xs text-muted">Gunakan tombol untuk mengubah urutan dan memindahkan menu.</p></div>
               <button className="secondary-button rounded-lg px-3 py-2 text-sm" onClick={() => setEditing(false)} type="button">Tutup</button>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -340,7 +344,7 @@ export function BottomNavigation({
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-xs text-muted">Menu pertama dikunci sebagai Beranda atau halaman utama role. Maksimal empat menu utama; akses menu lainnya tetap tersedia melalui Lainnya.</p>
+            <p className="mt-3 text-xs text-muted">Menu pertama dikunci sebagai Beranda atau halaman utama role. Maksimal empat menu utama. Jika slot penuh, menu terakhir otomatis dipindah ke Lainnya saat Anda memilih menu pengganti.</p>
             {saveError ? <p className="mt-2 text-sm font-semibold text-red-600">{saveError}</p> : null}
             <div className="mt-4 flex justify-end gap-2"><button className="secondary-button rounded-lg px-4 py-2 text-sm" onClick={() => setEditing(false)} type="button">Batal</button><button className="primary-button rounded-lg px-4 py-2 text-sm" disabled={saving || layout.primary.length === 0} onClick={() => void saveLayout()} type="button">{saving ? 'Menyimpan...' : 'Simpan'}</button></div>
           </section>
@@ -385,6 +389,7 @@ function MoreNavigationMenu({
 }) {
   return (
     <div className="mobile-bottom-nav-menu">
+      <button className="mb-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-left text-xs font-bold text-ink hover:bg-[var(--surface)]" onClick={onCustomize} type="button">Atur Navigasi</button>
       <div className="grid gap-1">
         {items.map((child, index) => {
           const active = isBottomNavItemActive({
@@ -414,7 +419,6 @@ function MoreNavigationMenu({
           );
         })}
       </div>
-      <button className="mt-2 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-left text-xs font-bold text-ink hover:bg-[var(--surface-soft)]" onClick={onCustomize} type="button">Atur Navigasi</button>
     </div>
   );
 }

@@ -1087,6 +1087,9 @@
     bottom: calc(100% + 0.75rem);
     z-index: 130;
     width: 12rem;
+    max-height: min(70dvh, calc(100dvh - 7.5rem));
+    overflow-y: auto;
+    overscroll-behavior: contain;
     border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
     border-radius: 1.25rem;
     background: color-mix(in srgb, var(--surface-solid) 94%, transparent);

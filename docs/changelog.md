@@ -538,3 +538,10 @@ Changelog hanya memuat perubahan besar yang berdampak pada fitur, alur kerja, ke
 - Pengguna dapat memindahkan menu antara Menu Utama dan Lainnya serta mengubah urutan dengan drag-and-drop atau kontrol Naik/Turun.
 - Menu utama dibatasi maksimal empat item dan halaman awal role tetap dikunci pada posisi pertama.
 - Menu yang tampil tetap mengikuti daftar navigasi yang diizinkan untuk role aktif; menu baru yang tersedia otomatis masuk ke Lainnya.
+
+
+## 2026-11-27 - Perbaikan pengaturan navigasi personal
+
+- Memperbaiki dropdown Lainnya agar dapat digulir dan tidak memotong daftar panjang pada akun multi-role.
+- Menempatkan tombol Atur Navigasi di bagian atas dropdown.
+- Memungkinkan penggantian otomatis slot menu utama yang penuh, sehingga pemindahan menu dari Lainnya tidak tampak gagal.
